@@ -201,9 +201,9 @@ class sfWebRequest extends sfRequest
    *
    * @throws <b>sfInitializationException</b> If an error occurs while initializing this Request.
    */
-  public function initialize ($context, $parameters = null)
+  public function initialize ($context, $config, $parameters = null)
   {
-    parent::initialize ($context, $parameters);
+    parent::initialize ($context, $config, $parameters);
 
     if (isset($_SERVER['REQUEST_METHOD']))
     {
@@ -230,14 +230,8 @@ class sfWebRequest extends sfRequest
     // load parameters from GET/PATH_INFO/POST
     $this->loadParameters();
 
-    // register sfWebDebug assets
-    if (defined('SF_WEB_DEBUG') && SF_WEB_DEBUG)
-    {
-      sfWebDebug::getInstance()->registerAssets();
-    }
-
     // sfStats call
-    if (SF_STATS)
+    if ($this->config->get('sf_stats'))
     {
       sfStats::record($this->context);
     }
@@ -253,7 +247,7 @@ class sfWebRequest extends sfRequest
   private function getPathInfoArray()
   {
     // parse PATH_INFO
-    switch (SF_PATH_INFO_ARRAY)
+    switch ($this->config->get('sf_path_info_array'))
     {
       case 'SERVER':
         $pathArray =& $_SERVER;
@@ -279,7 +273,7 @@ class sfWebRequest extends sfRequest
     $pathArray = $this->getPathInfoArray();
 
     // simulate PATH_INFO if needed
-    if (!isset($pathArray[SF_PATH_INFO_KEY]))
+    if (!isset($pathArray[$this->config->get('sf_path_info_key')]))
     {
       $script_name = $pathArray['SCRIPT_NAME'];
       $pathInfo = preg_replace('/^'.preg_quote($script_name, '/').'/', '', $pathArray['REQUEST_URI']);
@@ -289,10 +283,10 @@ class sfWebRequest extends sfRequest
     }
     else
     {
-      $pathInfo = $pathArray[SF_PATH_INFO_KEY];
-      if (defined('SF_RELATIVE_URL_ROOT') && SF_RELATIVE_URL_ROOT)
+      $pathInfo = $pathArray[$this->config->get('sf_path_info_key')];
+      if ($this->config->get('sf_relative_url_root'))
       {
-        $pathInfo = preg_replace('/^'.str_replace('/', '\\/', SF_RELATIVE_URL_ROOT).'\//', '', $pathInfo);
+        $pathInfo = preg_replace('/^'.str_replace('/', '\\/', $this->config->get('sf_relative_url_root')).'\//', '', $pathInfo);
       }
     }
     // for IIS
@@ -328,8 +322,8 @@ class sfWebRequest extends sfRequest
         }
         else
         {
-          $this->setParameter('module', SF_ERROR_404_MODULE);
-          $this->setParameter('action', SF_ERROR_404_ACTION);
+          $this->setParameter('module', $this->config->get('sf_error_404_module'));
+          $this->setParameter('action', $this->config->get('sf_error_404_action'));
         }
       }
       else
@@ -350,7 +344,7 @@ class sfWebRequest extends sfRequest
     // merge POST parameters
     $this->getParameterHolder()->addByRef($_POST);
 
-    if (SF_LOGGING_ACTIVE)
+    if ($this->config->get('sf_logging_active'))
     {
       $parameters = '';
       foreach ($this->getParameterHolder()->getAll() as $key => $value)

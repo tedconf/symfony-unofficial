@@ -15,11 +15,13 @@
  */
 require_once 'propel/Propel.php';
 
+$config = sfConfig::getInstance();
+
 // check orm configuration
-$orm_config = SF_APP_CONFIG_DIR_NAME.'/orm.yml';
+$orm_config = $config->get('sf_app_config_dir_name').'/orm.yml';
 sfConfigCache::checkConfig($orm_config);
 
-if (SF_DEBUG && SF_LOGGING_ACTIVE)
+if ($config->get('sf_debug') && $config->get('sf_logging_active'))
 {
   // register debug driver
   require_once 'creole/Creole.php';

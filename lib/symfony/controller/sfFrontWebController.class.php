@@ -37,32 +37,38 @@ class sfFrontWebController extends sfWebController
       // get the application context
       $context = $this->getContext();
 
-      if (SF_LOGGING_ACTIVE) $this->getContext()->getLogger()->info('{sfFrontWebController} dispatch request');
+      if ($this->config->get('sf_logging_active')) $this->getContext()->getLogger()->info('{sfFrontWebController} dispatch request');
 
       // determine our module and action
-      $moduleName = $context->getRequest()->getParameter(SF_MODULE_ACCESSOR);
-      $actionName = $context->getRequest()->getParameter(SF_ACTION_ACCESSOR);
+      $moduleName = $context->getRequest()->getParameter($this->config->get('sf_module_accessor'));
+      $actionName = $context->getRequest()->getParameter($this->config->get('sf_action_accessor'));
 
       if ($moduleName == null)
       {
-        $moduleName = SF_DEFAULT_MODULE;
+        $moduleName = $this->config->get('sf_default_module');
 
-        if (SF_LOGGING_ACTIVE) $this->getContext()->getLogger()->info('{sfFrontWebController} no module, set default ('.$moduleName.')');
+        if ($this->config->get('sf_logging_active')) $this->getContext()->getLogger()->info('{sfFrontWebController} no module, set default ('.$moduleName.')');
       }
 
       if ($actionName == null)
       {
         // no action has been specified
-        $actionName = SF_DEFAULT_ACTION;
+        $actionName = $this->config->get('sf_default_action');
 
-        if (SF_LOGGING_ACTIVE) $this->getContext()->getLogger()->info('{sfFrontWebController} no action, set default ('.$actionName.')');
+        if ($this->config->get('sf_logging_active')) $this->getContext()->getLogger()->info('{sfFrontWebController} no action, set default ('.$actionName.')');
+      }
+
+      // register sfWebDebug assets
+      if ($this->config->get('sf_web_debug'))
+      {
+        sfWebDebug::getInstance()->registerAssets();
       }
 
       // make the first request
       $this->forward($moduleName, $actionName);
 
       // send web debug information if needed
-      if (SF_WEB_DEBUG)
+      if ($this->config->get('sf_web_debug'))
       {
         sfWebDebug::getInstance()->printResults();
       }

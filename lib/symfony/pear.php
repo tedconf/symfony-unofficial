@@ -1,7 +1,7 @@
 <?php
 
-define('SF_SYMFONY_LIB_DIR',  '@PEAR-DIR@/symfony');
-define('SF_SYMFONY_DATA_DIR', '@DATA-DIR@');
+$sf_symfony_lib_dir  = '@PEAR-DIR@/symfony';
+$sf_symfony_data_dir = '@DATA-DIR@';
 
 return 'OK';
 

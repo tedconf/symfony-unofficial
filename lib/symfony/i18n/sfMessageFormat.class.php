@@ -58,7 +58,7 @@ class sfMessageFormat extends MessageFormat
 
     parent::__construct($source);
 
-//    if (SF_DEBUG)
+//    if (sfConfig::getInstance()->get('sf_debug'))
 //      $this->setUntranslatedPS(array('[T]','[/T]'));
   }
 

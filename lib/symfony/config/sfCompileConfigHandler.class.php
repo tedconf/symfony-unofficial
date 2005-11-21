@@ -91,8 +91,10 @@ class sfCompileConfigHandler extends sfYamlConfigHandler
     $data = preg_replace("/\n+/s",     "\n", $data);
 
     // insert configuration files
-    $data = preg_replace_callback('#(require|include)(_once)?\(sfConfigCache\:\:checkConfig\(SF_APP_CONFIG_DIR_NAME\.\'/([^\']+)\'\)\);#m', array($this, 'insertConfig'), $data);
-    $data = preg_replace_callback('#()()sfConfigCache\:\:import\(SF_APP_CONFIG_DIR_NAME\.\'/([^\']+)\'\);#m', array($this, 'insertConfig'), $data);
+//    $data = preg_replace_callback('#(require|include)(_once)?\(sfConfigCache\:\:checkConfig\(SF_APP_CONFIG_DIR_NAME\.\'/([^\']+)\'\)\);#m', array($this, 'insertConfig'), $data);
+//    $data = preg_replace_callback('#()()sfConfigCache\:\:import\(SF_APP_CONFIG_DIR_NAME\.\'/([^\']+)\'\);#m', array($this, 'insertConfig'), $data);
+    $data = preg_replace_callback('#(require|include)(_once)?\(sfConfigCache\:\:checkConfig\([^_]+sf_app_config_dir_name[^\.]*\.\'/([^\']+)\'\)\);#m', array($this, 'insertConfig'), $data);
+    $data = preg_replace_callback('#()()sfConfigCache\:\:import\(.sf_app_config_dir_name\.\'/([^\']+)\'\);#m', array($this, 'insertConfig'), $data);
 
     $data = trim($data);
 
@@ -103,7 +105,7 @@ class sfCompileConfigHandler extends sfYamlConfigHandler
     $retval = sprintf($retval, date('m/d/Y H:i:s'), $data);
 
     // strip comments (not in debug mode)
-    if (!SF_DEBUG)
+    if (!$this->config->get('sf_debug'))
     {
       $retval = sfToolkit::stripComments($retval);
     }
@@ -113,7 +115,7 @@ class sfCompileConfigHandler extends sfYamlConfigHandler
 
   private function insertConfig ($matches)
   {
-    $configFile = SF_APP_CONFIG_DIR_NAME.'/'.$matches[3];
+    $configFile = $this->config->get('sf_app_config_dir_name').'/'.$matches[3];
 
     sfConfigCache::checkConfig($configFile);
 

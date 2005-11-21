@@ -35,10 +35,10 @@ class sfSessionStorage extends sfStorage
    *
    * @throws <b>sfInitializationException</b> If an error occurs while initializing this Storage.
    */
-  public function initialize ($context, $parameters = null)
+  public function initialize ($context, $config, $parameters = null)
   {
     // initialize parent
-    parent::initialize($context, $parameters);
+    parent::initialize($context, $config, $parameters);
 
     // set session name
     $sessionName = $this->getParameterHolder()->get('session_name', 'symfony');

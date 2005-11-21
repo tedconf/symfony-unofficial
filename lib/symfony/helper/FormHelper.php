@@ -222,9 +222,11 @@ function textarea_tag($name, $content = null, $options = array())
 
   if ($rich)
   {
+    $config = sfConfig::getInstance();
+
     // tinymce installed?
-    $js_path = defined('SF_RICH_TEXT_JS_DIR') ? '/'.SF_RICH_TEXT_JS_DIR.'/tiny_mce.js' : '/sf/js/tinymce/tiny_mce.js';
-    if (!is_readable(SF_WEB_DIR.$js_path))
+    $js_path = $config->get('sf_rich_text_js_dir') ? '/'.$config->get('sf_rich_text_js_dir').'/tiny_mce.js' : '/sf/js/tinymce/tiny_mce.js';
+    if (!is_readable($config->get('sf_web_dir').$js_path))
     {
       throw new sfConfigurationException('You must install Tiny MCE to use this helper (see rich_text_js_dir settings).');
     }
@@ -246,7 +248,7 @@ function textarea_tag($name, $content = null, $options = array())
 
       sfContext::getInstance()->getRequest()->setAttribute('tinymce', $css_path, 'helper/asset/auto/stylesheet');
 
-      $css    = file_get_contents(SF_WEB_DIR.DIRECTORY_SEPARATOR.$css_path);
+      $css    = file_get_contents($config->get('sf_web_dir').DIRECTORY_SEPARATOR.$css_path);
       $styles = array();
       preg_match_all('#^/\*\s*user\:\s*(.+?)\s*\*/\s*\015?\012\s*\.([^\s]+)#smi', $css, $matches, PREG_SET_ORDER);
       foreach ($matches as $match)

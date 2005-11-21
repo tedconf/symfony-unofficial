@@ -54,7 +54,7 @@ class sfBasicSecurityUser extends sfUser implements sfSecurityUser
       {
         if ($credential == $this->credentials[$i])
         {
-          if (SF_LOGGING_ACTIVE) $this->getContext()->getLogger()->info('{sfUser} remove credential "'.$credential.'"');
+          if ($this->config->get('sf_logging_active')) $this->getContext()->getLogger()->info('{sfUser} remove credential "'.$credential.'"');
 
           unset($this->credentials[$i]);
           return;
@@ -85,7 +85,7 @@ class sfBasicSecurityUser extends sfUser implements sfSecurityUser
     // Add all credentials
     $credentials = (is_array(func_get_arg(0))) ? func_get_arg(0) : func_get_args();
 
-    if (SF_LOGGING_ACTIVE) $this->getContext()->getLogger()->info('{sfUser} add credential(s) "'.implode(', ', $credentials).'"');
+    if ($this->config->get('sf_logging_active')) $this->getContext()->getLogger()->info('{sfUser} add credential(s) "'.implode(', ', $credentials).'"');
 
     foreach ($credentials as $aCredential)
       if (!in_array($aCredential, $this->credentials)) $this->credentials[] = $aCredential;
@@ -153,7 +153,7 @@ class sfBasicSecurityUser extends sfUser implements sfSecurityUser
    */
   public function setAuthenticated($authenticated)
   {
-    if (SF_LOGGING_ACTIVE) $this->getContext()->getLogger()->info('{sfUser} user is '.($authenticated === true ? '' : 'not').' authenticated');
+    if ($this->config->get('sf_logging_active')) $this->getContext()->getLogger()->info('{sfUser} user is '.($authenticated === true ? '' : 'not').' authenticated');
 
     if ($authenticated === true)
     {
@@ -166,10 +166,10 @@ class sfBasicSecurityUser extends sfUser implements sfSecurityUser
     }
   }
 
-  public function initialize($context, $parameters = null)
+  public function initialize($context, $config, $parameters = null)
   {
     // initialize parent
-    parent::initialize($context, $parameters);
+    parent::initialize($context, $config, $parameters);
 
     // read data from storage
     $storage = $this->getContext()->getStorage();
@@ -186,9 +186,9 @@ class sfBasicSecurityUser extends sfUser implements sfSecurityUser
     }
 
     // Automatic logout if no request for more than SF_TIMEOUT
-    if ((time() - $this->lastRequest) > SF_TIMEOUT)
+    if ((time() - $this->lastRequest) > $this->config->get('sf_timeout'))
     {
-      if (SF_LOGGING_ACTIVE) $this->getContext()->getLogger()->info('{sfUser} automatic user logout');
+      if ($this->config->get('sf_logging_active')) $this->getContext()->getLogger()->info('{sfUser} automatic user logout');
       $this->clearCredentials();
       $this->setAuthenticated(false);
     }
@@ -197,11 +197,11 @@ class sfBasicSecurityUser extends sfUser implements sfSecurityUser
 
     if ($this->culture == null)
     {
-      $this->culture = SF_DEFAULT_CULTURE;
+      $this->culture = $this->config->get('sf_default_culture');
     }
 
     // i18n
-    if (SF_IS_I18N)
+    if ($this->config->get('sf_is_i18n'))
     {
       $context->getRequest()->setAttribute('message_format', new sfMessageFormat($context->getUser()->getCulture()), 'symfony/i18n');
     }

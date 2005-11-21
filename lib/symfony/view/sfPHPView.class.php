@@ -66,7 +66,7 @@ abstract class sfPHPView extends sfView
     self::$coreHelpersLoaded = 1;
 
     $core_helpers = array('Helper', 'Url', 'Asset', 'Tag');
-    $standard_helpers = explode(',', SF_STANDARD_HELPERS);
+    $standard_helpers = explode(',', $this->config->get('sf_standard_helpers'));
 
     $helpers = array_unique(array_merge($core_helpers, $standard_helpers));
     $this->loadHelpers($helpers);
@@ -79,9 +79,10 @@ abstract class sfPHPView extends sfView
    */
   private function loadHelpers($helpers)
   {
+    $helper_base_dir = $this->config->get('sf_symfony_lib_dir').'/symfony/helper/';
     foreach ($helpers as $helperName)
     {
-      if (is_readable(SF_SYMFONY_LIB_DIR.'/symfony/helper/'.$helperName.'Helper.php'))
+      if (is_readable($helper_base_dir.$helperName.'Helper.php'))
       {
         include_once('symfony/helper/'.$helperName.'Helper.php');
       }
@@ -134,7 +135,7 @@ abstract class sfPHPView extends sfView
   {
     $template = $this->getDecoratorDirectory().'/'.$this->getDecoratorTemplate();
 
-    if (SF_LOGGING_ACTIVE) $this->getContext()->getLogger()->info('{sfPHPView} decorate content with "'.$template.'"');
+    if ($this->config->get('sf_logging_active')) $this->getContext()->getLogger()->info('{sfPHPView} decorate content with "'.$template.'"');
 
     // call our parent decorate() method
     parent::decorate($content);
@@ -173,14 +174,14 @@ abstract class sfPHPView extends sfView
 
     if ($mode != sfView::RENDER_NONE)
     {
-      if (SF_LOGGING_ACTIVE) $this->getContext()->getLogger()->info('{sfPHPView} render "'.$template.'"');
+      if ($this->config->get('sf_logging_active')) $this->getContext()->getLogger()->info('{sfPHPView} render "'.$template.'"');
 
       // ignore cache parameter? (only available in debug mode)
-      if (SF_CACHE && !count($_GET) && !count($_POST))
+      if ($this->config->get('sf_cache') && !count($_GET) && !count($_POST))
       {
-        if (SF_DEBUG && $this->getContext()->getRequest()->getParameter('ignore_cache', false, 'symfony/request/sfWebRequest') == true)
+        if ($this->config->get('sf_debug') && $this->getContext()->getRequest()->getParameter('ignore_cache', false, 'symfony/request/sfWebRequest') == true)
         {
-          if (SF_LOGGING_ACTIVE) $this->getContext()->getLogger()->info('{sfPHPView} discard cache for "'.$template.'"');
+          if ($this->config->get('sf_logging_active')) $this->getContext()->getLogger()->info('{sfPHPView} discard cache for "'.$template.'"');
         }
         else
         {
@@ -188,7 +189,7 @@ abstract class sfPHPView extends sfView
           list($internalUri, $suffix) = $this->getInternalUri($actionStackEntry);
           $retval = $this->getContext()->getViewCacheManager()->get($internalUri, $suffix);
 
-          if (SF_LOGGING_ACTIVE) $this->getContext()->getLogger()->info('{sfPHPView} cache '.($retval !== null ? 'exists' : 'does not exist'));
+          if ($this->config->get('sf_logging_active')) $this->getContext()->getLogger()->info('{sfPHPView} cache '.($retval !== null ? 'exists' : 'does not exist'));
         }
       }
 
@@ -198,14 +199,14 @@ abstract class sfPHPView extends sfView
         $retval = $this->renderFile($template);
 
         // tidy our cache content
-        if (SF_TIDY)
+        if ($this->config->get('sf_tidy'))
         {
           $retval = sfTidy::tidy($retval, $template);
         }
 
         // save content in cache
         // no cache for POST and GET action
-        if (SF_CACHE && !count($_GET) && !count($_POST))
+        if ($this->config->get('sf_cache') && !count($_GET) && !count($_POST))
         {
           list($internalUri, $suffix) = $this->getInternalUri($actionStackEntry);
           $retval = $this->getContext()->getViewCacheManager()->set($retval, $internalUri, $suffix);
@@ -221,11 +222,11 @@ abstract class sfPHPView extends sfView
       // render to client
       if ($mode == sfView::RENDER_CLIENT)
       {
-        if (SF_LOGGING_ACTIVE) $this->getContext()->getLogger()->info('{sfPHPView} render to client');
+        if ($this->config->get('sf_logging_active')) $this->getContext()->getLogger()->info('{sfPHPView} render to client');
 
         // save content in cache
         // no cache for POST action
-        if (SF_CACHE && $this->getContext()->getRequest()->getMethod() != sfRequest::POST)
+        if ($this->config->get('sf_cache') && $this->getContext()->getRequest()->getMethod() != sfRequest::POST)
         {
           $retval = $this->getContext()->getViewCacheManager()->set($retval, sfRouting::getInstance()->getCurrentInternalUri(), 'page');
         }

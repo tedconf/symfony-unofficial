@@ -29,12 +29,14 @@
 */
 function cache($suffix, $lifeTime = SF_DEFAULT_CACHE_LIFETIME)
 {
-  if (!SF_CACHE)
+  $context = sfContext::getInstance();
+  $config  = $context->getConfig();
+
+  if (!$config->get('sf_cache'))
   {
     return null;
   }
 
-  $context = sfContext::getInstance();
   $request = $context->getRequest();
   $cache   = $context->getViewCacheManager();
 
@@ -62,12 +64,14 @@ function cache($suffix, $lifeTime = SF_DEFAULT_CACHE_LIFETIME)
 
 function cache_save()
 {
-  if (!SF_CACHE)
+  $context = sfContext::getInstance();
+  $config  = $context->getConfig();
+
+  if (!$config->get('sf_cache'))
   {
     return null;
   }
 
-  $context = sfContext::getInstance();
   $request = $context->getRequest();
 
   if ($request->getAttribute('started', null, 'symfony/action/sfAction/cache') === null)

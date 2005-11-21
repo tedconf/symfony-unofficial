@@ -151,7 +151,9 @@ class sfToolkit
      * which we will mask as T_ML_COMMENT for PHP 4.
      */
     if (!defined('T_ML_COMMENT'))
+    {
       define('T_ML_COMMENT', T_COMMENT);
+    }
     else
     {
       if (!defined('T_DOC_COMMENT')) define('T_DOC_COMMENT', T_ML_COMMENT);

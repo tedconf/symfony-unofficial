@@ -22,7 +22,9 @@
  */
 abstract class sfConfigHandler
 {
-  protected $parameter_holder = null;
+  protected
+    $config           = null,
+    $parameter_holder = null;
 
   /**
    * Add a set of replacement values.
@@ -50,7 +52,7 @@ abstract class sfConfigHandler
    * @throws <b>sfParseException</b> If a requested configuration file is
    *                               improperly formatted.
    */
-  abstract function & execute ($config, $param = array());
+  abstract function & execute ($configPath, $param = array());
 
   /**
    * Initialize this ConfigHandler.
@@ -66,9 +68,10 @@ abstract class sfConfigHandler
     $this->getParameterHolder()->add($parameters);
   }
 
-  public function __construct()
+  public function __construct($config)
   {
     $this->parameter_holder = new sfParameterHolder();
+    $this->config           = $config;
   }
 
   /**
@@ -124,7 +127,14 @@ abstract class sfConfigHandler
    */
   public static function & replaceConstants ($value)
   {
-    $value = preg_replace('/%(.+?)%/e', 'constant("\\1")', $value);
+    static $config;
+
+    if (!$config)
+    {
+      $config = sfConfig::getInstance();
+    }
+
+    $value = preg_replace('/%(.+?)%/e', '$config->get(strtolower("\\1"))', $value);
 
     return $value;
   }
@@ -141,7 +151,7 @@ abstract class sfConfigHandler
     if (!sfToolkit::isPathAbsolute($path))
     {
       // not an absolute path so we'll prepend to it
-      $path = SF_APP_DIR.'/'.$path;
+      $path = sfConfig::getInstance()->get('sf_app_dir').'/'.$path;
     }
 
     return $path;

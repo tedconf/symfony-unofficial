@@ -13,7 +13,7 @@
  * Each map is called a route.
  * It implements the Singleton pattern.
  *
- * Routing is disabled when SF_ROUTING is set to false.
+ * Routing can be disabled when SF_ROUTING is set to false.
  *
  * This class is based on the Routes class of Cake framework.
  *
@@ -25,7 +25,8 @@
 class sfRouting
 {
   private static
-    $instance           = null;
+    $instance           = null,
+    $config             = null;
 
   private
     $current_route_name = '',
@@ -40,7 +41,8 @@ class sfRouting
   {
     if (!isset(self::$instance))
     {
-      self::$instance = new sfRouting();
+      self::$instance         = new sfRouting();
+      self::$instance->config = sfConfig::getInstance();
     }
 
     return self::$instance;
@@ -116,7 +118,7 @@ class sfRouting
   /**
    * Has this instance some routes.
    *
-   * @return  object the sfLogger instance
+   * @return  boolean
    */
   public function hasRoutes()
   {
@@ -129,7 +131,7 @@ class sfRouting
    */
   public function clearRoutes()
   {
-    if (SF_LOGGING_ACTIVE) sfLogger::getInstance()->info('{sfRouting} clear all current routes');
+    if ($this->config->get('sf_logging_active')) sfLogger::getInstance()->info('{sfRouting} clear all current routes');
 
     $this->routes = array();
   }
@@ -154,11 +156,6 @@ class sfRouting
   */
   public function connect($name, $route, $default = array(), $requirements = array())
   {
-    if (!SF_ROUTING)
-    {
-      return array();
-    }
-
     // route already exists
     if (isset($this->routes[$name]))
     {
@@ -170,7 +167,7 @@ class sfRouting
 
     $parsed = array();
     $names  = array();
-    $suffix = (SF_SUFFIX == '.') ? '' : SF_SUFFIX;
+    $suffix = ($this->config->get('sf_suffix') == '.') ? '' : $this->config->get('sf_suffix');
 
     // used for performance reasons
     $names_hash = array();
@@ -234,7 +231,7 @@ class sfRouting
       $this->routes[$name] = array($route, $regexp, $names, $names_hash, $default, $requirements, $suffix);
     }
 
-    if (SF_LOGGING_ACTIVE) sfLogger::getInstance()->info('{sfRouting} connect "'.$route.'"'.($suffix ? ' ("'.$suffix.'" suffix)' : ''));
+    if ($this->config->get('sf_logging_active')) sfLogger::getInstance()->info('{sfRouting} connect "'.$route.'"'.($suffix ? ' ("'.$suffix.'" suffix)' : ''));
 
     return $this->routes;
   }
@@ -249,8 +246,6 @@ class sfRouting
   */
   public function generate($name, $params, $divider, $equals)
   {
-    if (!SF_ROUTING) return array();
-
     // named route?
     if ($name)
     {
@@ -355,10 +350,8 @@ class sfRouting
   * @param  string URL to be parsed
   * @return array  parameters
   */
-  public function parse($url) 
+  public function parse($url)
   {
-    if (!SF_ROUTING) return array();
-
     // an URL should start with a '/', mod_rewrite doesn't respect that, but no-mod_rewrite version does.
     if ($url && ('/' != $url[0]))
     {
@@ -461,7 +454,7 @@ class sfRouting
           // we store route name
           $this->setCurrentRouteName($route_name);
 
-          if (SF_LOGGING_ACTIVE) sfLogger::getInstance()->info('{sfRouting} match route ['.$route_name.'] "'.$route.'"');
+          if ($this->config->get('sf_logging_active')) sfLogger::getInstance()->info('{sfRouting} match route ['.$route_name.'] "'.$route.'"');
           break;
         }
       }

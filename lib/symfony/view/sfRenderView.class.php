@@ -24,8 +24,8 @@ class sfRenderView extends sfPHPView
     $action           = $actionStackEntry->getActionInstance();
 
     // require our configuration
-    $viewConfigFile = $this->moduleName.'/'.SF_APP_MODULE_CONFIG_DIR_NAME.'/view.yml';
-    require(sfConfigCache::checkConfig(SF_APP_MODULE_DIR_NAME.'/'.$viewConfigFile));
+    $viewConfigFile = $this->moduleName.'/'.$this->config->get('sf_app_module_config_dir_name').'/view.yml';
+    require(sfConfigCache::checkConfig($this->config->get('sf_app_module_dir_name').'/'.$viewConfigFile));
 
     $viewType = sfView::SUCCESS;
     $regexp = sfView::SUCCESS.'|'.sfView::ERROR;
@@ -43,19 +43,19 @@ class sfRenderView extends sfPHPView
     if (!is_readable($this->getDirectory().'/'.$templateFile))
     {
       // search template in a symfony module directory
-      if (is_readable(SF_SYMFONY_DATA_DIR.'/symfony/modules/'.$module.'/templates/'.$templateFile))
+      if (is_readable($this->config->get('sf_symfony_data_dir').'/symfony/modules/'.$module.'/templates/'.$templateFile))
       {
-        $this->setDirectory(SF_SYMFONY_DATA_DIR.'/symfony/modules/'.$module.'/templates');
+        $this->setDirectory($this->config->get('sf_symfony_data_dir').'/symfony/modules/'.$module.'/templates');
       }
 
       // search template for generated templates in cache
-      if (is_readable(SF_MODULE_CACHE_DIR.'/auto'.ucfirst($module).'/templates/'.$templateFile))
+      if (is_readable($this->config->get('sf_module_cache_dir').'/auto'.ucfirst($module).'/templates/'.$templateFile))
       {
-        $this->setDirectory(SF_MODULE_CACHE_DIR.'/auto'.ucfirst($module).'/templates');
+        $this->setDirectory($this->config->get('sf_module_cache_dir').'/auto'.ucfirst($module).'/templates');
       }
     }
 
-    if (SF_LOGGING_ACTIVE) $context->getLogger()->info('{sfRenderView} execute view for template "'.$templateName.$viewType.'.php"');
+    if ($this->config->get('sf_logging_active')) $context->getLogger()->info('{sfRenderView} execute view for template "'.$templateName.$viewType.'.php"');
   }
 }
 

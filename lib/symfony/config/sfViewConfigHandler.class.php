@@ -36,14 +36,14 @@ class sfViewConfigHandler extends sfYamlConfigHandler
     $this->initialize($categories);
 
     // parse the yaml
-    $this->config = $this->parseYaml($configFile);
+    $this->yamlConfig = $this->parseYaml($configFile);
 
     // init our data array
     $data = array();
 
     // get default configuration
     $this->defaultConfig = array();
-    $defaultConfigFile = SF_APP_CONFIG_DIR.'/'.basename($configFile);
+    $defaultConfigFile = $this->config->get('sf_app_config_dir').'/'.basename($configFile);
     if (is_readable($defaultConfigFile))
     {
       $categories = array('required_categories' => array('default'));
@@ -54,7 +54,7 @@ class sfViewConfigHandler extends sfYamlConfigHandler
 
     // iterate through all view names
     $first = true;
-    foreach ($this->config as $viewName => $values)
+    foreach ($this->yamlConfig as $viewName => $values)
     {
       if ($viewName == 'all')
       {
@@ -75,7 +75,7 @@ class sfViewConfigHandler extends sfYamlConfigHandler
         $data[] = "  \$templateName = \$action->getTemplate() ? \$action->getTemplate() : \$this->getContext()->getActionName();\n";
       }
 
-      $data[] = "  if (!SF_SAFE_SLOT || (SF_SAFE_SLOT && !\$actionStackEntry->isSlot()))\n";
+      $data[] = "  if (!\$this->config->get('sf_safe_slot') || (\$this->config->get('sf_safe_slot') && !\$actionStackEntry->isSlot()))\n";
       $data[] = "  {\n";
 
       $data[] = $this->addLayout($viewName);
@@ -95,7 +95,7 @@ class sfViewConfigHandler extends sfYamlConfigHandler
     $data[] = ($first ? '' : "else\n{")."\n".
               "  \$templateName = \$action->getTemplate() ? \$action->getTemplate() : \$this->getContext()->getActionName();\n";
 
-    $data[] = "  if (!SF_SAFE_SLOT || (SF_SAFE_SLOT && !\$actionStackEntry->isSlot()))\n";
+    $data[] = "  if (!\$this->config->get('sf_safe_slot') || (\$this->config->get('sf_safe_slot') && !\$actionStackEntry->isSlot()))\n";
     $data[] = "  {\n";
 
     $data[] = $this->addLayout();
@@ -128,7 +128,7 @@ class sfViewConfigHandler extends sfYamlConfigHandler
         if (count($slot) > 1)
         {
           $data .= "    \$this->setSlot('$name', '{$slot[0]}', '{$slot[1]}');\n";
-          $data .= "    if (SF_LOGGING_ACTIVE) \$context->getLogger()->info('{sfRenderView} set slot \"$name\" ({$slot[0]}/{$slot[1]})');\n";
+          $data .= "    if (\$this->config->get('sf_logging_active')) \$context->getLogger()->info('{sfRenderView} set slot \"$name\" ({$slot[0]}/{$slot[1]})');\n";
         }
       }
     }
@@ -144,7 +144,7 @@ class sfViewConfigHandler extends sfYamlConfigHandler
     if ($has_layout)
     {
       $layout = $this->getconfigValue('layout', $viewName);
-      $data .= "    \$this->setDecoratorDirectory(SF_APP_TEMPLATE_DIR);\n".
+      $data .= "    \$this->setDecoratorDirectory(\$this->config->get('sf_app_template_dir'));\n".
                "    \$this->setDecoratorTemplate('$layout.php');\n";
     }
 

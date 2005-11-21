@@ -50,13 +50,13 @@ class sfMySQLSessionStorage extends sfSessionStorage
    * @throws <b>sfInitializationException</b> If an error occurs while
    *                                        initializing this Storage.
    */
-  public function initialize ($context, $parameters = null)
+  public function initialize ($context, $config, $parameters = null)
   {
     // disable auto_start
     $parameters['auto_start'] = false;
 
     // initialize the parent
-    parent::initialize($context, $parameters);
+    parent::initialize($context, $config, $parameters);
 
     if (!$this->getParameterHolder()->has('db_table'))
     {

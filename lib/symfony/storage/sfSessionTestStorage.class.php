@@ -32,10 +32,10 @@ class sfSessionTestStorage extends sfStorage
    *
    * @throws <b>sfInitializationException</b> If an error occurs while initializing this Storage.
    */
-  public function initialize ($context, $parameters = null)
+  public function initialize ($context, $config, $parameters = null)
   {
     // initialize parent
-    parent::initialize($context, $parameters);
+    parent::initialize($context, $config, $parameters);
 
     if (array_key_exists('session_id', $_SERVER))
     {

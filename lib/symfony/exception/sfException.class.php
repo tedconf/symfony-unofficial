@@ -43,7 +43,7 @@ class sfException extends Exception
 
     parent::__construct($message, $code);
 
-    if (defined('SF_LOGGING_ACTIVE') && SF_LOGGING_ACTIVE)
+    if (sfConfig::getInstance()->get('sf_logging_active'))
     {
       sfLogger::getInstance()->err('{'.$this->getName().'} '.$message);
     }
@@ -86,6 +86,8 @@ class sfException extends Exception
    */
   public function printStackTrace ()
   {
+    $config = sfConfig::getInstance();
+
     // exception related properties
     $class     = ($this->getFile() != null) ? sfToolkit::extractClassName($this->getFile()) : 'N/A';
     $class     = ($class != '') ? $class : 'N/A';
@@ -157,15 +159,15 @@ class sfException extends Exception
         break;
     }
 
-    if (file_exists(SF_APP_TEMPLATE_DIR.DIRECTORY_SEPARATOR.$error_file.'_'.SF_ENVIRONMENT.'.'.$error_ext))
+    if (file_exists($config->get('sf_app_template_dir').DIRECTORY_SEPARATOR.$error_file.'_'.SF_ENVIRONMENT.'.'.$error_ext))
     {
       $error_file = 'error_'.SF_ENVIRONMENT;
     }
 
-    include(SF_APP_TEMPLATE_DIR.DIRECTORY_SEPARATOR.$error_file.'.'.$error_ext);
+    include($config->get('sf_app_template_dir').DIRECTORY_SEPARATOR.$error_file.'.'.$error_ext);
 
     // if test, do not exit
-    if (!SF_TEST)
+    if (!$config->get('sf_test'))
     {
       exit(1);
     }

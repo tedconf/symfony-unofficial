@@ -30,6 +30,9 @@ abstract class sfAction
     $request_parameter_holder = null,
     $template                 = '';
 
+  protected
+    $config                   = null;
+
   /**
    * Execute any application/business logic for this action.
    *
@@ -80,12 +83,13 @@ abstract class sfAction
   public function initialize($context)
   {
     $this->context                  = $context;
+    $this->config                   = $context->getConfig();
     $this->var_holder               = new sfParameterHolder();
     $this->request                  = $context->getRequest();
     $this->request_parameter_holder = $this->request->getParameterHolder();
 
     // include security configuration
-    require(sfConfigCache::checkConfig('modules/'.$this->getModuleName().'/'.SF_APP_MODULE_CONFIG_DIR_NAME.'/security.yml', true, array('moduleName' => $this->getModuleName())));
+    require(sfConfigCache::checkConfig('modules/'.$this->getModuleName().'/'.$this->config->get('sf_app_module_config_dir_name').'/security.yml', true, array('moduleName' => $this->getModuleName())));
 
     return true;
   }
@@ -132,7 +136,7 @@ abstract class sfAction
 
   public function debugMessage ($message)
   {
-    if (SF_WEB_DEBUG)
+    if ($this->config->get('sf_web_debug'))
     {
       sfWebDebug::getInstance()->logShortMessage($message);
     }
@@ -153,13 +157,13 @@ abstract class sfAction
   // FIXME: does not work for fragment because config is created in template, too late...
   public function mustExecute($suffix = 'slot')
   {
-    if (!SF_CACHE)
+    if (!$this->config->get('sf_cache'))
     {
       return 1;
     }
 
     // ignore cache? (only in debug mode)
-    if (SF_DEBUG && $this->request->getParameter('ignore_cache', false, 'symfony/request/sfWebRequest') == true)
+    if ($this->config->get('sf_debug') && $this->request->getParameter('ignore_cache', false, 'symfony/request/sfWebRequest') == true)
     {
       return 1;
     }
@@ -202,7 +206,7 @@ abstract class sfAction
    */
   public function redirect404 ()
   {
-    return $this->redirect('/'.SF_ERROR_404_MODULE.'/'.SF_ERROR_404_ACTION);
+    return $this->redirect('/'.$this->config->get('sf_error_404_module').'/'.$this->config->get('sf_error_404_action'));
   }
 
   /**
@@ -218,7 +222,7 @@ abstract class sfAction
    */
   public function forward ($module, $action)
   {
-    if (SF_LOGGING_ACTIVE) $this->getContext()->getLogger()->info('{sfAction} forward to action "'.$module.'/'.$action.'"');
+    if ($this->config->get('sf_logging_active')) $this->getContext()->getLogger()->info('{sfAction} forward to action "'.$module.'/'.$action.'"');
 
     $this->getController()->forward($module, $action);
 
@@ -259,7 +263,7 @@ abstract class sfAction
   {
     $url = $this->getController()->genUrl(null, $url);
 
-    if (SF_LOGGING_ACTIVE) $this->getContext()->getLogger()->info('{sfAction} redirect to "'.$url.'"');
+    if ($this->config->get('sf_logging_active')) $this->getContext()->getLogger()->info('{sfAction} redirect to "'.$url.'"');
 
     $this->getController()->redirect($url);
 
@@ -466,7 +470,7 @@ abstract class sfAction
 
   public function setTemplate($name)
   {
-    if (SF_LOGGING_ACTIVE) $this->getContext()->getLogger()->info('{sfAction} change template to "'.$name.'"');
+    if ($this->config->get('sf_logging_active')) $this->getContext()->getLogger()->info('{sfAction} change template to "'.$name.'"');
 
     $this->template = $name;
   }

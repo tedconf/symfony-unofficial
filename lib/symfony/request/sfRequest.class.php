@@ -47,6 +47,7 @@ abstract class sfRequest
 
   protected
     $parameter_holder = null,
+    $config           = null,
     $attribute_holder = null;
 
   /**
@@ -156,9 +157,10 @@ abstract class sfRequest
    *
    * @throws <b>sfInitializationException</b> If an error occurs while initializing this Request.
    */
-  public function initialize ($context, $parameters = array())
+  public function initialize ($context, $config, $parameters = array())
   {
     $this->context = $context;
+    $this->config  = $config;
     $this->parameter_holder->add($parameters);
   }
 

@@ -56,7 +56,7 @@ abstract class sfActions extends sfAction
       throw new sfInitializationException($error);
     }
 
-    if (SF_LOGGING_ACTIVE) $this->getContext()->getLogger()->info('{sfActions} call "'.get_class($this).'->'.$actionToRun.'()'.'"');
+    if ($this->config->get('sf_logging_active')) $this->getContext()->getLogger()->info('{sfActions} call "'.get_class($this).'->'.$actionToRun.'()'.'"');
 
     // run action
     $ret = $this->$actionToRun();

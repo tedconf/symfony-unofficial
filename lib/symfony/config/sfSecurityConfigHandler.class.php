@@ -36,7 +36,7 @@ class sfSecurityConfigHandler extends sfYamlConfigHandler
     $this->initialize($categories);
 
     // parse the yaml
-    $this->config = $this->parseYaml($configFile);
+    $this->yamlConfig = $this->parseYaml($configFile);
 
     // init our data array
     $data = array();
@@ -45,7 +45,7 @@ class sfSecurityConfigHandler extends sfYamlConfigHandler
 
     // get default configuration
     $this->defaultConfig = array();
-    $defaultConfigFile = SF_APP_CONFIG_DIR.'/'.basename($configFile);
+    $defaultConfigFile = $this->config->get('sf_app_config_dir').'/'.basename($configFile);
     if (is_readable($defaultConfigFile))
     {
       $categories = array('required_categories' => array('default'));
@@ -56,7 +56,7 @@ class sfSecurityConfigHandler extends sfYamlConfigHandler
 
     // iterate through all action names
     $mergedConfig = array();
-    foreach ($this->config as $actionName => $values)
+    foreach ($this->yamlConfig as $actionName => $values)
     {
       $mergedConfig[$actionName] = array(
         'is_secure'   => $this->getConfigValue('is_secure', $actionName),

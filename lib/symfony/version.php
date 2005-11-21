@@ -23,7 +23,7 @@
  * @author     Sean Kerr <skerr@mojavi.org>
  * @version    SVN: $Id$
  */
-
+/*
 define('SF_APP_NAME',          'symfony');
 define('SF_APP_MAJOR_VERSION', '1');
 define('SF_APP_MINOR_VERSION', '0');
@@ -35,5 +35,5 @@ define('SF_APP_VERSION',       SF_APP_MAJOR_VERSION.'.'.
                                SF_APP_MICRO_VERSION.'-'.SF_APP_STATUS);
 define('SF_APP_URL',           'http://www.symfony-project.com/');
 define('SF_APP_INFO',          SF_APP_NAME.' '.SF_APP_VERSION.' ('.SF_APP_URL.')');
-
+*/
 ?>

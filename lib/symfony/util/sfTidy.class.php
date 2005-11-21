@@ -22,18 +22,20 @@ class sfTidy
 {
   public static function tidy($html, $name)
   {
+    $config = sfConfig::getInstance();
+
     if (!function_exists('tidy_parse_string')) return $html;
 
-    if (SF_LOGGING_ACTIVE) $log = sfLogger::getInstance();
+    if ($config->get('sf_logging_active')) $log = sfLogger::getInstance();
 
-    if (SF_LOGGING_ACTIVE) $log->info('{sfView} tidy output for "'.$name.'"');
+    if ($config->get('sf_logging_active')) $log->info('{sfView} tidy output for "'.$name.'"');
 
     $tidy = new tidy();
-    $tidy->parseString($html, SF_APP_DIR.DIRECTORY_SEPARATOR.'config'.DIRECTORY_SEPARATOR.'tidy.conf');
+    $tidy->parseString($html, $config->get('sf_app_dir').DIRECTORY_SEPARATOR.'config'.DIRECTORY_SEPARATOR.'tidy.conf');
     $tidy->cleanRepair();
 
     // warnings and errors
-    if (SF_LOGGING_ACTIVE)
+    if ($config->get('sf_logging_active'))
     {
       $tidy->diagnose();
 

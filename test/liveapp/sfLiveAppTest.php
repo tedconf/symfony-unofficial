@@ -6,6 +6,7 @@
     $this->browser->closeRequest();
 */
 
+require_once 'symfony/config/sfConfig.class.php';
 require_once 'symfony/util/sfToolkit.class.php';
 require_once 'symfony/test/sfTestBrowser.class.php';
 
@@ -21,10 +22,13 @@ class sfLiveAppTest extends UnitTestCase
   private
     $current_dir = '',
     $tmp_dir     = null,
+    $config      = null,
     $browser     = null;
 
   public function __construct()
   {
+    $this->config = sfConfig::getInstance();
+
     $this->current_dir = getcwd();
 
     // sandbox initialization
@@ -61,13 +65,14 @@ class sfLiveAppTest extends UnitTestCase
     define('SF_APP',         'app');
     define('SF_ENVIRONMENT', 'test');
     define('SF_DEBUG',       true);
-    define('SF_TEST',        true);
 
     // save current error_reporting level
     $error_reporting = error_reporting();
 
     // get configuration
     require_once(SF_ROOT_DIR.DIRECTORY_SEPARATOR.SF_APP.DIRECTORY_SEPARATOR.'config'.DIRECTORY_SEPARATOR.'config.php');
+
+    $this->config->set('sf_test', true);
 
     // change error_reporting because simpletest is not PHP5 E_STRICT compliant
     // FIXME

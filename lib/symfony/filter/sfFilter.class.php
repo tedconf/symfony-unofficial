@@ -25,7 +25,8 @@ abstract class sfFilter
     $parameter_holder = null;
 
   protected
-    $context          = null;
+    $context          = null,
+    $config           = null;
 
   /**
    * Execute this filter.
@@ -59,6 +60,7 @@ abstract class sfFilter
   public function initialize ($context, $parameters = array())
   {
     $this->context = $context;
+    $this->config  = $context->getConfig();
 
     $this->parameter_holder = new sfParameterHolder();
     $this->parameter_holder->add($parameters);

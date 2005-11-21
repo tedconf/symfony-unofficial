@@ -28,31 +28,31 @@ class sfViewCacheManager
 
   private
     $cache              = null,
-    $config             = array(),
+    $cacheConfig        = array(),
     $viewCacheClassName = '',
     $context            = null,
+    $config             = null,
     $controller         = null;
 
-  private static
-    $current_suffix     = 0;
-
-  public function initialize($context)
+  public function initialize($context, $config)
   {
+    $this->context = $context;
+    $this->config  = $config;
+
     // cache only works with routing
-    if (!SF_ROUTING)
+    if (!$this->config->get('sf_routing'))
     {
       $error = 'You must activate routing to use cache system';
       throw new sfConfigurationException($error);
     }
 
-    $this->context    = $context;
     $this->controller = $context->getController();
 
     // empty configuration
-    $this->config = array();
+    $this->cacheConfig = array();
 
     // create cache instance
-    $this->cache = new $this->viewCacheClassName(SF_TEMPLATE_CACHE_DIR);
+    $this->cache = new $this->viewCacheClassName($this->config->get('sf_template_cache_dir'));
   }
 
   public function getContext()
@@ -94,7 +94,7 @@ class sfViewCacheManager
   {
     $entry = $moduleName.'_'.$actionName.'_'.$suffix;
 
-    $this->config[$entry] = array(
+    $this->cacheConfig[$entry] = array(
       'lifeTime' => $lifeTime,
     );
   }
@@ -106,13 +106,13 @@ class sfViewCacheManager
     $entry = $params['module'].'_'.$params['action'].'_'.$suffix;
 
     $lifeTime = 0;
-    if (isset($this->config[$entry]['lifeTime']))
+    if (isset($this->cacheConfig[$entry]['lifeTime']))
     {
-      $lifeTime = $this->config[$entry]['lifeTime'];
+      $lifeTime = $this->cacheConfig[$entry]['lifeTime'];
     }
-    else if (isset($this->config[$params['module'].'_DEFAULT_'.$suffix]['lifeTime']))
+    else if (isset($this->cacheConfig[$params['module'].'_DEFAULT_'.$suffix]['lifeTime']))
     {
-      $lifeTime = $this->config[$params['module'].'_DEFAULT_'.$suffix]['lifeTime'];
+      $lifeTime = $this->cacheConfig[$params['module'].'_DEFAULT_'.$suffix]['lifeTime'];
     }
 
     return $lifeTime;
@@ -123,7 +123,7 @@ class sfViewCacheManager
     list($route_name, $params) = $this->controller->convertUrlStringToParameters($internalUri);
     $entry = $params['module'].'_'.$params['action'].'_'.$suffix;
 
-    if (isset($this->config[$entry]) || isset($this->config[$params['module'].'_DEFAULT_'.$suffix]))
+    if (isset($this->cacheConfig[$entry]) || isset($this->cacheConfig[$params['module'].'_DEFAULT_'.$suffix]))
     {
       return true;
     }
@@ -134,7 +134,7 @@ class sfViewCacheManager
   public function get($internalUri, $suffix = 'slot')
   {
     // no cache or no cache set for this action
-    if (!SF_CACHE || !$this->hasCacheConfig($internalUri, $suffix))
+    if (!$this->config->get('sf_cache') || !$this->hasCacheConfig($internalUri, $suffix))
     {
       return null;
     }
@@ -146,7 +146,7 @@ class sfViewCacheManager
 
     $data = $this->cache->get($id, $namespace);
 
-    if (SF_WEB_DEBUG && $data)
+    if ($this->config->get('sf_web_debug') && $data)
     {
       $data = sfWebDebug::getInstance()->decorateContentWithDebug($internalUri, $suffix, $data, '#f00', '#ff9');
     }
@@ -156,7 +156,7 @@ class sfViewCacheManager
 
   public function has($internalUri, $suffix = 'slot')
   {
-    if (!SF_CACHE || !$this->hasCacheConfig($internalUri, $suffix))
+    if (!$this->config->get('sf_cache') || !$this->hasCacheConfig($internalUri, $suffix))
     {
       return null;
     }
@@ -171,7 +171,7 @@ class sfViewCacheManager
 
   public function set($data, $internalUri, $suffix = 'slot')
   {
-    if (!SF_CACHE || !$this->hasCacheConfig($internalUri, $suffix))
+    if (!$this->config->get('sf_cache') || !$this->hasCacheConfig($internalUri, $suffix))
     {
       return $data;
     }
@@ -179,13 +179,13 @@ class sfViewCacheManager
     $namespace = $this->generateNamespace($internalUri);
     $id        = $suffix;
 
-    if (SF_LOGGING_ACTIVE)
+    if ($this->config->get('sf_logging_active'))
     {
       $length = strlen($data);
     }
 
     $ret = $this->cache->set($id, $namespace, $data);
-    if (SF_LOGGING_ACTIVE)
+    if ($this->config->get('sf_logging_active'))
     {
       if (!$ret)
       {
@@ -204,7 +204,7 @@ class sfViewCacheManager
       }
     }
 
-    if (SF_WEB_DEBUG)
+    if ($this->config->get('sf_web_debug'))
     {
       $data = sfWebDebug::getInstance()->decorateContentWithDebug($internalUri, $suffix, $data, '#f00', '#9ff');
     }
@@ -242,7 +242,7 @@ class sfViewCacheManager
 
   public function lastModified($internalUri, $suffix = 'slot')
   {
-    if (!SF_CACHE || !$this->hasCacheConfig($internalUri, $suffix))
+    if (!$this->config->get('sf_cache') || !$this->hasCacheConfig($internalUri, $suffix))
     {
       return null;
     }

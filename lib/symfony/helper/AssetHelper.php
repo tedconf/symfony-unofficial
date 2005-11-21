@@ -158,7 +158,7 @@
     if (strpos($source, '/') === false) $source = '/'.$dir.'/'.$source;
     if (strpos($source, '.') === false) $source = $source.'.'.$ext;
 
-    return SF_RELATIVE_URL_ROOT.$source;
+    return sfConfig::getInstance()->get('sf_relative_url_root').$source;
   }
 
   function include_stylesheets()
