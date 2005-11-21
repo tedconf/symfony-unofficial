@@ -149,7 +149,7 @@ class sfContext
    * This is a shortcut to manually getting a connection from an existing
    * database implementation instance.
    *
-   * If the SF_USE_DATABASE setting is off, this will return null.
+   * If the [sf_use_database] setting is off, this will return null.
    *
    * @param name A database name.
    *

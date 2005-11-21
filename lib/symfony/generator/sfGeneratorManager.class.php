@@ -20,10 +20,10 @@ class sfGeneratorManager
 {
   private $cache = null;
 
-  public function initialize ()
+  public function initialize ($config)
   {
     // create cache instance
-    $this->cache = new sfFileCache(SF_MODULE_CACHE_DIR);
+    $this->cache = new sfFileCache($config->get('sf_module_cache_dir'));
     $this->cache->setSuffix('');
   }
 

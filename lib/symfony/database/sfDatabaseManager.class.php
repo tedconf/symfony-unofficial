@@ -57,7 +57,7 @@ class sfDatabaseManager
   public function initialize ()
   {
     // load database configuration
-    require_once(sfConfigCache::checkConfig(SF_APP_CONFIG_DIR_NAME.'/databases.yml'));
+    require_once(sfConfigCache::checkConfig(sfConfig::getInstance()->get('sf_app_config_dir_name').'/databases.yml'));
   }
 
   /**

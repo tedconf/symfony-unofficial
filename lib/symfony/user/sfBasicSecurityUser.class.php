@@ -185,7 +185,7 @@ class sfBasicSecurityUser extends sfUser implements sfSecurityUser
       $this->credentials   = array();
     }
 
-    // Automatic logout if no request for more than SF_TIMEOUT
+    // Automatic logout if no request for more than [sf_timeout]
     if ((time() - $this->lastRequest) > $this->config->get('sf_timeout'))
     {
       if ($this->config->get('sf_logging_active')) $this->getContext()->getLogger()->info('{sfUser} automatic user logout');

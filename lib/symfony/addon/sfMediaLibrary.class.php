@@ -33,11 +33,13 @@ class sfMediaLibrary
 
   public static function renameFile($fileId, $name)
   {
+    $config = sfConfig::getInstance();
+
     $file = sfMediaPeer::retrieveByPK($fileId);
     if ($file instanceof sfMedia)
     {
       $parentPath = SfMediaLibrary::getPathFromIdCategory($file->getIdMediaCategory());
-      $basePath = SF_UPLOAD_DIR.DIRECTORY_SEPARATOR.'assets'.DIRECTORY_SEPARATOR.$parentPath;
+      $basePath = $config->get('sf_upload_dir').DIRECTORY_SEPARATOR.'assets'.DIRECTORY_SEPARATOR.$parentPath;
       if (!file_exists($basePath.DIRECTORY_SEPARATOR.$name))
       {
         rename($basePath.DIRECTORY_SEPARATOR.$file->getName(), $basePath.DIRECTORY_SEPARATOR.$name);
@@ -56,11 +58,13 @@ class sfMediaLibrary
 
   public static function renameDir($dirId, $name)
   {
+    $config = sfConfig::getInstance();
+
     $dir = sfMediaCategoryPeer::retrieveByPK($dirId);
     if ($dir instanceof sfMediaCategory)
     {
       $parentPath = SfMediaLibrary::getPathFromIdCategory($dir->getIdParent());
-      $basePath = SF_UPLOAD_DIR.DIRECTORY_SEPARATOR.'assets'.DIRECTORY_SEPARATOR.$parentPath;
+      $basePath = $config->get('sf_upload_dir').DIRECTORY_SEPARATOR.'assets'.DIRECTORY_SEPARATOR.$parentPath;
       if (!file_exists($basePath.DIRECTORY_SEPARATOR.$name))
       {
         rename($basePath.DIRECTORY_SEPARATOR.$dir->getName(), $basePath.DIRECTORY_SEPARATOR.$name);
@@ -77,6 +81,8 @@ class sfMediaLibrary
 
   public static function deleteDir($dirId)
   {
+    $config = sfConfig::getInstance();
+
     $dir = SfMediaCategoryPeer::retrieveByPK($dirId);
     if ($dir instanceof SfMediaCategory)
     {
@@ -92,8 +98,8 @@ class sfMediaLibrary
       if (!$nbDirs && !$nbFiles)
       {
         $parentPath = SfMediaLibrary::getPathFromIdCategory($dir->getIdParent());
-        rmdir(SF_UPLOAD_DIR.DIRECTORY_SEPARATOR.'assets'.DIRECTORY_SEPARATOR.$parentPath.DIRECTORY_SEPARATOR.$dir->getName().DIRECTORY_SEPARATOR.'thumbs');
-        rmdir(SF_UPLOAD_DIR.DIRECTORY_SEPARATOR.'assets'.DIRECTORY_SEPARATOR.$parentPath.DIRECTORY_SEPARATOR.$dir->getName());
+        rmdir($config->get('sf_upload_dir').DIRECTORY_SEPARATOR.'assets'.DIRECTORY_SEPARATOR.$parentPath.DIRECTORY_SEPARATOR.$dir->getName().DIRECTORY_SEPARATOR.'thumbs');
+        rmdir($config->get('sf_upload_dir').DIRECTORY_SEPARATOR.'assets'.DIRECTORY_SEPARATOR.$parentPath.DIRECTORY_SEPARATOR.$dir->getName());
         $dir->delete();
       }
 
@@ -105,12 +111,14 @@ class sfMediaLibrary
 
   public static function deleteFile($fileId)
   {
+    $config = sfConfig::getInstance();
+
     $file = SfMediaPeer::retrieveByPK($fileId);
     if ($file instanceof SfMedia)
     {
       $parentPath = SfMediaLibrary::getPathFromIdCategory($file->getIdMediaCategory());
-      @unlink(SF_UPLOAD_DIR.DIRECTORY_SEPARATOR.'assets'.DIRECTORY_SEPARATOR.$parentPath.DIRECTORY_SEPARATOR.$file->getFile());
-      @unlink(SF_UPLOAD_DIR.DIRECTORY_SEPARATOR.'assets'.DIRECTORY_SEPARATOR.$parentPath.DIRECTORY_SEPARATOR.'thumbs'.DIRECTORY_SEPARATOR.$file->getFile());
+      @unlink($config->get('sf_upload_dir').DIRECTORY_SEPARATOR.'assets'.DIRECTORY_SEPARATOR.$parentPath.DIRECTORY_SEPARATOR.$file->getFile());
+      @unlink($config->get('sf_upload_dir').DIRECTORY_SEPARATOR.'assets'.DIRECTORY_SEPARATOR.$parentPath.DIRECTORY_SEPARATOR.'thumbs'.DIRECTORY_SEPARATOR.$file->getFile());
       $file->delete();
 
       return $file->getIdMediaCategory();
@@ -123,6 +131,8 @@ class sfMediaLibrary
 
   public static function createFile($req, $parentId = 0)
   {
+    $config = sfConfig::getInstance();
+
     if ($req->hasFile('file') && !$req->hasFileError('file'))
     {
       if (preg_match('~(.+?)\.(\w{2,4})$~', $req->getFileName('file'), $match))
@@ -142,7 +152,7 @@ class sfMediaLibrary
       $file->setIdMediaCategory($parentId);
 
       $parentPath = SfMediaLibrary::getPathFromIdCategory($parentId);
-      $upload_dir = SF_UPLOAD_DIR.DIRECTORY_SEPARATOR.'assets'.DIRECTORY_SEPARATOR.$parentPath;
+      $upload_dir = $config->get('sf_upload_dir').DIRECTORY_SEPARATOR.'assets'.DIRECTORY_SEPARATOR.$parentPath;
 
       if (!file_exists($upload_dir.DIRECTORY_SEPARATOR.$fileName))
       {
@@ -184,17 +194,19 @@ class sfMediaLibrary
 
   public static function createDir($dir, $parentId = 0)
   {
+    $config = sfConfig::getInstance();
+
     $category = new SfMediaCategory();
     $dirName = SfMediaLibrary::sanitize($dir);
     $parentPath = SfMediaLibrary::getPathFromIdCategory($parentId);
-    if (!file_exists(SF_UPLOAD_DIR.DIRECTORY_SEPARATOR.'assets'.DIRECTORY_SEPARATOR.$parentPath.DIRECTORY_SEPARATOR.$dirName))
+    if (!file_exists($config->get('sf_upload_dir').DIRECTORY_SEPARATOR.'assets'.DIRECTORY_SEPARATOR.$parentPath.DIRECTORY_SEPARATOR.$dirName))
     {
       $category->setName($dirName);
       $category->setIdParent($parentId);
       $category->save();
 
       $path = SfMediaLibrary::getPathFromIdCategory($category->getId());
-      mkdir(SF_UPLOAD_DIR.DIRECTORY_SEPARATOR.'assets'.DIRECTORY_SEPARATOR.$path, 0777);
+      mkdir($config->get('sf_upload_dir').DIRECTORY_SEPARATOR.'assets'.DIRECTORY_SEPARATOR.$path, 0777);
     }
     else
       return 0;

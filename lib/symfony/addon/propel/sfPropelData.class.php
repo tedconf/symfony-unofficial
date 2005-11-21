@@ -41,7 +41,7 @@ class sfPropelData
     $fixture_files = array();
     if (!$directory_or_file)
     {
-      $directory_or_file = SF_DATA_DIR.'/fixtures';
+      $directory_or_file = sfConfig::getInstance()->get('sf_data_dir').'/fixtures';
     }
 
     if (is_file($directory_or_file))

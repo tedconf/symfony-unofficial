@@ -159,9 +159,9 @@ class sfException extends Exception
         break;
     }
 
-    if (file_exists($config->get('sf_app_template_dir').DIRECTORY_SEPARATOR.$error_file.'_'.SF_ENVIRONMENT.'.'.$error_ext))
+    if (file_exists($config->get('sf_app_template_dir').DIRECTORY_SEPARATOR.$error_file.'_'.$config->get('sf_environment').'.'.$error_ext))
     {
-      $error_file = 'error_'.SF_ENVIRONMENT;
+      $error_file = 'error_'.$config->get('sf_environment');
     }
 
     include($config->get('sf_app_template_dir').DIRECTORY_SEPARATOR.$error_file.'.'.$error_ext);

@@ -122,7 +122,7 @@ abstract class sfController
       if (!$this->actionExists($moduleName, $actionName))
       {
         // cannot find unavailable module/action
-        $error = 'Invalid configuration settings: SF_UNAVAILABLE_MODULE "%s", SF_UNAVAILABLE_ACTION "%s"';
+        $error = 'Invalid configuration settings: [sf_unavailable_module] "%s", [sf_unavailable_action] "%s"';
         $error = sprintf($error, $moduleName, $actionName);
 
         throw new sfConfigurationException($error);
@@ -153,7 +153,7 @@ abstract class sfController
       if (!$this->actionExists($moduleName, $actionName))
       {
         // cannot find unavailable module/action
-        $error = 'Invalid configuration settings: SF_ERROR_404_MODULE "%s", SF_ERROR_404_ACTION "%s"';
+        $error = 'Invalid configuration settings: [sf_error_404_module] "%s", [sf_error_404_action] "%s"';
         $error = sprintf($error, $moduleName, $actionName);
 
         throw new sfConfigurationException($error);
@@ -244,7 +244,7 @@ abstract class sfController
       if (!$this->actionExists($moduleName, $actionName))
       {
         // cannot find mod disabled module/action
-        $error = 'Invalid configuration settings: SF_MODULE_DISABLED_MODULE "%s", SF_MODULE_DISABLED_ACTION "%s"';
+        $error = 'Invalid configuration settings: [sf_module_disabled_module] "%s", [sf_module_disabled_action] "%s"';
         $error = sprintf($error, $moduleName, $actionName);
 
         throw new sfConfigurationException($error);

@@ -38,7 +38,6 @@ function run_alltests($task, $args)
     get_include_path()
   );
 
-  define('SF_LOGGING_ACTIVE', false);
   require_once 'symfony/log/sfLog.class.php';
   require_once 'symfony/log/sfLogger.class.php';
 

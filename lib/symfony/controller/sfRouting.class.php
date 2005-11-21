@@ -13,7 +13,7 @@
  * Each map is called a route.
  * It implements the Singleton pattern.
  *
- * Routing can be disabled when SF_ROUTING is set to false.
+ * Routing can be disabled when [sf_routing] is set to false.
  *
  * This class is based on the Routes class of Cake framework.
  *

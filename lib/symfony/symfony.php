@@ -71,13 +71,25 @@ try
   ini_set('unserialize_callback_func', '__autoload');
 
   // symfony version information
-  require_once('symfony/version.php');
+/*
+  define('SF_APP_NAME',          'symfony');
+  define('SF_APP_MAJOR_VERSION', '1');
+  define('SF_APP_MINOR_VERSION', '0');
+  define('SF_APP_MICRO_VERSION', '0');
+  define('SF_APP_BRANCH',        'dev-1.0.0');
+  define('SF_APP_STATUS',        'DEV');
+  define('SF_APP_VERSION',       SF_APP_MAJOR_VERSION.'.'.
+                                 SF_APP_MINOR_VERSION.'.'.
+                                 SF_APP_MICRO_VERSION.'-'.SF_APP_STATUS);
+  define('SF_APP_URL',           'http://www.symfony-project.com/');
+  define('SF_APP_INFO',          SF_APP_NAME.' '.SF_APP_VERSION.' ('.SF_APP_URL.')');
+*/
 
   // get config instance
   $config = sfConfig::getInstance();
   $sf_app_config_dir_name = $config->get('sf_app_config_dir_name');
 
-  if (!defined('SF_IN_BOOTSTRAP') || !SF_IN_BOOTSTRAP)
+  if (!$config->get('sf_in_bootstrap'))
   {
     // YAML support
     require_once('spyc/spyc.php');
@@ -150,8 +162,7 @@ try
 
   if ($config->get('sf_routing'))
   {
-    $routing_config = $sf_app_config_dir_name.'/routing.yml';
-    sfConfigCache::import($routing_config);
+    sfConfigCache::import($sf_app_config_dir_name.'/routing.yml');
   }
 }
 catch (sfException $e)

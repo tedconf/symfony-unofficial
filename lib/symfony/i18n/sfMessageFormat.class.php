@@ -21,8 +21,9 @@ class sfMessageFormat extends MessageFormat
 {
   public function __construct($culture = null, $dir = 'global')
   {
-    $source = MessageSource::factory('XLIFF', SF_APP_I18N_DIR.DIRECTORY_SEPARATOR.$dir);
-    $cache_dir = SF_I18N_CACHE_DIR.DIRECTORY_SEPARATOR.$dir;
+    $i18n_dir = sfConfig::getInstance()->get('sf_app_i18n_dir');
+    $source = MessageSource::factory('XLIFF', $i18n_dir.DIRECTORY_SEPARATOR.$dir);
+    $cache_dir = $i18n_dir.DIRECTORY_SEPARATOR.$dir;
 
     // create cache dir if needed
     if (!is_dir($cache_dir))

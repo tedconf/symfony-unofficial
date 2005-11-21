@@ -42,7 +42,7 @@ class sfSessionTestStorage extends sfStorage
       $this->sessionId = $_SERVER['session_id'];
 
       // we read session data from temp file
-      $file = SF_TEST_CACHE_DIR.'/'.$this->sessionId.'.session';
+      $file = $this->config->get('sf_test_cache_dir').'/'.$this->sessionId.'.session';
       if (file_exists($file))
         $this->sessionData = unserialize(file_get_contents($file));
       else
@@ -110,8 +110,8 @@ class sfSessionTestStorage extends sfStorage
   {
     if ($this->sessionId)
     {
-      @mkdir(SF_CACHE_DIR.'/session');
-      file_put_contents(SF_CACHE_DIR.'/session/'.$this->sessionId.'.session', serialize($this->sessionData));
+      @mkdir($this->config->get('sf_cache_dir').'/session');
+      file_put_contents($this->config->get('sf_cache_dir').'/session/'.$this->sessionId.'.session', serialize($this->sessionData));
       $this->sessionId = '';
       $this->sessionData = array();
     }

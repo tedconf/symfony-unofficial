@@ -28,10 +28,15 @@ class sfTestBrowser
   private static
     $current_context = null;
 
+  protected
+    $config          = null;
+
   public function initialize ($hostname = null)
   {
+    $this->config = sfConfig::getInstance();
+
     // setup our fake environment
-    $_SERVER['HTTP_HOST'] = ($hostname ? $hostname : SF_APP.'-'.SF_ENVIRONMENT);
+    $_SERVER['HTTP_HOST'] = ($hostname ? $hostname : $this->config->get('sf_app').'-'.$this->config->get('sf_environment'));
     $_SERVER['HTTP_USER_AGENT'] = 'PHP5/CLI';
     $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
 
@@ -108,7 +113,7 @@ class sfTestBrowser
   public function shutdown()
   {
     // we remove all session data
-    sfToolkit::clearDirectory(SF_TEST_CACHE_DIR);
+    sfToolkit::clearDirectory($this->config->get('sf_test_cache_dir'));
   }
 
   protected function populateVariables($request_uri, $with_layout)

@@ -72,7 +72,7 @@ class sfPropelCrudGenerator extends sfGenerator
     $c = $this->className;
 
     // we must load all map builder classes to be able to deal with foreign keys (cf. editSuccess.php template)
-    $classes = pakeFinder::type('file')->name('*MapBuilder.php')->relative()->in(defined('SF_LIB_DIR') ? SF_LIB_DIR.'/model' : 'lib/model');
+    $classes = pakeFinder::type('file')->name('*MapBuilder.php')->relative()->in($this->config->get('sf_lib_dir') ? $this->config->get('sf_lib_dir').'/model' : 'lib/model');
     foreach ($classes as $class)
     {
       $class_map_builder = basename($class, '.php');
@@ -101,7 +101,7 @@ class sfPropelCrudGenerator extends sfGenerator
 
     // theme exists?
     $theme = isset($params['theme']) ? $params['theme'] : 'default';
-    if (!is_dir(SF_SYMFONY_DATA_DIR.'/symfony/generator/sfPropelCrud/'.$theme.'/template'))
+    if (!is_dir($this->config->get('sf_symfony_data_dir').'/symfony/generator/sfPropelCrud/'.$theme.'/template'))
     {
       $error = 'The theme "%s" does not exist.';
       $error = sprintf($error, $theme);
@@ -112,7 +112,7 @@ class sfPropelCrudGenerator extends sfGenerator
     $this->generatePhpFiles($this->generatedModuleName);
 
     // require generated action class
-    $data = "require_once(SF_MODULE_CACHE_DIR.'/".$this->generatedModuleName."/actions/actions.class.php')\n";
+    $data = "require_once($this->config->get('sf_module_cache_dir').'/".$this->generatedModuleName."/actions/actions.class.php')\n";
 
     return $data;
   }

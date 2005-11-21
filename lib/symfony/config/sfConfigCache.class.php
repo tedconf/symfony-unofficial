@@ -108,7 +108,7 @@ class sfConfigCache
    * recompile the cache file associated with it.
    *
    * If the configuration file path is relative, the path itself is relative
-   * to the symfony SF_APP_DIR application setting.
+   * to the symfony [sf_app_dir] application setting.
    *
    * @param string A filesystem path to a configuration file.
    *
@@ -200,7 +200,7 @@ class sfConfigCache
    * Import a configuration file.
    *
    * If the configuration file path is relative, the path itself is relative
-   * to the symfony SF_APP_DIR application setting.
+   * to the symfony [sf_app_dir] application setting.
    *
    * @param string A filesystem path to a configuration file.
    * @param bool   Only allow this configuration file to be included once per request?

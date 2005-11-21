@@ -23,7 +23,7 @@ class sfWebDebug
     $short_log       = array(),
     $max_priority    = 1000,
     $types           = array(),
-    $last_time_log   = 0,
+    $last_time_log   = SF_TIMER_START,
     $base_image_path = '/sf/images/sf_debug_stats';
 
   private static
@@ -86,11 +86,6 @@ class sfWebDebug
 
   public function log($logEntry)
   {
-    if (SF_DEBUG && !$this->last_time_log)
-    {
-      $this->last_time_log = SF_TIMER_START;
-    }
-
     // elapsed time
     $logEntry->setElapsedTime(sprintf('%.0f', (microtime(true) - $this->last_time_log) * 1000));
     $this->last_time_log = microtime(true);
@@ -133,9 +128,9 @@ class sfWebDebug
     // escape HTML
     $log_line = htmlspecialchars(strip_tags($log_line));
 
-    foreach (array('SF_APP_DIR', 'SF_ROOT_DIR', 'SF_SYMFONY_LIB_DIR', 'SF_SYMFONY_DATA_DIR') as $constant)
+    foreach (array('sf_app_dir', 'sf_root_dir', 'sf_symfony_lib_dir', 'sf_symfony_data_dir') as $constant)
     {
-      $log_line = str_replace(realpath($this->config->get(strtolower($constant))), $constant, $log_line);
+      $log_line = str_replace(realpath($this->config->get($constant)), $constant, $log_line);
     }
 
     $log_line = preg_replace('/"(.+?)"/s', '"<span class="sfStatsFileInfo">\\1</span>"', $log_line);
@@ -156,7 +151,7 @@ class sfWebDebug
 
     // total time elapsed
     $total_time = 0;
-    if (SF_DEBUG)
+    if ($this->config->get('sf_debug'))
     {
       $total_time = (microtime(true) - SF_TIMER_START) * 1000;
       $total_time = sprintf(($total_time < 1) ? '%.2f' : '%.0f', $total_time);

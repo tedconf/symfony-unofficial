@@ -27,10 +27,15 @@
 <?php endif ?>
 
 */
-function cache($suffix, $lifeTime = SF_DEFAULT_CACHE_LIFETIME)
+function cache($suffix, $lifeTime = null)
 {
   $context = sfContext::getInstance();
   $config  = $context->getConfig();
+
+  if ($lifeTime === null)
+  {
+    $lifeTime = $config->get('sf_default_cache_lifetime');
+  }
 
   if (!$config->get('sf_cache'))
   {

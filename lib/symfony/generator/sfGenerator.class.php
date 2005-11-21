@@ -23,11 +23,13 @@ abstract class sfGenerator
     $generatorManager    = null,
     $generatedModuleName = '',
     $theme               = 'default',
+    $config              = null;
     $moduleName          = '';
 
   public function initialize($generatorManager)
   {
     $this->generatorManager = $generatorManager;
+    $this->config           = sfConfig::getInstance();
   }
 
   abstract public function generate($params = array());
@@ -35,10 +37,10 @@ abstract class sfGenerator
   protected function generatePhpFiles($generatedModuleName)
   {
     // template directory
-    $template_dir = SF_SYMFONY_DATA_DIR.'/symfony/generator/'.$this->getGeneratorClass().'/'.$this->getTheme().'/template';
+    $template_dir = $this->config->get('sf_symfony_data_dir').'/symfony/generator/'.$this->getGeneratorClass().'/'.$this->getTheme().'/template';
 
     // default template directory
-    $default_template_dir = SF_SYMFONY_DATA_DIR.'/symfony/generator/'.$this->getGeneratorClass().'/default/template';
+    $default_template_dir = $this->config->get('sf_symfony_data_dir').'/symfony/generator/'.$this->getGeneratorClass().'/default/template';
 
     // eval actions file
     $action_template = $template_dir.'/actions/actions.class.php';

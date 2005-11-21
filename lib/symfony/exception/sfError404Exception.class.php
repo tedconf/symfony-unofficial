@@ -32,7 +32,8 @@ class sfError404Exception extends sfException
 
   public function printStackTrace ()
   {
-    sfContext::getInstance()->getController()->forward(SF_ERROR_404_MODULE, SF_ERROR_404_ACTION);
+    $config = sfConfig::getInstance();
+    sfContext::getInstance()->getController()->forward($config->get('sf_error_404_module'), $config->get('sf_error_404_action'));
   }
 }
 

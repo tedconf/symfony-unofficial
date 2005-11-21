@@ -12,8 +12,8 @@
  * Cache class to cache the HTML results for Actions and Templates.
  *
  * This class is based on the PEAR_Cache_Liste class.
- * All cache files are stored in files in the SF_ROOT_DIR.'/cache/'.SF_APP.'/html' directory.
- * To disable all caching, you can set to false SF_CACHE constant.
+ * All cache files are stored in files in the [sf_root_dir].'/cache/'.[sf_app].'/html' directory.
+ * To disable all caching, you can set to false [sf_cache] constant.
  *
  * @package    symfony
  * @subpackage view
