@@ -32,17 +32,17 @@ class sfSessionTestStorage extends sfStorage
    *
    * @throws <b>sfInitializationException</b> If an error occurs while initializing this Storage.
    */
-  public function initialize ($context, $config, $parameters = null)
+  public function initialize ($context, $parameters = null)
   {
     // initialize parent
-    parent::initialize($context, $config, $parameters);
+    parent::initialize($context, $parameters);
 
     if (array_key_exists('session_id', $_SERVER))
     {
       $this->sessionId = $_SERVER['session_id'];
 
       // we read session data from temp file
-      $file = $this->config->get('sf_test_cache_dir').'/'.$this->sessionId.'.session';
+      $file = sfConfig::get('sf_test_cache_dir').'/'.$this->sessionId.'.session';
       if (file_exists($file))
         $this->sessionData = unserialize(file_get_contents($file));
       else
@@ -110,9 +110,9 @@ class sfSessionTestStorage extends sfStorage
   {
     if ($this->sessionId)
     {
-      @mkdir($this->config->get('sf_cache_dir').'/session');
-      file_put_contents($this->config->get('sf_cache_dir').'/session/'.$this->sessionId.'.session', serialize($this->sessionData));
-      $this->sessionId = '';
+      @mkdir(sfConfig::get('sf_cache_dir').'/session');
+      file_put_contents(sfConfig::get('sf_cache_dir').'/session/'.$this->sessionId.'.session', serialize($this->sessionData));
+      $this->sessionId   = '';
       $this->sessionData = array();
     }
   }

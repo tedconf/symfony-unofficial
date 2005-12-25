@@ -43,6 +43,11 @@ modules/*/config/generator.yml:
 modules/*/config/view.yml:
   class:    sfViewConfigHandler
 
+modules/*/config/mailer.yml:
+  class:    sfDefineEnvironmentConfigHandler
+  param:
+    prefix: sf_mailer_
+
 modules/*/config/security.yml:
   class:    sfSecurityConfigHandler
 

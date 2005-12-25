@@ -20,16 +20,16 @@ require_once('pake/pakeFinder.class.php');
 class sfPropelData
 {
   private
-    $deleteCurrentDatas = true;
+    $deleteCurrentData = true;
 
-  public function setDeleteCurrentDatas($boolean)
+  public function setDeleteCurrentData($boolean)
   {
-    $this->deleteCurrentDatas = $boolean;
+    $this->deleteCurrentData = $boolean;
   }
 
-  public function getDeleteCurrentDatas()
+  public function getDeleteCurrentData()
   {
-    return $this->deleteCurrentDatas;
+    return $this->deleteCurrentData;
   }
 
   // data/ -> name voir c2 test en tableaux
@@ -41,7 +41,7 @@ class sfPropelData
     $fixture_files = array();
     if (!$directory_or_file)
     {
-      $directory_or_file = sfConfig::getInstance()->get('sf_data_dir').'/fixtures';
+      $directory_or_file = sfConfig::get('sf_data_dir').'/fixtures';
     }
 
     if (is_file($directory_or_file))
@@ -60,7 +60,7 @@ class sfPropelData
     $objects = array();
 
     // delete all current datas in database
-    if ($this->deleteCurrentDatas)
+    if ($this->deleteCurrentData)
     {
       rsort($fixture_files);
       foreach ($fixture_files as $fixture_file)
@@ -70,7 +70,7 @@ class sfPropelData
         krsort($classes);
         foreach ($classes as $class)
         {
-          $peer_class = $class.'Peer';
+          $peer_class = trim($class.'Peer');
 
           call_user_func(array($peer_class, 'doDeleteAll'));
         }
@@ -85,6 +85,8 @@ class sfPropelData
       $main_datas = sfYaml::load($fixture_file);
       foreach ($main_datas as $class => $datas)
       {
+        $class = trim($class);
+
         $peer_class = $class.'Peer';
 
         // load map class
@@ -97,6 +99,8 @@ class sfPropelData
         }
         $tableMap = $maps[$class]->getDatabaseMap()->getTable(constant($peer_class.'::TABLE_NAME'));
 
+        $column_names = call_user_func_array(array($peer_class, 'getFieldNames'), array(BasePeer::TYPE_FIELDNAME));
+
         // iterate through datas for this class
         foreach ($datas as $key => $data)
         {
@@ -105,14 +109,35 @@ class sfPropelData
           foreach ($data as $name => $value)
           {
             // foreign key?
-            $column = $tableMap->getColumn($name);
-            if ($column->isForeignKey())
+            try
             {
-              $relatedTable = $maps[$class]->getDatabaseMap()->getTable($column->getRelatedTableName());
-              $value = $objects[$relatedTable->getPhpName().'_'.$value];
+              $column = $tableMap->getColumn($name);
+              if ($column->isForeignKey())
+              {
+                $relatedTable = $maps[$class]->getDatabaseMap()->getTable($column->getRelatedTableName());
+                $value = $objects[$relatedTable->getPhpName().'_'.$value];
+              }
+            }
+            catch (PropelException $e)
+            {
             }
 
-            $obj->setByName($name, $value, BasePeer::TYPE_FIELDNAME);
+            $pos = array_search($name, $column_names);
+            $method = 'set'.sfInflector::camelize($name);
+            if ($pos)
+            {
+              $obj->setByPosition($pos, $value);
+            }
+            else if (method_exists($obj, $method))
+            {
+              $obj->$method($value);
+            }
+            else
+            {
+              $error = 'Column "%s" does not exist for class "%s"';
+              $error = sprintf($error, $name, $class);
+              throw new sfException($error);
+            }
           }
           $obj->save();
 

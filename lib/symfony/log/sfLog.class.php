@@ -32,7 +32,7 @@ define('PEAR_LOG_TYPE_FILE',    3); /** Append to a file */
  * @author  Chuck Hagenbuch <chuck@horde.org>
  * @author  Jon Parise <jon@php.net>
  * @package    symfony
- * @subpackage sfLog
+ * @subpackage log
  */
 class sfLog
 {
@@ -114,7 +114,7 @@ class sfLog
     {
         $handler = strtolower($handler);
         $class = 'sfLog_'.$handler;
-        $classfile = sfConfig::getInstance()->get('sf_symfony_lib_dir').'/symfony/log/sfLog/'.$handler.'.php';
+        $classfile = sfConfig::get('sf_symfony_lib_dir').'/symfony/log/sfLog/'.$handler.'.php';
 
         /*
          * Attempt to include our version of the named class, but don't treat

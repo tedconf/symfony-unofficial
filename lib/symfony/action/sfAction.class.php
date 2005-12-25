@@ -30,9 +30,6 @@ abstract class sfAction
     $request_parameter_holder = null,
     $template                 = '';
 
-  protected
-    $config                   = null;
-
   /**
    * Execute any application/business logic for this action.
    *
@@ -83,13 +80,12 @@ abstract class sfAction
   public function initialize($context)
   {
     $this->context                  = $context;
-    $this->config                   = $context->getConfig();
     $this->var_holder               = new sfParameterHolder();
     $this->request                  = $context->getRequest();
     $this->request_parameter_holder = $this->request->getParameterHolder();
 
     // include security configuration
-    require(sfConfigCache::checkConfig('modules/'.$this->getModuleName().'/'.$this->config->get('sf_app_module_config_dir_name').'/security.yml', true, array('moduleName' => $this->getModuleName())));
+    require(sfConfigCache::checkConfig('modules/'.$this->getModuleName().'/'.sfConfig::get('sf_app_module_config_dir_name').'/security.yml', true, array('moduleName' => $this->getModuleName())));
 
     return true;
   }
@@ -136,7 +132,7 @@ abstract class sfAction
 
   public function debugMessage ($message)
   {
-    if ($this->config->get('sf_web_debug'))
+    if (sfConfig::get('sf_web_debug'))
     {
       sfWebDebug::getInstance()->logShortMessage($message);
     }
@@ -157,13 +153,13 @@ abstract class sfAction
   // FIXME: does not work for fragment because config is created in template, too late...
   public function mustExecute($suffix = 'slot')
   {
-    if (!$this->config->get('sf_cache'))
+    if (!sfConfig::get('sf_cache'))
     {
       return 1;
     }
 
     // ignore cache? (only in debug mode)
-    if ($this->config->get('sf_debug') && $this->request->getParameter('ignore_cache', false, 'symfony/request/sfWebRequest') == true)
+    if (sfConfig::get('sf_debug') && $this->request->getParameter('ignore_cache', false, 'symfony/request/sfWebRequest') == true)
     {
       return 1;
     }
@@ -184,7 +180,7 @@ abstract class sfAction
     throw new sfError404Exception();
   }
 
-  public function forward404_unless ($condition)
+  public function forward404Unless ($condition)
   {
     if (!$condition)
     {
@@ -192,12 +188,26 @@ abstract class sfAction
     }
   }
 
-  public function forward404_if ($condition)
+  public function forward404If ($condition)
   {
     if ($condition)
     {
       throw new sfError404Exception();
     }
+  }
+
+  /** DEPRECATED */
+  public function forward404_unless ($condition)
+  {
+    if (sfConfig::get('sf_logging_active')) $this->getContext()->getLogger()->err('{sfAction} forward404_unless is deprecated. Please use forward404Unless.');
+    return $this->forward404Unless($condition);
+  }
+
+  /** DEPRECATED */
+  public function forward404_if ($condition)
+  {
+    if (sfConfig::get('sf_logging_active')) $this->getContext()->getLogger()->err('{sfAction} forward404_if is deprecated. Please use forward404If.');
+    return $this->forward404If($condition);
   }
 
   /**
@@ -206,7 +216,7 @@ abstract class sfAction
    */
   public function redirect404 ()
   {
-    return $this->redirect('/'.$this->config->get('sf_error_404_module').'/'.$this->config->get('sf_error_404_action'));
+    return $this->redirect('/'.sfConfig::get('sf_error_404_module').'/'.sfConfig::get('sf_error_404_action'));
   }
 
   /**
@@ -222,14 +232,14 @@ abstract class sfAction
    */
   public function forward ($module, $action)
   {
-    if ($this->config->get('sf_logging_active')) $this->getContext()->getLogger()->info('{sfAction} forward to action "'.$module.'/'.$action.'"');
+    if (sfConfig::get('sf_logging_active')) $this->getContext()->getLogger()->info('{sfAction} forward to action "'.$module.'/'.$action.'"');
 
     $this->getController()->forward($module, $action);
 
     throw new sfActionStopException();
   }
 
-  public function forward_if ($condition, $module, $action)
+  public function forwardIf ($condition, $module, $action)
   {
     if ($condition)
     {
@@ -237,12 +247,79 @@ abstract class sfAction
     }
   }
 
-  public function forward_unless ($condition, $module, $action)
+  public function forwardUnless ($condition, $module, $action)
   {
     if (!$condition)
     {
       $this->forward($module, $action);
     }
+  }
+
+  /** DEPRECATED */
+  public function forward_if ($condition, $module, $action)
+  {
+    if (sfConfig::get('sf_logging_active')) $this->getContext()->getLogger()->err('{sfAction} forward_if is deprecated. Please use forwardIf.');
+    $this->forwardIf($condition, $module, $action);
+  }
+
+  /** DEPRECATED */
+  public function forward_unless ($condition, $module, $action)
+  {
+    if (sfConfig::get('sf_logging_active')) $this->getContext()->getLogger()->err('{sfAction} forward_unless is deprecated. Please use forwardUnless.');
+    $this->forwardUnless($condition, $module, $action);
+  }
+
+  public function sendEmail($module, $action)
+  {
+    return $this->getPresentationFor($module, $action, 'sfMail');
+  }
+
+  public function getPresentationFor($module, $action, $viewName = null)
+  {
+    if (sfConfig::get('sf_logging_active')) $this->getContext()->getLogger()->info('{sfAction} get presentation for action "'.$module.'/'.$action.'" (view class: "'.$viewName.'")');
+
+    $controller = $this->getController();
+
+    // get original render mode
+    $renderMode = $controller->getRenderMode();
+
+    // set render mode to var
+    $controller->setRenderMode(sfView::RENDER_VAR);
+
+    // grab the action stack
+    $actionStack = $controller->getActionStack();
+
+    // grab this next forward's action stack index
+    $index = $actionStack->getSize();
+
+    // set viewName if needed
+    if ($viewName)
+    {
+      $this->getRequest()->setAttribute('view_name', $viewName, 'symfony/action/view');
+    }
+
+    // forward to the mail action
+    $controller->forward($module, $action);
+
+    // remove viewName
+    if ($viewName)
+    {
+      $this->getRequest()->setAttribute('view_name', '', 'symfony/action/view');
+    }
+
+    // grab the action entry from this forward
+    $actionEntry = $actionStack->getEntry($index);
+
+    // get raw email content
+    $presentation =& $actionEntry->getPresentation();
+
+    // put render mode back
+    $controller->setRenderMode($renderMode);
+
+    // remove the action entry
+    $actionEntry = $actionStack->removeEntry($index);
+
+    return $presentation;
   }
 
   /**
@@ -263,7 +340,7 @@ abstract class sfAction
   {
     $url = $this->getController()->genUrl(null, $url);
 
-    if ($this->config->get('sf_logging_active')) $this->getContext()->getLogger()->info('{sfAction} redirect to "'.$url.'"');
+    if (sfConfig::get('sf_logging_active')) $this->getContext()->getLogger()->info('{sfAction} redirect to "'.$url.'"');
 
     $this->getController()->redirect($url);
 
@@ -422,18 +499,23 @@ abstract class sfAction
    */
   public function isSecure()
   {
+    // disable security on [sf_login_module] / [sf_login_action]
+    if ((sfConfig::get('sf_login_module') == $this->getModuleName()) && (sfConfig::get('sf_login_action') == $this->getActionName()))
+    {
+      return false;
+    }
+
+    // read security.yml configuration
     if (isset($this->security[$this->getActionName()]['is_secure']))
     {
       return $this->security[$this->getActionName()]['is_secure'];
     }
-    else if (isset($this->security['all']['is_secure']))
+    else if (isset($this->security['all']) && isset($this->security['all']['is_secure']))
     {
       return $this->security['all']['is_secure'];
     }
-    else
-    {
-      return false;
-    }
+
+    return false;
   }
 
   /**
@@ -448,7 +530,7 @@ abstract class sfAction
     {
       return $this->security[$this->getActionName()]['credentials'];
     }
-    else if (isset($this->security['all']['credentials']))
+    else if (isset($this->security['all']) && isset($this->security['all']['credentials']))
     {
       return $this->security['all']['credentials'];
     }
@@ -470,7 +552,7 @@ abstract class sfAction
 
   public function setTemplate($name)
   {
-    if ($this->config->get('sf_logging_active')) $this->getContext()->getLogger()->info('{sfAction} change template to "'.$name.'"');
+    if (sfConfig::get('sf_logging_active')) $this->getContext()->getLogger()->info('{sfAction} change template to "'.$name.'"');
 
     $this->template = $name;
   }

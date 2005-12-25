@@ -156,6 +156,7 @@ There is no `constants.php` file in a default application configuration director
 
 Every path to a key directory is determined with a constant ending with `_DIR`. Here is an extract of the standard configuration file:
 
+    [php]
     // root directory structure
     define('SF_CACHE_DIR_NAME', 'cache');
     define('SF_LOG_DIR_NAME', 'log');
@@ -245,6 +246,7 @@ But if you want to use completely different factories, well, you can. Just modif
 
 The very first application configuration is actually found in the front controller. Take a look at this default `web/index.php`:
 
+    [php]
     <?php
     
     define('SF_ROOT_DIR', dirname(__FILE__).'/..');
@@ -409,6 +411,14 @@ The last usual module configuration file concerns form validation and is not loc
           email_error:  The email you entered is not valid
 
 For more information about form validation and the use of the validation configuration files, report to the [form validation chapter](validate_form.txt).
+
+Browsing your own YAML file
+---------------------------
+
+Whether you want to create a new config handler, or to read a YAML file directly, you can use the `sfYaml` class. It is a YAML parser that can turn a YAML file into an associative array:
+
+    [php]
+    $myarray = sfYaml::load('/tmp/myfile.yml');
 
 [1]: http://www.w3.org/People/Raggett/tidy/ "HTML Tidy"
 [2]: http://www.mojavi.org/                 "Mojavi"

@@ -25,8 +25,7 @@
 class sfRouting
 {
   private static
-    $instance           = null,
-    $config             = null;
+    $instance           = null;
 
   private
     $current_route_name = '',
@@ -41,8 +40,7 @@ class sfRouting
   {
     if (!isset(self::$instance))
     {
-      self::$instance         = new sfRouting();
-      self::$instance->config = sfConfig::getInstance();
+      self::$instance = new sfRouting();
     }
 
     return self::$instance;
@@ -126,12 +124,35 @@ class sfRouting
   }
 
   /**
+   * Get a route by its name.
+   *
+   * @return  array a route array
+   */
+  public function getRouteByName($name)
+  {
+    if ($name[0] == '@')
+    {
+      $name = substr($name, 1);
+    }
+
+    if (!isset($this->routes[$name]))
+    {
+      $error = 'The route "%s" does not exist.';
+      $error = sprintf($error, $name);
+
+      throw new sfConfigurationException($error);
+    }
+
+    return $this->routes[$name];
+  }
+
+  /**
    * Clears all current routes.
    *
    */
   public function clearRoutes()
   {
-    if ($this->config->get('sf_logging_active')) sfLogger::getInstance()->info('{sfRouting} clear all current routes');
+    if (sfConfig::get('sf_logging_active')) sfLogger::getInstance()->info('{sfRouting} clear all current routes');
 
     $this->routes = array();
   }
@@ -156,7 +177,7 @@ class sfRouting
   */
   public function connect($name, $route, $default = array(), $requirements = array())
   {
-    // route already exists
+    // route already exists?
     if (isset($this->routes[$name]))
     {
       $error = 'This named route already exists ("%s").';
@@ -167,7 +188,7 @@ class sfRouting
 
     $parsed = array();
     $names  = array();
-    $suffix = ($this->config->get('sf_suffix') == '.') ? '' : $this->config->get('sf_suffix');
+    $suffix = (sfConfig::get('sf_suffix') == '.') ? '' : sfConfig::get('sf_suffix');
 
     // used for performance reasons
     $names_hash = array();
@@ -231,7 +252,7 @@ class sfRouting
       $this->routes[$name] = array($route, $regexp, $names, $names_hash, $default, $requirements, $suffix);
     }
 
-    if ($this->config->get('sf_logging_active')) sfLogger::getInstance()->info('{sfRouting} connect "'.$route.'"'.($suffix ? ' ("'.$suffix.'" suffix)' : ''));
+    if (sfConfig::get('sf_logging_active')) sfLogger::getInstance()->info('{sfRouting} connect "'.$route.'"'.($suffix ? ' ("'.$suffix.'" suffix)' : ''));
 
     return $this->routes;
   }
@@ -329,7 +350,7 @@ class sfRouting
     }
 
     // strip off last divider character
-    if (isset($real_url{1}))
+    if (isset($real_url[1]))
     {
       $real_url = rtrim($real_url, $divider);
     }
@@ -391,7 +412,7 @@ class sfRouting
         {
           if (preg_match('#[a-z_\-]#i', $name))
           {
-            $out[$name] = $value;
+            $out[$name] = urldecode($value);
           }
           else
           {
@@ -411,7 +432,7 @@ class sfRouting
               $break = false;
               break;
             }
-            $out[$names[$pos]] = $found;
+            $out[$names[$pos]] = urldecode($found);
           }
           // unnamed elements go in as 'pass'
           else 
@@ -431,11 +452,11 @@ class sfRouting
                 if (substr($key, -2) == '[]')
                 {
                   if (!isset($out[$key])) $out[$key] = array();
-                  $out[$key][] = $value;
+                  $out[$key][] = urldecode($value);
                 }
                 else
                 {
-                  $out[$key] = $value;
+                  $out[$key] = urldecode($value);
                 }
               }
             }
@@ -454,7 +475,7 @@ class sfRouting
           // we store route name
           $this->setCurrentRouteName($route_name);
 
-          if ($this->config->get('sf_logging_active')) sfLogger::getInstance()->info('{sfRouting} match route ['.$route_name.'] "'.$route.'"');
+          if (sfConfig::get('sf_logging_active')) sfLogger::getInstance()->info('{sfRouting} match route ['.$route_name.'] "'.$route.'"');
           break;
         }
       }

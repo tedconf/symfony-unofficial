@@ -25,21 +25,22 @@
 class sfPager
 {
   private
-    $page             = 1,
-    $maxPerPage       = 0,
-    $lastPage         = 1,
-    $nbResults        = 0,
-    $class            = '',
-    $tableName        = '',
-    $criteria         = null,
-    $objects          = null,
-    $cursor           = 1,
-    $sort             = '',
-    $sortType         = '',
-    $parameters       = array(),
-    $currentMaxLink   = 1,
-    $parameter_holder = null,
-    $peer_method_name = 'doSelect';
+    $page                   = 1,
+    $maxPerPage             = 0,
+    $lastPage               = 1,
+    $nbResults              = 0,
+    $class                  = '',
+    $tableName              = '',
+    $criteria               = null,
+    $objects                = null,
+    $cursor                 = 1,
+    $sort                   = '',
+    $sortType               = '',
+    $parameters             = array(),
+    $currentMaxLink         = 1,
+    $parameter_holder       = null,
+    $peer_method_name       = 'doSelect',
+    $peer_count_method_name = 'doCount';
 
   public function __construct($class, $defaultMaxPerPage = 10)
   {
@@ -58,7 +59,9 @@ class sfPager
     $cForCount->setLimit(0);
     $cForCount->clearGroupByColumns();
 
-    $this->setNbResults(call_user_func_array(array($this->getClass().'Peer', 'doCount'), array($cForCount)));
+    // require the model class (because autoloading can crash under some conditions)
+    require_once('model/'.$this->getClassPeer().'.php');
+    $this->setNbResults(call_user_func(array($this->getClassPeer(), $this->getPeerCountMethod()), $cForCount));
 
     $c = $this->getCriteria();
     $c->setOffset(0);
@@ -84,6 +87,16 @@ class sfPager
   public function setPeerMethod($peer_method_name)
   {
     $this->peer_method_name = $peer_method_name;
+  }
+
+  public function getPeerCountMethod()
+  {
+    return $this->peer_count_method_name;
+  }
+
+  public function setPeerCountMethod($peer_count_method_name)
+  {
+    $this->peer_count_method_name = $peer_count_method_name;
   }
 
   public function getCurrentMaxLink()
@@ -212,7 +225,7 @@ class sfPager
     $c->setOffset($offset - 1);
     $c->setLimit(1);
 
-    $results = call_user_func_array(array($this->getClass().'Peer', $this->getPeerMethod()), array($c));
+    $results = call_user_func(array($this->getClassPeer(), $this->getPeerMethod()), $c);
 
     return $results[0];
   }
@@ -220,7 +233,7 @@ class sfPager
   public function getResults()
   {
     $c = $this->getCriteria();
-    return call_user_func_array(array($this->getClass().'Peer', $this->getPeerMethod()), array($c));
+    return call_user_func(array($this->getClassPeer(), $this->getPeerMethod()), $c);
   }
 
   public function getFirstIndice()
@@ -272,6 +285,11 @@ class sfPager
   public function setClass($class)
   {
     $this->class = $class;
+  }
+
+  public function getClassPeer()
+  {
+    return $this->class.'Peer';
   }
 
   public function getNbResults()

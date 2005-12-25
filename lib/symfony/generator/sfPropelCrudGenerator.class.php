@@ -69,39 +69,14 @@ class sfPropelCrudGenerator extends sfGenerator
     $this->setModuleName($params['moduleName']);
 
     // get some model metadata
-    $c = $this->className;
+    $this->loadMapBuilderClasses();
 
-    // we must load all map builder classes to be able to deal with foreign keys (cf. editSuccess.php template)
-    $classes = pakeFinder::type('file')->name('*MapBuilder.php')->relative()->in($this->config->get('sf_lib_dir') ? $this->config->get('sf_lib_dir').'/model' : 'lib/model');
-    foreach ($classes as $class)
-    {
-      $class_map_builder = basename($class, '.php');
-      require_once('model/map/'.$class_map_builder.'.php');
-      $maps[$class_map_builder] = new $class_map_builder();
-      if (!$maps[$class_map_builder]->isBuilt())
-      {
-        $maps[$class_map_builder]->doBuild();
-      }
-
-      if ($c == str_replace('MapBuilder', '', $class_map_builder))
-      {
-        $this->map = $maps[$class_map_builder];
-      }
-    }
-    $this->tableMap = $this->map->getDatabaseMap()->getTable(constant($c.'Peer::TABLE_NAME'));
-
-    // get all primary keys
-    foreach ($this->tableMap->getColumns() as $column)
-    {
-      if ($column->isPrimaryKey())
-      {
-        $this->primaryKey[] = $column;
-      }
-    }
+    // load all primary keys
+    $this->loadPrimaryKeys();
 
     // theme exists?
     $theme = isset($params['theme']) ? $params['theme'] : 'default';
-    if (!is_dir($this->config->get('sf_symfony_data_dir').'/symfony/generator/sfPropelCrud/'.$theme.'/template'))
+    if (!is_dir(sfConfig::get('sf_symfony_data_dir').'/symfony/generator/sfPropelCrud/'.$theme.'/template'))
     {
       $error = 'The theme "%s" does not exist.';
       $error = sprintf($error, $theme);
@@ -112,9 +87,47 @@ class sfPropelCrudGenerator extends sfGenerator
     $this->generatePhpFiles($this->generatedModuleName);
 
     // require generated action class
-    $data = "require_once($this->config->get('sf_module_cache_dir').'/".$this->generatedModuleName."/actions/actions.class.php')\n";
+    $data = "require_once(sfConfig::get('sf_module_cache_dir').'/".$this->generatedModuleName."/actions/actions.class.php')\n";
 
     return $data;
+  }
+
+  protected function loadPrimaryKeys()
+  {
+    foreach ($this->tableMap->getColumns() as $column)
+    {
+      if ($column->isPrimaryKey())
+      {
+        $this->primaryKey[] = $column;
+      }
+    }
+  }
+
+  protected function loadMapBuilderClasses()
+  {
+    // we must load all map builder classes to be able to deal with foreign keys (cf. editSuccess.php template)
+    $classes = pakeFinder::type('file')->name('*MapBuilder.php')->relative()->in(sfConfig::get('sf_lib_dir') ? sfConfig::get('sf_lib_dir').'/model' : 'lib/model');
+    foreach ($classes as $class)
+    {
+      $class_map_builder = basename($class, '.php');
+      require_once('model/map/'.$class_map_builder.'.php');
+      $maps[$class_map_builder] = new $class_map_builder();
+      if (!$maps[$class_map_builder]->isBuilt())
+      {
+        $maps[$class_map_builder]->doBuild();
+      }
+
+      if ($this->className == str_replace('MapBuilder', '', $class_map_builder))
+      {
+        $this->map = $maps[$class_map_builder];
+      }
+    }
+    if (!$this->map)
+    {
+      throw new sfException('The model class "'.$this->className.'" does not exist.');
+    }
+
+    $this->tableMap = $this->map->getDatabaseMap()->getTable(constant($this->className.'Peer::TABLE_NAME'));
   }
 
   public function getRetrieveByPkParamsForShow()
@@ -122,7 +135,7 @@ class sfPropelCrudGenerator extends sfGenerator
     $params = array();
     foreach ($this->getPrimaryKey() as $pk)
     {
-      $params[] = "\$this->getRequestParameter('".$this->translateFieldName($pk->getPhpName())."')";
+      $params[] = "\$this->getRequestParameter('".sfInflector::underscore($pk->getPhpName())."')";
     }
 
     return implode(",\n".str_repeat(' ', 49 - strlen($this->singularName.$this->className)), $params);
@@ -133,7 +146,7 @@ class sfPropelCrudGenerator extends sfGenerator
     $method_params = array();
     foreach ($this->getPrimaryKey() as $pk)
     {
-      $fieldName       = $this->translateFieldName($pk->getPhpName());
+      $fieldName       = sfInflector::underscore($pk->getPhpName());
       $method_params[] = "\$$fieldName = '$fieldName'";
     }
 
@@ -145,7 +158,7 @@ class sfPropelCrudGenerator extends sfGenerator
     $test_pks = array();
     foreach ($this->getPrimaryKey() as $pk)
     {
-      $fieldName  = $this->translateFieldName($pk->getPhpName());
+      $fieldName  = sfInflector::underscore($pk->getPhpName());
       $test_pks[] = "!\$this->getRequestParameter(\$$fieldName, 0)";
     }
 
@@ -157,7 +170,7 @@ class sfPropelCrudGenerator extends sfGenerator
     $retrieve_params = array();
     foreach ($this->getPrimaryKey() as $pk)
     {
-      $fieldName         = $this->translateFieldName($pk->getPhpName());
+      $fieldName         = sfInflector::underscore($pk->getPhpName());
       $retrieve_params[] = "\$this->getRequestParameter(\$$fieldName)";
     }
 
@@ -169,7 +182,7 @@ class sfPropelCrudGenerator extends sfGenerator
     $params = array();
     foreach ($this->getPrimaryKey() as $pk)
     {
-      $params[] = "\$this->getRequestParameter('".$this->translateFieldName($pk->getPhpName())."')";
+      $params[] = "\$this->getRequestParameter('".sfInflector::underscore($pk->getPhpName())."')";
     }
 
     $sep = ",\n".str_repeat(' ', 43 - strlen($this->singularName.$this->className));
@@ -230,73 +243,81 @@ class sfPropelCrudGenerator extends sfGenerator
     return $this->primaryKey;
   }
 
-  public function translateFieldName($name, $fromType = 'phpName', $toType = 'fieldName')
-  {
-    return call_user_func(array($this->peerClassName, 'translateFieldName'), $name, $fromType, $toType);
-  }
-
-  public function getPrimaryKeyUrlParams()
+  public function getPrimaryKeyUrlParams($prefix = '')
   {
     $params = array();
     foreach ($this->getPrimaryKey() as $pk)
     {
       $phpName   = $pk->getPhpName();
-      $fieldName = $this->translateFieldName($phpName);
-      $params[]  = "$fieldName='.\$".$this->singularName."->get$phpName()";
+      $fieldName = sfInflector::underscore($phpName);
+      $params[]  = "$fieldName='.\$".$prefix.$this->singularName."->get$phpName()";
     }
 
     return implode(".'&", $params);
   }
 
-  public function getPrimaryKeyIsSet()
+  public function getPrimaryKeyIsSet($prefix = '')
   {
     $params = array();
     foreach ($this->getPrimaryKey() as $pk)
     {
       $phpName  = $pk->getPhpName();
-      $params[] = "\$".$this->singularName."->get$phpName()";
+      $params[] = "\$".$prefix.$this->singularName."->get$phpName()";
     }
 
     return implode(' && ', $params);
   }
 
-  public function getColumnEditTag($column)
+  protected function getObjectTagParams($params, $default_params = array())
+  {
+    return var_export(array_merge($default_params, $params), true);
+  }
+
+  public function getColumnEditTag($column, $params = array())
   {
     $type = $column->getCreoleType();
     if ($column->isForeignKey())
     {
-      $relatedTable = $this->map->getDatabaseMap()->getTable($column->getRelatedTableName()); 
-      return "object_select_tag(\${$this->getSingularName()}, 'get{$column->getPhpName()}', array('related_class' => '{$relatedTable->getPhpName()}'))";
+      $relatedTable = $this->map->getDatabaseMap()->getTable($column->getRelatedTableName());
+      $params = $this->getObjectTagParams($params, array('related_class' => $relatedTable->getPhpName()));
+      return "object_select_tag(\${$this->getSingularName()}, 'get{$column->getPhpName()}', $params)";
     }
     else if ($type == CreoleTypes::DATE)
     {
       // rich=false not yet implemented
-      return "object_input_date_tag(\${$this->getSingularName()}, 'get{$column->getPhpName()}', array('rich' => true))";
+      $params = $this->getObjectTagParams(array('rich' => true), $params);
+      return "object_input_date_tag(\${$this->getSingularName()}, 'get{$column->getPhpName()}')";
     }
     else if ($type == CreoleTypes::BOOLEAN)
     {
-      return "object_checkbox_tag(\${$this->getSingularName()}, 'get{$column->getPhpName()}')";
+      $params = $this->getObjectTagParams($params);
+      return "object_checkbox_tag(\${$this->getSingularName()}, 'get{$column->getPhpName()}', $params)";
     }
-    else if ($type == CreoleTypes::CHAR || $type == CreoleTypes::VARCHAR || $type == CreoleTypes::LONGVARCHAR)
+    else if ($type == CreoleTypes::CHAR || $type == CreoleTypes::VARCHAR)
     {
       $size = ($column->getSize() > 20 ? ($column->getSize() < 80 ? $column->getSize() : 80) : 20);
-      return "object_input_tag(\${$this->getSingularName()}, 'get{$column->getPhpName()}', array('size' => $size))";
+      $params = $this->getObjectTagParams($params, array('size' => $size));
+      return "object_input_tag(\${$this->getSingularName()}, 'get{$column->getPhpName()}', $params)";
     }
     else if ($type == CreoleTypes::INTEGER || $type == CreoleTypes::TINYINT || $type == CreoleTypes::SMALLINT || $type == CreoleTypes::BIGINT)
     {
-      return "object_input_tag(\${$this->getSingularName()}, 'get{$column->getPhpName()}', array('size' => 7))";
+      $params = $this->getObjectTagParams($params, array('size' => 7));
+      return "object_input_tag(\${$this->getSingularName()}, 'get{$column->getPhpName()}', $params)";
     }
     else if ($type == CreoleTypes::FLOAT || $type == CreoleTypes::DOUBLE || $type == CreoleTypes::DECIMAL || $type == CreoleTypes::NUMERIC || $type == CreoleTypes::REAL)
     {
-      return "object_input_tag(\${$this->getSingularName()}, 'get{$column->getPhpName()}', array('size' => 7))";
+      $params = $this->getObjectTagParams($params, array('size' => 7));
+      return "object_input_tag(\${$this->getSingularName()}, 'get{$column->getPhpName()}', $params)";
     }
     else if ($type == CreoleTypes::TEXT || $type == CreoleTypes::LONGVARCHAR)
     {
-      return "object_textarea_tag(\${$this->getSingularName()}, 'get{$column->getPhpName()}')";
+      $params = $this->getObjectTagParams($params, array('rows' => 3, 'cols' => 30));
+      return "object_textarea_tag(\${$this->getSingularName()}, 'get{$column->getPhpName()}', $params)";
     }
     else
     {
-      return "object_input_tag(\${$this->getSingularName()}, 'get{$column->getPhpName()}', array('disabled' => true))";
+      $params = $this->getObjectTagParams($params, array('disabled' => true));
+      return "object_input_tag(\${$this->getSingularName()}, 'get{$column->getPhpName()}', $params)";
     }
   }
 }

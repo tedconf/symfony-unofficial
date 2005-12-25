@@ -100,10 +100,10 @@ class sfToolkit
    */
   public static function isPathAbsolute ($path)
   {
-    if ($path{0} == '/' || $path{0} == '\\' ||
-        (strlen($path) > 3 && ctype_alpha($path{0}) &&
-         $path{1} == ':' &&
-         ($path{2} == '\\' || $path{2} == '/')
+    if ($path[0] == '/' || $path[0] == '\\' ||
+        (strlen($path) > 3 && ctype_alpha($path[0]) &&
+         $path[1] == ':' &&
+         ($path[2] == '\\' || $path[2] == '/')
         )
        )
     {
@@ -143,6 +143,12 @@ class sfToolkit
 
   public static function stripComments ($source)
   {
+    // tokenizer available?
+    if (!function_exists('token_get_all'))
+    {
+      return $source;
+    }
+
     /* T_ML_COMMENT does not exist in PHP 5.
      * The following three lines define it in order to
      * preserve backwards compatibility.
@@ -253,6 +259,28 @@ class sfToolkit
         return $args;
         break;
     }
+  }
+
+  public static function stringToArray($string)
+  {
+    preg_match_all('/
+      \s*(\w+)              # key                               \\1
+      \s*=\s*               # =
+      (\'|")?               # values may be included in \' or " \\2
+      (.*?)                 # value                             \\3
+      (?(2) \\2)            # matching \' or " if needed        \\4
+      \s*(?:
+        (?=\w+\s*=) | \s*$  # followed by another key= or the end of the string
+      )
+    /x', $string, $matches, PREG_SET_ORDER);
+
+    $attributes = array();
+    foreach ($matches as $val)
+    {
+      $attributes[$val[1]] = $val[3];
+    }
+
+    return $attributes;
   }
 }
 

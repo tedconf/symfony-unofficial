@@ -23,7 +23,6 @@
 class sfConfigCache
 {
   private static
-    $config   = null,
     $handlers = array();
 
   /**
@@ -123,18 +122,13 @@ class sfConfigCache
 
     if (!sfToolkit::isPathAbsolute($filename))
     {
-      if (!self::$config)
+      if (!is_readable(sfConfig::get('sf_app_dir').'/'.$filename))
       {
-        self::$config = sfConfig::getInstance();
-      }
-
-      if (!is_readable(self::$config->get('sf_app_dir').'/'.$filename))
-      {
-        $filename = self::$config->get('sf_symfony_data_dir').'/symfony/config/'.basename($filename);
+        $filename = sfConfig::get('sf_symfony_data_dir').'/symfony/config/'.basename($filename);
       }
       else
       {
-        $filename = self::$config->get('sf_app_dir').'/'.$filename;
+        $filename = sfConfig::get('sf_app_dir').'/'.$filename;
       }
     }
 
@@ -166,12 +160,7 @@ class sfConfigCache
    */
   public static function clear ()
   {
-    if (!self::$config)
-    {
-      self::$config = sfConfig::getInstance();
-    }
-
-    sfToolkit::clearDirectory(self::$config->get('sf_config_cache_dir'));
+    sfToolkit::clearDirectory(sfConfig::get('sf_config_cache_dir'));
   }
 
   /**
@@ -183,7 +172,7 @@ class sfConfigCache
    */
   public static function getCacheName ($config)
   {
-    if (strlen($config) > 3 && ctype_alpha($config{0}) && $config{1} == ':' && $config{2} == '\\')
+    if (strlen($config) > 3 && ctype_alpha($config[0]) && $config[1] == ':' && $config[2] == '\\')
     {
       // file is a windows absolute path, strip off the drive letter
       $config = substr($config, 3);
@@ -193,7 +182,7 @@ class sfConfigCache
     $config  = str_replace(array('\\', '/'), '_', $config);
     $config .= '.php';
 
-    return self::$config->get('sf_config_cache_dir').'/'.$config;
+    return sfConfig::get('sf_config_cache_dir').'/'.$config;
   }
 
   /**
@@ -211,9 +200,6 @@ class sfConfigCache
   {
     // check the config file
     $cache = self::checkConfig($config, $param);
-
-    // because some comfig files need it (module.yml)
-    $config = self::$config;
 
     // include cache file
     if ($once)
@@ -236,36 +222,31 @@ class sfConfigCache
    */
   private static function loadConfigHandlers ()
   {
-    if (!self::$config)
-    {
-      self::$config = sfConfig::getInstance();
-    }
-
     // manually create our config_handlers.yml handler
-    self::$handlers['config_handlers.yml'] = new sfRootConfigHandler(self::$config);
+    self::$handlers['config_handlers.yml'] = new sfRootConfigHandler();
     self::$handlers['config_handlers.yml']->initialize();
 
     // application configuration handlers
 
-    require_once(self::checkConfig(self::$config->get('sf_app_config_dir_name').'/config_handlers.yml'));
+    require_once(self::checkConfig(sfConfig::get('sf_app_config_dir_name').'/config_handlers.yml'));
 
     // module level configuration handlers
 
     // make sure our modules directory exists
-    if (is_readable(self::$config->get('sf_app_module_dir')))
+    if (is_readable(sfConfig::get('sf_app_module_dir')))
     {
       // ignore names
       $ignore = array('.', '..', 'CVS', '.svn');
 
       // create a file pointer to the module dir
-      $fp = opendir(self::$config->get('sf_app_module_dir'));
+      $fp = opendir(sfConfig::get('sf_app_module_dir'));
 
       // loop through the directory and grab the modules
       while (($directory = readdir($fp)) !== false)
       {
         if (!in_array($directory, $ignore))
         {
-          $configPath = self::$config->get('sf_app_module_dir').'/'.$directory.'/'.self::$config->get('sf_app_module_config_dir_name').'/config_handlers.yml';
+          $configPath = sfConfig::get('sf_app_module_dir').'/'.$directory.'/'.sfConfig::get('sf_app_module_config_dir_name').'/config_handlers.yml';
 
           if (is_readable($configPath))
           {
@@ -276,7 +257,7 @@ class sfConfigCache
 
             // replace module dir path with a special keyword that
             // checkConfig knows how to use
-            $configPath = self::$config->get('sf_app_module_dir_name').'/'.$directory.'/'.self::$config->get('sf_app_module_config_dir_name').'/config_handlers.yml';
+            $configPath = sfConfig::get('sf_app_module_dir_name').'/'.$directory.'/'.sfConfig::get('sf_app_module_config_dir_name').'/config_handlers.yml';
 
             require_once(self::checkConfig($configPath));
           }
@@ -290,7 +271,7 @@ class sfConfigCache
     {
       // module directory doesn't exist or isn't readable
       $error = 'Module directory "%s" does not exist or is not readable';
-      $error = sprintf($error, $config->get('sf_app_module_dir'));
+      $error = sprintf($error, sfConfig::get('sf_app_module_dir'));
 
       throw new sfConfigurationException($error);
     }

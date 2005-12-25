@@ -14,9 +14,7 @@ class sfFileCacheTest extends UnitTestCase
 
   public function setUp()
   {
-    $config = sfConfig::getInstance();
-
-    $config->set('sf_logging_active', 0);
+    sfConfig::set('sf_logging_active', 0);
     $temp = tempnam('/tmp/cachedir', 'tmp');
     unlink($temp);
     @mkdir($temp);

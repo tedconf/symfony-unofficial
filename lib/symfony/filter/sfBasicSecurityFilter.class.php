@@ -61,13 +61,13 @@ class sfBasicSecurityFilter extends sfSecurityFilter
       else
       {
         // the user doesn't have access, exit stage left
-        $controller->forward($this->config->get('sf_secure_module'), $this->config->get('sf_secure_action'));
+        $controller->forward(sfConfig::get('sf_secure_module'), sfConfig::get('sf_secure_action'));
       }
     }
     else
     {
       // the user is not authenticated
-      $controller->forward($this->config->get('sf_login_module'), $this->config->get('sf_login_action'));
+      $controller->forward(sfConfig::get('sf_login_module'), sfConfig::get('sf_login_action'));
     }
   }
 }

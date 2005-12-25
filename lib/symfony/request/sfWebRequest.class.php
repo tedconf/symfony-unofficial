@@ -201,9 +201,9 @@ class sfWebRequest extends sfRequest
    *
    * @throws <b>sfInitializationException</b> If an error occurs while initializing this Request.
    */
-  public function initialize ($context, $config, $parameters = null)
+  public function initialize ($context, $parameters = null)
   {
-    parent::initialize ($context, $config, $parameters);
+    parent::initialize ($context, $parameters);
 
     if (isset($_SERVER['REQUEST_METHOD']))
     {
@@ -231,7 +231,7 @@ class sfWebRequest extends sfRequest
     $this->loadParameters();
 
     // sfStats call
-    if ($this->config->get('sf_stats'))
+    if (sfConfig::get('sf_stats'))
     {
       sfStats::record($this->context);
     }
@@ -247,7 +247,7 @@ class sfWebRequest extends sfRequest
   private function getPathInfoArray()
   {
     // parse PATH_INFO
-    switch ($this->config->get('sf_path_info_array'))
+    switch (sfConfig::get('sf_path_info_array'))
     {
       case 'SERVER':
         $pathArray =& $_SERVER;
@@ -263,7 +263,9 @@ class sfWebRequest extends sfRequest
 
   public function getUri()
   {
-    return 'http://'.$this->getHost().$_SERVER['REQUEST_URI'];
+    $pathArray = $this->getPathInfoArray();
+
+    return 'http://'.$pathArray['HTTP_HOST'].$pathArray['REQUEST_URI'];
   }
 
   public function getPathInfo ()
@@ -273,20 +275,23 @@ class sfWebRequest extends sfRequest
     $pathArray = $this->getPathInfoArray();
 
     // simulate PATH_INFO if needed
-    if (!isset($pathArray[$this->config->get('sf_path_info_key')]))
+    if (!isset($pathArray[sfConfig::get('sf_path_info_key')]) || !$pathArray[sfConfig::get('sf_path_info_key')])
     {
-      $script_name = $pathArray['SCRIPT_NAME'];
-      $pathInfo = preg_replace('/^'.preg_quote($script_name, '/').'/', '', $pathArray['REQUEST_URI']);
-      $prefix_name = preg_replace('#\/[^/]+$#', '', $script_name);
-      $pathInfo = preg_replace('/^'.preg_quote($prefix_name, '/').'/', '', $pathArray['REQUEST_URI']);
-      $pathInfo = preg_replace('/'.preg_quote($pathArray['QUERY_STRING'], '/').'$/', '', $pathInfo);
+      if (isset($pathArray['REQUEST_URI']))
+      {
+        $script_name = $pathArray['SCRIPT_NAME'];
+        $pathInfo = preg_replace('/^'.preg_quote($script_name, '/').'/', '', $pathArray['REQUEST_URI']);
+        $prefix_name = preg_replace('#\/[^/]+$#', '', $script_name);
+        $pathInfo = preg_replace('/^'.preg_quote($prefix_name, '/').'/', '', $pathArray['REQUEST_URI']);
+        $pathInfo = preg_replace('/'.preg_quote($pathArray['QUERY_STRING'], '/').'$/', '', $pathInfo);
+      }
     }
     else
     {
-      $pathInfo = $pathArray[$this->config->get('sf_path_info_key')];
-      if ($this->config->get('sf_relative_url_root'))
+      $pathInfo = $pathArray[sfConfig::get('sf_path_info_key')];
+      if (sfConfig::get('sf_relative_url_root'))
       {
-        $pathInfo = preg_replace('/^'.str_replace('/', '\\/', $this->config->get('sf_relative_url_root')).'\//', '', $pathInfo);
+        $pathInfo = preg_replace('/^'.str_replace('/', '\\/', sfConfig::get('sf_relative_url_root')).'\//', '', $pathInfo);
       }
     }
     // for IIS
@@ -322,8 +327,8 @@ class sfWebRequest extends sfRequest
         }
         else
         {
-          $this->setParameter('module', $this->config->get('sf_error_404_module'));
-          $this->setParameter('action', $this->config->get('sf_error_404_action'));
+          $this->setParameter('module', sfConfig::get('sf_error_404_module'));
+          $this->setParameter('action', sfConfig::get('sf_error_404_action'));
         }
       }
       else
@@ -336,7 +341,9 @@ class sfWebRequest extends sfRequest
           // see if there's a value associated with this parameter,
           // if not we're done with path data
           if ($count > ($i + 1))
+          {
             $this->getParameterHolder()->setByRef($array[$i], $array[++$i]);
+          }
         }
       }
     }
@@ -344,7 +351,7 @@ class sfWebRequest extends sfRequest
     // merge POST parameters
     $this->getParameterHolder()->addByRef($_POST);
 
-    if ($this->config->get('sf_logging_active'))
+    if (sfConfig::get('sf_logging_active'))
     {
       $parameters = '';
       foreach ($this->getParameterHolder()->getAll() as $key => $value)
@@ -352,7 +359,7 @@ class sfWebRequest extends sfRequest
         $parameters .= ''.$key.' => "'.$value.'", ';
       }
 
-      $this->getContext()->getLogger()->info('{sfRequest} request parameters {'.$parameters.'}');
+      if (sfConfig::get('sf_logging_active')) $this->getContext()->getLogger()->info('{sfWebRequest} request parameters { '.$parameters.'}');
     }
 
     // move some parameters in other namespaces

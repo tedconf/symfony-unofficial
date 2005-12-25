@@ -22,7 +22,6 @@ abstract class sfStorage
 {
   private
     $parameter_holder = null,
-    $config  = null,
     $context = null;
 
   /**
@@ -45,10 +44,9 @@ abstract class sfStorage
    *
    * @throws <b>sfInitializationException</b> If an error occurs while initializing this sfStorage.
    */
-  public function initialize ($context, $config, $parameters = array())
+  public function initialize ($context, $parameters = array())
   {
     $this->context = $context;
-    $this->config  = $config;
 
     $this->parameter_holder = new sfParameterHolder();
     $this->getParameterHolder()->add($parameters);

@@ -24,8 +24,8 @@ class sfRenderView extends sfPHPView
     $action           = $actionStackEntry->getActionInstance();
 
     // require our configuration
-    $viewConfigFile = $this->moduleName.'/'.$this->config->get('sf_app_module_config_dir_name').'/view.yml';
-    require(sfConfigCache::checkConfig($this->config->get('sf_app_module_dir_name').'/'.$viewConfigFile));
+    $viewConfigFile = $this->moduleName.'/'.sfConfig::get('sf_app_module_config_dir_name').'/view.yml';
+    require(sfConfigCache::checkConfig(sfConfig::get('sf_app_module_dir_name').'/'.$viewConfigFile));
 
     $viewType = sfView::SUCCESS;
     $regexp = sfView::SUCCESS.'|'.sfView::ERROR;
@@ -43,19 +43,19 @@ class sfRenderView extends sfPHPView
     if (!is_readable($this->getDirectory().'/'.$templateFile))
     {
       // search template in a symfony module directory
-      if (is_readable($this->config->get('sf_symfony_data_dir').'/symfony/modules/'.$module.'/templates/'.$templateFile))
+      if (is_readable(sfConfig::get('sf_symfony_data_dir').'/symfony/modules/'.$module.'/templates/'.$templateFile))
       {
-        $this->setDirectory($this->config->get('sf_symfony_data_dir').'/symfony/modules/'.$module.'/templates');
+        $this->setDirectory(sfConfig::get('sf_symfony_data_dir').'/symfony/modules/'.$module.'/templates');
       }
 
       // search template for generated templates in cache
-      if (is_readable($this->config->get('sf_module_cache_dir').'/auto'.ucfirst($module).'/templates/'.$templateFile))
+      if (is_readable(sfConfig::get('sf_module_cache_dir').'/auto'.ucfirst($module).'/templates/'.$templateFile))
       {
-        $this->setDirectory($this->config->get('sf_module_cache_dir').'/auto'.ucfirst($module).'/templates');
+        $this->setDirectory(sfConfig::get('sf_module_cache_dir').'/auto'.ucfirst($module).'/templates');
       }
     }
 
-    if ($this->config->get('sf_logging_active')) $context->getLogger()->info('{sfRenderView} execute view for template "'.$templateName.$viewType.'.php"');
+    if (sfConfig::get('sf_logging_active')) $context->getLogger()->info('{sfRenderView} execute view for template "'.$templateName.$viewType.'.php"');
   }
 }
 

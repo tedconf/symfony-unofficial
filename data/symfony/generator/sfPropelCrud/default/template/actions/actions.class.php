@@ -25,7 +25,7 @@ class <?php echo $this->getGeneratedModuleName() ?>Actions extends sfActions
   {
     $this-><?php echo $this->getSingularName() ?> = <?php echo $this->getClassName() ?>Peer::retrieveByPk(<?php echo $this->getRetrieveByPkParamsForShow() ?>);
 
-    $this->forward404_unless($this-><?php echo $this->getSingularName() ?> instanceof <?php echo $this->getClassName() ?>);
+    $this->forward404Unless($this-><?php echo $this->getSingularName() ?> instanceof <?php echo $this->getClassName() ?>);
   }
 
   public function executeEdit ()
@@ -39,19 +39,20 @@ class <?php echo $this->getGeneratedModuleName() ?>Actions extends sfActions
 
 <?php foreach ($this->getTableMap()->getColumns() as $name => $column): $type = $column->getCreoleType(); ?>
 <?php if ($name == 'CREATED_AT' || $name == 'UPDATED_AT') continue ?>
+<?php $name = sfInflector::underscore($column->getPhpName()) ?>
 <?php if ($type == CreoleTypes::DATE): ?>
-    list($d, $m, $y) = sfI18N::getDateForCulture($this->getRequestParameter('<?php echo $this->translateFieldName($column->getPhpName()) ?>'), $this->getUser()->getCulture());
+    list($d, $m, $y) = sfI18N::getDateForCulture($this->getRequestParameter('<?php echo $name ?>'), $this->getUser()->getCulture());
     $<?php echo $this->getSingularName() ?>->set<?php echo $column->getPhpName() ?>("$y-$m-$d");
 <?php elseif ($type == CreoleTypes::BOOLEAN): ?>
-    $<?php echo $this->getSingularName() ?>->set<?php echo $column->getPhpName() ?>($this->getRequestParameter('<?php echo $this->translateFieldName($column->getPhpName()) ?>', 0));
+    $<?php echo $this->getSingularName() ?>->set<?php echo $column->getPhpName() ?>($this->getRequestParameter('<?php echo $name ?>', 0));
 <?php else: ?>
-    $<?php echo $this->getSingularName() ?>->set<?php echo $column->getPhpName() ?>($this->getRequestParameter('<?php echo $this->translateFieldName($column->getPhpName()) ?>'));
+    $<?php echo $this->getSingularName() ?>->set<?php echo $column->getPhpName() ?>($this->getRequestParameter('<?php echo $name ?>'));
 <?php endif ?>
 <?php endforeach ?>
 
     $<?php echo $this->getSingularName() ?>->save();
 
-    return $this->redirect('<?php echo $this->getModuleName() ?>/edit?<?php echo $this->getPrimaryKeyUrlParams() ?>);
+    return $this->redirect('<?php echo $this->getModuleName() ?>/show?<?php echo $this->getPrimaryKeyUrlParams() ?>);
 <?php //' ?>
   }
 
@@ -59,7 +60,7 @@ class <?php echo $this->getGeneratedModuleName() ?>Actions extends sfActions
   {
     $<?php echo $this->getSingularName() ?> = <?php echo $this->getClassName() ?>Peer::retrieveByPk(<?php echo $this->getRetrieveByPkParamsForDelete() ?>);
 
-    $this->forward404_unless($<?php echo $this->getSingularName() ?> instanceof <?php echo $this->getClassName() ?>);
+    $this->forward404Unless($<?php echo $this->getSingularName() ?> instanceof <?php echo $this->getClassName() ?>);
 
     $<?php echo $this->getSingularName() ?>->delete();
 
@@ -76,7 +77,7 @@ class <?php echo $this->getGeneratedModuleName() ?>Actions extends sfActions
     {
       $<?php echo $this->getSingularName() ?> = <?php echo $this->getClassName() ?>Peer::retrieveByPk(<?php echo $this->getRetrieveByPkParamsForGetOrCreate() ?>);
 
-      $this->forward404_unless($<?php echo $this->getSingularName() ?> instanceof <?php echo $this->getClassName() ?>);
+      $this->forward404Unless($<?php echo $this->getSingularName() ?> instanceof <?php echo $this->getClassName() ?>);
     }
 
     return $<?php echo $this->getSingularName() ?>;

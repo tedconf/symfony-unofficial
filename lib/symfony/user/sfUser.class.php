@@ -34,8 +34,7 @@ class sfUser
     $attribute_holder = null;
 
   protected
-    $context          = null,
-    $config           = null;
+    $context          = null;
 
   /**
    * Retrieve the current application context.
@@ -58,10 +57,9 @@ class sfUser
    *
    * @throws <b>sfInitializationException</b> If an error occurs while initializing this User.
    */
-  public function initialize ($context, $config, $parameters = array())
+  public function initialize ($context, $parameters = array())
   {
     $this->context = $context;
-    $this->config  = $config;
 
     $this->parameter_holder = new sfParameterHolder();
     $this->parameter_holder->add($parameters);

@@ -32,8 +32,7 @@ class sfContext
     $securityFilter    = null,
     $viewCacheManager  = null,
     $logger            = null,
-    $user              = null,
-    $config            = null;
+    $user              = null;
 
   private static
     $instance          = null;
@@ -50,23 +49,21 @@ class sfContext
 
   private function initialize()
   {
-    $this->config = sfConfig::getInstance();
-
-    if ($this->config->get('sf_logging_active'))
+    if (sfConfig::get('sf_logging_active'))
     {
       $this->logger = sfLogger::getInstance();
     }
 
-    if ($this->config->get('sf_logging_active')) $this->logger->info('{sfContext} initialization');
+    if (sfConfig::get('sf_logging_active')) $this->logger->info('{sfContext} initialization');
 
-    if ($this->config->get('sf_use_database'))
+    if (sfConfig::get('sf_use_database'))
     {
       // setup our database connections
       $this->databaseManager = new sfDatabaseManager();
       $this->databaseManager->initialize();
     }
 
-    if ($this->config->get('sf_cache'))
+    if (sfConfig::get('sf_cache'))
     {
       $this->viewCacheManager = new sfViewCacheManager();
     }
@@ -75,9 +72,9 @@ class sfContext
     $this->actionStack = new sfActionStack();
 
     // include the factories configuration
-    require(sfConfigCache::checkConfig($this->config->get('sf_app_config_dir_name').'/factories.yml'));
+    require(sfConfigCache::checkConfig(sfConfig::get('sf_app_config_dir_name').'/factories.yml'));
 
-    if ($this->config->get('sf_cache'))
+    if (sfConfig::get('sf_cache'))
     {
       $this->viewCacheManager->initialize($this, $this->config);
     }
@@ -188,7 +185,7 @@ class sfContext
     // get the last action stack entry
     $actionEntry = $this->actionStack->getLastEntry();
 
-    return $this->config->get('sf_app_module_dir').'/'.$actionEntry->getModuleName();
+    return $actionEntry ? sfConfig::get('sf_app_module_dir').'/'.$actionEntry->getModuleName() : null;
   }
 
   /**
@@ -202,7 +199,7 @@ class sfContext
     // get the last action stack entry
     $actionEntry = $this->actionStack->getLastEntry();
 
-    return $actionEntry->getModuleName();
+    return $actionEntry ? $actionEntry->getModuleName() : null;
   }
 
   /**
@@ -256,16 +253,6 @@ class sfContext
   }
 
   /**
-   * Retrieve the config.
-   *
-   * @return sfConfig The current sfConfig implementation instance.
-   */
-  public function getConfig ()
-  {
-    return $this->config;
-  }
-
-  /**
    * Execute the shutdown procedure.
    *
    * @return void
@@ -277,12 +264,12 @@ class sfContext
     $this->getStorage()->shutdown();
     $this->getRequest()->shutdown();
 
-    if ($this->config->get('sf_use_database'))
+    if (sfConfig::get('sf_use_database'))
     {
       $this->getDatabaseManager()->shutdown();
     }
 
-    if ($this->config->get('sf_cache'))
+    if (sfConfig::get('sf_cache'))
     {
       $this->getViewCacheManager()->shutdown();
     }

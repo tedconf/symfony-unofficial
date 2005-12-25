@@ -18,27 +18,8 @@
  */
 class sfConfig
 {
-  private
-    $config = array();
-
   private static
-    $instance          = null;
-
-  /**
-   * Retrieve the singleton instance of this class.
-   *
-   * @return sfConfig A sfConfig implementation instance.
-   */
-  public static function getInstance()
-  {
-    if (!isset(self::$instance))
-    {
-      $class = __CLASS__;
-      self::$instance = new $class();
-    }
-
-    return self::$instance;
-  }
+    $config = array();
 
   /**
    * Retrieve a config parameter.
@@ -48,9 +29,9 @@ class sfConfig
    *
    * @return mixed A config parameter value, if the config parameter exists, otherwise null.
    */
-  public function get ($name, $default = null)
+  public static function get ($name, $default = null)
   {
-    return isset($this->config[$name]) ? $this->config[$name] : $default;
+    return isset(self::$config[$name]) ? self::$config[$name] : $default;
   }
 
   /**
@@ -63,9 +44,9 @@ class sfConfig
    *
    * @return void
    */
-  public function set ($name, $value)
+  public static function set ($name, $value)
   {
-    $this->config[$name] = $value;
+    self::$config[$name] = $value;
   }
 
   /**
@@ -78,14 +59,25 @@ class sfConfig
    *
    * @return void
    */
-  public function add ($parameters)
+  public static function add ($parameters)
   {
     if ($parameters === null) return;
 
     foreach ($parameters as $key => $value)
     {
-      $this->config[$key] = $value;
+      self::$config[$key] = $value;
     }
+  }
+
+  /**
+   * Clear all current config parameters.
+   *
+   * @return void
+   */
+  public static function clear ()
+  {
+    self::$config = null;
+    self::$config = array();
   }
 }
 

@@ -58,21 +58,19 @@ function include_partial($name, $vars = array())
 
   extract($vars);
 
-  $config = sfConfig::getInstance();
-
   // render to client
   if ($sep && $type == 'global')
   {
-    require $config->get('sf_app_template_dir').DS.$filename;
+    require sfConfig::get('sf_app_template_dir').DIRECTORY_SEPARATOR.$filename;
   }
   else if ($sep)
   {
-    require $config->get('sf_app_module_dir').DS.$type.DS.$config->get('sf_app_module_template_dir_name').DS.$filename;
+    require sfConfig::get('sf_app_module_dir').DIRECTORY_SEPARATOR.$type.DIRECTORY_SEPARATOR.sfConfig::get('sf_app_module_template_dir_name').DIRECTORY_SEPARATOR.$filename;
   }
   else
   {
     $current_module = sfContext::getInstance()->getActionStack()->getLastEntry()->getModuleName();
-    require $config->get('sf_app_dir').DS.$config->get('sf_app_module_dir_name').DS.$current_module.DS.$config->get('sf_app_module_template_dir_name').DS.$filename;
+    require sfConfig::get('sf_app_dir').DIRECTORY_SEPARATOR.sfConfig::get('sf_app_module_dir_name').DIRECTORY_SEPARATOR.$current_module.DIRECTORY_SEPARATOR.sfConfig::get('sf_app_module_template_dir_name').DIRECTORY_SEPARATOR.$filename;
   }
 }
 

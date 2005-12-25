@@ -23,13 +23,11 @@ abstract class sfGenerator
     $generatorManager    = null,
     $generatedModuleName = '',
     $theme               = 'default',
-    $config              = null;
     $moduleName          = '';
 
   public function initialize($generatorManager)
   {
     $this->generatorManager = $generatorManager;
-    $this->config           = sfConfig::getInstance();
   }
 
   abstract public function generate($params = array());
@@ -37,10 +35,10 @@ abstract class sfGenerator
   protected function generatePhpFiles($generatedModuleName)
   {
     // template directory
-    $template_dir = $this->config->get('sf_symfony_data_dir').'/symfony/generator/'.$this->getGeneratorClass().'/'.$this->getTheme().'/template';
+    $template_dir = sfConfig::get('sf_symfony_data_dir').'/symfony/generator/'.$this->getGeneratorClass().'/'.$this->getTheme().'/template';
 
     // default template directory
-    $default_template_dir = $this->config->get('sf_symfony_data_dir').'/symfony/generator/'.$this->getGeneratorClass().'/default/template';
+    $default_template_dir = sfConfig::get('sf_symfony_data_dir').'/symfony/generator/'.$this->getGeneratorClass().'/default/template';
 
     // eval actions file
     $action_template = $template_dir.'/actions/actions.class.php';
@@ -62,6 +60,11 @@ abstract class sfGenerator
       if (!is_readable($template_template))
       {
         $template_template = $default_template_dir.'/templates/'.$template.'.php';
+        if (!is_readable($template_template))
+        {
+          // this template does not exist for this generator
+          continue;
+        }
       }
       $retval = $this->evalTemplate($template_template);
 

@@ -62,8 +62,7 @@ class sfWebControllerTest extends UnitTestCase
 
   public function SetUp()
   {
-    $this->config = sfConfig::getInstance();
-    $this->config->set('sf_max_forwards', 10);
+    sfConfig::set('sf_max_forwards', 10);
     $this->context = new MockSfContext($this);
     $this->controller = sfController::newInstance('sfFrontWebController');
     $this->controller->initialize($this->context, null);

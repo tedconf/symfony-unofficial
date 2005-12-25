@@ -25,18 +25,16 @@ class sfTestBrowser
     - redirect support?
 
   */
+  private
+    $presentation = '';
+
   private static
     $current_context = null;
 
-  protected
-    $config          = null;
-
   public function initialize ($hostname = null)
   {
-    $this->config = sfConfig::getInstance();
-
     // setup our fake environment
-    $_SERVER['HTTP_HOST'] = ($hostname ? $hostname : $this->config->get('sf_app').'-'.$this->config->get('sf_environment'));
+    $_SERVER['HTTP_HOST'] = ($hostname ? $hostname : sfConfig::get('sf_app').'-'.sfConfig::get('sf_environment'));
     $_SERVER['HTTP_USER_AGENT'] = 'PHP5/CLI';
     $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
 
@@ -68,8 +66,10 @@ class sfTestBrowser
     // launch request via controller
     $context = sfContext::getInstance();
     $controller = $context->getController();
-    $controller->setRenderMode(sfView::RENDER_VAR);
+
+    ob_start();
     $controller->dispatch();
+    $this->presentation = ob_get_clean();
 
     // manually shutdown user to save current session data
     $context->getUser()->shutdown();
@@ -91,10 +91,7 @@ class sfTestBrowser
       throw new sfException('a request must be active');
     }
 
-    // get result
-    $html = self::$current_context->getController()->getActionStack()->getFirstEntry()->getPresentation();
-
-    return $html;
+    return $this->presentation;
   }
 
   public function closeRequest()
@@ -113,7 +110,7 @@ class sfTestBrowser
   public function shutdown()
   {
     // we remove all session data
-    sfToolkit::clearDirectory($this->config->get('sf_test_cache_dir'));
+    sfToolkit::clearDirectory(sfConfig::get('sf_test_cache_dir'));
   }
 
   protected function populateVariables($request_uri, $with_layout)
@@ -123,7 +120,7 @@ class sfTestBrowser
     $_SERVER['REQUEST_URI'] = $request_uri;
     $_SERVER['SCRIPT_NAME'] = '/index.php';
 
-    if ($request_uri{0} != '/')
+    if ($request_uri[0] != '/')
     {
       $request_uri = '/'.$request_uri;
     }

@@ -1,4 +1,5 @@
 prod:
+  no_script_name:           ##NO_SCRIPT_NAME##
 
 dev:
   .settings:
@@ -69,7 +70,7 @@ all:
 ;
 ;    standard_helpers:       Partial,Cache,Form
 ;
-;    max_forwards:           20
+;    max_forwards:           10
 ;
 ;    web_debug:              off
 ;

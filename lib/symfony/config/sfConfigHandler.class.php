@@ -23,7 +23,6 @@
 abstract class sfConfigHandler
 {
   protected
-    $config           = null,
     $parameter_holder = null;
 
   /**
@@ -68,10 +67,9 @@ abstract class sfConfigHandler
     $this->getParameterHolder()->add($parameters);
   }
 
-  public function __construct($config)
+  public function __construct()
   {
     $this->parameter_holder = new sfParameterHolder();
-    $this->config           = $config;
   }
 
   /**
@@ -131,10 +129,9 @@ abstract class sfConfigHandler
 
     if (!$config)
     {
-      $config = sfConfig::getInstance();
     }
 
-    $value = preg_replace('/%(.+?)%/e', '$config->get(strtolower("\\1"))', $value);
+    $value = preg_replace('/%(.+?)%/e', 'sfConfig::get(strtolower("\\1"))', $value);
 
     return $value;
   }
@@ -151,7 +148,7 @@ abstract class sfConfigHandler
     if (!sfToolkit::isPathAbsolute($path))
     {
       // not an absolute path so we'll prepend to it
-      $path = sfConfig::getInstance()->get('sf_app_dir').'/'.$path;
+      $path = sfConfig::get('sf_app_dir').'/'.$path;
     }
 
     return $path;

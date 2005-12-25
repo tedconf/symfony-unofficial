@@ -168,11 +168,25 @@ function select_language_tag($name, $value, $options = array())
 
 function input_tag($name, $value = null, $options = array())
 {
+  if ($value === null && isset($options['type']) && $options['type'] == 'password')
+  {
+    $value = null;
+  }
+  else if ($value === null && _get_request_value($name))
+  {
+    $value = _get_request_value($name);
+  }
+
   return tag('input', array_merge(array('type' => 'text', 'name' => $name, 'id' => $name, 'value' => $value), _convert_options($options)));
 }
 
 function input_hidden_tag($name, $value = null, $options = array())
 {
+  if ($value === null && _get_request_value($name))
+  {
+    $value = _get_request_value($name);
+  }
+
   $options = _parse_attributes($options);
 
   $options['type'] = 'hidden';
@@ -204,6 +218,11 @@ function input_password_tag($name = 'password', $value = null, $options = array(
  */
 function textarea_tag($name, $content = null, $options = array())
 {
+  if ($content === null && _get_request_value($name))
+  {
+    $content = _get_request_value($name);
+  }
+
   $options = _parse_attributes($options);
 
   if (array_key_exists('size', $options))
@@ -222,11 +241,10 @@ function textarea_tag($name, $content = null, $options = array())
 
   if ($rich)
   {
-    $config = sfConfig::getInstance();
 
     // tinymce installed?
-    $js_path = $config->get('sf_rich_text_js_dir') ? '/'.$config->get('sf_rich_text_js_dir').'/tiny_mce.js' : '/sf/js/tinymce/tiny_mce.js';
-    if (!is_readable($config->get('sf_web_dir').$js_path))
+    $js_path = sfConfig::get('sf_rich_text_js_dir') ? '/'.sfConfig::get('sf_rich_text_js_dir').'/tiny_mce.js' : '/sf/js/tinymce/tiny_mce.js';
+    if (!is_readable(sfConfig::get('sf_web_dir').$js_path))
     {
       throw new sfConfigurationException('You must install Tiny MCE to use this helper (see rich_text_js_dir settings).');
     }
@@ -248,7 +266,7 @@ function textarea_tag($name, $content = null, $options = array())
 
       sfContext::getInstance()->getRequest()->setAttribute('tinymce', $css_path, 'helper/asset/auto/stylesheet');
 
-      $css    = file_get_contents($config->get('sf_web_dir').DIRECTORY_SEPARATOR.$css_path);
+      $css    = file_get_contents(sfConfig::get('sf_web_dir').DIRECTORY_SEPARATOR.$css_path);
       $styles = array();
       preg_match_all('#^/\*\s*user\:\s*(.+?)\s*\*/\s*\015?\012\s*\.([^\s]+)#smi', $css, $matches, PREG_SET_ORDER);
       foreach ($matches as $match)
@@ -292,6 +310,11 @@ tinyMCE.init({
 
 function checkbox_tag($name, $value = '1', $checked = false, $options = array())
 {
+  if ($value === null && _get_request_value($name))
+  {
+    $checked = _get_request_value($name);
+  }
+
   $html_options = array_merge(array('type' => 'checkbox', 'name' => $name, 'id' => $name, 'value' => $value), _convert_options($options));
   if ($checked) $html_options['checked'] = 'checked';
 
@@ -300,6 +323,11 @@ function checkbox_tag($name, $value = '1', $checked = false, $options = array())
 
 function radiobutton_tag($name, $value, $checked = false, $options = array())
 {
+  if ($value === null && _get_request_value($name))
+  {
+    $checked = _get_request_value($name);
+  }
+
   $html_options = array_merge(array('type' => 'radio', 'name' => $name, 'value' => $value), _convert_options($options));
   if ($checked) $html_options['checked'] = 'checked';
 
@@ -432,6 +460,11 @@ function _boolean_attribute($options, $attribute)
   }
 
   return $options;
+}
+
+function _get_request_value($name)
+{
+  return sfContext::getInstance()->getRequest()->getParameter($name);
 }
 
 ?>

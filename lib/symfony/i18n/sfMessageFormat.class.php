@@ -21,7 +21,7 @@ class sfMessageFormat extends MessageFormat
 {
   public function __construct($culture = null, $dir = 'global')
   {
-    $i18n_dir = sfConfig::getInstance()->get('sf_app_i18n_dir');
+    $i18n_dir = sfConfig::get('sf_app_i18n_dir');
     $source = MessageSource::factory('XLIFF', $i18n_dir.DIRECTORY_SEPARATOR.$dir);
     $cache_dir = $i18n_dir.DIRECTORY_SEPARATOR.$dir;
 
@@ -59,7 +59,7 @@ class sfMessageFormat extends MessageFormat
 
     parent::__construct($source);
 
-//    if (sfConfig::getInstance()->get('sf_debug'))
+//    if (sfConfig::get('sf_debug'))
 //      $this->setUntranslatedPS(array('[T]','[/T]'));
   }
 

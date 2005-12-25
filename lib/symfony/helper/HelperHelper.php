@@ -27,17 +27,16 @@ function use_helpers()
 
 function use_helper($helperName)
 {
-  $config = sfConfig::getInstance();
 
-  if (is_readable($config->get('sf_symfony_lib_dir').'/symfony/helper/'.$helperName.'Helper.php'))
+  if (is_readable(sfConfig::get('sf_symfony_lib_dir').'/symfony/helper/'.$helperName.'Helper.php'))
   {
     // global helper
     include_once('symfony/helper/'.$helperName.'Helper.php');
   }
-  else if (is_readable($config->get('sf_app_module_dir').'/'.sfContext::getInstance()->getModuleName().'/'.$config->get('sf_app_module_lib_dir_name').'/helper/'.$helperName.'Helper.php'))
+  else if (is_readable(sfConfig::get('sf_app_module_dir').'/'.sfContext::getInstance()->getModuleName().'/'.sfConfig::get('sf_app_module_lib_dir_name').'/helper/'.$helperName.'Helper.php'))
   {
     // current module helper
-    include_once($config->get('sf_app_module_dir').'/'.sfContext::getInstance()->getModuleName().'/'.$config->get('sf_app_module_lib_dir_name').'/helper/'.$helperName.'Helper.php');
+    include_once(sfConfig::get('sf_app_module_dir').'/'.sfContext::getInstance()->getModuleName().'/'.sfConfig::get('sf_app_module_lib_dir_name').'/helper/'.$helperName.'Helper.php');
   }
   else
   {

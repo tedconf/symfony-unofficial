@@ -64,12 +64,12 @@ class sfExecutionFilter extends sfFilter
       $validated = true;
 
       // get the current action validation configuration
-      $validationConfig = $moduleName.'/'.$this->config->get('sf_app_module_validate_dir_name').'/'.$actionName.'.yml';
-      if (is_readable($this->config->get('sf_app_module_dir').'/'.$validationConfig))
+      $validationConfig = $moduleName.'/'.sfConfig::get('sf_app_module_validate_dir_name').'/'.$actionName.'.yml';
+      if (is_readable(sfConfig::get('sf_app_module_dir').'/'.$validationConfig))
       {
         // load validation configuration
         // do NOT use require_once
-        require(sfConfigCache::checkConfig($this->config->get('sf_app_module_dir_name').'/'.$validationConfig));
+        require(sfConfigCache::checkConfig(sfConfig::get('sf_app_module_dir_name').'/'.$validationConfig));
       }
 
       // manually load validators
@@ -82,30 +82,30 @@ class sfExecutionFilter extends sfFilter
       if ($validated && $actionInstance->validate())
       {
         // register our cache configuration
-        if ($this->config->get('sf_cache'))
+        if (sfConfig::get('sf_cache'))
         {
           $cacheManager    = $context->getViewCacheManager();
-          $cacheConfigFile = $moduleName.'/'.$this->config->get('sf_app_module_config_dir_name').'/cache.yml';
-          if (is_readable($this->config->get('sf_app_module_dir').'/'.$cacheConfigFile))
+          $cacheConfigFile = $moduleName.'/'.sfConfig::get('sf_app_module_config_dir_name').'/cache.yml';
+          if (is_readable(sfConfig::get('sf_app_module_dir').'/'.$cacheConfigFile))
           {
-            require(sfConfigCache::checkConfig($this->config->get('sf_app_module_dir_name').'/'.$cacheConfigFile, array('moduleName' => $moduleName)));
+            require(sfConfigCache::checkConfig(sfConfig::get('sf_app_module_dir_name').'/'.$cacheConfigFile, array('moduleName' => $moduleName)));
           }
 
         }
 
         // page in cache?
-        if ($this->config->get('sf_cache') && !count($_GET) && !count($_POST))
+        if (sfConfig::get('sf_cache') && !count($_GET) && !count($_POST))
         {
-          if ($this->config->get('sf_debug') && $context->getRequest()->getParameter('ignore_cache', false, 'symfony/request/sfWebRequest') == true)
+          if (sfConfig::get('sf_debug') && $context->getRequest()->getParameter('ignore_cache', false, 'symfony/request/sfWebRequest') == true)
           {
-            if ($this->config->get('sf_logging_active')) $context->getLogger()->info('{sfExecutionFilter} discard page cache');
+            if (sfConfig::get('sf_logging_active')) $context->getLogger()->info('{sfExecutionFilter} discard page cache');
           }
           else
           {
             // retrieve page content from cache
             $retval = $cacheManager->get(sfRouting::getInstance()->getCurrentInternalUri(), 'page');
 
-            if ($this->config->get('sf_logging_active')) $context->getLogger()->info('{sfExecutionFilter} page cache '.($retval ? 'exists' : 'does not exist'));
+            if (sfConfig::get('sf_logging_active')) $context->getLogger()->info('{sfExecutionFilter} page cache '.($retval ? 'exists' : 'does not exist'));
 
             if ($retval !== null)
             {
@@ -136,6 +136,7 @@ class sfExecutionFilter extends sfFilter
         // execute the action
         $actionInstance->preExecute();
         $viewName = $actionInstance->execute();
+
         if ($viewName == '')
         {
           $viewName = sfView::SUCCESS;
@@ -144,10 +145,11 @@ class sfExecutionFilter extends sfFilter
       }
       else
       {
-        if ($this->config->get('sf_logging_active')) $this->context->getLogger()->info('{sfExecutionFilter} action validation failed');
+        if (sfConfig::get('sf_logging_active')) $this->context->getLogger()->info('{sfExecutionFilter} action validation failed');
 
         // validation failed
-        $viewName = $actionInstance->handleError();
+        $handleErrorToRun = 'handleError'.ucfirst($actionName);
+        $viewName = method_exists($actionInstance, $handleErrorToRun) ? $actionInstance->$handleErrorToRun() : $actionInstance->handleError();
       }
     }
 
@@ -169,7 +171,7 @@ class sfExecutionFilter extends sfFilter
       if (!$controller->viewExists($moduleName, $viewName))
       {
         // the requested view doesn't exist
-        $file = $this->config->get('sf_app_module_dir').'/'.$moduleName.'/'.$this->config->get('sf_app_module_view_dir_name').'/'.$viewName.'View.class.php';
+        $file = sfConfig::get('sf_app_module_dir').'/'.$moduleName.'/'.sfConfig::get('sf_app_module_view_dir_name').'/'.$viewName.'View.class.php';
 
         $error = 'Module "%s" does not contain the view "%sView" or the file "%s" is unreadable';
         $error = sprintf($error, $moduleName, $viewName, $file);

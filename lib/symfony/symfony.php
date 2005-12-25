@@ -35,7 +35,7 @@ function __autoload($class)
     try
     {
       // include the list of autoload classes
-      $config = sfConfigCache::checkConfig(sfConfig::getInstance()->get('sf_app_config_dir_name').'/autoload.yml');
+      $config = sfConfigCache::checkConfig(sfConfig::get('sf_app_config_dir_name').'/autoload.yml');
     }
     catch (sfException $e)
     {
@@ -54,16 +54,32 @@ function __autoload($class)
 
   if (!isset($classes[$class]))
   {
+    // see if the file exists in the current module lib directory
+    // must be in a module context
+    $current_module = sfContext::getInstance()->getModuleName();
+    if ($current_module)
+    {
+      $module_lib = sfConfig::get('sf_app_module_dir').'/'.$current_module.'/'.sfConfig::get('sf_app_module_lib_dir_name').'/'.$class.'.class.php';
+      if (is_readable($module_lib))
+      {
+        require_once($module_lib);
+
+        return;
+      }
+    }
+
     // unspecified class
-    $error = 'Autoloading of class "%s" failed';
+    $error = 'Autoloading of class "%s" failed. Try to clear the symfony cache and refresh. [err0003]';
     $error = sprintf($error, $class);
     $e = new sfAutoloadException($error);
 
     $e->printStackTrace();
   }
-
-  // class exists, let's include it
-  require_once($classes[$class]);
+  else
+  {
+    // class exists, let's include it
+    require_once($classes[$class]);
+  }
 }
 
 try
@@ -71,25 +87,24 @@ try
   ini_set('unserialize_callback_func', '__autoload');
 
   // symfony version information
-/*
-  define('SF_APP_NAME',          'symfony');
-  define('SF_APP_MAJOR_VERSION', '1');
-  define('SF_APP_MINOR_VERSION', '0');
-  define('SF_APP_MICRO_VERSION', '0');
-  define('SF_APP_BRANCH',        'dev-1.0.0');
-  define('SF_APP_STATUS',        'DEV');
-  define('SF_APP_VERSION',       SF_APP_MAJOR_VERSION.'.'.
+/*        
+  define('sf_app_name',          'symfony');
+  define('sf_app_major_version', '1');
+  define('sf_app_minor_version', '0');
+  define('sf_app_micro_version', '0');
+  define('sf_app_branch',        'dev-1.0.0');
+  define('sf_app_status',        'DEV');
+  define('sf_app_version',       SF_APP_MAJOR_VERSION.'.'.
                                  SF_APP_MINOR_VERSION.'.'.
                                  SF_APP_MICRO_VERSION.'-'.SF_APP_STATUS);
-  define('SF_APP_URL',           'http://www.symfony-project.com/');
-  define('SF_APP_INFO',          SF_APP_NAME.' '.SF_APP_VERSION.' ('.SF_APP_URL.')');
+  define('sf_app_url',           'http://www.symfony-project.com/');
+  define('sf_app_info',          SF_APP_NAME.' '.SF_APP_VERSION.' ('.SF_APP_URL.')');
 */
 
   // get config instance
-  $config = sfConfig::getInstance();
-  $sf_app_config_dir_name = $config->get('sf_app_config_dir_name');
+  $sf_app_config_dir_name = sfConfig::get('sf_app_config_dir_name');
 
-  if (!$config->get('sf_in_bootstrap'))
+  if (!sfConfig::get('sf_in_bootstrap'))
   {
     // YAML support
     require_once('spyc/spyc.php');
@@ -117,7 +132,7 @@ try
     require_once('symfony/util/sfParameterHolder.class.php');
 
     // create bootstrap file for next time
-    if (!$config->get('sf_debug') && !$config->get('sf_test'))
+    if (!sfConfig::get('sf_debug') && !sfConfig::get('sf_test'))
     {
       sfConfigCache::checkConfig($sf_app_config_dir_name.'/bootstrap_compile.yml');
     }
@@ -126,7 +141,7 @@ try
   // set exception format
   sfException::setFormat(isset($_SERVER['HTTP_HOST']) ? 'html' : 'plain');
 
-  if ($config->get('sf_debug'))
+  if (sfConfig::get('sf_debug'))
   {
     // clear our config and module cache
     sfConfigCache::clear();
@@ -139,28 +154,28 @@ try
   include(sfConfigCache::checkConfig($sf_app_config_dir_name.'/app.yml'));
 
   // error settings
-  ini_set('display_errors', $config->get('sf_debug') ? 'on' : 'off');
-  error_reporting($config->get('sf_error_reporting'));
+  ini_set('display_errors', sfConfig::get('sf_debug') ? 'on' : 'off');
+  error_reporting(sfConfig::get('sf_error_reporting'));
 
   // compress output
-  ob_start($config->get('sf_compressed') ? 'ob_gzhandler' : '');
+  ob_start(sfConfig::get('sf_compressed') ? 'ob_gzhandler' : '');
 
 /*
-  if ($config->get('sf_logging_active'))
+  if (sfConfig::get('sf_logging_active'))
   {
     set_error_handler(array('sfLogger', 'errorHandler'));
   }
 */
 
   // required core classes for the framework
-  // we create a temp var to avoid substitution during compilation
-  if (!$config->get('sf_debug') && !$config->get('sf_test'))
+  // create a temp var to avoid substitution during compilation
+  if (!sfConfig::get('sf_debug') && !sfConfig::get('sf_test'))
   {
     $core_classes = $sf_app_config_dir_name.'/core_compile.yml';
     sfConfigCache::import($core_classes);
   }
 
-  if ($config->get('sf_routing'))
+  if (sfConfig::get('sf_routing'))
   {
     sfConfigCache::import($sf_app_config_dir_name.'/routing.yml');
   }

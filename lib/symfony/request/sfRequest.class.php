@@ -90,6 +90,12 @@ abstract class sfRequest
       $retval = $this->errors[$name];
     }
 
+    // translate error message if needed
+    if (sfConfig::get('sf_is_i18n'))
+    {
+      $retval = $this->getAttribute('message_format', null, 'symfony/i18n')->_($retval);
+    }
+
     return $retval;
   }
 
@@ -157,10 +163,9 @@ abstract class sfRequest
    *
    * @throws <b>sfInitializationException</b> If an error occurs while initializing this Request.
    */
-  public function initialize ($context, $config, $parameters = array())
+  public function initialize ($context, $parameters = array())
   {
     $this->context = $context;
-    $this->config  = $config;
     $this->parameter_holder->add($parameters);
   }
 
@@ -230,6 +235,8 @@ abstract class sfRequest
    */
   public function setError ($name, $message)
   {
+    if (sfConfig::get('sf_logging_active')) $this->getContext()->getLogger()->info('{sfRequest} error in form for parameter "'.$name.'" (with message "'.$message.'")');
+
     $this->errors[$name] = $message;
   }
 

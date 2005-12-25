@@ -38,9 +38,6 @@ function run_alltests($task, $args)
     get_include_path()
   );
 
-  require_once 'symfony/log/sfLog.class.php';
-  require_once 'symfony/log/sfLogger.class.php';
-
   pake_import('simpletest', false);
   pakeSimpletestTask::call_simpletest($task, 'text');
 }

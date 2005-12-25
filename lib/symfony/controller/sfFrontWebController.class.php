@@ -37,29 +37,29 @@ class sfFrontWebController extends sfWebController
       // get the application context
       $context = $this->getContext();
 
-      if ($this->config->get('sf_logging_active')) $this->getContext()->getLogger()->info('{sfFrontWebController} dispatch request');
+      if (sfConfig::get('sf_logging_active')) $this->getContext()->getLogger()->info('{sfFrontWebController} dispatch request');
 
       // determine our module and action
-      $moduleName = $context->getRequest()->getParameter($this->config->get('sf_module_accessor'));
-      $actionName = $context->getRequest()->getParameter($this->config->get('sf_action_accessor'));
+      $moduleName = $context->getRequest()->getParameter(sfConfig::get('sf_module_accessor'));
+      $actionName = $context->getRequest()->getParameter(sfConfig::get('sf_action_accessor'));
 
       if ($moduleName == null)
       {
-        $moduleName = $this->config->get('sf_default_module');
+        $moduleName = sfConfig::get('sf_default_module');
 
-        if ($this->config->get('sf_logging_active')) $this->getContext()->getLogger()->info('{sfFrontWebController} no module, set default ('.$moduleName.')');
+        if (sfConfig::get('sf_logging_active')) $this->getContext()->getLogger()->info('{sfFrontWebController} no module, set default ('.$moduleName.')');
       }
 
       if ($actionName == null)
       {
         // no action has been specified
-        $actionName = $this->config->get('sf_default_action');
+        $actionName = sfConfig::get('sf_default_action');
 
-        if ($this->config->get('sf_logging_active')) $this->getContext()->getLogger()->info('{sfFrontWebController} no action, set default ('.$actionName.')');
+        if (sfConfig::get('sf_logging_active')) $this->getContext()->getLogger()->info('{sfFrontWebController} no action, set default ('.$actionName.')');
       }
 
       // register sfWebDebug assets
-      if ($this->config->get('sf_web_debug'))
+      if (sfConfig::get('sf_web_debug'))
       {
         sfWebDebug::getInstance()->registerAssets();
       }
@@ -68,13 +68,20 @@ class sfFrontWebController extends sfWebController
       $this->forward($moduleName, $actionName);
 
       // send web debug information if needed
-      if ($this->config->get('sf_web_debug'))
+      if (sfConfig::get('sf_web_debug'))
       {
         sfWebDebug::getInstance()->printResults();
       }
     }
     catch (sfException $e)
     {
+      $e->printStackTrace();
+    }
+    catch (Exception $e)
+    {
+      // unknown exception
+      $e = new sfException($e->getMessage());
+
       $e->printStackTrace();
     }
   }

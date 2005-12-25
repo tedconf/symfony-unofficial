@@ -2,9 +2,17 @@
 
 <h1>symfony API</h1>
 
-<p>
-This current symfony API is in the development stage, which means
-this documentation may change at any time for any reason.
-</p>
+{sortfilelist}
+
+<ul>
+{foreach key=subpackage item=files from=$classleftindex}
+  <li>{$subpackage}
+  <ul>
+  {section name=files loop=$files}
+      <li>{if $files[files].link != ''}<a href="{$files[files].link}">{/if}{$files[files].title}{if $files[files].link != ''}</a>{/if}</li>
+  {/section}
+  </ul></li>
+{/foreach}
+</ul>
 
 {include file="_footer.tpl"}

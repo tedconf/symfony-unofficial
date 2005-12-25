@@ -10,7 +10,6 @@ class sfRequestTest extends UnitTestCase
 {
   private
     $context = null,
-    $config  = null,
     $request = null;
 
   public function SetUp()
@@ -20,17 +19,18 @@ class sfRequestTest extends UnitTestCase
     // can't initialize directly the sfRequest class (abstract)
     // using sfWebRequest class to test sfRequest
 
-    $this->config = sfConfig::getInstance();
-    $this->config->set('sf_stats', false);
-    $this->config->set('sf_path_info_array', 'SERVER');
-    $this->config->set('sf_path_info_key', true);
+    sfConfig::set('sf_stats', false);
+    sfConfig::set('sf_path_info_array', 'SERVER');
+    sfConfig::set('sf_path_info_key', true);
+    sfConfig::set('sf_logging_active', false);
+    sfConfig::set('sf_is_i18n', 0);
     $this->populateVariables('/', true);
 
     $this->context = new MockSfContext($this);
     $this->request = sfRequest::newInstance('sfWebRequest');
     $this->request->initialize($this->context);
   }
-  
+
   public function test_single_error()
   {
     $key = "test";
@@ -117,7 +117,7 @@ class sfRequestTest extends UnitTestCase
     $_SERVER['REQUEST_URI'] = $request_uri;
     $_SERVER['SCRIPT_NAME'] = '/index.php';
 
-    if ($request_uri{0} != '/')
+    if ($request_uri[0] != '/')
     {
       $request_uri = '/'.$request_uri;
     }

@@ -10,17 +10,17 @@ class sfWebRequestTest extends UnitTestCase
 {
   private
     $context = null,
-    $config  = null,
     $request = null;
 
   public function SetUp()
   {
     sfRouting::getInstance()->clearRoutes();
 
-    $config = sfConfig::getInstance();
-    $this->config->set('sf_stats', false);
-    $this->config->set('sf_path_info_array', 'SERVER');
-    $this->config->set('sf_path_info_key', true);
+    sfConfig::set('sf_stats', false);
+    sfConfig::set('sf_path_info_array', 'SERVER');
+    sfConfig::set('sf_path_info_key', true);
+    sfConfig::set('sf_logging_active', false);
+    sfConfig::set('sf_is_i18n', 0);
     $this->populateVariables('/', true);
 
     $this->context = new MockSfContext($this);
@@ -41,7 +41,7 @@ class sfWebRequestTest extends UnitTestCase
     $_SERVER['REQUEST_URI'] = $request_uri;
     $_SERVER['SCRIPT_NAME'] = '/index.php';
 
-    if ($request_uri{0} != '/')
+    if ($request_uri[0] != '/')
     {
       $request_uri = '/'.$request_uri;
     }

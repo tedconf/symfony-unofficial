@@ -19,7 +19,7 @@
 
 function __($text, $args = array(), $culture = null)
 {
-  if (!sfConfig::getInstance()->get('sf_is_i18n'))
+  if (!sfConfig::get('sf_is_i18n'))
   {
     throw new sfConfigurationException('you must set is_i18n to "on" in your settings.yml to enable I18N support');
   }

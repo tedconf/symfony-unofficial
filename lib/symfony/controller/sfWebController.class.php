@@ -28,10 +28,10 @@ abstract class sfWebController extends sfController
    *
    * @return string A URL to a symfony resource.
    */
-   public function genURL($url = null, $parameters = array())
+   public function genURL($url = null, $parameters = array(), $absolute = false)
    {
      // absolute URL or symfony URL?
-     if (!is_array($parameters) && preg_match('/^(http|ftp)/', $parameters))
+     if (!is_array($parameters) && preg_match('#^[a-z]+\://#', $parameters))
      {
        return $parameters;
      }
@@ -42,13 +42,13 @@ abstract class sfWebController extends sfController
      }
 
      $url = '';
-     if (!$this->config->get('sf_no_script_name'))
+     if (!sfConfig::get('sf_no_script_name'))
      {
        $url = $_SERVER['SCRIPT_NAME'];
      }
-     else if ($this->config->get('sf_relative_url_root') && $this->config->get('sf_no_script_name'))
+     else if (sfConfig::get('sf_relative_url_root') && sfConfig::get('sf_no_script_name'))
      {
-       $url = $this->config->get('sf_relative_url_root');
+       $url = sfConfig::get('sf_relative_url_root');
      }
 
      $route_name = '';
@@ -58,7 +58,7 @@ abstract class sfWebController extends sfController
        list($route_name, $parameters) = $this->convertUrlStringToParameters($parameters);
      }
 
-     if ($this->config->get('sf_url_format') == 'PATH')
+     if (sfConfig::get('sf_url_format') == 'PATH')
      {
        // use PATH format
        $divider = '/';
@@ -76,13 +76,13 @@ abstract class sfWebController extends sfController
      // default module
      if (!isset($parameters['module']))
      {
-       $parameters['module'] = $this->config->get('sf_default_module');
+       $parameters['module'] = sfConfig::get('sf_default_module');
      }
 
      // default action
      if (!isset($parameters['action']))
      {
-       $parameters['action'] = $this->config->get('sf_default_action');
+       $parameters['action'] = sfConfig::get('sf_default_action');
      }
 
      $r = sfRouting::getInstance();
@@ -103,6 +103,11 @@ abstract class sfWebController extends sfController
        $url = rtrim($url, $divider);
      }
 
+     if ($absolute)
+     {
+       $url = 'http://'.$this->getContext()->getRequest()->getHost().$url;
+     }
+
      return $url;
    }
 
@@ -111,6 +116,12 @@ abstract class sfWebController extends sfController
      $params       = array();
      $query_string = '';
      $route_name   = '';
+
+     // empty url?
+     if (!$url)
+     {
+       $url = '/';
+     }
 
      // we get the query string out of the url
      if ($pos = strpos($url, '?'))
@@ -124,13 +135,13 @@ abstract class sfWebController extends sfController
      // module/action?key1=value1&key2=value2...
 
      // first slash optional
-     if ($url{0} == '/')
+     if ($url[0] == '/')
      {
        $url = substr($url, 1);
      }
 
      // route_name?
-     if ($url{0} == '@')
+     if ($url[0] == '@')
      {
        $route_name = substr($url, 1);
      }
@@ -139,7 +150,7 @@ abstract class sfWebController extends sfController
        $tmp = explode('/', $url);
 
        $params['module'] = $tmp[0];
-       $params['action'] = isset($tmp[1]) ? $tmp[1] : $this->config->get('sf_default_action');
+       $params['action'] = isset($tmp[1]) ? $tmp[1] : sfConfig::get('sf_default_action');
      }
 
      $url_params = explode('&', $query_string);

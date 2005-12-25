@@ -86,7 +86,7 @@ th {
   <tr><th colspan="2">info</th></tr>
     <tr>
         <td class="title">symfony</td>
-        <td>v. <?php print SF_APP_VERSION ?></td>
+        <td>v. -</td>
     </tr>
     <tr>
         <td class="title">PHP</td>

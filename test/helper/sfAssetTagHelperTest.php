@@ -52,8 +52,7 @@ class sfAssetTagHelperTest extends UnitTestCase
   public function SetUp()
   {
     $this->context = new MockSfContext($this);
-    $this->config = sfConfig::getInstance();
-    $this->config->set('sf_relative_url_root', '');
+    sfConfig::set('sf_relative_url_root', '');
   }
 
   public function test_image_tag()

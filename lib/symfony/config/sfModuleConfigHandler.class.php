@@ -50,9 +50,9 @@ class sfModuleConfigHandler extends sfYamlConfigHandler
     }
 
     // merge with environment configuration if needed
-    if (isset($config[$this->config->get('sf_environment')]) && is_array($config[$this->config->get('sf_environment')]))
+    if (isset($config[sfConfig::get('sf_environment')]) && is_array($config[sfConfig::get('sf_environment')]))
     {
-      $myConfig = sfToolkit::array_deep_merge($myConfig, $config[$this->config->get('sf_environment')]);
+      $myConfig = sfToolkit::array_deep_merge($myConfig, $config[sfConfig::get('sf_environment')]);
     }
 
     // init our data array

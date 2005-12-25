@@ -73,7 +73,6 @@ abstract class sfView
     $template           = null;
 
   protected
-    $config             = null,
     $attribute_holder   = null,
     $moduleName         = '',
     $viewName           = '';
@@ -138,6 +137,13 @@ abstract class sfView
    * @return void
    */
   abstract function execute ();
+
+  /**
+   * Configure template.
+   *
+   * @return void
+   */
+  abstract function configure ($extension = '.php');
 
   /**
    * Retrieve the current application context.
@@ -315,14 +321,16 @@ abstract class sfView
     $this->viewName   = $viewName;
 
     $this->context = $context;
-    $this->config  = $context->getConfig();
     $this->attribute_holder = new sfParameterHolder();
 
     // set the currently executing module's template directory as the default template directory
     $module = $context->getModuleName();
 
-    $this->decoratorDirectory = $this->config->get('sf_app_module_dir').'/'.$module.'/'.$this->config->get('sf_app_module_template_dir_name');
+    $this->decoratorDirectory = sfConfig::get('sf_app_module_dir').'/'.$module.'/'.sfConfig::get('sf_app_module_template_dir_name');
     $this->directory          = $this->decoratorDirectory;
+
+    // include view configuration
+    $this->configure();
 
     return true;
   }

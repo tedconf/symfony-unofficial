@@ -31,9 +31,7 @@
   */
   function auto_discovery_link_tag($type = 'rss', $options = array())
   {
-    $options = _parse_attributes($options);
-    $options['only_path'] = 'false';
-    return tag('link', array('rel' => 'alternate', 'type' => 'application/'.$type.'+xml', 'title' => ucfirst($type), 'href' => url_for($options)));
+    return tag('link', array('rel' => 'alternate', 'type' => 'application/'.$type.'+xml', 'title' => ucfirst($type), 'href' => url_for($options, true)));
   }
 
   /*
@@ -155,10 +153,11 @@
 
   function _compute_public_path($source, $dir, $ext)
   {
-    if (strpos($source, '/') === false) $source = '/'.$dir.'/'.$source;
+    if (strpos($source, '/') === false) $source = sfConfig::get('sf_relative_url_root').'/'.$dir.'/'.$source;
     if (strpos($source, '.') === false) $source = $source.'.'.$ext;
+    if (sfConfig::get('sf_relative_url_root') && strpos($source, sfConfig::get('sf_relative_url_root')) !== 0) $source = sfConfig::get('sf_relative_url_root').$source;
 
-    return sfConfig::getInstance()->get('sf_relative_url_root').$source;
+    return $source;
   }
 
   function include_stylesheets()
@@ -173,6 +172,8 @@
 
       foreach ($files as $file)
       {
+        $file = stylesheet_path($file);
+
         if (isset($already_seen[$file])) continue;
 
         $already_seen[$file] = 1;
@@ -193,6 +194,8 @@
 
       foreach ($files as $file)
       {
+        $file = javascript_path($file);
+
         if (isset($already_seen[$file])) continue;
 
         $already_seen[$file] = 1;
@@ -214,7 +217,6 @@
     foreach (sfContext::getInstance()->getRequest()->getAttributeHolder()->getAll('helper/asset/auto/httpmeta') as $httpequiv => $value)
     {
       echo tag('meta', array('http-equiv' => $httpequiv, 'content' => $value))."\n";
-      header($httpequiv.': '.$value);
     }
   }
 

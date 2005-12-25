@@ -81,7 +81,7 @@ abstract class sfYamlConfigHandler extends sfConfigHandler
       $values = $this->defaultConfig['default'][$keyName];
     }
 
-    if (isset($this->yamlConfig['all'][$keyName]) && is_array($this->yamlConfig['all'][$keyName]))
+    if (isset($this->yamlConfig['all']) && isset($this->yamlConfig['all'][$keyName]) && is_array($this->yamlConfig['all'][$keyName]))
     {
       $values = array_merge($values, $this->yamlConfig['all'][$keyName]);
     }
@@ -100,7 +100,7 @@ abstract class sfYamlConfigHandler extends sfConfigHandler
     {
       return $this->yamlConfig[$category][$keyName];
     }
-    else if (isset($this->yamlConfig['all'][$keyName]))
+    else if (isset($this->yamlConfig['all']) && isset($this->yamlConfig['all'][$keyName]))
     {
       return $this->yamlConfig['all'][$keyName];
     }

@@ -35,11 +35,10 @@ class sfStats
 
   public static function record($context)
   {
-    $config = sfConfig::getInstance();
 
-    if (!$config->get('sf_stats')) return;
+    if (!sfConfig::get('sf_stats')) return;
 
-    switch ($config->get('sf_path_info_array'))
+    switch (sfConfig::get('sf_path_info_array'))
     {
       case 'SERVER':
         $pathArray =& $_SERVER;
