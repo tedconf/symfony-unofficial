@@ -6,12 +6,13 @@ $sf_environment = sfConfig::get('sf_environment');
 
 sfConfig::add(array(
   // root directory structure
-  'sf_cache_dir_name' => 'cache',
-  'sf_log_dir_name'   => 'log',
-  'sf_lib_dir_name'   => 'lib',
-  'sf_model_dir_name' => 'model',
-  'sf_web_dir_name'   => 'web',
-  'sf_data_dir_name'  => 'data',
+  'sf_cache_dir_name'   => 'cache',
+  'sf_log_dir_name'     => 'log',
+  'sf_lib_dir_name'     => 'lib',
+  'sf_model_dir_name'   => 'model',
+  'sf_web_dir_name'     => 'web',
+  'sf_data_dir_name'    => 'data',
+  'sf_config_dir_name'  => 'config',
 
   // global directory structure
   'sf_app_dir'        => $sf_root_dir.DIRECTORY_SEPARATOR.$sf_app,
@@ -23,6 +24,7 @@ sfConfig::add(array(
   'sf_cache_dir'      => $sf_root_dir.DIRECTORY_SEPARATOR.'cache'.DIRECTORY_SEPARATOR.$sf_app.DIRECTORY_SEPARATOR.$sf_environment,
   'sf_log_dir'        => $sf_root_dir.DIRECTORY_SEPARATOR.'log',
   'sf_data_dir'       => $sf_root_dir.DIRECTORY_SEPARATOR.'data',
+  'sf_config_dir'     => $sf_root_dir.DIRECTORY_SEPARATOR.'config',
 
   // SF_CACHE_DIR directory structure
   'sf_template_cache_dir' => $sf_root_dir.DIRECTORY_SEPARATOR.'cache'.DIRECTORY_SEPARATOR.$sf_app.DIRECTORY_SEPARATOR.$sf_environment.DIRECTORY_SEPARATOR.'template',

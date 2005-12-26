@@ -1,5 +1,22 @@
 <?php
 
+/*
+ * This file is part of the symfony package.
+ * (c) 2004, 2005 Fabien Potencier <fabien.potencier@symfony-project.com>
+ * 
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+/**
+ * .
+ *
+ * @package    symfony
+ * @subpackage test
+ * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
+ * @version    SVN: $Id$
+ */
+
 require_once 'symfony/config/sfConfig.class.php';
 require_once 'symfony/util/sfToolkit.class.php';
 require_once 'symfony/test/sfTestBrowser.class.php';
@@ -28,9 +45,9 @@ class sfLiveProjectUnitTestCase extends UnitTestCase
   {
     if ($this->workDir === null)
     {
-      $root_dir = tempnam('/tmp/symfonylivetest', 'tmp');
-
       sfToolkit::clearDirectory('/tmp/symfonylivetest');
+      $root_dir = tempnam('/tmp/symfonylivetest', 'tmp');
+      unlink($root_dir);
       $this->workDir = $root_dir.DIRECTORY_SEPARATOR.md5(uniqid(rand(), true));
       if (!is_dir($root_dir))
       {
@@ -192,8 +209,8 @@ class sfLiveProjectUnitTestCase extends UnitTestCase
   public function shutdown()
   {
     // remove all temporary files and directories
-    sfToolkit::clearDirectory($this->getWorkDir());
-    rmdir($this->getWorkDir());
+//    sfToolkit::clearDirectory($this->getWorkDir());
+//    rmdir($this->getWorkDir());
 
     chdir($this->currentDir);
   }

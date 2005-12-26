@@ -31,10 +31,10 @@ function run_init_propelcrud($task, $args)
 
   // create basic application structure
   $finder = pakeFinder::type('any')->prune('.svn')->discard('.svn');
-  pake_mirror($finder, PAKEFILE_SYMFONY_DATA_DIR.'/symfony/generator/sfPropelCrud/default/skeleton/', getcwd().'/'.$app.'/modules/'.$module);
+  pake_mirror($finder, sfConfig::get('sf_symfony_data_dir').'/symfony/generator/sfPropelCrud/default/skeleton/', getcwd().'/'.$app.'/modules/'.$module);
 
   // create basic test
-  pake_copy(PAKEFILE_DATA_DIR.'/symfony/skeleton/module/test/actionsTest.php', getcwd().'/test/'.$app.'/'.$module.'ActionsTest.php');
+  pake_copy(sfConfig::get('sf_symfony_data_dir').'/symfony/skeleton/module/test/actionsTest.php', getcwd().'/test/'.$app.'/'.$module.'ActionsTest.php');
 
   // customize test file
   pake_replace_tokens($module.'ActionsTest.php', getcwd().'/test/'.$app, '##', '##', $constants);
@@ -56,11 +56,6 @@ function run_generate_propelcrud($task, $args)
     throw new Exception('you must provide your model class name');
   }
 
-  if (!defined('SF_SYMFONY_DATA_DIR'))
-  {
-    define('SF_SYMFONY_DATA_DIR', PAKEFILE_DATA_DIR);
-  }
-
   $theme = isset($args[3]) ? $args[3] : 'default';
 
   $app         = $args[0];
@@ -77,8 +72,8 @@ function run_generate_propelcrud($task, $args)
 
   // generate module
   $tmp_dir = getcwd().DIRECTORY_SEPARATOR.'cache'.DIRECTORY_SEPARATOR.'tmp'.DIRECTORY_SEPARATOR.md5(uniqid(rand(), true));
-  define('SF_MODULE_CACHE_DIR', $tmp_dir);
-  set_include_path(getcwd().PATH_SEPARATOR.getcwd().DIRECTORY_SEPARATOR.'lib'.PATH_SEPARATOR.PAKEFILE_LIB_DIR.PATH_SEPARATOR.get_include_path());
+  sfConfig::set('sf_module_cache_dir', $tmp_dir);
+  require_once('symfony/config/sfConfig.class.php');
   require_once('symfony/exception/sfException.class.php');
   require_once('symfony/exception/sfInitializationException.class.php');
   require_once('symfony/exception/sfParseException.class.php');

@@ -41,6 +41,8 @@ class sfTestBrowser
     // we set a session id (fake cookie / persistence)
     $_SERVER['session_id'] = md5(uniqid(rand(), true));
 
+    sfConfig::set('sf_path_info_array', 'SERVER');
+
     // register our shutdown function
     register_shutdown_function(array($this, 'shutdown'));
   }
@@ -64,8 +66,12 @@ class sfTestBrowser
     $this->populateVariables($request_uri, $with_layout);
 
     // launch request via controller
-    $context = sfContext::getInstance();
+    $context    = sfContext::getInstance();
     $controller = $context->getController();
+    $request    = $context->getRequest();
+
+    $request->getParameterHolder()->clear();
+    $request->initialize($context);
 
     ob_start();
     $controller->dispatch();
@@ -117,7 +123,6 @@ class sfTestBrowser
   {
     $_SERVER['GATEWAY_INTERFACE'] = 'CGI/1.1';
     $_SERVER['REQUEST_METHOD'] = 'GET';
-    $_SERVER['REQUEST_URI'] = $request_uri;
     $_SERVER['SCRIPT_NAME'] = '/index.php';
 
     if ($request_uri[0] != '/')
@@ -130,6 +135,8 @@ class sfTestBrowser
     {
       $request_uri = '/index.php'.$request_uri;
     }
+
+    $_SERVER['REQUEST_URI'] = $request_uri;
 
     // query string
     $_SERVER['QUERY_STRING'] = '';

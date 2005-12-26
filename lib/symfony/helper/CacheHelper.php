@@ -30,7 +30,6 @@
 function cache($suffix, $lifeTime = null)
 {
   $context = sfContext::getInstance();
-  $config  = $context->getConfig();
 
   if ($lifeTime === null)
   {
@@ -70,7 +69,6 @@ function cache($suffix, $lifeTime = null)
 function cache_save()
 {
   $context = sfContext::getInstance();
-  $config  = $context->getConfig();
 
   if (!sfConfig::get('sf_cache'))
   {
