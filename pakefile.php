@@ -102,7 +102,7 @@ function run_release($task, $args)
 
   $stability = $args[1];
 
-  if ($stability == 'beta')
+  if ($stability == 'beta' || $stability == 'alpha')
   {
     $version_prefix = $args[0];
 
@@ -126,7 +126,10 @@ function run_release($task, $args)
     $version = $args[0];
   }
 
-  if ($task->is_verbose()) print 'releasing symfony version "'.$version."\"\n";
+  if ($task->is_verbose())
+  {
+    print 'releasing symfony version "'.$version."\"\n";
+  }
 
   $args[0] = $version;
 

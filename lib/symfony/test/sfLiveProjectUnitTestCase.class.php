@@ -29,12 +29,13 @@ if (!function_exists('pake_task'))
 class sfLiveProjectUnitTestCase extends UnitTestCase
 {
   private
-    $currentDir  = '',
-    $workDir     = null,
-    $browser     = null;
+    $browser          = null;
 
   private static
-    $loaded      = false;
+    $loaded           = false,
+    $currentDir       = '',
+    $currentLabel     = '',
+    $workDir          = null;
 
   public function getFixturesDir()
   {
@@ -43,20 +44,20 @@ class sfLiveProjectUnitTestCase extends UnitTestCase
 
   public function getWorkDir()
   {
-    if ($this->workDir === null)
+    if (self::$workDir === null)
     {
       sfToolkit::clearDirectory('/tmp/symfonylivetest');
       $root_dir = tempnam('/tmp/symfonylivetest', 'tmp');
       unlink($root_dir);
-      $this->workDir = $root_dir.DIRECTORY_SEPARATOR.md5(uniqid(rand(), true));
+      self::$workDir = $root_dir.DIRECTORY_SEPARATOR.md5(uniqid(rand(), true));
       if (!is_dir($root_dir))
       {
         mkdir($root_dir, 0777);
       }
-      mkdir($this->workDir, 0777);
+      mkdir(self::$workDir, 0777);
     }
 
-    return $this->workDir;
+    return self::$workDir;
   }
 
   public function getPakefilePath()
@@ -98,9 +99,13 @@ class sfLiveProjectUnitTestCase extends UnitTestCase
   {
     if (!self::$loaded)
     {
+      self::$currentDir = getcwd();
       self::$loaded = true;
-      $this->initSandbox();
     }
+
+    $this->initSandbox();
+
+    chdir($this->getWorkDir());
 
     // initialize our test browser
     $this->browser = new sfTestBrowser();
@@ -110,11 +115,20 @@ class sfLiveProjectUnitTestCase extends UnitTestCase
   public function tearDown()
   {
     $this->browser->shutdown();
+
+    chdir(self::$currentDir);
   }
 
   public function initSandbox()
   {
-    $this->currentDir = getcwd();
+    if (self::$currentLabel == $this->getLabel())
+    {
+      return;
+    }
+
+    self::$currentLabel = $this->getLabel();
+    self::$workDir = null;
+
     chdir($this->getWorkDir());
 
     // create a new symfony project
@@ -152,6 +166,8 @@ class sfLiveProjectUnitTestCase extends UnitTestCase
     require_once 'symfony/symfony.php';
 
     register_shutdown_function(array($this, 'shutdown'));
+
+    chdir(self::$currentDir);
   }
 
   public function getBrowser()
@@ -209,10 +225,8 @@ class sfLiveProjectUnitTestCase extends UnitTestCase
   public function shutdown()
   {
     // remove all temporary files and directories
-//    sfToolkit::clearDirectory($this->getWorkDir());
-//    rmdir($this->getWorkDir());
-
-    chdir($this->currentDir);
+    sfToolkit::clearDirectory($this->getWorkDir());
+    rmdir($this->getWorkDir());
   }
 }
 
