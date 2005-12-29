@@ -37,15 +37,15 @@ class sfPHPView extends sfView
     $firstActionEntry = $context->getActionStack()->getFirstEntry();
 
     $shortcuts = array(
-      'context'       => $context,
-      'params'        => $context->getRequest()->getParameterHolder(),
-      'request'       => $context->getRequest(),
-      'user'          => $context->getUser(),
-      'view'          => $this,
-      'last_module'   => $lastActionEntry->getModuleName(),
-      'last_action'   => $lastActionEntry->getActionName(),
-      'first_module'  => $firstActionEntry->getModuleName(),
-      'first_action'  => $firstActionEntry->getActionName(),
+      'sf_context'       => $context,
+      'sf_params'        => $context->getRequest()->getParameterHolder(),
+      'sf_request'       => $context->getRequest(),
+      'sf_user'          => $context->getUser(),
+      'sf_view'          => $this,
+      'sf_last_module'   => $lastActionEntry->getModuleName(),
+      'sf_last_action'   => $lastActionEntry->getActionName(),
+      'sf_first_module'  => $firstActionEntry->getModuleName(),
+      'sf_first_action'  => $firstActionEntry->getActionName(),
     );
 
     $this->attribute_holder->add($shortcuts);
@@ -88,7 +88,7 @@ class sfPHPView extends sfView
     {
       if (is_readable($helper_base_dir.$helperName.'Helper.php'))
       {
-        include_once('symfony/helper/'.$helperName.'Helper.php');
+        include_once($helper_base_dir.$helperName.'Helper.php');
       }
       else
       {

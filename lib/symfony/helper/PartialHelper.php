@@ -39,14 +39,14 @@ function include_partial($name, $vars = array())
 
   // global variables
   $vars = array_merge($vars, array(
-    'context'       => $context,
-    'params'        => $context->getRequest()->getParameterHolder(),
-    'request'       => $context->getRequest(),
-    'user'          => $context->getUser(),
-    'last_module'   => $lastActionEntry->getModuleName(),
-    'last_action'   => $lastActionEntry->getActionName(),
-    'first_module'  => $firstActionEntry->getModuleName(),
-    'first_action'  => $firstActionEntry->getActionName(),
+    'sf_context'       => $context,
+    'sf_params'        => $context->getRequest()->getParameterHolder(),
+    'sf_request'       => $context->getRequest(),
+    'sf_user'          => $context->getUser(),
+    'sf_last_module'   => $lastActionEntry->getModuleName(),
+    'sf_last_action'   => $lastActionEntry->getActionName(),
+    'sf_first_module'  => $firstActionEntry->getModuleName(),
+    'sf_first_action'  => $firstActionEntry->getActionName(),
   ));
 
   // local action variables
