@@ -350,7 +350,7 @@ class sfRouting
     }
 
     // strip off last divider character
-    if (isset($real_url[1]))
+    if (strlen($real_url) > 1)
     {
       $real_url = rtrim($real_url, $divider);
     }
