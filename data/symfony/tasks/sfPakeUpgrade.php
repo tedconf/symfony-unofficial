@@ -49,6 +49,9 @@ function run_upgrade_to_0_6($task, $args)
     $template_dirs[] = $app.'/templates';
 
     _upgrade_0_6_view_shortcuts($template_dirs);
+
+    // change standard_helpers format
+    _upgrade_0_6_settings($app);
   }
 
   // constants in global libraries
@@ -56,6 +59,24 @@ function run_upgrade_to_0_6($task, $args)
 
   // clear cache
   run_clear_cache($task, array());
+}
+
+function _upgrade_0_6_settings($app)
+{
+  $verbose = pakeApp::get_instance()->get_verbose();
+
+  $content = file_get_contents($app.'/config/settings.yml');
+
+  if (preg_match('/(standard_helpers|standard_helpers):\s*\[/', $content))
+  {
+    return;
+  }
+
+  if ($verbose) echo '>> file      converting settings.yml'."\n";
+
+  $content = preg_replace('/^([;\s]+)(helper_standard|standard_helpers)\:(\s+)(.+)$/me', "'$1standard_helpers:$3['.implode(', ', explode(',', '$4')).']'", $content);
+
+  file_put_contents($app.'/config/settings.yml', $content);
 }
 
 function _upgrade_0_6_view_shortcuts($dirs)

@@ -1,15 +1,25 @@
-upgrade to 0.6.X/0.7.X from 0.4.X/0.5.X
----------------------------------------
+Upgrade to 0.6.X/0.7.X from 0.4.X/0.5.X
+=======================================
 
-- Automatically:
+When you upgrade to symfony release 0.6.X or 0.7.X from 0.4.X or 0.5.X, you must upgrade your projects.
+
+Automatically
+-------------
+
+  - make a backup of your project
+
+  - launch the following command in your project root directory:
 
     $ symfony upgrade 0.6
 
-    Be careful if you have external libraries that can contains SF_XXX, MOD_XXX or APP_XXX constants!
+Be careful if you have external libraries that can contains SF_XXX, MOD_XXX or APP_XXX constants!
 
-    You can launch this command several times.
+You can launch this command several times without a problem.
 
-- Manually (for all your applications):
+Manually
+--------
+
+For all your application within a project:
 
   - update your `app/config/config.php` file with the new one (`data/symfony/skeleton/app/app/config/config.php`)
 
@@ -36,6 +46,10 @@ upgrade to 0.6.X/0.7.X from 0.4.X/0.5.X
     $first_module            | $sf_first_module
     $first_action            | $sf_first_action
 
-  - clear the symfony cache (for production environments)
+  - change the `standard_helpers` format in `settings.yml` if needed:
+  
+    0.4.X/0.5.X              | 0.6.X/0.7.X
+    -------------------------|-----------------------------------
+    Partial,Cache,Form       | [Partial, Cache, Form]
 
-    $ symfony cc
+  - clear the symfony cache

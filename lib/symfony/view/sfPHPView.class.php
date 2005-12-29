@@ -70,7 +70,7 @@ class sfPHPView extends sfView
     self::$coreHelpersLoaded = 1;
 
     $core_helpers = array('Helper', 'Url', 'Asset', 'Tag');
-    $standard_helpers = explode(',', sfConfig::get('sf_standard_helpers'));
+    $standard_helpers = sfConfig::get('sf_standard_helpers');
 
     $helpers = array_unique(array_merge($core_helpers, $standard_helpers));
     $this->loadHelpers($helpers);

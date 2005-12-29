@@ -34,21 +34,21 @@ default:
     use_database:           off
 
     use_security:           on
-    
+
     compressed:             off
-    
+
     tidy:                   off
-    
+
     is_i18n:                off
     default_culture:        en
-    
+
     timeout:                1800
-    
+
     suffix:                 .
 
     module_default:         on
 
-    standard_helpers:       Partial,Cache,Form
+    standard_helpers:       [Partial, Cache, Form]
 
     max_forwards:           10
 
