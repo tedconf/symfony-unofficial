@@ -13,7 +13,7 @@
  * {@link http://prado.sourceforge.net/}
  *
  * @author Wei Zhuo <weizhuo[at]gmail[dot]com>
- * @version $Revision: 1.4 $  $Date: 2005/08/27 03:21:12 $
+ * @version $Revision: 1.6 $  $Date: 2005/12/20 09:32:42 $
  * @package System.I18N.core
  */
 
@@ -124,7 +124,7 @@ class NumberFormat
 		
 		
 		$decimal = $this->formatDecimal($string);	
-		$integer = $this->formatInteger($string);
+		$integer = $this->formatInteger(abs($number));
 			
 		if(strlen($decimal)>0)
 			$result = $integer.$decimal;
@@ -159,6 +159,7 @@ class NumberFormat
 	 */
 	protected function formatInteger($string)
 	{
+		$string = (string)$string;
 		$dp = strpos($string, '.');
 		
 		if(is_int($dp))

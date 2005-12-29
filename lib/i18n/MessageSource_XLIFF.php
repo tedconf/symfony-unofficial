@@ -13,7 +13,7 @@
  * {@link http://prado.sourceforge.net/}
  *
  * @author Wei Zhuo <weizhuo[at]gmail[dot]com>
- * @version $Revision: 1.6 $  $Date: 2005/08/27 03:21:12 $
+ * @version $Revision: 1.8 $  $Date: 2005/12/17 06:11:28 $
  * @package System.I18N.core
  */
 
@@ -273,8 +273,8 @@ class MessageSource_XLIFF extends MessageSource
 			list($variant, $filename) = $variants;
 		else
 			return false;
-						
-		if(is_writable($filename) == false) return false;
+		if(is_writable($filename) == false) 
+			throw new TMessageSourceIOException("Unable to save to file {$filename}, file must be writable.");
 		
 		//create a new dom, import the existing xml
 		$dom = DOMDocument::load($filename);
@@ -307,7 +307,7 @@ class MessageSource_XLIFF extends MessageSource
 		
     	
     	$fileNode = $xpath->query('//file')->item(0);
-    	$fileNode->setAttribute('date', date('Y-m-d\TH:i:s\Z'));
+    	$fileNode->setAttribute('date', @date('Y-m-d\TH:i:s\Z'));
     	
     	//save it and clear the cache for this variant
     	$dom->save($filename);
@@ -333,7 +333,8 @@ class MessageSource_XLIFF extends MessageSource
 		else
 			return false;		
 			
-		if(is_writable($filename) == false) return false;
+		if(is_writable($filename) == false)
+			throw new TMessageSourceIOException("Unable to update file {$filename}, file must be writable.");
 		
 		//create a new dom, import the existing xml
 		$dom = DOMDocument::load($filename);
@@ -391,7 +392,7 @@ class MessageSource_XLIFF extends MessageSource
 		}
 		
     	$fileNode = $xpath->query('//file')->item(0);
-    	$fileNode->setAttribute('date', date('Y-m-d\TH:i:s\Z'));
+    	$fileNode->setAttribute('date', @date('Y-m-d\TH:i:s\Z'));
     			
 		if($dom->save($filename) >0)
 		{
@@ -417,7 +418,8 @@ class MessageSource_XLIFF extends MessageSource
 		else
 			return false;
 					
-		if(is_writable($filename) == false) return false;
+		if(is_writable($filename) == false) 
+			throw new TMessageSourceIOException("Unable to modify file {$filename}, file must be writable.");
 		
 		//create a new dom, import the existing xml
 		$dom = DOMDocument::load($filename);
@@ -442,7 +444,7 @@ class MessageSource_XLIFF extends MessageSource
 					$unit->parentNode->removeChild($unit);
 					
     				$fileNode = $xpath->query('//file')->item(0);
-    				$fileNode->setAttribute('date', date('Y-m-d\TH:i:s\Z'));
+    				$fileNode->setAttribute('date', @date('Y-m-d\TH:i:s\Z'));
     			
 					if($dom->save($filename) >0)
 					{

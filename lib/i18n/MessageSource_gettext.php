@@ -13,7 +13,7 @@
  * {@link http://prado.sourceforge.net/}
  *
  * @author Wei Zhuo <weizhuo[at]gmail[dot]com>
- * @version $Revision: 1.5 $  $Date: 2005/02/25 09:59:40 $
+ * @version $Revision: 1.7 $  $Date: 2005/12/17 06:11:28 $
  * @package System.I18N.core
  */
 
@@ -226,13 +226,15 @@ class MessageSource_gettext extends MessageSource
 			return false;									
 	
 			
-		if(is_writable($MOFile) == false) return false;	
-		if(is_writable($POFile) == false) return false;						
+		if(is_writable($MOFile) == false) 
+			throw new TMessageSourceIOException("Unable to save to file {$MOFile}, file must be writable.");
+		if(is_writable($POFile) == false)
+			throw new TMessageSourceIOException("Unable to save to file {$POFile}, file must be writable.");
 		
 		//set the strings as untranslated.
 		$strings = array();
 		foreach($messages as $message)
-			$strings[$message] = $message;			
+			$strings[$message] = ''; 
 			
 		//load the PO
 		$po = TGettext::factory('PO',$POFile);
@@ -249,7 +251,7 @@ class MessageSource_gettext extends MessageSource
 		if($new > $existing)
 		{		
 			//change the date 2004-12-25 12:26
-			$result['meta']['PO-Revision-Date'] = date('Y-m-d H:i:s');
+			$result['meta']['PO-Revision-Date'] = @date('Y-m-d H:i:s');
 					
 			$po->fromArray($result);
 			$mo = $po->toMO();
@@ -279,8 +281,10 @@ class MessageSource_gettext extends MessageSource
 		else
 			return false;
 					
-		if(is_writable($MOFile) == false) return false;	
-		if(is_writable($POFile) == false) return false;	
+		if(is_writable($MOFile) == false)
+			throw new TMessageSourceIOException("Unable to modify file {$MOFile}, file must be writable.");
+		if(is_writable($POFile) == false)
+			throw new TMessageSourceIOException("Unable to modify file {$POFile}, file must be writable.");
 				
 		$po = TGettext::factory('PO',$POFile);
 		$po->load();
@@ -290,7 +294,7 @@ class MessageSource_gettext extends MessageSource
 		{
 			if($string == $message)
 			{
-				$result['meta']['PO-Revision-Date'] = date('Y-m-d H:i:s');
+				$result['meta']['PO-Revision-Date'] = @date('Y-m-d H:i:s');
 				unset($result['strings'][$string]);
 				
 				$po->fromArray($result);
@@ -325,8 +329,10 @@ class MessageSource_gettext extends MessageSource
 		else
 			return false;
 					
-		if(is_writable($MOFile) == false) return false;	
-		if(is_writable($POFile) == false) return false;	
+		if(is_writable($MOFile) == false)
+			throw new TMessageSourceIOException("Unable to update file {$MOFile}, file must be writable.");
+		if(is_writable($POFile) == false)
+			throw new TMessageSourceIOException("Unable to update file {$POFile}, file must be writable.");
 				
 		
 		$po = TGettext::factory('PO',$POFile);
@@ -338,7 +344,7 @@ class MessageSource_gettext extends MessageSource
 			if($string == $text)
 			{
 				$result['strings'][$string] = $target;
-				$result['meta']['PO-Revision-Date'] = date('Y-m-d H:i:s');
+				$result['meta']['PO-Revision-Date'] = @date('Y-m-d H:i:s');
 				
 				$po->fromArray($result);
 				$mo = $po->toMO();

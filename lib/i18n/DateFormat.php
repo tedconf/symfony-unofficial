@@ -12,7 +12,7 @@
  * {@link http://prado.sourceforge.net/}
  *
  * @author Wei Zhuo <weizhuo[at]gmail[dot]com>
- * @version $Revision: 1.7 $  $Date: 2005/08/27 03:21:12 $
+ * @version $Revision: 1.8 $  $Date: 2005/12/15 07:14:49 $
  * @package System.I18N.core
  */
 
@@ -111,12 +111,12 @@ class DateFormat
 	public function format($time, $pattern='F', $charset='UTF-8')
 	{
 		if(is_string($time))
-			$time = strtotime($time);
+			$time = @strtotime($time);
 		
 		if(is_null($pattern))
 			$pattern = 'F';
 			
-		$date = getdate($time);
+		$date = @getdate($time);
 			
 		$pattern = $this->getPattern($pattern);		
 
@@ -545,7 +545,7 @@ class DateFormat
 		if($pattern != 'z')
 			throw new Exception('The pattern for time zone is "z".');
 
-		return date('T', mktime($date['hours'], $date['minutes'], $date['seconds'], $date['mon'], $date['mday'], $date['year']));
+		return @date('T', @mktime($date['hours'], $date['minutes'], $date['seconds'], $date['mon'], $date['mday'], $date['year']));
 	}
 
 	/**
@@ -572,10 +572,10 @@ class DateFormat
 	{
 		switch ($pattern) {
 		    case 'F':
-		      return date('j', mktime(0, 0, 0, $date['mon'], $date['mday'], $date['year']));
+		      return @date('j', @mktime(0, 0, 0, $date['mon'], $date['mday'], $date['year']));
 		      break;
 		    case 'FF':
-		      return date('d', mktime(0, 0, 0, $date['mon'], $date['mday'], $date['year']));
+		      return @date('d', @mktime(0, 0, 0, $date['mon'], $date['mday'], $date['year']));
 		      break;
 		    default:
 		      throw new Exception('The pattern for day in month is "F" or "FF".');
@@ -593,7 +593,7 @@ class DateFormat
 		if($pattern != 'w')
 			throw new Exception('The pattern for week in year is "w".');
 
-		return date('W', mktime(0, 0, 0, $date['mon'], $date['mday'], $date['year']));
+		return @date('W', @mktime(0, 0, 0, $date['mon'], $date['mday'], $date['year']));
 	}
 
 	/**
@@ -606,7 +606,7 @@ class DateFormat
 		if($pattern != 'W')
 			throw new Exception('The pattern for week in month is "W".');
 		
-		return date('W', mktime(0, 0, 0, $date['mon'], $date['mday'], $date['year'])) - date('W', mktime(0, 0, 0, $date['mon'], 1, $date['year']));
+		return @date('W', @mktime(0, 0, 0, $date['mon'], $date['mday'], $date['year'])) - date('W', mktime(0, 0, 0, $date['mon'], 1, $date['year']));
 	}
 
 	/**

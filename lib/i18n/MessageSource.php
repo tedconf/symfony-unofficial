@@ -13,7 +13,7 @@
  * {@link http://prado.sourceforge.net/}
  *
  * @author Wei Zhuo <weizhuo[at]gmail[dot]com>
- * @version $Revision: 1.3 $  $Date: 2005/01/09 22:15:32 $
+ * @version $Revision: 1.4 $  $Date: 2005/12/17 06:11:28 $
  * @package System.I18N.core
  */
 
@@ -317,4 +317,17 @@ abstract class MessageSource implements IMessageSource
 	}		
 }
 
+
+/**
+ * TMessageSourceIOException thrown when unable to modify message source
+ * data.
+ *
+ * @author Wei Zhuo<weizhuo[at]gmail[dot]com>
+ * @version $Revision: 1.4 $  $Date: 2005/12/17 06:11:28 ${DATE} ${TIME} $
+ * @package System.I18N.core
+ */
+class TMessageSourceIOException extends TException
+{
+
+}
 ?>
