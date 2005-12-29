@@ -1,0 +1,41 @@
+upgrade to 0.6.X/0.7.X from 0.4.X/0.5.X
+---------------------------------------
+
+- Automatically:
+
+    $ symfony upgrade 0.6
+
+    Be careful if you have external libraries that can contains SF_XXX, MOD_XXX or APP_XXX constants!
+
+    You can launch this command several times.
+
+- Manually (for all your applications):
+
+  - update your `app/config/config.php` file with the new one (`data/symfony/skeleton/app/app/config/config.php`)
+
+  - change all symfony configuration constants to the new sfConfig class (SF_XXX, APP_XXX, MOD_XXX)
+    except constants in index.php (SF_ROOT_DIR, SF_APP, SF_ENVIRONMENT, SF_DEBUG)
+
+    0.4.X/0.5.X              | 0.6.X/0.7.X
+    -------------------------|-----------------------------------
+    define('SF_FOO', 'bar')  | sfConfig::set('sf_foo', 'bar')
+    defined('SF_FOO')        | sfConfig::get('sf_foo') or nothing
+    SF_FOO                   | sfConfig::get('sf_foo')
+
+  - change shortcuts names in your templates files by adding a `sf_` prefix:
+
+    0.4.X/0.5.X              | 0.6.X/0.7.X
+    -------------------------|-----------------------------------
+    $context                 | $sf_context
+    $params                  | $sf_params
+    $request                 | $sf_request
+    $user                    | $sf_user
+    $view                    | $sf_view
+    $last_module             | $sf_last_module
+    $last_action             | $sf_last_action
+    $first_module            | $sf_first_module
+    $first_action            | $sf_first_action
+
+  - clear the symfony cache (for production environments)
+
+    $ symfony cc
