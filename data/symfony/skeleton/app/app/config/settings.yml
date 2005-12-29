@@ -68,7 +68,7 @@ all:
 ;    
 ;    module_default:         on
 ;
-;    standard_helpers:       Partial,Cache,Form
+;    standard_helpers:       [Partial, Cache, Form]
 ;
 ;    max_forwards:           10
 ;
