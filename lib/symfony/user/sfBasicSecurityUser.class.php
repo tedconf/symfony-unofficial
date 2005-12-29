@@ -122,7 +122,10 @@ class sfBasicSecurityUser extends sfUser implements sfSecurityUser
       $this->culture = $culture;
 
       // change the message format object with the new culture
-      $this->getContext()->getRequest()->setAttribute('message_format', new sfMessageFormat($culture), 'symfony/i18n');
+      if (sfConfig::get('sf_message_format'))
+      {
+        sfConfig::set('sf_message_format', new sfMessageFormat($culture));
+      }
     }
   }
 
@@ -198,12 +201,6 @@ class sfBasicSecurityUser extends sfUser implements sfSecurityUser
     if ($this->culture == null)
     {
       $this->culture = sfConfig::get('sf_default_culture');
-    }
-
-    // i18n
-    if (sfConfig::get('sf_is_i18n'))
-    {
-      $context->getRequest()->setAttribute('message_format', new sfMessageFormat($context->getUser()->getCulture()), 'symfony/i18n');
     }
   }
 
