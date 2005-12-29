@@ -238,6 +238,11 @@ class sfPropelCrudGenerator extends sfGenerator
     return $this->className;
   }
 
+  public function getPeerClassName()
+  {
+    return $this->peerClassName;
+  }
+
   public function getPrimaryKey()
   {
     return $this->primaryKey;
@@ -276,6 +281,7 @@ class sfPropelCrudGenerator extends sfGenerator
   public function getColumnEditTag($column, $params = array())
   {
     $type = $column->getCreoleType();
+
     if ($column->isForeignKey())
     {
       $relatedTable = $this->map->getDatabaseMap()->getTable($column->getRelatedTableName());
@@ -285,8 +291,14 @@ class sfPropelCrudGenerator extends sfGenerator
     else if ($type == CreoleTypes::DATE)
     {
       // rich=false not yet implemented
-      $params = $this->getObjectTagParams(array('rich' => true), $params);
-      return "object_input_date_tag(\${$this->getSingularName()}, 'get{$column->getPhpName()}')";
+      $params = $this->getObjectTagParams($params, array('rich' => true));
+      return "object_input_date_tag(\${$this->getSingularName()}, 'get{$column->getPhpName()}', $params)";
+    }
+    else if ($type == CreoleTypes::TIMESTAMP)
+    {
+      // rich=false not yet implemented
+      $params = $this->getObjectTagParams($params, array('rich' => true, 'withtime' => true));
+      return "object_input_date_tag(\${$this->getSingularName()}, 'get{$column->getPhpName()}', $params)";
     }
     else if ($type == CreoleTypes::BOOLEAN)
     {
@@ -311,7 +323,7 @@ class sfPropelCrudGenerator extends sfGenerator
     }
     else if ($type == CreoleTypes::TEXT || $type == CreoleTypes::LONGVARCHAR)
     {
-      $params = $this->getObjectTagParams($params, array('rows' => 3, 'cols' => 30));
+      $params = $this->getObjectTagParams($params, array('size' => '3x30'));
       return "object_textarea_tag(\${$this->getSingularName()}, 'get{$column->getPhpName()}', $params)";
     }
     else

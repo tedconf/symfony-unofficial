@@ -2,25 +2,30 @@
 
 /*
 
-- gestion des aides sur les champs
+symfony init-propeladmin-app app
+
+symfony init-propeladmin app test Test
+symfony init-propeladmin-main
+
+symfony install-module sfAuth
+symfony install-module sfMedia
+
+- filtres (avec filtres prédéfinis ?) => dates, fk, enums, 
+- layout spécifique + CSS spécifique (thème ?)
 - breadcrumb
-- pagination des listes
 - many to many (ajax?)
 - edition des tables liées en inline ou tabular (cf. django)
 - module d'authentification avec page de login toute faite (paramètre: classes à utiliser pour les utilisateurs)
 - module de gestion des images (sfMedia...)
 - mettre de la doc phpdoc dans les fichiers générées -> PDF automatique / html OK
-- sortable en ajax (colonne à déclarer)
 - possibilité d'avoir une colonne non existante avec get et set ou que get ou que set (password)
 - autocomplete (pour des listes longues -> choix d'un utilisateur par exemple à la place d'un select)
   avec erreur si existe pas en BDD au retour!!! (ou champ caché user_id_real)
 - possibilité de choisir les boutons : delete ou pas, ben c'est tout!
-- filtres (avec filtres prédéfinis ?)
-- gestion de tous les termes génériques en I18N (Edition d'un %s, Création d'un %s, ...)
-OK - gestion de la validation des formulaires
 - generateur spécifique pour gérer la home page et aggréger les modules générés et les autres
-- layout spécifique + CSS spécifique (thème ?)
 - gestion des types enums en passant un paramètre value
+- support des tables i18n
+- traduction interface en i18n
 
 */
 
@@ -111,15 +116,26 @@ class sfPropelAdminGenerator extends sfPropelCrudGenerator
     return $data;
   }
 
+  public function getHelp($column, $type = '')
+  {
+    $help = $this->getParameterValue($type.'.fields.'.$column->getName().'.help');
+    if ($help)
+    {
+      return "[?php echo image_tag('/sf/images/sf_admin/help.gif', array('alt' => __('".$this->escapeString($help)."'), 'title' => __('".$this->escapeString($help)."'))) ?]";
+    }
+
+    return '';
+  }
+
   public function getColumnEditTag($column, $params = array())
   {
     // user defined parameters
-    $user_params = $this->getFieldProperty($column->getName(), 'params');
+    $user_params = $this->getParameterValue('edit.fields.'.$column->getName().'.params');
     $user_params = is_array($user_params) ? $user_params : sfToolkit::stringToArray($user_params);
     $params = $user_params ? array_merge($params, $user_params) : $params;
 
     // user sets a specific tag to use
-    if ($type = $this->getFieldProperty($column->getName(), 'type'))
+    if ($type = $this->getParameterValue('edit.fields.'.$column->getName().'.type'))
     {
       $params = $this->getObjectTagParams($params);
       return "object_$type(\${$this->getSingularName()}, 'get{$column->getPhpName()}', $params)";
@@ -131,9 +147,9 @@ class sfPropelAdminGenerator extends sfPropelCrudGenerator
 
   public function getColumnCategories($paramName)
   {
-    if (is_array($this->getParam($paramName)))
+    if (is_array($this->getParameterValue($paramName)))
     {
-      $fields = $this->getParam($paramName);
+      $fields = $this->getParameterValue($paramName);
 
       // do we have categories?
       if (!isset($fields[0]))
@@ -147,7 +163,7 @@ class sfPropelAdminGenerator extends sfPropelCrudGenerator
   }
 
   /**
-   * returns an array of adminColumn objects
+   * returns an array of sfAdminColumn objects
    * from the $paramName list or the list of all columns (in table) if it does not exist
    */
   public function getColumns($paramName, $category = 'NONE')
@@ -155,11 +171,10 @@ class sfPropelAdminGenerator extends sfPropelCrudGenerator
     $phpNames = array();
 
     // user has set a personnalized list of fields?
-    if (is_array($this->getParam($paramName)))
+    $fields = $this->getParameterValue($paramName);
+    if (is_array($fields))
     {
-      $fields = $this->getParam($paramName);
-
-      // do we have categories?
+      // categories?
       if (isset($fields[0]))
       {
         // simulate a default one
@@ -170,6 +185,7 @@ class sfPropelAdminGenerator extends sfPropelCrudGenerator
       {
         $found = false;
 
+        list($field, $flag) = $this->splitFlag($field);
         $phpName = sfInflector::camelize($field);
 
         // search the matching column for this column name
@@ -178,7 +194,7 @@ class sfPropelAdminGenerator extends sfPropelCrudGenerator
           if ($column->getPhpName() == $phpName)
           {
             $found = true;
-            $phpNames[] = new adminColumn($column->getPhpName(), $column);
+            $phpNames[] = new sfAdminColumn($column->getPhpName(), $column, $flag);
             break;
           }
         }
@@ -186,7 +202,7 @@ class sfPropelAdminGenerator extends sfPropelCrudGenerator
         // not a "real" column, so we simulate one
         if (!$found)
         {
-          $phpNames[] = new adminColumn($phpName);
+          $phpNames[] = new sfAdminColumn($phpName);
         }
       }
     }
@@ -195,45 +211,57 @@ class sfPropelAdminGenerator extends sfPropelCrudGenerator
       // no, just return the full list of columns in table
       foreach ($this->getTableMap()->getColumns() as $column)
       {
-        $phpNames[] = new adminColumn($column->getPhpName(), $column);
+        $phpNames[] = new sfAdminColumn($column->getPhpName(), $column);
       }
     }
 
     return $phpNames;
   }
 
-  public function isLinkedColumn($column)
+  public function splitFlag($text)
   {
-    $links = $this->getParam('list_links');
-    if (!$links)
+    $flag = '';
+    if (in_array($text[0], array('=', '-', '+')))
     {
-      return $column->isPrimaryKey();
+      $flag = $text[0];
+      $text = substr($text, 1);
     }
 
-    if (in_array($column->getName(), $links))
-    {
-      return true;
-    }
-
-    return false;
+    return array($text, $flag);
   }
 
-  public function getFieldName($name)
+  // $name example: list.display
+  // special default behaviour for fields. keys
+  public function getParameterValue($key, $default = null)
   {
-    $retval = $this->getFieldProperty($name, 'name');
-    if (!$retval)
+    if (preg_match('/^([^\.]+)\.fields\.(.+)$/', $key, $matches))
     {
-      $retval = sfInflector::humanize($name);
+      return $this->getFieldParameterValue($matches[2], $matches[1], $default);
     }
-
-    return $retval;
+    else
+    {
+      return $this->getValueFromKey($key, $default);
+    }
   }
 
-  public function getFieldProperty($name, $property)
+  private function getFieldParameterValue($key, $type = '', $default = null)
   {
-    if (isset($this->params['fields'][$name]) && isset($this->params['fields'][$name][$property]))
+    $retval = $this->getValueFromKey($type.'.fields.'.$key, $default);
+    if ($retval)
     {
-      return $this->params['fields'][$name][$property];
+      return $retval;
+    }
+
+    $retval = $this->getValueFromKey('fields.'.$key, $default);
+    if ($retval)
+    {
+      return $retval;
+    }
+
+    if (preg_match('/\.name$/', $key))
+    {
+      // default field.name
+      return sfInflector::humanize(($pos = strpos($key, '.')) ? substr($key, 0, $pos) : $key);
     }
     else
     {
@@ -241,37 +269,98 @@ class sfPropelAdminGenerator extends sfPropelCrudGenerator
     }
   }
 
-  public function getParam($name)
+  private function getValueFromKey($key, $default = null)
   {
-    return isset($this->params[$name]) ? $this->params[$name] : null;
+    $ref   =& $this->params;
+    $parts =  explode('.', $key);
+    $count =  count($parts);
+    for ($i = 0; $i < $count; $i++)
+    {
+      $partKey = $parts[$i];
+      if (!isset($ref[$partKey]))
+      {
+        return $default;
+      }
+
+      if ($count == $i + 1)
+      {
+        return $ref[$partKey];
+      }
+      else
+      {
+        $ref =& $ref[$partKey];
+      }
+    }
+
+    return $default;
+  }
+
+  public function getI18NString($key, $default)
+  {
+    $value = $this->escapeString($this->getParameterValue($key, $default));
+
+    // find %xx% strings
+    $vars = array();
+    $columns = $this->getColumns('');
+    preg_match_all('/%([^%]+)%/', $value, $matches, PREG_PATTERN_ORDER);
+    foreach ($matches[1] as $name)
+    {
+      foreach ($columns as $column)
+      {
+        if ($column->getName() == $name)
+        {
+          $vars[] = '\'%'.$name.'%\' => $'.$this->getSingularName().'->get'.$column->getPhpName().'()';
+          break;
+        }
+      }
+    }
+
+    return '[?php echo __(\''.$value.'\', array('.implode(', ', $vars).')) ?]';
+  }
+
+  private function escapeString($string)
+  {
+    return preg_replace('/\'/', '\\\'', $string);
   }
 }
 
-class adminColumn
+class sfAdminColumn
 {
   private
     $phpName    = '',
-    $column     = null;
+    $column     = null,
+    $flag       = '';
 
-  public function __construct($phpName, $column = null)
+  public function __construct($phpName, $column = null, $flag = '')
   {
-    $this->phpName    = $phpName;
-    $this->column     = $column;
+    $this->phpName = $phpName;
+    $this->column  = $column;
+    $this->flag    = $flag;
   }
 
-  public function __call($name, $arguments)
+  public function __call ($name, $arguments)
   {
     return $this->column ? $this->column->$name() : null;
   }
 
-  public function getPhpName()
+  public function isReal ()
+  {
+    return $this->column ? true : false;
+  }
+
+  public function getPhpName ()
   {
     return $this->phpName;
   }
 
-  public function getName()
+  public function getName ()
   {
     return sfInflector::underscore($this->phpName);
+  }
+
+  public function isLink ()
+  {
+    return ($this->flag == '=' ? true : false);
   }
 }
 
