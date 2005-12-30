@@ -121,9 +121,9 @@ class sfCompileConfigHandler extends sfYamlConfigHandler
               file_get_contents(sfConfigCache::getCacheName($configFile));
 
     // strip php tags
-    $config = preg_replace("/<\?php/", '', $config);
-    $config = preg_replace("/<\?/",    '', $config);
-    $config = preg_replace("/\?>/",    '', $config);
+    $config = preg_replace("/^\s*<\?php/m", '', $config);
+    $config = preg_replace("/^\s*<\?/m",    '', $config);
+    $config = preg_replace("/^\s*\?>/m",    '', $config);
 
     return $config;
   }

@@ -64,6 +64,11 @@ class sfContext
       $this->databaseManager->initialize();
     }
 
+    if (sfConfig::get('sf_cache'))
+    {
+      $this->viewCacheManager = new sfViewCacheManager();
+    }
+
     // create a new action stack
     $this->actionStack = new sfActionStack();
 
@@ -72,7 +77,6 @@ class sfContext
 
     if (sfConfig::get('sf_cache'))
     {
-      $this->viewCacheManager = new sfViewCacheManager();
       $this->viewCacheManager->initialize($this, $this->config);
     }
 
