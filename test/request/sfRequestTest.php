@@ -23,7 +23,7 @@ class sfRequestTest extends UnitTestCase
     sfConfig::set('sf_path_info_array', 'SERVER');
     sfConfig::set('sf_path_info_key', true);
     sfConfig::set('sf_logging_active', false);
-    sfConfig::set('sf_is_i18n', 0);
+    sfConfig::set('sf_i18n', 0);
     $this->populateVariables('/', true);
 
     $this->context = new MockSfContext($this);

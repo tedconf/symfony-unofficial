@@ -18,9 +18,6 @@ class <?php echo $this->getGeneratedModuleName() ?>Actions extends sfActions
       array('/sf/css/sf_admin/main'),
       'helper/asset/auto/stylesheet'
     );
-
-    // force i18n
-    sfConfig::set('sf_is_i18n', true);
   }
 
   public function executeIndex ()

@@ -12,7 +12,7 @@ Automatically
 
     $ symfony upgrade 0.6
 
-Be careful if you have external libraries that can contains SF_XXX, MOD_XXX or APP_XXX constants!
+Be careful if you have external libraries that can contains `SF_XXX`, `MOD_XXX` or `APP_XXX` constants!
 
 You can launch this command several times without a problem.
 
@@ -35,7 +35,7 @@ For all your application within a project:
   - change shortcuts names in your templates files by adding a `sf_` prefix:
 
     0.4.X/0.5.X              | 0.6.X/0.7.X
-    -------------------------|-----------------------------------
+    -------------------------|-----------------
     $context                 | $sf_context
     $params                  | $sf_params
     $request                 | $sf_request
@@ -46,10 +46,14 @@ For all your application within a project:
     $first_module            | $sf_first_module
     $first_action            | $sf_first_action
 
-  - change the `standard_helpers` format in `settings.yml` if needed:
+  - update the `settings.yml` configuration file:
   
-    0.4.X/0.5.X              | 0.6.X/0.7.X
-    -------------------------|-----------------------------------
-    Partial,Cache,Form       | [Partial, Cache, Form]
+    0.4.X/0.5.X                           | 0.6.X/0.7.X
+    --------------------------------------|-----------------------------------------
+    standard_helpers: Partial,Cache,Form  | standard_helpers: [Partial, Cache, Form]
+    is_i18n: on                           | i18n: on
+    default_culture: en                   | -> new i18n.yml configuration file
+
+  - move your `messages.xml` i18n XML file from `i18n/global` to `i18n` directory.
 
   - clear the symfony cache

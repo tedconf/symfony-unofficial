@@ -64,3 +64,8 @@ modules/*/config/module.yml:
 
 routing.yml:
   class:    sfRoutingConfigHandler
+
+i18n.yml:
+  class:    sfDefineEnvironmentConfigHandler
+  param:
+    prefix: sf_i18n_

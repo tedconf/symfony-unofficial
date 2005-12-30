@@ -35,10 +35,10 @@ function run_upgrade_to_0_6($task, $args)
   foreach ($apps as $app_module_dir)
   {
     $app = str_replace('/modules', '', $app_module_dir);
-    if ($verbose) echo '>> app       converting "'.$app.'"'." application\n";
+    if ($verbose) echo '>> app       '.pakeApp::excerpt('converting "'.$app.'"'.' application')."\n";
 
     // upgrade config.php script file
-    if ($verbose) echo '>> app       upgrading config.php'."\n";
+    if ($verbose) echo '>> app       '.pakeApp::excerpt('upgrading config.php')."\n";
     pake_copy(sfConfig::get('sf_symfony_data_dir').'/symfony/skeleton/app/app/config/config.php', $app.'/config/config.php', array('override' => true));
 
     // change all constants to use sfConfig object
@@ -50,8 +50,26 @@ function run_upgrade_to_0_6($task, $args)
 
     _upgrade_0_6_view_shortcuts($template_dirs);
 
-    // change standard_helpers format
+    // change standard_helpers and i18n format
     _upgrade_0_6_settings($app);
+
+    // move i18n messages XML file
+    if (is_dir($app.'/i18n/global'))
+    {
+      // subversion?
+      if (is_dir($app.'/i18n/global/.svn'))
+      {
+        pake_sh('svn move frontend/i18n/global/* frontend/i18n/');
+        pake_sh('svn remove '.$app.'/i18n/global');
+      }
+      else
+      {
+        $finder = pakeFinder::type('any')->prune('.svn')->discard('.svn');
+        pake_mirror($finder, $app.'/i18n/global', $app.'/i18n');
+        pake_remove($finder, $app.'/i18n/global');
+        pake_remove($app.'/i18n/global', '');
+      }
+    }
   }
 
   // constants in global libraries
@@ -67,14 +85,30 @@ function _upgrade_0_6_settings($app)
 
   $content = file_get_contents($app.'/config/settings.yml');
 
-  if (preg_match('/(standard_helpers|standard_helpers):\s*\[/', $content))
+  if ($verbose) echo '>> file      '.pakeApp::excerpt('converting settings.yml')."\n";
+
+  if (!preg_match('/(standard_helpers|standard_helpers):\s*\[/', $content))
   {
-    return;
+    $content = preg_replace('/^([;\s]+)(helper_standard|standard_helpers)\:(\s+)(.+)$/me', "'$1standard_helpers:$3['.implode(', ', explode(',', '$4')).']'", $content);
   }
 
-  if ($verbose) echo '>> file      converting settings.yml'."\n";
+  // i18n
+  $content = preg_replace('/^([;\s]+)is_i18n\:(\s+)(.+)$/m', '$1i18n:   $2$3', $content);
 
-  $content = preg_replace('/^([;\s]+)(helper_standard|standard_helpers)\:(\s+)(.+)$/me', "'$1standard_helpers:$3['.implode(', ', explode(',', '$4')).']'", $content);
+  $default_culture = 'en';
+  if (preg_match('/^.+default_culture\:\s*(.+)$/m', $content, $match))
+  {
+    $default_culture = $match[1];
+    $content = preg_replace('/^.+default_culture\:\s*.+$/m', '', $content);
+
+    // create the new i18n configuration file
+    if (!is_readable($app.'/config/i18n.yml'))
+    {
+      if ($verbose) echo '>> file+     '.pakeApp::excerpt('new i18n.yml configuration file')."\n";
+      $i18n = "all:\n  default_culture: $default_culture\n";
+      file_put_contents($app.'/config/i18n.yml', $i18n);
+    }
+  }
 
   file_put_contents($app.'/config/settings.yml', $content);
 }
@@ -96,7 +130,7 @@ function _upgrade_0_6_view_shortcuts($dirs)
       continue;
     }
 
-    if ($verbose) echo '>> file      converting view shortcuts for "'.$php_file.'"'."\n";
+    if ($verbose) echo '>> file      '.pakeApp::excerpt('converting view shortcuts for "'.$php_file.'"')."\n";
 
     $content = preg_replace('/\$'.$regex.'/', '$sf_\\1', $content);
 
@@ -121,7 +155,7 @@ function _upgrade_0_6_constants($dir)
       continue;
     }
 
-    if ($verbose) echo '>> file      converting constants for "'.$php_file.'"'."\n";
+    if ($verbose) echo '>> file      '.pakeApp::excerpt('converting constants for "'.$php_file.'"')."\n";
 
     $content = preg_replace('/defined\('.$regex.'\)/e', "'sfConfig::get(\''.strtolower('\\1').'\')'", $content);
     $content = preg_replace('/define\('.$regex.',\s*(.+?)\)/e', "'sfConfig::set(\''.strtolower('\\1').'\', \\3)'", $content);

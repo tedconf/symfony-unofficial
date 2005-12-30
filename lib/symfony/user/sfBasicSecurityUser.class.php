@@ -122,9 +122,9 @@ class sfBasicSecurityUser extends sfUser implements sfSecurityUser
       $this->culture = $culture;
 
       // change the message format object with the new culture
-      if (sfConfig::get('sf_message_format'))
+      if (sfConfig::get('sf_i18n'))
       {
-        sfConfig::set('sf_message_format', new sfMessageFormat($culture));
+        $this->context->getI18N()->setCulture($culture);
       }
     }
   }
@@ -179,7 +179,6 @@ class sfBasicSecurityUser extends sfUser implements sfSecurityUser
 
     $this->authenticated = $storage->read(self::AUTH_NAMESPACE);
     $this->credentials   = $storage->read(self::CREDENTIAL_NAMESPACE);
-    $this->culture       = $storage->read(self::CULTURE_NAMESPACE);
     $this->lastRequest   = $storage->read(self::LAST_REQUEST_NAMESPACE);
 
     if ($this->authenticated == null)
@@ -198,10 +197,13 @@ class sfBasicSecurityUser extends sfUser implements sfSecurityUser
 
     $this->lastRequest = time();
 
+    $culture = $storage->read(self::CULTURE_NAMESPACE);
     if ($this->culture == null)
     {
-      $this->culture = sfConfig::get('sf_default_culture');
+      $culture = sfConfig::get('sf_i18n_default_culture');
     }
+
+    $this->setCulture($culture);
   }
 
   public function shutdown ()

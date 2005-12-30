@@ -229,6 +229,12 @@ abstract class sfController
           header('Status: 404 Not Found');
         }
 
+        // change i18n message source directory to our module
+        if (sfConfig::get('sf_i18n'))
+        {
+          $this->context->getI18N()->setMessageSourceDir(sfConfig::get('sf_app_module_dir').'/'.$moduleName.'/'.sfConfig::get('sf_app_module_i18n_dir_name'), $this->context->getUser()->getCulture());
+        }
+
         // process the filter chain
         $filterChain->execute();
       }

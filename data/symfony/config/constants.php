@@ -54,6 +54,7 @@ sfConfig::add(array(
   'sf_app_module_view_dir_name'     => 'views',
   'sf_app_module_validate_dir_name' => 'validate',
   'sf_app_module_config_dir_name'   => 'config',
+  'sf_app_module_i18n_dir_name'   => 'i18n',
 ));
 
 ?>

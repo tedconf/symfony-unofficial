@@ -59,8 +59,7 @@ all:
 ;    
 ;    tidy:                   on
 ;    
-;    is_i18n:                off
-;    default_culture:        en
+;    i18n:                   off
 ;    
 ;    timeout:                1800
 ;    

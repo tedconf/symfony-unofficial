@@ -3,9 +3,12 @@ SVN
 
 * [fabien] new sfConfig object to deal with all symfony configuration
            WARNING: This breaks backward compatibility. To upgrade your existing projects,
-           you must override your config.php file with the one in
-           'data/symfony/skeleton/app/app/config/config.php'
-           and convert all your calls to SF_ and APP_ constants to their $this->config->get equivalent
+           read the UPGRADE file before upgrading
+
+Version 0.4.4
+-------------
+
+* [fabien]        bug fixes
 
 Version 0.4.3
 -------------

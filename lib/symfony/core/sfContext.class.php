@@ -31,6 +31,7 @@ class sfContext
     $storage           = null,
     $securityFilter    = null,
     $viewCacheManager  = null,
+    $i18n              = null,
     $logger            = null,
     $user              = null;
 
@@ -63,11 +64,6 @@ class sfContext
       $this->databaseManager->initialize();
     }
 
-    if (sfConfig::get('sf_cache'))
-    {
-      $this->viewCacheManager = new sfViewCacheManager();
-    }
-
     // create a new action stack
     $this->actionStack = new sfActionStack();
 
@@ -76,7 +72,14 @@ class sfContext
 
     if (sfConfig::get('sf_cache'))
     {
+      $this->viewCacheManager = new sfViewCacheManager();
       $this->viewCacheManager->initialize($this, $this->config);
+    }
+
+    if (sfConfig::get('sf_i18n'))
+    {
+      $this->i18n = new sfI18N();
+      $this->i18n->initialize($this);
     }
 
     // register our shutdown function
@@ -86,7 +89,7 @@ class sfContext
   /**
    * Retrieve the singleton instance of this class.
    *
-   * @return sfContext A sfConfig implementation instance.
+   * @return sfContext A sfContext implementation instance.
    */
   public static function getInstance()
   {
@@ -233,13 +236,23 @@ class sfContext
   }
 
   /**
-   * Retrieve the securityFilter
+   * Retrieve the view cache manager
    *
-   * @return sfSecurityFilter The current sfSecurityFilter implementation instance.
+   * @return sfViewCacheManager The current sfViewCacheManager implementation instance.
    */
   public function getViewCacheManager ()
   {
     return $this->viewCacheManager;
+  }
+
+  /**
+   * Retrieve the i18n instance
+   *
+   * @return sfI18N The current sfI18N implementation instance.
+   */
+  public function getI18N ()
+  {
+    return $this->i18n;
   }
 
   /**

@@ -87,22 +87,10 @@ function __autoload($class)
 
 try
 {
-  ini_set('unserialize_callback_func', '__autoload');
-
   // symfony version information
-/*        
-  define('sf_app_name',          'symfony');
-  define('sf_app_major_version', '1');
-  define('sf_app_minor_version', '0');
-  define('sf_app_micro_version', '0');
-  define('sf_app_branch',        'dev-1.0.0');
-  define('sf_app_status',        'DEV');
-  define('sf_app_version',       SF_APP_MAJOR_VERSION.'.'.
-                                 SF_APP_MINOR_VERSION.'.'.
-                                 SF_APP_MICRO_VERSION.'-'.SF_APP_STATUS);
-  define('sf_app_url',           'http://www.symfony-project.com/');
-  define('sf_app_info',          SF_APP_NAME.' '.SF_APP_VERSION.' ('.SF_APP_URL.')');
-*/
+  sfConfig::set('sf_version', '@DEV@');
+
+  ini_set('unserialize_callback_func', '__autoload');
 
   // get config instance
   $sf_app_config_dir_name = sfConfig::get('sf_app_config_dir_name');

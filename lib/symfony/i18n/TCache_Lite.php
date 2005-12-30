@@ -228,18 +228,18 @@ class TCache_Lite
     */
     function TCache_Lite($options = array(NULL))
     {
-        $availableOptions = array(	'automaticSerialization', 
-        							'fileNameProtection', 
-        							'memoryCaching', 
-        							'onlyMemoryCaching', 
-        							'memoryCachingLimit', 
-        							'cacheDir', 
-        							'caching', 
-        							'lifeTime', 
-        							'fileLocking', 
-        							'writeControl', 
-        							'readControl', 
-        							'readControlType');
+        $availableOptions = array(  'automaticSerialization', 
+                      'fileNameProtection', 
+                      'memoryCaching', 
+                      'onlyMemoryCaching', 
+                      'memoryCachingLimit', 
+                      'cacheDir', 
+                      'caching', 
+                      'lifeTime', 
+                      'fileLocking', 
+                      'writeControl', 
+                      'readControl', 
+                      'readControlType');
         foreach($options as $key => $value) {
             if(in_array($key, $availableOptions)) {
                 $property = '_'.$key;
@@ -247,7 +247,7 @@ class TCache_Lite
             }
         }
         $this->_refreshTime = time() - $this->_lifeTime;
-	}
+  }
     
     /**
     * Test if a cache is available and (if yes) return it
@@ -270,7 +270,7 @@ class TCache_Lite
                 if (isset($this->_memoryCachingArray[$this->_file])) {
                     if ($this->_automaticSerialization) {
                         return unserialize(
-                        			$this->_memoryCachingArray[$this->_file]);
+                              $this->_memoryCachingArray[$this->_file]);
                     } else {
                         return $this->_memoryCachingArray[$this->_file];
                     }
@@ -379,7 +379,7 @@ class TCache_Lite
                 if (strpos($key, $motif, 0)) {
                     unset($this->_memoryCaching[$key]);
                     $this->_memoryCachingCounter = 
-                    		$this->_memoryCachingCounter - 1;
+                        $this->_memoryCachingCounter - 1;
                 }
             }
             if ($this->_onlyMemoryCaching) {
@@ -406,7 +406,7 @@ class TCache_Lite
         return true;
     }
     
-	    /**
+      /**
     * Set a new life time
     *
     * @param int $newLifeTime new life time (in seconds)
@@ -439,7 +439,7 @@ class TCache_Lite
     * @access public
     */
     function getMemoryCachingState($id, $group = 'default', 
-    								$doNotTestCacheValidity = false)
+                    $doNotTestCacheValidity = false)
     {
         if ($this->_caching) {
             if ($data = $this->get($id, $group, $doNotTestCacheValidity)) 
@@ -506,7 +506,7 @@ class TCache_Lite
     {
         if ($this->_fileNameProtection) {
             $this->_file = ($this->_cacheDir.'cache_'.md5($group).'_'
-            						.md5($id));
+                        .md5($id));
         } else {
             $this->_file = $this->_cacheDir.'cache_'.$group.'_'.$id;
         }
@@ -514,7 +514,7 @@ class TCache_Lite
     
     function getCacheFile()
     {
-    	return $this->_file;
+      return $this->_file;
     }
     
     /**
@@ -528,7 +528,7 @@ class TCache_Lite
         $fp = @fopen($this->_file, "rb");
         if ($this->_fileLocking) @flock($fp, LOCK_SH);
         if ($fp) {
-        	// because the filesize can be cached by PHP itself...
+          // because the filesize can be cached by PHP itself...
             clearstatcache(); 
             $length = @filesize($this->_file);
             $mqr = get_magic_quotes_runtime();

@@ -91,14 +91,9 @@ abstract class sfRequest
     }
 
     // translate error message if needed
-    if (sfConfig::get('sf_is_i18n'))
+    if (sfConfig::get('sf_i18n'))
     {
-      if (!sfConfig::get('sf_message_format'))
-      {
-        sfConfig::set('sf_message_format', new sfMessageFormat(sfContext::getInstance()->getUser()->getCulture()));
-      }
-
-      $retval = sfConfig::get('sf_message_format')->_($retval);
+      $retval = $this->context->getI18N()->_($retval);
     }
 
     return $retval;
