@@ -108,6 +108,9 @@ class sfCompileConfigHandler extends sfYamlConfigHandler
               "// date: %s\nsfConfig::set('sf_in_bootstrap', 1);\n%s\n?>";
     $retval = sprintf($retval, date('m/d/Y H:i:s'), $data);
 
+    // save current symfony release
+    file_put_contents(sfConfig::get('sf_config_cache_dir').'/VERSION', sfConfig::get('sf_version'));
+
     return $retval;
   }
 

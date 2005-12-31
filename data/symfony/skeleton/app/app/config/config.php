@@ -6,6 +6,7 @@ if (is_readable(SF_ROOT_DIR.'/lib/symfony'))
   // symlink exists
   $sf_symfony_lib_dir  = SF_ROOT_DIR.'/lib/symfony';
   $sf_symfony_data_dir = SF_ROOT_DIR.'/data/symfony';
+  $sf_version          = '@DEV@';
 }
 else
 {
@@ -26,6 +27,7 @@ sfConfig::add(array(
   'sf_symfony_lib_dir'  => $sf_symfony_lib_dir,
   'sf_symfony_data_dir' => $sf_symfony_data_dir,
   'sf_test'             => false,
+  'sf_version'          => $sf_version,
 ));
 
 // start timer
@@ -57,6 +59,20 @@ if (sfToolkit::hasLockFile(SF_ROOT_DIR.DIRECTORY_SEPARATOR.SF_APP.'_'.SF_ENVIRON
 
 // require project configuration
 require_once(dirname(__FILE__).'/../../config/config.php');
+
+// recent symfony update?
+$version = @file_get_contents(sfConfig::get('sf_config_cache_dir').'/VERSION');
+if ($version != $sf_version)
+{
+  // force cache regeneration
+  foreach (array(sfConfig::get('sf_config_cache_dir').'/config_bootstrap_compile.yml.php', sfConfig::get('sf_config_cache_dir').'/config_core_compile.yml.php') as $file)
+  {
+    if (is_readable($file))
+    {
+      unlink($file);
+    }
+  }
+}
 
 // go
 $bootstrap = sfConfig::get('sf_config_cache_dir').'/config_bootstrap_compile.yml.php';

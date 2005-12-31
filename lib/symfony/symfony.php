@@ -87,9 +87,6 @@ function __autoload($class)
 
 try
 {
-  // symfony version information
-  sfConfig::set('sf_version', '@DEV@');
-
   ini_set('unserialize_callback_func', '__autoload');
 
   // get config instance

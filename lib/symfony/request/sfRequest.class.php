@@ -93,7 +93,7 @@ abstract class sfRequest
     // translate error message if needed
     if (sfConfig::get('sf_i18n'))
     {
-      $retval = $this->context->getI18N()->_($retval);
+      $retval = $this->context->getI18N()->__($retval);
     }
 
     return $retval;
