@@ -42,7 +42,7 @@ function run_upgrade_to_0_6($task, $args)
     pake_copy(sfConfig::get('sf_symfony_data_dir').'/symfony/skeleton/app/app/config/config.php', $app.'/config/config.php', array('override' => true));
 
     // change all constants to use sfConfig object
-    _upgrade_0_6_constants($app.'/modules');
+    _upgrade_0_6_constants(array($app.'/modules', $app.'/templates', $app.'/lib'));
 
     // change view shortcuts in global and modules template directories
     $template_dirs = pakeFinder::type('directory')->name('templates')->mindepth(1)->maxdepth(1)->in($app.'/modules');
@@ -54,22 +54,10 @@ function run_upgrade_to_0_6($task, $args)
     _upgrade_0_6_settings($app);
 
     // move i18n messages XML file
-    if (is_dir($app.'/i18n/global'))
-    {
-      // subversion?
-      if (is_dir($app.'/i18n/global/.svn'))
-      {
-        pake_sh('svn move frontend/i18n/global/* frontend/i18n/');
-        pake_sh('svn remove '.$app.'/i18n/global');
-      }
-      else
-      {
-        $finder = pakeFinder::type('any')->prune('.svn')->discard('.svn');
-        pake_mirror($finder, $app.'/i18n/global', $app.'/i18n');
-        pake_remove($finder, $app.'/i18n/global');
-        pake_remove($app.'/i18n/global', '');
-      }
-    }
+    _upgrade_0_6_i18n($app);
+
+    // change disable_web_debug usage
+    _upgrade_0_6_disable_web_debug($app);
   }
 
   // constants in global libraries
@@ -77,6 +65,55 @@ function run_upgrade_to_0_6($task, $args)
 
   // clear cache
   run_clear_cache($task, array());
+}
+
+function _upgrade_0_6_disable_web_debug($dir)
+{
+  $verbose = pakeApp::get_instance()->get_verbose();
+
+  $php_files = pakeFinder::type('file')->name('*.php')->in($dir);
+
+  foreach ($php_files as $php_file)
+  {
+    $content = file_get_contents($php_file);
+
+    if (!preg_match('/disable_web_debug/', $content))
+    {
+      continue;
+    }
+
+    if ($verbose) echo '>> file      '.pakeApp::excerpt('converting disable_web_debug for "'.$php_file.'"')."\n";
+
+    $content = preg_replace("#^(\s*).this\->getRequest\(\)\->setAttribute\s*\(\s*'disable_web_debug'\s*,\s*(true|1)\s*,\s*'debug/web'\s*\)\s*;#mi", '\\1sfConfig::set(\'sf_web_debug\', false);', $content);
+
+    file_put_contents($php_file, $content);
+  }
+}
+
+function _upgrade_0_6_i18n($app)
+{
+  if (is_dir($app.'/i18n/global'))
+  {
+    // subversion?
+    if (is_dir($app.'/i18n/global/.svn'))
+    {
+      try
+      {
+        pake_sh('svn move '.$app.'/i18n/global/* '.$app.'/i18n/');
+        pake_sh('svn remove '.$app.'/i18n/global');
+      }
+      catch (Exception $e)
+      {
+      }
+    }
+    else
+    {
+      $finder = pakeFinder::type('any')->prune('.svn')->discard('.svn');
+      pake_mirror($finder, $app.'/i18n/global', $app.'/i18n');
+      pake_remove($finder, $app.'/i18n/global');
+      pake_remove($app.'/i18n/global', '');
+    }
+  }
 }
 
 function _upgrade_0_6_settings($app)
@@ -138,11 +175,11 @@ function _upgrade_0_6_view_shortcuts($dirs)
   }
 }
 
-function _upgrade_0_6_constants($dir)
+function _upgrade_0_6_constants($dirs)
 {
   $verbose = pakeApp::get_instance()->get_verbose();
 
-  $php_files = pakeFinder::type('file')->name('*.php')->in($dir);
+  $php_files = pakeFinder::type('file')->name('*.php')->in($dirs);
 
   $regex = '((SF|APP|MOD)_[A-Z0-9_]+)';
 
@@ -150,15 +187,15 @@ function _upgrade_0_6_constants($dir)
   {
     $content = file_get_contents($php_file);
 
-    if (!preg_match('/$'.$regex.'/', $content))
+    if (!preg_match('/'.$regex.'/', $content))
     {
       continue;
     }
 
     if ($verbose) echo '>> file      '.pakeApp::excerpt('converting constants for "'.$php_file.'"')."\n";
 
-    $content = preg_replace('/defined\('.$regex.'\)/e', "'sfConfig::get(\''.strtolower('\\1').'\')'", $content);
-    $content = preg_replace('/define\('.$regex.',\s*(.+?)\)/e', "'sfConfig::set(\''.strtolower('\\1').'\', \\3)'", $content);
+    $content = preg_replace('/defined\(\''.$regex.'\'\)/e', "'sfConfig::get(\''.strtolower('\\1').'\')'", $content);
+    $content = preg_replace('/define\(\''.$regex.'\',\s*(.+?)\)/e', "'sfConfig::set(\''.strtolower('\\1').'\', \\3)'", $content);
     $content = preg_replace('/'.$regex.'/e', "'sfConfig::get(\''.strtolower('\\1').'\')'", $content);
 
     file_put_contents($php_file, $content);

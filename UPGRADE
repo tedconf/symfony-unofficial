@@ -56,4 +56,6 @@ For all your application within a project:
 
   - move your `messages.xml` i18n XML file from `i18n/global` to `i18n` directory.
 
+  - change the use of `disable_web_debug` with `sfConfig::set('sf_web_debug', false)`
+
   - clear the symfony cache

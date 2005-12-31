@@ -152,7 +152,7 @@ class sfWebDebug
 
   public function getResults()
   {
-    if (!sfConfig::get('sf_web_debug') || $this->context->getRequest()->getAttribute('disable_web_debug', false, 'debug/web'))
+    if (!sfConfig::get('sf_web_debug'))
     {
       return '';
     }
@@ -352,9 +352,9 @@ class sfWebDebug
 
   public function decorateContentWithDebug($internalUri, $suffix, $retval, $border_color, $bg_color)
   {
-    $cache   = $this->context->getViewCacheManager();
+    $cache = $this->context->getViewCacheManager();
 
-    if ($context->getRequest()->getAttribute('disable_web_debug', false, 'debug/web'))
+    if (!sfConfig::get('sf_web_debug'))
     {
       return $retval;
     }
