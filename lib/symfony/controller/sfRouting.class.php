@@ -267,6 +267,8 @@ class sfRouting
   */
   public function generate($name, $params, $divider, $equals)
   {
+    $global_defaults = sfConfig::get('sf_routing_defaults', null);
+
     // named route?
     if ($name)
     {
@@ -279,6 +281,10 @@ class sfRouting
       }
 
       list($url, $regexp, $names, $names_hash, $defaults, $requirements, $suffix) = $this->routes[$name];
+      if ($global_defaults !== null)
+      {
+        $defaults = array_merge($defaults, $global_defaults);
+      }
     }
     else
     {
@@ -287,6 +293,10 @@ class sfRouting
       foreach ($this->routes as $name => $route)
       {
         list($url, $regexp, $names, $names_hash, $defaults, $requirements, $suffix) = $route;
+        if ($global_defaults !== null)
+        {
+          $defaults = array_merge($defaults, $global_defaults);
+        }
 
         // we must match all names (all $names keys must be in $params array)
         foreach ($names as $key)
