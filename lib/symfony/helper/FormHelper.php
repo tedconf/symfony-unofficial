@@ -142,9 +142,7 @@ function select_tag($name, $option_tags = null, $options = array())
 
 function select_country_tag($name, $value, $options = array())
 {
-  require_once('i18n/CultureInfo.php');
-
-  $c = new CultureInfo(sfContext::getInstance()->getUser()->getCulture());
+  $c = new sfCultureInfo(sfContext::getInstance()->getUser()->getCulture());
   $countries = $c->getCountries();
   asort($countries);
 
@@ -155,9 +153,7 @@ function select_country_tag($name, $value, $options = array())
 
 function select_language_tag($name, $value, $options = array())
 {
-  require_once('i18n/CultureInfo.php');
-
-  $c = new CultureInfo(sfContext::getInstance()->getUser()->getCulture());
+  $c = new sfCultureInfo(sfContext::getInstance()->getUser()->getCulture());
   $languages = $c->getLanguages();
   asort($languages);
 
@@ -345,8 +341,6 @@ function input_upload_tag($name, $options = array())
 
 function input_date_tag($name, $value, $options = array())
 {
-  require_once('i18n/DateFormat.php');
-
   $options = _parse_attributes($options);
 
   $context = sfContext::getInstance();
@@ -384,7 +378,7 @@ function input_date_tag($name, $value, $options = array())
 //      throw new Exception("Unable to parse value of date as date/time value");
     }
   }
-  $dateFormat = new DateFormat($culture);
+  $dateFormat = new sfDateFormat($culture);
   $value = $dateFormat->format($date, 'd');
 
   // register our javascripts and stylesheets
@@ -398,7 +392,7 @@ function input_date_tag($name, $value, $options = array())
   $context->getRequest()->setAttribute('date', '/sf/js/calendar/skins/aqua/theme', 'helper/asset/auto/stylesheet');
 
   // date format
-  $dateFormatInfo = DateTimeFormatInfo::getInstance($culture);
+  $dateFormatInfo = sfDateTimeFormatInfo::getInstance($culture);
   $date_format = strtolower($dateFormatInfo->getShortDatePattern());
 
   // calendar date format
