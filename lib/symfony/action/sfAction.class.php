@@ -627,9 +627,20 @@ abstract class sfAction
     $this->request->getAttributeHolder()->set('title', $title, 'helper/asset/auto/meta');
   }
 
-  public function addStylesheet($css)
+  public function addStylesheet($css, $position = '')
   {
-    $this->request->setAttribute($css, $css, 'helper/asset/auto/stylesheet');
+    if ($position == 'first')
+    {
+      $this->request->setAttribute($css, $css, 'helper/asset/auto/stylesheet/first');
+    }
+    else if ($position == 'last')
+    {
+      $this->request->setAttribute($css, $css, 'helper/asset/auto/stylesheet/last');
+    }
+    else
+    {
+      $this->request->setAttribute($css, $css, 'helper/asset/auto/stylesheet');
+    }
   }
 
   public function addJavascript($js)

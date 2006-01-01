@@ -73,7 +73,7 @@ class sfWebDebug
     $this->context->getRequest()->setAttribute(
       'sf_web_debug',
       array('/sf/css/sf_debug_stats/main'),
-      'helper/asset/auto/stylesheet'
+      'helper/asset/auto/stylesheet/last'
     );
   }
 

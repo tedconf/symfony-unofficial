@@ -163,21 +163,24 @@
   function include_stylesheets()
   {
     $already_seen = array();
-    foreach (sfContext::getInstance()->getRequest()->getAttributeHolder()->getAll('helper/asset/auto/stylesheet') as $files)
+    foreach (array('/first', '', '/last') as $position)
     {
-      if (!is_array($files))
+      foreach (sfContext::getInstance()->getRequest()->getAttributeHolder()->getAll('helper/asset/auto/stylesheet'.$position) as $files)
       {
-        $files = array($files);
-      }
+        if (!is_array($files))
+        {
+          $files = array($files);
+        }
 
-      foreach ($files as $file)
-      {
-        $file = stylesheet_path($file);
+        foreach ($files as $file)
+        {
+          $file = stylesheet_path($file);
 
-        if (isset($already_seen[$file])) continue;
+          if (isset($already_seen[$file])) continue;
 
-        $already_seen[$file] = 1;
-        echo stylesheet_tag($file);
+          $already_seen[$file] = 1;
+          echo stylesheet_tag($file);
+        }
       }
     }
   }
