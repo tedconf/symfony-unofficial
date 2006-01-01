@@ -55,7 +55,7 @@ class <?php echo $this->getGeneratedModuleName() ?>Actions extends sfActions
   public function executeEdit ()
   {
     // add javascript
-    $this->addJavascript('/sf/js/prototype');
+    $this->addJavascript('/sf/js/prototype/prototype');
     $this->addJavascript('/sf/js/sf_admin/collapse');
 
     $this-><?php echo $this->getSingularName() ?> = $this->get<?php echo $this->getClassName() ?>OrCreate();

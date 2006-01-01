@@ -66,7 +66,7 @@ class sfWebDebug
     // register our css and js
     $this->context->getRequest()->setAttribute(
       'sf_web_debug',
-      array('/sf/js/prototype'),
+      array('/sf/js/prototype/prototype'),
       'helper/asset/auto/javascript'
     );
 
