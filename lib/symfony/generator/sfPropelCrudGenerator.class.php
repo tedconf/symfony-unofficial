@@ -248,6 +248,11 @@ class sfPropelCrudGenerator extends sfGenerator
     return $this->primaryKey;
   }
 
+  public function getMap()
+  {
+    return $this->map;
+  }
+
   public function getPrimaryKeyUrlParams($prefix = '')
   {
     $params = array();
@@ -278,13 +283,27 @@ class sfPropelCrudGenerator extends sfGenerator
     return var_export(array_merge($default_params, $params), true);
   }
 
+  public function getColumnListTag($column, $params = array())
+  {
+    $type = $column->getCreoleType();
+
+    if ($type == CreoleTypes::DATE || $type == CreoleTypes::TIMESTAMP)
+    {
+      return "format_date(\${$this->getSingularName()}->get{$column->getPhpName()}(), 'f')";
+    }
+    else
+    {
+      return "\${$this->getSingularName()}->get{$column->getPhpName()}()";
+    }
+  }
+
   public function getColumnEditTag($column, $params = array())
   {
     $type = $column->getCreoleType();
 
     if ($column->isForeignKey())
     {
-      $relatedTable = $this->map->getDatabaseMap()->getTable($column->getRelatedTableName());
+      $relatedTable = $this->getMap()->getDatabaseMap()->getTable($column->getRelatedTableName());
       $params = $this->getObjectTagParams($params, array('related_class' => $relatedTable->getPhpName()));
       return "object_select_tag(\${$this->getSingularName()}, 'get{$column->getPhpName()}', $params)";
     }
@@ -323,7 +342,7 @@ class sfPropelCrudGenerator extends sfGenerator
     }
     else if ($type == CreoleTypes::TEXT || $type == CreoleTypes::LONGVARCHAR)
     {
-      $params = $this->getObjectTagParams($params, array('size' => '3x30'));
+      $params = $this->getObjectTagParams($params, array('size' => '30x3'));
       return "object_textarea_tag(\${$this->getSingularName()}, 'get{$column->getPhpName()}', $params)";
     }
     else

@@ -121,7 +121,7 @@ class sfPropelAdminGenerator extends sfPropelCrudGenerator
     $help = $this->getParameterValue($type.'.fields.'.$column->getName().'.help');
     if ($help)
     {
-      return "[?php echo image_tag('/sf/images/sf_admin/help.gif', array('alt' => __('".$this->escapeString($help)."'), 'title' => __('".$this->escapeString($help)."'))) ?]";
+      return "[?php echo image_tag('/sf/images/sf_admin/help.png', array('align' => 'absmiddle', 'alt' => __('".$this->escapeString($help)."'), 'title' => __('".$this->escapeString($help)."'))) ?]";
     }
 
     return '';
@@ -316,6 +316,64 @@ class sfPropelAdminGenerator extends sfPropelCrudGenerator
     }
 
     return '[?php echo __(\''.$value.'\', array('.implode(', ', $vars).')) ?]';
+  }
+
+  public function getColumnFilterTag($column, $params = array())
+  {
+    $type = $column->getCreoleType();
+
+    $default_value = "isset(\$filters['".$column->getName()."']) ? \$filters['".$column->getName()."'] : null";
+    $name = '\'filter_'.$column->getName().'\'';
+
+    if ($column->isForeignKey())
+    {
+      $relatedTable = $this->getMap()->getDatabaseMap()->getTable($column->getRelatedTableName());
+      $params = $this->getObjectTagParams($params, array('related_class' => $relatedTable->getPhpName()));
+      return "select_tag($name, $default_value, $params)";
+    }
+    else if ($type == CreoleTypes::DATE)
+    {
+      // rich=false not yet implemented
+      $params = $this->getObjectTagParams($params, array('rich' => true, 'calendar_button_img' => '/sf/images/sf_admin/date.png'));
+      return "input_date_tag($name, $default_value, $params)";
+    }
+    else if ($type == CreoleTypes::TIMESTAMP)
+    {
+      // rich=false not yet implemented
+      $params = $this->getObjectTagParams($params, array('rich' => true, 'withtime' => true, 'calendar_button_img' => '/sf/images/sf_admin/date.png'));
+      return "input_date_tag($name, $default_value, $params)";
+    }
+    else if ($type == CreoleTypes::BOOLEAN)
+    {
+      $params = $this->getObjectTagParams($params);
+      return "checkbox_tag($name, $default_value, $params)";
+    }
+    else if ($type == CreoleTypes::CHAR || $type == CreoleTypes::VARCHAR)
+    {
+      $size = ($column->getSize() < 15 ? $column->getSize() : 15);
+      $params = $this->getObjectTagParams($params, array('size' => $size));
+      return "input_tag($name, $default_value, $params)";
+    }
+    else if ($type == CreoleTypes::INTEGER || $type == CreoleTypes::TINYINT || $type == CreoleTypes::SMALLINT || $type == CreoleTypes::BIGINT)
+    {
+      $params = $this->getObjectTagParams($params, array('size' => 7));
+      return "input_tag($name, $default_value, $params)";
+    }
+    else if ($type == CreoleTypes::FLOAT || $type == CreoleTypes::DOUBLE || $type == CreoleTypes::DECIMAL || $type == CreoleTypes::NUMERIC || $type == CreoleTypes::REAL)
+    {
+      $params = $this->getObjectTagParams($params, array('size' => 7));
+      return "input_tag($name, $default_value, $params)";
+    }
+    else if ($type == CreoleTypes::TEXT || $type == CreoleTypes::LONGVARCHAR)
+    {
+      $params = $this->getObjectTagParams($params, array('size' => '15x2'));
+      return "textarea_tag($name, $default_value, $params)";
+    }
+    else
+    {
+      $params = $this->getObjectTagParams($params, array('disabled' => true));
+      return "input_tag($name, $default_value, $params)";
+    }
   }
 
   private function escapeString($string)

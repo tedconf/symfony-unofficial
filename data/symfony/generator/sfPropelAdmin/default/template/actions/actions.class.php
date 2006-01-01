@@ -13,11 +13,7 @@ class <?php echo $this->getGeneratedModuleName() ?>Actions extends sfActions
 {
   public function preExecute ()
   {
-    // add css stylesheet
-    $this->getRequest()->setAttribute('admin_generator_main',
-      array('/sf/css/sf_admin/main'),
-      'helper/asset/auto/stylesheet'
-    );
+    $this->addStylesheet('/sf/css/sf_admin/main', 'last');
   }
 
   public function executeIndex ()
@@ -59,10 +55,8 @@ class <?php echo $this->getGeneratedModuleName() ?>Actions extends sfActions
   public function executeEdit ()
   {
     // add javascript
-    $this->getRequest()->setAttribute('admin_generator_main',
-      array('/sf/js/prototype', '/sf/js/sf_admin/collapse'),
-      'helper/asset/auto/javascript'
-    );
+    $this->addJavascript('/sf/js/prototype');
+    $this->addJavascript('/sf/js/sf_admin/collapse');
 
     $this-><?php echo $this->getSingularName() ?> = $this->get<?php echo $this->getClassName() ?>OrCreate();
 
@@ -71,7 +65,7 @@ class <?php echo $this->getGeneratedModuleName() ?>Actions extends sfActions
       $this->update<?php echo $this->getClassName() ?>FromRequest();
       $this-><?php echo $this->getSingularName() ?>->save();
 
-      return $this->redirect('<?php echo $this->getModuleName() ?>/edit?<?php echo $this->getPrimaryKeyUrlParams('this->') ?>);
+      return $this->redirect('<?php echo $this->getModuleName() ?>/edit?<?php echo $this->getPrimaryKeyUrlParams('this->') ?>.'&save=ok');
 <?php //' ?>
     }
   }

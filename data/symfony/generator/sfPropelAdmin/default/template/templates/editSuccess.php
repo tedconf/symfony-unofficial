@@ -2,9 +2,15 @@
 
 <h1><?php echo $this->getI18NString('edit.title', 'edit '.$this->getModuleName()) ?></h1>
 
-[?php if ($sf_request->hasErrors()): ?]
+<div id="sf_admin_content">
+
+[?php if ($sf_params->get('save') == 'ok'): ?]
+<div class="save-ok">
+<h2>[?php echo __('Your modifications has been saved') ?]</h2>
+</div>
+[?php elseif ($sf_request->hasErrors()): ?]
 <div class="form-errors">
-<h2>[?php __('There are some errors that prevent the form to validate:') ?]</h2>
+<h2>[?php echo __('There are some errors that prevent the form to validate') ?]</h2>
 <ul>
 [?php foreach ($sf_request->getErrorNames() as $name): ?]
   <li>[?php echo $sf_request->getError($name) ?]</li>
@@ -13,7 +19,7 @@
 </div>
 [?php endif ?]
 
-[?php echo form_tag('<?php echo $this->getModuleName() ?>/edit') ?]
+[?php echo form_tag('<?php echo $this->getModuleName() ?>/edit', 'id=sf_admin_edit_form') ?]
 
 <?php foreach ($this->getPrimaryKey() as $pk): ?>
 [?php echo object_input_hidden_tag($<?php echo $this->getSingularName() ?>, 'get<?php echo $pk->getPhpName() ?>') ?]
@@ -32,7 +38,7 @@
     $collapse = false;
   }
 ?>
-<fieldset class="module<?php if ($collapse): ?> collapse<?php endif ?>">
+<fieldset class="<?php if ($collapse): ?> collapse<?php endif ?>">
 <?php if ($category != 'NONE'): ?><h2>[?php echo __('<?php echo $category_name ?>') ?]</h2>
 
 <?php endif ?>
@@ -51,12 +57,14 @@
 </fieldset>
 <?php endforeach ?>
 
-<div class="submit-row">
+<ul class="sf_admin_actions">
 [?php if (<?php echo $this->getPrimaryKeyIsSet() ?>): ?]
-  <p class="float-left">[?php echo link_to(__('delete'), '<?php echo $this->getModuleName() ?>/delete?<?php echo $this->getPrimaryKeyUrlParams() ?>, 'post=true&confirm=Are you sure?') ?]</p>
+  <li class="float-left">[?php echo button_to(__('delete'), '<?php echo $this->getModuleName() ?>/delete?<?php echo $this->getPrimaryKeyUrlParams() ?>, 'class=sf_admin_delete post=true confirm=Are you sure?') ?]</li>
 [?php endif ?]
-  &nbsp;[?php echo link_to(__('cancel'), '<?php echo $this->getModuleName() ?>/list') ?]
-  [?php echo submit_tag(__('save'), 'class=default') ?]
-</div>
+  <li>[?php echo button_to(__('cancel'), '<?php echo $this->getModuleName() ?>/list', 'class=sf_admin_cancel') ?]</li>
+  <li>[?php echo submit_tag(__('save'), 'class=sf_admin_default_action sf_admin_save') ?]</li>
+</ul>
 
 </form>
+
+</div>
