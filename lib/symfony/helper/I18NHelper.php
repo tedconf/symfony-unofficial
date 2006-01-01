@@ -35,7 +35,16 @@ function format_number_choice($text, $args = array(), $number, $culture = null)
 
   $choice = new sfChoiceFormat();
 
-  return $choice->format($translated, $number);
+  $retval = $choice->format($translated, $number);
+
+  if ($retval === false)
+  {
+    $error = 'Unable to parse your choice "%s"';
+    $error = sprintf($error, $translated);
+    throw new sfException($error);
+  }
+
+  return $retval;
 }
 
 function format_country($country_iso)
