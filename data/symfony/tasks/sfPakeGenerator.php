@@ -59,14 +59,17 @@ function run_init_app($task, $args)
   $finder = pakeFinder::type('any')->prune('.svn')->discard('.svn');
   pake_mirror($finder, sfConfig::get('sf_symfony_data_dir').'/symfony/skeleton/app/app', getcwd().'/'.$app);
 
-  // create $app.php or index.php if it is our first app, and set no_script_name appropriately
+  // create $app.php or index.php if it is our first app
   $index_name = 'index';
-  if(file_exists(getcwd().'/web/index.php'))
+  $first_app = file_exists(getcwd().'/web/index.php') ? false : true;
+  if (!$first_app)
   {
     $index_name = $app;
-    $finder = pakeFinder::type('file')->name('settings.yml');
-    pake_replace_tokens($finder, getcwd().'/'.$app.'/config', '##', '##', array('NO_SCRIPT_NAME' => 'off'));
   }
+
+  // set no_script_name value in settings.yml for production environment
+  $finder = pakeFinder::type('file')->name('settings.yml');
+  pake_replace_tokens($finder, getcwd().'/'.$app.'/config', '##', '##', array('NO_SCRIPT_NAME' => ($first_app ? 'on' : 'off')));
 
   pake_copy(sfConfig::get('sf_symfony_data_dir').'/symfony/skeleton/app/web/index.php', getcwd().'/web/'.$index_name.'.php');
   pake_copy(sfConfig::get('sf_symfony_data_dir').'/symfony/skeleton/app/web/index_dev.php', getcwd().'/web/'.$app.'_dev.php');
