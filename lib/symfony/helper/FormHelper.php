@@ -368,18 +368,20 @@ function input_date_tag($name, $value, $options = array())
   }
 
   // parse date
-  $date = $value;
-  if (($date !== null) && ($date != '') && (!is_int($date)))
+  if (($value !== null) && ($value != '') && (!is_int($value)))
   {
-    $date = strtotime($date);
-    if ($date === -1)
+    $value = strtotime($value);
+    if ($value === -1)
     {
-      $date = 0;
+      $value = 0;
 //      throw new Exception("Unable to parse value of date as date/time value");
     }
+    else
+    {
+      $dateFormat = new sfDateFormat($culture);
+      $value = $dateFormat->format($value, 'd');
+    }
   }
-  $dateFormat = new sfDateFormat($culture);
-  $value = $dateFormat->format($date, 'd');
 
   // register our javascripts and stylesheets
   $js = array(
@@ -410,11 +412,44 @@ function input_date_tag($name, $value, $options = array())
     });
   ';
 
-  return
-    input_tag($name, $value).
-    content_tag('button', '...', array('disabled' => 'disabled', 'onclick' => 'return false', 'id' => 'trigger_'.$name)).
-    '('.$date_format.')'.
-    content_tag('script', $js, array('type' => 'text/javascript'));
+  // construct html
+  $html = input_tag($name, $value);
+
+  // calendar button
+  $calendar_button = '...';
+  $calendar_button_type = 'txt';
+  if (isset($options['calendar_button_img']))
+  {
+    $calendar_button = $options['calendar_button_img'];
+    $calendar_button_type = 'img';
+    unset($options['calendar_button']);
+  }
+  else if (isset($options['calendar_button_txt']))
+  {
+    $calendar_button = $options['calendar_button_txt'];
+    $calendar_button_type = 'txt';
+    unset($options['calendar_button']);
+  }
+
+  if ($calendar_button_type == 'img')
+  {
+    $html .= image_tag($calendar_button, array('id' => 'trigger_'.$name, 'style' => 'cursor: pointer', 'align' => 'absmiddle'));
+  }
+  else
+  {
+    $html .= content_tag('button', $calendar_button, array('disabled' => 'disabled', 'onclick' => 'return false', 'id' => 'trigger_'.$name));
+  }
+
+  if (isset($options['with_format']))
+  {
+    $html .= '('.$date_format.')';
+    unset($options['with_format']);
+  }
+
+  // add javascript
+  $html .= content_tag('script', $js, array('type' => 'text/javascript'));
+
+  return $html;
 }
 
 function submit_tag($value = 'Save changes', $options = array())
