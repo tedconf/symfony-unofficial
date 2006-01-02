@@ -58,4 +58,6 @@ For all your application within a project:
 
   - change the use of `disable_web_debug` with `sfConfig::set('sf_web_debug', false)`
 
+  - rename sfPager to sfPropelPager
+
   - clear the symfony cache

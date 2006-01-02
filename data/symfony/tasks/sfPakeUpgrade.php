@@ -56,6 +56,9 @@ function run_upgrade_to_0_6($task, $args)
     // move i18n messages XML file
     _upgrade_0_6_i18n($app);
 
+    // rename sfPager to sfPropelPager
+    _upgrade_0_6_sfpager($app);
+
     // change disable_web_debug usage
     _upgrade_0_6_disable_web_debug($app);
   }
@@ -63,8 +66,36 @@ function run_upgrade_to_0_6($task, $args)
   // constants in global libraries
   _upgrade_0_6_constants('lib');
 
+  // sfPager in global libraries
+  _upgrade_0_6_sfpager('lib');
+
   // clear cache
   run_clear_cache($task, array());
+}
+
+function _upgrade_0_6_sfpager($dir)
+{
+  $verbose = pakeApp::get_instance()->get_verbose();
+
+  $php_files = pakeFinder::type('file')->name('*.php')->in($dir);
+
+  $regex = '(sfPager)';
+
+  foreach ($php_files as $php_file)
+  {
+    $content = file_get_contents($php_file);
+
+    if (!preg_match('/'.$regex.'/', $content))
+    {
+      continue;
+    }
+
+    if ($verbose) echo '>> file      '.pakeApp::excerpt('rename sfPager for "'.$php_file.'"')."\n";
+
+    $content = preg_replace('/'.$regex.'/', 'sfPropelPager', $content);
+
+    file_put_contents($php_file, $content);
+  }
 }
 
 function _upgrade_0_6_disable_web_debug($dir)

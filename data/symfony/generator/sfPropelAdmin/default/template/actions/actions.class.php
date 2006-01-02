@@ -46,7 +46,7 @@ class <?php echo $this->getGeneratedModuleName() ?>Actions extends sfActions
 <?php endif ?>
 
     // pager
-    $this->pager = new sfPager('<?php echo $this->getSingularName() ?>', <?php echo $this->getParameterValue('list.max_per_page', 20) ?>);
+    $this->pager = new sfPropelPager('<?php echo $this->getSingularName() ?>', <?php echo $this->getParameterValue('list.max_per_page', 20) ?>);
     $this->pager->setCriteria($this->getListCriteria());
     $this->pager->setPage($this->getRequestParameter('page', 1));
     $this->pager->init();

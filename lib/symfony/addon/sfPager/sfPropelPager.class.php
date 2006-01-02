@@ -11,18 +11,18 @@
 /**
  * @package    symfony.runtime.addon
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
- * @version    SVN: $Id: sfPager.class.php 535 2005-10-18 13:01:23Z root $
+ * @version    SVN: $Id: sfPropelPager.class.php 535 2005-10-18 13:01:23Z root $
  */
 
 /**
  *
- * sfPager class.
+ * sfPropelPager class.
  *
  * @package    symfony.runtime.addon
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
- * @version    SVN: $Id: sfPager.class.php 535 2005-10-18 13:01:23Z root $
+ * @version    SVN: $Id: sfPropelPager.class.php 535 2005-10-18 13:01:23Z root $
  */
-class sfPager
+class sfPropelPager
 {
   private
     $page                   = 1,
