@@ -59,6 +59,14 @@ class sfMailView extends sfPHPView
 
     if (sfConfig::get('sf_logging_active')) $this->getContext()->getLogger()->info('{sfMailView} render "'.$template.'"');
 
+    // get sfMail object from action
+    $mail = $actionInstance->getVarHolder()->get('mail');
+    if (!$mail)
+    {
+      $error = 'You must define a sfMail object named $action in your action to be able to use a sfMailView.';
+      throw new sfActionException($error);
+    }
+
 // FIXME: cache support (be careful: must implement cache for alternate templates!)
 //    $retval = $this->getCacheContent();
 
@@ -92,9 +100,6 @@ class sfMailView extends sfPHPView
 
     // configuration prefix
     $config_prefix = 'sf_mailer_'.strtolower($this->moduleName).'_';
-
-    // get sfMail object from action
-    $mail = $actionInstance->getVarHolder()->get('mail');
 
     $vars = array(
       'mailer',
