@@ -76,7 +76,6 @@ function object_select_tag($object, $method, $options = array(), $default_value 
   }
   unset($options['related_class']);
 
-  $select_options = array();
   if (isset($options['include_blank']))
   {
     $select_options[0] = '';
@@ -93,45 +92,49 @@ function object_select_tag($object, $method, $options = array(), $default_value 
     unset($options['include_custom']);
   }
 
-  // FIXME: drop Propel dependency
-  require_once('model/'.$related_class.'Peer.php');
-  $rs = call_user_func(array($related_class.'Peer', 'doSelectRS'), new Criteria());
-  $methodToCall = '';
-  while ($rs->next())
-  {
-    $tmp_object = new $related_class();
-    $tmp_object->hydrate($rs);
-
-    // multi primary keys handling
-    if (is_array($tmp_object->getPrimaryKey()))
-    {
-      $pk = implode('/', $tmp_object->getPrimaryKey());
-    }
-    else
-    {
-      $pk = $tmp_object->getPrimaryKey();
-    }
-
-    // which method to call?
-    if (!$methodToCall)
-    {
-      foreach (array('toString', '__toString', 'getPrimaryKey') as $tmp_method)
-      {
-        if (method_exists($tmp_object, $tmp_method))
-        {
-          $methodToCall = $tmp_method;
-          break;
-        }
-      }
-    }
-
-    $select_options[$pk] = $tmp_object->$methodToCall();
-  }
+  $select_options = _get_values_for_objet_select_tag($object, $related_class);
 
   $value = _get_object_value($object, $method, $default_value);
   $option_tags = options_for_select(array_flip($select_options), $value);
 
   return select_tag(_convert_method_to_name($method), $option_tags, $options);
+}
+
+function _get_values_for_objet_select_tag($object, $class)
+{
+  // FIXME: drop Propel dependency
+
+  $select_options = array();
+
+  require_once('model/'.$class.'Peer.php');
+  $objects = call_user_func(array($class.'Peer', 'doSelect'), new Criteria());
+  if ($objects)
+  {
+    // multi primary keys handling
+    $multi_primary_keys = is_array($objects[0]->getPrimaryKey()) ? true : false;
+
+    // which method to call?
+    $methodToCall = '';
+    foreach (array('toString', '__toString', 'getPrimaryKey') as $method)
+    {
+      if (method_exists($objects[0], $method))
+      {
+        $methodToCall = $method;
+        break;
+      }
+    }
+
+    // construct select option list
+    foreach ($objects as $tmp_object)
+    {
+      $key   = $multi_primary_keys ? implode('/', $tmp_object->getPrimaryKey()) : $tmp_object->getPrimaryKey();
+      $value = $tmp_object->$methodToCall();
+
+      $select_options[$key] = $value;
+    }
+  }
+
+  return $select_options;
 }
 
 function object_select_country_tag($object, $method, $options = array(), $default_value = null)
