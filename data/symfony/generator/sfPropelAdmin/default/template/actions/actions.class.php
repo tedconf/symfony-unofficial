@@ -31,18 +31,8 @@ class <?php echo $this->getGeneratedModuleName() ?>Actions extends sfActions
     }
 
 <?php if ($this->getParameterValue('list.filters')): ?>
-    // filter
-    if ($this->getRequestParameter('filter'))
-    {
-      $this->getUser()->getAttributeHolder()->removeNamespace('sf_admin/<?php echo $this->getSingularName() ?>/filters');
-      foreach ($this->getRequest()->getParameterHolder()->getNames() as $key)
-      {
-        if (preg_match('/^filter_(.+)$/', $key, $match) && $this->getRequestParameter($key) != '')
-        {
-          $this->getUser()->setAttribute($match[1], $this->getRequestParameter($key), 'sf_admin/<?php echo $this->getSingularName() ?>/filters');
-        }
-      }
-    }
+    // filters
+    $this->getUser()->getAttributeHolder()->add($this->getRequestParameter('filters'), 'sf_admin/<?php echo $this->getSingularName() ?>/filters');
 <?php endif ?>
 
     // pager
@@ -91,16 +81,18 @@ class <?php echo $this->getGeneratedModuleName() ?>Actions extends sfActions
 
   protected function update<?php echo $this->getClassName() ?>FromRequest()
   {
+    $<?php echo $this->getSingularName() ?> = $this->getRequestParameter('<?php echo $this->getSingularName() ?>');
+
 <?php foreach ($this->getColumnCategories('edit.display') as $category): ?>
 <?php foreach ($this->getColumns('edit.display', $category) as $name => $column): $type = $column->getCreoleType(); ?>
 <?php $name = $column->getName() ?>
 <?php if ($type == CreoleTypes::DATE): ?>
-    list($d, $m, $y) = sfI18N::getDateForCulture($this->getRequestParameter('<?php echo $name ?>'), $this->getUser()->getCulture());
+    list($d, $m, $y) = sfI18N::getDateForCulture($<?php echo $this->getSingularName() ?>['<?php echo $name ?>'], $this->getUser()->getCulture());
     $this-><?php echo $this->getSingularName() ?>->set<?php echo $column->getPhpName() ?>("$y-$m-$d");
 <?php elseif ($type == CreoleTypes::BOOLEAN): ?>
-    $this-><?php echo $this->getSingularName() ?>->set<?php echo $column->getPhpName() ?>($this->getRequestParameter('<?php echo $name ?>', 0));
+    $this-><?php echo $this->getSingularName() ?>->set<?php echo $column->getPhpName() ?>($<?php echo $this->getSingularName() ?>['<?php echo $name ?>'], 0);
 <?php else: ?>
-    $this-><?php echo $this->getSingularName() ?>->set<?php echo $column->getPhpName() ?>($this->getRequestParameter('<?php echo $name ?>'));
+    $this-><?php echo $this->getSingularName() ?>->set<?php echo $column->getPhpName() ?>($<?php echo $this->getSingularName() ?>['<?php echo $name ?>']);
 <?php endif ?>
 <?php endforeach ?>
 <?php endforeach ?>
@@ -140,10 +132,10 @@ class <?php echo $this->getGeneratedModuleName() ?>Actions extends sfActions
     }
 
 <?php if ($this->getParameterValue('list.filters')): ?>
-    // filter
+    // filters
     $this->filters = $this->getUser()->getAttributeHolder()->getAll('sf_admin/<?php echo $this->getSingularName() ?>/filters');
 <?php foreach ($this->getColumns('list.filters') as $column): $type = $column->getCreoleType() ?>
-    if (isset($this->filters['<?php echo $column->getName() ?>']))
+    if (isset($this->filters['<?php echo $column->getName() ?>']) && $this->filters['<?php echo $column->getName() ?>'] != '')
     {
       $c->add(<?php echo $this->getPeerClassName() ?>::<?php echo strtoupper($column->getName()) ?>, $this->filters['<?php echo $column->getName() ?>']);
     }

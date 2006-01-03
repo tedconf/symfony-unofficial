@@ -80,4 +80,19 @@ function _parse_attributes($string)
   return is_array($string) ? $string : sfToolkit::stringToArray($string);
 }
 
+function _get_option(&$options, $name, $default = null)
+{
+  if (isset($options[$name]))
+  {
+    $value = $options[$name];
+    unset($options[$name]);
+  }
+  else
+  {
+    $value = $default;
+  }
+
+  return $value;
+}
+
 ?>

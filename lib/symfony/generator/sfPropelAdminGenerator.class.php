@@ -137,11 +137,12 @@ class sfPropelAdminGenerator extends sfPropelCrudGenerator
     // user sets a specific tag to use
     if ($type = $this->getParameterValue('edit.fields.'.$column->getName().'.type'))
     {
-      $params = $this->getObjectTagParams($params);
+      $params = $this->getObjectTagParams($params, array('control_name' => $this->getSingularName().'['.$column->getName().']'));
       return "object_$type(\${$this->getSingularName()}, 'get{$column->getPhpName()}', $params)";
     }
 
     // guess the best tag to use with column type
+    $params = array_merge($params, array('control_name' => $this->getSingularName().'['.$column->getName().']'));
     return parent::getColumnEditTag($column, $params);
   }
 
@@ -323,7 +324,7 @@ class sfPropelAdminGenerator extends sfPropelCrudGenerator
     $type = $column->getCreoleType();
 
     $default_value = "isset(\$filters['".$column->getName()."']) ? \$filters['".$column->getName()."'] : null";
-    $name = '\'filter_'.$column->getName().'\'';
+    $name = '\'filters['.$column->getName().']\'';
 
     if ($column->isForeignKey())
     {

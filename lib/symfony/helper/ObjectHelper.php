@@ -34,7 +34,7 @@ function object_input_date_tag($object, $method, $options = array(), $default_va
 {
   $value = _get_object_value($object, $method, $default_value);
 
-  return input_date_tag(_convert_method_to_name($method), $value, $options);
+  return input_date_tag(_convert_method_to_name($method, $options), $value, $options);
 }
 
 /**
@@ -52,7 +52,7 @@ function object_textarea_tag($object, $method, $options = array(), $default_valu
 {
   $value = _get_object_value($object, $method, $default_value);
 
-  return textarea_tag(_convert_method_to_name($method), $value, $options);
+  return textarea_tag(_convert_method_to_name($method, $options), $value, $options);
 }
 
 /**
@@ -83,7 +83,7 @@ function object_select_tag($object, $method, $options = array(), $default_value 
   }
   else if (isset($options['include_title']))
   {
-    $select_options[0] = '-- '._convert_method_to_name($method).' --';
+    $select_options[0] = '-- '._convert_method_to_name($method, $options).' --';
     unset($options['include_title']);
   }
   else if (isset($options['include_custom'])) 
@@ -97,7 +97,7 @@ function object_select_tag($object, $method, $options = array(), $default_value 
   $value = _get_object_value($object, $method, $default_value);
   $option_tags = options_for_select(array_flip($select_options), $value);
 
-  return select_tag(_convert_method_to_name($method), $option_tags, $options);
+  return select_tag(_convert_method_to_name($method, $options), $option_tags, $options);
 }
 
 function _get_values_for_objet_select_tag($object, $class)
@@ -141,14 +141,14 @@ function object_select_country_tag($object, $method, $options = array(), $defaul
 {
   $value = _get_object_value($object, $method, $default_value);
 
-  return select_country_tag(_convert_method_to_name($method), $value, $options);
+  return select_country_tag(_convert_method_to_name($method, $options), $value, $options);
 }
 
 function object_select_language_tag($object, $method, $options = array(), $default_value = null)
 {
   $value = _get_object_value($object, $method, $default_value);
 
-  return select_language_tag(_convert_method_to_name($method), $value, $options);
+  return select_language_tag(_convert_method_to_name($method, $options), $value, $options);
 }
 
 /**
@@ -166,7 +166,7 @@ function object_input_hidden_tag($object, $method, $options = array(), $default_
 {
   $value = _get_object_value($object, $method, $default_value);
 
-  return input_hidden_tag(_convert_method_to_name($method), $value, $options);
+  return input_hidden_tag(_convert_method_to_name($method, $options), $value, $options);
 }
 
 /**
@@ -184,7 +184,7 @@ function object_input_tag($object, $method, $options = array(), $default_value =
 {
   $value = _get_object_value($object, $method, $default_value);
 
-  return input_tag(_convert_method_to_name($method), $value, $options);
+  return input_tag(_convert_method_to_name($method, $options), $value, $options);
 }
 
 /**
@@ -203,13 +203,18 @@ function object_checkbox_tag($object, $method, $options = array(), $default_valu
   $value = _get_object_value($object, $method, $default_value);
   $value = ($value === true || $value == 'on' || $value == 1) ? 1 : 0;
 
-  return checkbox_tag(_convert_method_to_name($method), 1, $value, $options);
+  return checkbox_tag(_convert_method_to_name($method, $options), 1, $value, $options);
 }
 
-function _convert_method_to_name ($method)
+function _convert_method_to_name ($method, &$options)
 {
-  $name = sfInflector::underscore($method);
-  $name = preg_replace('/^get_?/', '', $name);
+  $name = _get_option($options, 'control_name');
+
+  if (!$name)
+  {
+    $name = sfInflector::underscore($method);
+    $name = preg_replace('/^get_?/', '', $name);
+  }
 
   return $name;
 }

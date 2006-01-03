@@ -242,7 +242,9 @@ class sfValidatorManager
       }
 
       if ($parent != null && isset($parent[$name]))
+      {
         $value =& $parent[$name];
+      }
     }
 
     // now for the dirty work
