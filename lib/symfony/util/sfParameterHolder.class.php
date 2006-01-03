@@ -88,7 +88,7 @@ class sfParameterHolder
 
     if (isset($this->parameters[$ns]) && isset($this->parameters[$ns][$name]))
     {
-      $retval = $this->parameters[$ns][$name];
+      $retval =& $this->parameters[$ns][$name];
     }
 
     return $retval;
