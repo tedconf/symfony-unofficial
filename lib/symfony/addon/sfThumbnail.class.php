@@ -59,7 +59,7 @@ class sfThumbnail
   * @access private
   * @var array
   */
-  private $types;
+  private $imgTypes;
 
   /**
   * Stores function names for each image type e.g. imagecreatefromjpeg
@@ -200,7 +200,7 @@ class sfThumbnail
   * @throws Exception
   */
   function loadData ($image,$mime) {
-    if ( in_array($mime,$this->types) ) {
+    if ( in_array($mime,$this->imgTypes) ) {
       $this->source=imagecreatefromstring($image);
       $this->sourceWidth=imagesx($this->source);
       $this->sourceHeight=imagesy($this->source);
