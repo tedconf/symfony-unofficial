@@ -196,20 +196,6 @@ abstract class sfAction
     }
   }
 
-  /** DEPRECATED */
-  public function forward404_unless ($condition)
-  {
-    if (sfConfig::get('sf_logging_active')) $this->getContext()->getLogger()->err('{sfAction} forward404_unless is deprecated. Please use forward404Unless.');
-    return $this->forward404Unless($condition);
-  }
-
-  /** DEPRECATED */
-  public function forward404_if ($condition)
-  {
-    if (sfConfig::get('sf_logging_active')) $this->getContext()->getLogger()->err('{sfAction} forward404_if is deprecated. Please use forward404If.');
-    return $this->forward404If($condition);
-  }
-
   /**
    * Redirects current action to the default 404 error action (with browser redirection)
    *
@@ -255,23 +241,15 @@ abstract class sfAction
     }
   }
 
-  /** DEPRECATED */
-  public function forward_if ($condition, $module, $action)
-  {
-    if (sfConfig::get('sf_logging_active')) $this->getContext()->getLogger()->err('{sfAction} forward_if is deprecated. Please use forwardIf.');
-    $this->forwardIf($condition, $module, $action);
-  }
-
-  /** DEPRECATED */
-  public function forward_unless ($condition, $module, $action)
-  {
-    if (sfConfig::get('sf_logging_active')) $this->getContext()->getLogger()->err('{sfAction} forward_unless is deprecated. Please use forwardUnless.');
-    $this->forwardUnless($condition, $module, $action);
-  }
-
   public function sendEmail($module, $action)
   {
-    return $this->getPresentationFor($module, $action, 'sfMail');
+    $presentation = $this->getPresentationFor($module, $action, 'sfMail');
+
+    // error? (like a security forwarding)
+    if (!$presentation)
+    {
+      throw new sfException('There was an error when trying to send this email.');
+    }
   }
 
   public function getPresentationFor($module, $action, $viewName = null)
@@ -295,17 +273,11 @@ abstract class sfAction
     // set viewName if needed
     if ($viewName)
     {
-      $this->getRequest()->setAttribute('view_name', $viewName, 'symfony/action/view');
+      $this->getRequest()->setAttribute($module.'_'.$action.'_view_name', $viewName, 'symfony/action/view');
     }
 
     // forward to the mail action
     $controller->forward($module, $action);
-
-    // remove viewName
-    if ($viewName)
-    {
-      $this->getRequest()->setAttribute('view_name', '', 'symfony/action/view');
-    }
 
     // grab the action entry from this forward
     $actionEntry = $actionStack->getEntry($index);
@@ -317,7 +289,16 @@ abstract class sfAction
     $controller->setRenderMode($renderMode);
 
     // remove the action entry
-    $actionEntry = $actionStack->removeEntry($index);
+    for ($i = $index; $i < $actionStack->getSize(); $i++)
+    {
+      $actionEntry = $actionStack->removeEntry($i);
+    }
+
+    // remove viewName
+    if ($viewName)
+    {
+      $this->getRequest()->setAttribute($module.'_'.$action.'_view_name', '', 'symfony/action/view');
+    }
 
     return $presentation;
   }

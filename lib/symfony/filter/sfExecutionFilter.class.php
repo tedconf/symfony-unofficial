@@ -168,7 +168,7 @@ class sfExecutionFilter extends sfFilter
       }
 
       // display this view
-      if (!$controller->viewExists($moduleName, $viewName))
+      if (!$controller->viewExists($moduleName, $actionName, $viewName))
       {
         // the requested view doesn't exist
         $file = sfConfig::get('sf_app_module_dir').'/'.$moduleName.'/'.sfConfig::get('sf_app_module_view_dir_name').'/'.$viewName.'View.class.php';
@@ -180,7 +180,7 @@ class sfExecutionFilter extends sfFilter
       }
 
       // get the view instance
-      $viewInstance = $controller->getView($moduleName, $viewName);
+      $viewInstance = $controller->getView($moduleName, $actionName, $viewName);
 
       // initialize the view
       if ($viewInstance->initialize($context, $moduleName, $viewName))

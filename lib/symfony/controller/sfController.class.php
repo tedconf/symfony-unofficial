@@ -357,11 +357,12 @@ abstract class sfController
    * Retrieve a View implementation instance.
    *
    * @param string A module name.
+   * @param string An action name.
    * @param string A view name.
    *
    * @return View A View implementation instance, if the view exists, otherwise null.
    */
-  public function getView ($moduleName, $viewName)
+  public function getView ($moduleName, $actionName, $viewName)
   {
     // user view exists?
     $file = sfConfig::get('sf_app_module_dir').'/'.$moduleName.'/'.sfConfig::get('sf_app_module_view_dir_name').'/'.$viewName.'View.class.php';
@@ -384,7 +385,7 @@ abstract class sfController
     }
 
     // view class (as configured in module.yml or defined in action)
-    $viewName = $this->getContext()->getRequest()->getAttribute('view_name', '', 'symfony/action/view') ? $this->getContext()->getRequest()->getAttribute('view_name', '', 'symfony/action/view') : sfConfig::get('mod_'.strtolower($moduleName).'_view_class');
+    $viewName = $this->getContext()->getRequest()->getAttribute($moduleName.'_'.$actionName.'_view_name', '', 'symfony/action/view') ? $this->getContext()->getRequest()->getAttribute($moduleName.'_'.$actionName.'_view_name', '', 'symfony/action/view') : sfConfig::get('mod_'.strtolower($moduleName).'_view_class');
     $file     = sfConfig::get('sf_symfony_lib_dir').'/symfony/view/'.$viewName.'View.class.php';
     if (is_readable($file))
     {
@@ -398,11 +399,12 @@ abstract class sfController
    * Indicates whether or not a module has a specific view.
    *
    * @param string A module name.
+   * @param string An action name.
    * @param string A view name.
    *
    * @return bool true, if the view exists, otherwise false.
    */
-  public function viewExists ($moduleName, $viewName)
+  public function viewExists ($moduleName, $actionName, $viewName)
   {
     // view always exists in symfony
     return 1;
