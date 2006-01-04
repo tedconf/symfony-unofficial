@@ -49,6 +49,7 @@ function run_upgrade_to_0_6($task, $args)
     $template_dirs[] = $app.'/templates';
 
     _upgrade_0_6_view_shortcuts($template_dirs);
+    _upgrade_0_6_mail_to($template_dirs);
 
     // change standard_helpers and i18n format
     _upgrade_0_6_settings($app);
@@ -201,6 +202,31 @@ function _upgrade_0_6_view_shortcuts($dirs)
     if ($verbose) echo '>> file      '.pakeApp::excerpt('converting view shortcuts for "'.$php_file.'"')."\n";
 
     $content = preg_replace('/\$'.$regex.'/', '$sf_\\1', $content);
+
+    file_put_contents($php_file, $content);
+  }
+}
+
+function _upgrade_0_6_mail_to($dirs)
+{
+  $verbose = pakeApp::get_instance()->get_verbose();
+
+  $php_files = pakeFinder::type('file')->name('*.php')->in($dirs);
+
+  $regex = 'mail_to\s*\(\s*([^,]+?), ([^,]+?)\)';
+
+  foreach ($php_files as $php_file)
+  {
+    $content = file_get_contents($php_file);
+
+    if (!preg_match('/'.$regex.'/', $content))
+    {
+      continue;
+    }
+
+    if ($verbose) echo '>> file      '.pakeApp::excerpt('converting mail_to for "'.$php_file.'"')."\n";
+
+    $content = preg_replace('/'.$regex.'/', 'mail_to($1, $1, \'encode=$2\')', $content);
 
     file_put_contents($php_file, $content);
   }

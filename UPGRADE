@@ -63,5 +63,11 @@ For all your application within a project:
   6 - change the use of `disable_web_debug` with `sfConfig::set('sf_web_debug', false)`
 
   7 - rename sfPager to sfPropelPager
+  
+  8 - mail_to has a new parameter
 
-  8 - clear the symfony cache
+    0.4.X/0.5.X                           | 0.6.X/0.7.X
+    --------------------------------------|-----------------------------------
+    mail_to($email, true)                 | mail_to($email, $name, 'encode=1')
+
+  9 - clear the symfony cache

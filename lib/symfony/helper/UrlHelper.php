@@ -115,18 +115,29 @@ function button_to($name, $target, $options = array())
   }
 }
 
-function mail_to($email, $encode = true)
+function mail_to($email, $name = '', $html_options = array())
 {
-  if ($encode)
-  {
-    $email = _encodeText($email);
+  $html_options = _parse_attributes($html_options);
 
-    return content_tag('a', $email, array('href' => _encodeText('mailto:').$email));
+  $html_options = _convert_options_to_javascript($html_options);
+
+  if (!$name)
+  {
+    $name = $email;
+  }
+
+  if (isset($html_options['encode']) && $html_options['encode'])
+  {
+    unset($html_options['encode']);
+    $html_options['href'] = _encodeText('mailto:'.$email);
+    $name = _encodeText($name);
   }
   else
   {
-    return content_tag('a', $email, array('href' => 'mailto:'.$email));
+    $html_options['href'] = 'mailto:'.$email;
   }
+
+  return content_tag('a', $name, $html_options);
 }
 
 function _convert_options_to_javascript($html_options, $target = '')
