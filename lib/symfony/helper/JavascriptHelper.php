@@ -808,7 +808,7 @@
     }
     if (isset($options['indicator']))
     {
-      $js_options['indicator']  = "'".$options['indicator']."}'"; 
+      $js_options['indicator']  = "'".$options['indicator']."'"; 
     }
     if (isset($options['on_show']))
     {
