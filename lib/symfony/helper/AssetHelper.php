@@ -153,9 +153,18 @@
 
   function _compute_public_path($source, $dir, $ext)
   {
-    if (strpos($source, '/') === false) $source = sfConfig::get('sf_relative_url_root').'/'.$dir.'/'.$source;
-    if (strpos($source, '.') === false) $source = $source.'.'.$ext;
-    if (sfConfig::get('sf_relative_url_root') && strpos($source, sfConfig::get('sf_relative_url_root')) !== 0) $source = sfConfig::get('sf_relative_url_root').$source;
+    if (strpos($source, '/') !== 0)
+    {
+      $source = sfConfig::get('sf_relative_url_root').'/'.$dir.'/'.$source;
+    }
+    if (strpos(basename($source), '.') === false)
+    {
+      $source = $source.'.'.$ext;
+    }
+    if (sfConfig::get('sf_relative_url_root') && strpos($source, sfConfig::get('sf_relative_url_root')) !== 0)
+    {
+      $source = sfConfig::get('sf_relative_url_root').$source;
+    }
 
     return $source;
   }
