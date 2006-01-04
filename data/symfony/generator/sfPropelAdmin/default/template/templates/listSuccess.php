@@ -21,10 +21,7 @@
 [?php $i = 1; foreach ($pager->getResults() as $<?php echo $this->getSingularName() ?>): $odd = fmod(++$i, 2) ?]
 <tr class="sf_admin_row_[?php echo $odd ?]">
 [?php echo include_partial('list_td_<?php echo $this->getParameterValue('list.display.layout') ?>', array('<?php echo $this->getSingularName() ?>' => $<?php echo $this->getSingularName() ?>)) ?]
-  <td>
-    [?php echo link_to(image_tag('/sf/images/sf_admin/edit.png', array('alt' => __('edit'), 'title' => __('edit'))), '<?php echo $this->getModuleName() ?>/edit?<?php echo $this->getPrimaryKeyUrlParams() ?>) ?]
-    [?php echo link_to(image_tag('/sf/images/sf_admin/delete.png', array('alt' => __('delete'), 'title' => __('delete'))), '<?php echo $this->getModuleName() ?>/delete?<?php echo $this->getPrimaryKeyUrlParams() ?>, 'post=true confirm=Are you sure?') ?]
-  </td>
+[?php echo include_partial('list_actions', array('<?php echo $this->getSingularName() ?>' => $<?php echo $this->getSingularName() ?>)) ?]
 </tr>
 [?php endforeach ?]
 </tbody>

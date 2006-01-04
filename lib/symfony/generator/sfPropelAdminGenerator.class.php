@@ -106,7 +106,11 @@ class sfPropelAdminGenerator extends sfPropelCrudGenerator
     }
 
     $this->setTheme($theme);
-    $templateFiles = array('listSuccess', 'editSuccess', '_filters', '_list_th_'.$this->getParameterValue('list.layout'), '_list_td_'.$this->getParameterValue('list.display.layout'));
+    $templateFiles = array(
+      'listSuccess', 'editSuccess', '_filters', 
+      '_list_th_'.$this->getParameterValue('list.layout'), '_list_td_'.$this->getParameterValue('list.display.layout'),
+      '_list_actions', '_edit_actions',
+    );
     $this->generatePhpFiles($this->generatedModuleName, $templateFiles);
 
     // require generated action class

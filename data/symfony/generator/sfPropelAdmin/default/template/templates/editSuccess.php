@@ -58,11 +58,7 @@
 <?php endforeach ?>
 
 <ul class="sf_admin_actions">
-[?php if (<?php echo $this->getPrimaryKeyIsSet() ?>): ?]
-  <li class="float-left">[?php echo button_to(__('delete'), '<?php echo $this->getModuleName() ?>/delete?<?php echo $this->getPrimaryKeyUrlParams() ?>, 'class=sf_admin_delete post=true confirm=Are you sure?') ?]</li>
-[?php endif ?]
-  <li>[?php echo button_to(__('cancel'), '<?php echo $this->getModuleName() ?>/list', 'class=sf_admin_cancel') ?]</li>
-  <li>[?php echo submit_tag(__('save'), 'class=sf_admin_default_action sf_admin_save') ?]</li>
+[?php echo include_partial('edit_actions', array('<?php echo $this->getSingularName() ?>' => $<?php echo $this->getSingularName() ?>)) ?]
 </ul>
 
 </form>
