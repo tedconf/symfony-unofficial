@@ -109,7 +109,7 @@ class sfPropelAdminGenerator extends sfPropelCrudGenerator
     $templateFiles = array(
       'listSuccess', 'editSuccess', '_filters', 
       '_list_th_'.$this->getParameterValue('list.layout'), '_list_td_'.$this->getParameterValue('list.display.layout'),
-      '_list_actions', '_edit_actions',
+      '_list_td_actions', '_list_actions', '_edit_actions',
     );
     $this->generatePhpFiles($this->generatedModuleName, $templateFiles);
 
@@ -128,6 +128,112 @@ class sfPropelAdminGenerator extends sfPropelCrudGenerator
     }
 
     return '';
+  }
+
+  public function getButtonToAction($actionName, $params, $pk_link = false)
+  {
+    $options    = isset($params['params']) ? sfToolkit::stringToArray($params['params']) : array();
+    $method     = 'button_to';
+    $li_class   = '';
+    $only_if_id = false;
+
+    // default values
+    if ($actionName[0] == '_')
+    {
+      $actionName     = substr($actionName, 1);
+      $default_name   = $actionName;
+      $default_icon   = '/sf/images/sf_admin/'.$actionName.'_icon.png';
+      $default_action = $actionName;
+      $default_class  = 'sf_admin_action_'.$actionName;
+
+      if ($actionName == 'save')
+      {
+        $method = 'submit_tag';
+      }
+
+      if ($actionName == 'delete')
+      {
+        $options['post'] = true;
+        if (!isset($options['confirm']))
+        {
+          $options['confirm'] = 'Are you sure?';
+        }
+
+        $li_class = 'float-left';
+
+        $only_if_id = true;
+      }
+    }
+    else
+    {
+      $default_name   = $actionName;
+      $default_icon   = '/sf/images/sf_admin/default_icon.png';
+      $default_action = 'List'.sfInflector::camelize($actionName);
+      $default_class  = '';
+    }
+
+    $name   = isset($params['name']) ? $params['name'] : $default_name;
+    $icon   = isset($params['icon']) ? $params['icon'] : $default_icon;
+    $action = isset($params['action']) ? $params['action'] : $default_action;
+    $url_params = $pk_link ? '?'.$this->getPrimaryKeyUrlParams() : '\'';
+
+    if (!isset($options['class']) && $default_class)
+    {
+      $options['class'] = $default_class;
+    }
+    else
+    {
+      $options['style'] = 'background: #ffc url('.$icon.') no-repeat 3px 2px';
+    }
+
+    $li_class = $li_class ? ' class='.$li_class : '';
+
+    $html = '<li'.$li_class.'>';
+
+    if ($only_if_id)
+    {
+      $html .= '[?php if ('.$this->getPrimaryKeyIsSet().'): ?]'."\n";
+    }
+
+    if ($method == 'submit_tag')
+    {
+      $html .= '[?php echo submit_tag(__(\''.$name.'\'), '.var_export($options, true).') ?]';
+    }
+    else
+    {
+      $html .= '[?php echo button_to(__(\''.$name.'\'), \''.$this->getModuleName().'/'.$action.$url_params.', '.var_export($options, true).') ?]';
+    }
+
+    if ($only_if_id)
+    {
+      $html .= '[?php endif ?]'."\n";
+    }
+
+    $html .= '</li>';
+
+    return $html;
+  }
+
+  public function getLinkToAction($actionName, $params, $pk_link = false)
+  {
+    // default values
+    if ($actionName[0] == '_')
+    {
+      $actionName = substr($actionName, 1);
+      $name       = $actionName;
+      $icon       = '/sf/images/sf_admin/'.$actionName.'_icon.png';
+      $action     = $actionName;
+    }
+    else
+    {
+      $name   = isset($params['name']) ? $params['name'] : $actionName;
+      $icon   = isset($params['icon']) ? $params['icon'] : '/sf/images/sf_admin/default_icon.png';
+      $action = isset($params['action']) ? $params['action'] : 'List'.sfInflector::camelize($actionName);
+    }
+
+    $url_params = $pk_link ? '?'.$this->getPrimaryKeyUrlParams() : '\'';
+
+    return '<li>[?php echo link_to(image_tag(\''.$icon.'\', array(\'alt\' => __(\''.$name.'\'), \'title\' => __(\''.$name.'\'))), \''.$this->getModuleName().'/'.$action.$url_params.') ?]</li>';
   }
 
   public function getColumnEditTag($column, $params = array())

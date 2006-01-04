@@ -21,7 +21,7 @@
 [?php $i = 1; foreach ($pager->getResults() as $<?php echo $this->getSingularName() ?>): $odd = fmod(++$i, 2) ?]
 <tr class="sf_admin_row_[?php echo $odd ?]">
 [?php echo include_partial('list_td_<?php echo $this->getParameterValue('list.display.layout') ?>', array('<?php echo $this->getSingularName() ?>' => $<?php echo $this->getSingularName() ?>)) ?]
-[?php echo include_partial('list_actions', array('<?php echo $this->getSingularName() ?>' => $<?php echo $this->getSingularName() ?>)) ?]
+[?php echo include_partial('list_td_actions', array('<?php echo $this->getSingularName() ?>' => $<?php echo $this->getSingularName() ?>)) ?]
 </tr>
 [?php endforeach ?]
 </tbody>
@@ -45,8 +45,6 @@
 </tfoot>
 </table>
 
-<ul class="sf_admin_actions">
-  <li>[?php echo button_to(__('create'), '<?php echo $this->getModuleName() ?>/edit', 'class=sf_admin_create') ?]</li>
-</ul>
+[?php echo include_partial('list_actions') ?]
 
 </div>

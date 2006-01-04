@@ -37,6 +37,16 @@ class <?php echo $this->getGeneratedModuleName() ?>Actions extends sfActions
     $this->pager->init();
   }
 
+  public function executeCreate ()
+  {
+    return $this->forward('<?php echo $this->getModuleName() ?>', 'edit');
+  }
+
+  public function executeSave ()
+  {
+    return $this->forward('<?php echo $this->getModuleName() ?>', 'edit');
+  }
+
   public function executeEdit ()
   {
     // add javascript

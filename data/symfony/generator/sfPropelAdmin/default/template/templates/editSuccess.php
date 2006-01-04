@@ -57,9 +57,7 @@
 </fieldset>
 <?php endforeach ?>
 
-<ul class="sf_admin_actions">
 [?php echo include_partial('edit_actions', array('<?php echo $this->getSingularName() ?>' => $<?php echo $this->getSingularName() ?>)) ?]
-</ul>
 
 </form>
 
