@@ -234,7 +234,7 @@
     $options['html']['name'] = $name;
     $options['html']['value'] = $value;
 
-    tag('input', $options['html'], false);
+    return tag('input', $options['html'], false);
   }
 
   /**
