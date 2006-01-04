@@ -4,7 +4,7 @@
 
 <div id="sf_admin_bar">
 
-[?php echo include_partial('filters') ?]
+[?php echo include_partial('filters', array('filters' => $filters)) ?]
 
 </div>
 
@@ -13,38 +13,23 @@
 <table cellspacing="0" class="sf_admin_list">
 <thead>
 <tr>
-<?php foreach ($this->getColumns('list.display') as $column): ?>
-  <th>
-    <?php if ($column->isReal()): ?>
-      [?php if ($sf_user->getAttribute('sort', null, 'sf_admin/<?php echo $this->getSingularName() ?>/sort') == '<?php echo $column->getName() ?>'): ?]
-      [?php echo link_to(__('<?php echo $this->getParameterValue('list.fields.'.$column->getName().'.name') ?>'), '<?php echo $this->getModuleName() ?>/list?sort=<?php echo $column->getName() ?>&type='.($sf_user->getAttribute('type', 'asc', 'sf_admin/<?php echo $this->getSingularName() ?>/sort') == 'asc' ? 'desc' : 'asc')) ?]
-      ([?php echo $sf_user->getAttribute('type', 'asc', 'sf_admin/<?php echo $this->getSingularName() ?>/sort') ?])
-      [?php else: ?]
-      [?php echo link_to(__('<?php echo $this->getParameterValue('list.fields.'.$column->getName().'.name') ?>'), '<?php echo $this->getModuleName() ?>/list?sort=<?php echo $column->getName() ?>&type=asc') ?]
-      [?php endif ?]
-    <?php else: ?>
-    [?php echo __('<?php echo $this->getParameterValue('list.fields.'.$column->getName().'.name') ?>') ?]
-    <?php endif ?>
-    <?php echo $this->getHelp($column, 'list') ?>
-  </th>
-<?php endforeach ?>
+[?php echo include_partial('list_th_<?php echo $this->getParameterValue('list.display.layout') ?>') ?]
+  <th>[?php echo __('Actions') ?]</th>
 </tr>
 </thead>
 <tbody>
 [?php $i = 1; foreach ($pager->getResults() as $<?php echo $this->getSingularName() ?>): $odd = fmod(++$i, 2) ?]
 <tr class="sf_admin_row_[?php echo $odd ?]">
-<?php foreach ($this->getColumns('list.display') as $column): ?>
-  <?php if ($column->isLink()): ?>
-  <td>[?php echo link_to($<?php echo $this->getSingularName() ?>->get<?php echo $column->getPhpName() ?>(), '<?php echo $this->getModuleName() ?>/edit?<?php echo $this->getPrimaryKeyUrlParams() ?>) ?]</td>
-  <?php else: ?>
-  <td>[?php echo <?php echo $this->getColumnListTag($column) ?> ?]</td>
-  <?php endif ?>
-<?php endforeach ?>
+[?php echo include_partial('list_td_<?php echo $this->getParameterValue('list.display.layout') ?>', array('<?php echo $this->getSingularName() ?>' => $<?php echo $this->getSingularName() ?>)) ?]
+  <td>
+    [?php echo link_to(image_tag('/sf/images/sf_admin/edit.png', array('alt' => __('edit'), 'title' => __('edit'))), '<?php echo $this->getModuleName() ?>/edit?<?php echo $this->getPrimaryKeyUrlParams() ?>) ?]
+    [?php echo link_to(image_tag('/sf/images/sf_admin/delete.png', array('alt' => __('delete'), 'title' => __('delete'))), '<?php echo $this->getModuleName() ?>/delete?<?php echo $this->getPrimaryKeyUrlParams() ?>, 'post=true confirm=Are you sure?') ?]
+  </td>
 </tr>
 [?php endforeach ?]
 </tbody>
 <tfoot>
-<tr><th colspan="<?php echo count($this->getColumns('list.display'))  ?>">
+<tr><th colspan="<?php echo count($this->getColumns('list.display.fields')) + 1 ?>">
 <div class="float-right">
 [?php if ($pager->haveToPaginate()): ?]
   [?php echo link_to(image_tag('/sf/images/sf_admin/first.png', 'align=absmiddle'), '<?php echo $this->getModuleName() ?>/list?page=1') ?]

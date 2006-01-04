@@ -11,7 +11,6 @@ symfony install-module sfAuth
 symfony install-module sfMedia
 
 - filtres (avec filtres prédéfinis ?) => dates, fk, enums, 
-- layout spécifique + CSS spécifique (thème ?)
 - breadcrumb
 - many to many (ajax?)
 - edition des tables liées en inline ou tabular (cf. django)
@@ -107,7 +106,7 @@ class sfPropelAdminGenerator extends sfPropelCrudGenerator
     }
 
     $this->setTheme($theme);
-    $templateFiles = array('listSuccess', 'editSuccess', '_filters');
+    $templateFiles = array('listSuccess', 'editSuccess', '_filters', '_list_th_'.$this->getParameterValue('list.layout'), '_list_td_'.$this->getParameterValue('list.display.layout'));
     $this->generatePhpFiles($this->generatedModuleName, $templateFiles);
 
     // require generated action class
@@ -296,23 +295,30 @@ class sfPropelAdminGenerator extends sfPropelCrudGenerator
     return $default;
   }
 
-  public function getI18NString($key, $default)
+  public function getI18NString($key, $default = null)
   {
     $value = $this->escapeString($this->getParameterValue($key, $default));
 
-    // find %xx% strings
+    // find %%xx%% strings
     $vars = array();
     $columns = $this->getColumns('');
-    preg_match_all('/%([^%]+)%/', $value, $matches, PREG_PATTERN_ORDER);
+    preg_match_all('/%%([^%]+)%%/', $value, $matches, PREG_PATTERN_ORDER);
     foreach ($matches[1] as $name)
     {
       foreach ($columns as $column)
       {
+        $found = false;
         if ($column->getName() == $name)
         {
-          $vars[] = '\'%'.$name.'%\' => $'.$this->getSingularName().'->get'.$column->getPhpName().'()';
+          $vars[] = '\'%%'.$name.'%%\' => $'.$this->getSingularName().'->get'.$column->getPhpName().'()';
+          $found = true;
           break;
         }
+      }
+
+      if (!$found)
+      {
+        $vars[] = '\'%%'.$name.'%%\' => $'.$this->getSingularName().'->get'.sfInflector::camelize($name).'()';
       }
     }
 
