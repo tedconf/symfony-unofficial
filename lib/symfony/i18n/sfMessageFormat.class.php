@@ -198,7 +198,7 @@ class sfMessageFormat
     if (!$target)
     {
       $this->source->append($string);
-      $target = $this->postscript[0].strtr($string, $args).$this->postscript[1];
+      $target = $this->postscript[0].$this->replaceArgs($string, $args).$this->postscript[1];
     }
 
     return $target;
@@ -239,17 +239,31 @@ class sfMessageFormat
           // found, but untranslated
           if (empty($target))
           {
-            return $this->postscript[0].strtr($string, $args).$this->postscript[1];
+            return $this->postscript[0].$this->replaceArgs($string, $args).$this->postscript[1];
           }
           else
           {
-            return strtr($target, $args);
+            return $this->replaceArgs($target, $args);
           }
         }
       }
     }
 
     return null;
+  }
+
+  private function replaceArgs($string, $args)
+  {
+    // replace object with strings
+    foreach ($args as $key => $value)
+    {
+      if (is_object($value) && method_exists($value, '__toString'))
+      {
+        $args[$key] = $value->__toString();
+      }
+    }
+
+    return strtr($string, $args);
   }
 
   /**
