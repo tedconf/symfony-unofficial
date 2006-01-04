@@ -284,6 +284,8 @@ class sfValidatorManager
           if (!$validator->execute($value, $error))
           {
             $retval = false;
+
+            break;
           }
         }
       }
