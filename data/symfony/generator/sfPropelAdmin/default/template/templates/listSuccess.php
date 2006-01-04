@@ -4,7 +4,9 @@
 
 <div id="sf_admin_bar">
 
+<?php if ($this->getParameterValue('list.filters')): ?>
 [?php echo include_partial('filters', array('filters' => $filters)) ?]
+<?php endif ?>
 
 </div>
 
@@ -13,20 +15,22 @@
 <table cellspacing="0" class="sf_admin_list">
 <thead>
 <tr>
-[?php echo include_partial('list_th_<?php echo $this->getParameterValue('list.display.layout') ?>') ?]
+[?php echo include_partial('list_th_<?php echo $this->getParameterValue('list.display.layout', 'tabular') ?>') ?]
+<?php if ($this->getParameterValue('list.display.actions')): ?>
   <th>[?php echo __('Actions') ?]</th>
+<?php endif ?>
 </tr>
 </thead>
 <tbody>
 [?php $i = 1; foreach ($pager->getResults() as $<?php echo $this->getSingularName() ?>): $odd = fmod(++$i, 2) ?]
 <tr class="sf_admin_row_[?php echo $odd ?]">
-[?php echo include_partial('list_td_<?php echo $this->getParameterValue('list.display.layout') ?>', array('<?php echo $this->getSingularName() ?>' => $<?php echo $this->getSingularName() ?>)) ?]
+[?php echo include_partial('list_td_<?php echo $this->getParameterValue('list.display.layout', 'tabular') ?>', array('<?php echo $this->getSingularName() ?>' => $<?php echo $this->getSingularName() ?>)) ?]
 [?php echo include_partial('list_td_actions', array('<?php echo $this->getSingularName() ?>' => $<?php echo $this->getSingularName() ?>)) ?]
 </tr>
 [?php endforeach ?]
 </tbody>
 <tfoot>
-<tr><th colspan="<?php echo count($this->getColumns('list.display.fields')) + 1 ?>">
+<tr><th colspan="<?php echo $this->getParameterValue('list.display.actions') ? count($this->getColumns('list.display.fields')) + 1 : count($this->getColumns('list.display.fields')) ?>">
 <div class="float-right">
 [?php if ($pager->haveToPaginate()): ?]
   [?php echo link_to(image_tag('/sf/images/sf_admin/first.png', 'align=absmiddle'), '<?php echo $this->getModuleName() ?>/list?page=1') ?]

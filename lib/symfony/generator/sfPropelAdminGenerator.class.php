@@ -17,10 +17,8 @@ symfony install-module sfMedia
 - module d'authentification avec page de login toute faite (paramètre: classes à utiliser pour les utilisateurs)
 - module de gestion des images (sfMedia...)
 - mettre de la doc phpdoc dans les fichiers générées -> PDF automatique / html OK
-- possibilité d'avoir une colonne non existante avec get et set ou que get ou que set (password)
 - autocomplete (pour des listes longues -> choix d'un utilisateur par exemple à la place d'un select)
   avec erreur si existe pas en BDD au retour!!! (ou champ caché user_id_real)
-- possibilité de choisir les boutons : delete ou pas, ben c'est tout!
 - generateur spécifique pour gérer la home page et aggréger les modules générés et les autres
 - gestion des types enums en passant un paramètre value
 - support des tables i18n
@@ -108,7 +106,7 @@ class sfPropelAdminGenerator extends sfPropelCrudGenerator
     $this->setTheme($theme);
     $templateFiles = array(
       'listSuccess', 'editSuccess', '_filters', 
-      '_list_th_'.$this->getParameterValue('list.layout'), '_list_td_'.$this->getParameterValue('list.display.layout'),
+      '_list_th_'.$this->getParameterValue('list.display.layout', 'tabular'), '_list_td_'.$this->getParameterValue('list.display.layout', 'tabular'),
       '_list_td_actions', '_list_actions', '_edit_actions',
     );
     $this->generatePhpFiles($this->generatedModuleName, $templateFiles);
@@ -241,17 +239,19 @@ class sfPropelAdminGenerator extends sfPropelCrudGenerator
     // user defined parameters
     $user_params = $this->getParameterValue('edit.fields.'.$column->getName().'.params');
     $user_params = is_array($user_params) ? $user_params : sfToolkit::stringToArray($user_params);
-    $params = $user_params ? array_merge($params, $user_params) : $params;
+    $params      = $user_params ? array_merge($params, $user_params) : $params;
 
     // user sets a specific tag to use
     if ($type = $this->getParameterValue('edit.fields.'.$column->getName().'.type'))
     {
       $params = $this->getObjectTagParams($params, array('control_name' => $this->getSingularName().'['.$column->getName().']'));
+
       return "object_$type(\${$this->getSingularName()}, 'get{$column->getPhpName()}', $params)";
     }
 
     // guess the best tag to use with column type
     $params = array_merge($params, array('control_name' => $this->getSingularName().'['.$column->getName().']'));
+
     return parent::getColumnEditTag($column, $params);
   }
 
@@ -535,7 +535,7 @@ class sfAdminColumn
 
   public function isLink ()
   {
-    return ($this->flag == '=' ? true : false);
+    return (($this->flag == '=' || $this->isPrimaryKey()) ? true : false);
   }
 }
 
