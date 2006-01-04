@@ -23,21 +23,16 @@ class <?php echo $this->getGeneratedModuleName() ?>Actions extends sfActions
 
   public function executeList ()
   {
-    // sort
-    if ($this->getRequestParameter('sort'))
-    {
-      $this->getUser()->setAttribute('sort', $this->getRequestParameter('sort'), 'sf_admin/<?php echo $this->getSingularName() ?>/sort');
-      $this->getUser()->setAttribute('type', $this->getRequestParameter('type', 'asc'), 'sf_admin/<?php echo $this->getSingularName() ?>/sort');
-    }
+    $this->processSort();
 
-<?php if ($this->getParameterValue('list.filters')): ?>
-    // filters
-    $this->getUser()->getAttributeHolder()->add($this->getRequestParameter('filters'), 'sf_admin/<?php echo $this->getSingularName() ?>/filters');
-<?php endif ?>
+    $this->processFilters();
 
     // pager
     $this->pager = new sfPropelPager('<?php echo $this->getSingularName() ?>', <?php echo $this->getParameterValue('list.max_per_page', 20) ?>);
-    $this->pager->setCriteria($this->getListCriteria());
+    $c = new Criteria();
+    $this->addSortCriteria($c);
+    $this->addFiltersCriteria($c);
+    $this->pager->setCriteria($c);
     $this->pager->setPage($this->getRequestParameter('page', 1));
     $this->pager->init();
   }
@@ -114,11 +109,37 @@ class <?php echo $this->getGeneratedModuleName() ?>Actions extends sfActions
     return $<?php echo $this->getSingularName() ?>;
   }
 
-  protected function getListCriteria ()
+  protected function processFilters ()
   {
-    $c = new Criteria();
+<?php if ($this->getParameterValue('list.filters')): ?>
+    $this->getUser()->getAttributeHolder()->add($this->getRequestParameter('filters'), 'sf_admin/<?php echo $this->getSingularName() ?>/filters');
+<?php endif ?>
+  }
 
-    // sort
+  protected function processSort ()
+  {
+    if ($this->getRequestParameter('sort'))
+    {
+      $this->getUser()->setAttribute('sort', $this->getRequestParameter('sort'), 'sf_admin/<?php echo $this->getSingularName() ?>/sort');
+      $this->getUser()->setAttribute('type', $this->getRequestParameter('type', 'asc'), 'sf_admin/<?php echo $this->getSingularName() ?>/sort');
+    }
+  }
+
+  protected function addFiltersCriteria (&$c)
+  {
+<?php if ($this->getParameterValue('list.filters')): ?>
+    $this->filters = $this->getUser()->getAttributeHolder()->getAll('sf_admin/<?php echo $this->getSingularName() ?>/filters');
+<?php foreach ($this->getColumns('list.filters') as $column): $type = $column->getCreoleType() ?>
+    if (isset($this->filters['<?php echo $column->getName() ?>']) && $this->filters['<?php echo $column->getName() ?>'] != '')
+    {
+      $c->add(<?php echo $this->getPeerClassName() ?>::<?php echo strtoupper($column->getName()) ?>, $this->filters['<?php echo $column->getName() ?>']);
+    }
+<?php endforeach ?>
+<?php endif ?>
+  }
+
+  protected function addSortCriteria (&$c)
+  {
     if ($sort_column = $this->getUser()->getAttribute('sort', null, 'sf_admin/<?php echo $this->getSingularName() ?>/sort'))
     {
       if ($this->getUser()->getAttribute('type', null, 'sf_admin/<?php echo $this->getSingularName() ?>/sort') == 'asc')
@@ -130,19 +151,6 @@ class <?php echo $this->getGeneratedModuleName() ?>Actions extends sfActions
         $c->addDescendingOrderByColumn($sort_column);
       }
     }
-
-<?php if ($this->getParameterValue('list.filters')): ?>
-    // filters
-    $this->filters = $this->getUser()->getAttributeHolder()->getAll('sf_admin/<?php echo $this->getSingularName() ?>/filters');
-<?php foreach ($this->getColumns('list.filters') as $column): $type = $column->getCreoleType() ?>
-    if (isset($this->filters['<?php echo $column->getName() ?>']) && $this->filters['<?php echo $column->getName() ?>'] != '')
-    {
-      $c->add(<?php echo $this->getPeerClassName() ?>::<?php echo strtoupper($column->getName()) ?>, $this->filters['<?php echo $column->getName() ?>']);
-    }
-<?php endforeach ?>
-<?php endif ?>
-
-    return $c;
   }
 }
 
