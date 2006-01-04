@@ -84,7 +84,7 @@ class sfPropelCrudGenerator extends sfGenerator
     }
 
     $this->setTheme($theme);
-    $this->generatePhpFiles($this->generatedModuleName);
+    $this->generatePhpFiles($this->generatedModuleName, array('listSuccess', 'editSuccess', 'showSuccess'));
 
     // require generated action class
     $data = "require_once(sfConfig::get('sf_module_cache_dir').'/".$this->generatedModuleName."/actions/actions.class.php')\n";

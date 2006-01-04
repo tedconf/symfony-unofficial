@@ -25,7 +25,6 @@ symfony install-module sfMedia
 - generateur spécifique pour gérer la home page et aggréger les modules générés et les autres
 - gestion des types enums en passant un paramètre value
 - support des tables i18n
-- traduction interface en i18n
 
 */
 
@@ -108,7 +107,8 @@ class sfPropelAdminGenerator extends sfPropelCrudGenerator
     }
 
     $this->setTheme($theme);
-    $this->generatePhpFiles($this->generatedModuleName);
+    $templateFiles = array('listSuccess', 'editSuccess', '_filters');
+    $this->generatePhpFiles($this->generatedModuleName, $templateFiles);
 
     // require generated action class
     $data = "require_once(sfConfig::get('sf_module_cache_dir').'/".$this->generatedModuleName."/actions/actions.class.php')\n";

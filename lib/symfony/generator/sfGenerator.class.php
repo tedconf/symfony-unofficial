@@ -32,7 +32,7 @@ abstract class sfGenerator
 
   abstract public function generate($params = array());
 
-  protected function generatePhpFiles($generatedModuleName)
+  protected function generatePhpFiles($generatedModuleName, $templateFiles = array())
   {
     // template directory
     $template_dir = sfConfig::get('sf_symfony_data_dir').'/symfony/generator/'.$this->getGeneratorClass().'/'.$this->getTheme().'/template';
@@ -52,8 +52,7 @@ abstract class sfGenerator
     $this->getGeneratorManager()->getCache()->set('actions.class.php', $generatedModuleName.DIRECTORY_SEPARATOR.'actions', $retval);
 
     // generate template files
-    $templates = array('listSuccess', 'editSuccess', 'showSuccess');
-    foreach ($templates as $template)
+    foreach ($templateFiles as $template)
     {
       // eval template file
       $template_template = $template_dir.'/templates/'.$template.'.php';
