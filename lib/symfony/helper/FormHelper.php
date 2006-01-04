@@ -41,7 +41,7 @@ require_once('symfony/helper/ValidationHelper.php');
       #
       # NOTE: Only the option tags are returned, you have to wrap this call in a regular HTML select tag.
 */
-function options_for_select($options = array(), $selected = null)
+function options_for_select($options = array(), $selected = '')
 {
   $html_options = '';
   foreach($options as $key => $value)

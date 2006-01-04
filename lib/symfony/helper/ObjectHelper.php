@@ -78,17 +78,17 @@ function object_select_tag($object, $method, $options = array(), $default_value 
 
   if (isset($options['include_blank']))
   {
-    $select_options[0] = '';
+    $select_options[''] = '';
     unset($options['include_blank']);
   }
   else if (isset($options['include_title']))
   {
-    $select_options[0] = '-- '._convert_method_to_name($method, $options).' --';
+    $select_options[''] = '-- '._convert_method_to_name($method, $options).' --';
     unset($options['include_title']);
   }
   else if (isset($options['include_custom'])) 
   {
-    $select_options[0] = $options['include_custom'];
+    $select_options[''] = $options['include_custom'];
     unset($options['include_custom']);
   }
 
