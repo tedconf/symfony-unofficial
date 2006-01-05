@@ -30,38 +30,40 @@ function run_upgrade_to_0_6($task, $args)
   $verbose = pakeApp::get_instance()->get_verbose();
 
   // find all applications for this project
-  $apps = pakeFinder::type('directory')->name('modules')->mindepth(1)->maxdepth(1)->relative()->in('.');
+  $apps = pakeFinder::type('directory')->name('modules')->mindepth(1)->maxdepth(1)->relative()->in('apps');
 
   foreach ($apps as $app_module_dir)
   {
     $app = str_replace('/modules', '', $app_module_dir);
     if ($verbose) echo '>> app       '.pakeApp::excerpt('converting "'.$app.'"'.' application')."\n";
 
+    $app_dir = 'apps/'.$app;
+
     // upgrade config.php script file
     if ($verbose) echo '>> app       '.pakeApp::excerpt('upgrading config.php')."\n";
-    pake_copy(sfConfig::get('sf_symfony_data_dir').'/symfony/skeleton/app/app/config/config.php', $app.'/config/config.php', array('override' => true));
+    pake_copy(sfConfig::get('sf_symfony_data_dir').'/symfony/skeleton/app/app/config/config.php', $app_dir.'/config/config.php', array('override' => true));
 
     // change all constants to use sfConfig object
-    _upgrade_0_6_constants(array($app.'/modules', $app.'/templates', $app.'/lib'));
+    _upgrade_0_6_constants(array($app_dir.'/modules', $app_dir.'/templates', $app_dir.'/lib'));
 
     // change view shortcuts in global and modules template directories
-    $template_dirs = pakeFinder::type('directory')->name('templates')->mindepth(1)->maxdepth(1)->in($app.'/modules');
-    $template_dirs[] = $app.'/templates';
+    $template_dirs = pakeFinder::type('directory')->name('templates')->mindepth(1)->maxdepth(1)->in($app_dir.'/modules');
+    $template_dirs[] = $app_dir.'/templates';
 
     _upgrade_0_6_view_shortcuts($template_dirs);
     _upgrade_0_6_mail_to($template_dirs);
 
     // change standard_helpers and i18n format
-    _upgrade_0_6_settings($app);
+    _upgrade_0_6_settings($app_dir);
 
     // move i18n messages XML file
-    _upgrade_0_6_i18n($app);
+    _upgrade_0_6_i18n($app_dir);
 
     // rename sfPager to sfPropelPager
-    _upgrade_0_6_sfpager($app);
+    _upgrade_0_6_sfpager($app_dir);
 
     // change disable_web_debug usage
-    _upgrade_0_6_disable_web_debug($app);
+    _upgrade_0_6_disable_web_debug($app_dir);
   }
 
   // constants in global libraries

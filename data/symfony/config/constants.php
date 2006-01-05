@@ -13,9 +13,10 @@ sfConfig::add(array(
   'sf_web_dir_name'     => 'web',
   'sf_data_dir_name'    => 'data',
   'sf_config_dir_name'  => 'config',
+  'sf_apps_dir_name'    => 'apps',
 
   // global directory structure
-  'sf_app_dir'        => $sf_root_dir.DIRECTORY_SEPARATOR.$sf_app,
+  'sf_app_dir'        => $sf_root_dir.DIRECTORY_SEPARATOR.'apps'.DIRECTORY_SEPARATOR.$sf_app,
   'sf_model_dir'      => $sf_root_dir.DIRECTORY_SEPARATOR.'model',
   'sf_lib_dir'        => $sf_root_dir.DIRECTORY_SEPARATOR.'lib',
   'sf_web_dir'        => $sf_root_dir.DIRECTORY_SEPARATOR.'web',
@@ -41,11 +42,11 @@ sfConfig::add(array(
   'sf_app_template_dir_name' => 'templates',
 
   // SF_APP_DIR directory structure
-  'sf_app_config_dir'   => $sf_root_dir.DIRECTORY_SEPARATOR.$sf_app.DIRECTORY_SEPARATOR.'config',
-  'sf_app_lib_dir'      => $sf_root_dir.DIRECTORY_SEPARATOR.$sf_app.DIRECTORY_SEPARATOR.'lib',
-  'sf_app_module_dir'   => $sf_root_dir.DIRECTORY_SEPARATOR.$sf_app.DIRECTORY_SEPARATOR.'modules',
-  'sf_app_template_dir' => $sf_root_dir.DIRECTORY_SEPARATOR.$sf_app.DIRECTORY_SEPARATOR.'templates',
-  'sf_app_i18n_dir'     => $sf_root_dir.DIRECTORY_SEPARATOR.$sf_app.DIRECTORY_SEPARATOR.'i18n',
+  'sf_app_config_dir'   => $sf_root_dir.DIRECTORY_SEPARATOR.'apps'.DIRECTORY_SEPARATOR.$sf_app.DIRECTORY_SEPARATOR.'config',
+  'sf_app_lib_dir'      => $sf_root_dir.DIRECTORY_SEPARATOR.'apps'.DIRECTORY_SEPARATOR.$sf_app.DIRECTORY_SEPARATOR.'lib',
+  'sf_app_module_dir'   => $sf_root_dir.DIRECTORY_SEPARATOR.'apps'.DIRECTORY_SEPARATOR.$sf_app.DIRECTORY_SEPARATOR.'modules',
+  'sf_app_template_dir' => $sf_root_dir.DIRECTORY_SEPARATOR.'apps'.DIRECTORY_SEPARATOR.$sf_app.DIRECTORY_SEPARATOR.'templates',
+  'sf_app_i18n_dir'     => $sf_root_dir.DIRECTORY_SEPARATOR.'apps'.DIRECTORY_SEPARATOR.$sf_app.DIRECTORY_SEPARATOR.'i18n',
 
   // SF_APP_MODULE_DIR sub-directories names
   'sf_app_module_action_dir_name'   => 'actions',

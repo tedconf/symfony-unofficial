@@ -58,7 +58,7 @@ if (sfToolkit::hasLockFile(SF_ROOT_DIR.DIRECTORY_SEPARATOR.SF_APP.'_'.SF_ENVIRON
 }
 
 // require project configuration
-require_once(dirname(__FILE__).'/../../config/config.php');
+require_once(sfConfig::get('sf_config_dir').'/config.php');
 
 // recent symfony update?
 $version = @file_get_contents(sfConfig::get('sf_config_cache_dir').'/VERSION');

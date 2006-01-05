@@ -31,7 +31,7 @@ function run_init_propelcrud($task, $args)
 
   // create basic application structure
   $finder = pakeFinder::type('any')->prune('.svn')->discard('.svn');
-  pake_mirror($finder, sfConfig::get('sf_symfony_data_dir').'/symfony/generator/sfPropelCrud/default/skeleton/', getcwd().'/'.$app.'/modules/'.$module);
+  pake_mirror($finder, sfConfig::get('sf_symfony_data_dir').'/symfony/generator/sfPropelCrud/default/skeleton/', getcwd().'/apps/'.$app.'/modules/'.$module);
 
   // create basic test
   pake_copy(sfConfig::get('sf_symfony_data_dir').'/symfony/skeleton/module/test/actionsTest.php', getcwd().'/test/'.$app.'/'.$module.'ActionsTest.php');
@@ -41,7 +41,7 @@ function run_init_propelcrud($task, $args)
 
   // customize php and yml files
   $finder = pakeFinder::type('file')->name('*.php', '*.yml');
-  pake_replace_tokens($finder, getcwd().'/'.$app.'/modules/'.$module, '##', '##', $constants);
+  pake_replace_tokens($finder, getcwd().'/apps/'.$app.'/modules/'.$module, '##', '##', $constants);
 }
 
 function run_generate_propelcrud($task, $args)
@@ -92,10 +92,10 @@ function run_generate_propelcrud($task, $args)
 
   // copy our generated module
   $finder = pakeFinder::type('any');
-  pake_mirror($finder, $tmp_dir.'/auto'.ucfirst($module), getcwd().'/'.$app.'/modules/'.$module);
+  pake_mirror($finder, $tmp_dir.'/auto'.ucfirst($module), getcwd().'/apps/'.$app.'/modules/'.$module);
 
   // change module name
-  pake_replace_tokens($app.'/modules/'.$module.'/actions/actions.class.php', getcwd(), '', '', array('auto'.ucfirst($module) => $module));
+  pake_replace_tokens('apps/'.$app.'/modules/'.$module.'/actions/actions.class.php', getcwd(), '', '', array('auto'.ucfirst($module) => $module));
 
   // delete temp files
   $finder = pakeFinder::type('any');

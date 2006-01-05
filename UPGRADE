@@ -6,15 +6,17 @@ When you upgrade to symfony release 0.6.X or 0.7.X from 0.4.X or 0.5.X, you must
 Automatically
 -------------
 
-  1 - make a backup of your project
+  1 - make a backup of your project (this is the most important step!)
 
-  2 - launch the following command in your project root directory:
+  2 - move all your apps directory under a new `app` directory (see section 9 of the `Manually` section below)
+
+  3 - launch the following command in your project root directory:
 
     $ symfony upgrade 0.6
 
-  3 - check the changes made by the symfony upgrade command (svn diff if you use subversion)
+  4 - check the changes made by the symfony upgrade command (svn diff if you use subversion)
 
-  4 - make some manual changes asked by the script (see XX in the `manually` section below)
+  5 - make some manual changes asked by the script (see XX in the `manually` section below)
 
 Be careful if you have external libraries that can contains `SF_XXX`, `MOD_XXX` or `APP_XXX` constants! (the `geshi` library is one of them)
 
@@ -70,4 +72,13 @@ For all your application within a project:
     --------------------------------------|-----------------------------------
     mail_to($email, true)                 | mail_to($email, $name, 'encode=1')
 
-  9 - clear the symfony cache
+  9 - move all your apps under an `apps` directory
+
+    0.4.X/0.5.X                           | 0.6.X/0.7.X
+    --------------------------------------|--------------------------
+    SF_ROOT_DIR/frontend                  | SF_ROOT_DIR/apps/frontend
+    SF_ROOT_DIR/backend                   | SF_ROOT_DIR/apps/backend
+
+    Change the path to `config.php` in `index.php`
+
+  10 - clear the symfony cache

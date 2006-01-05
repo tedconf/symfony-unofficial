@@ -67,7 +67,7 @@ function run_app_exists($task, $args)
     throw new Exception('you must provide your application name');
   }
 
-  if (!is_dir(getcwd().'/'.$args[0]))
+  if (!is_dir(getcwd().'/apps/'.$args[0]))
   {
     throw new Exception('application "'.$args[0].'" does not exist');
   }
