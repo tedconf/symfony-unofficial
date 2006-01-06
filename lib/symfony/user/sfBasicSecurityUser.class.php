@@ -88,7 +88,12 @@ class sfBasicSecurityUser extends sfUser implements sfSecurityUser
     if (sfConfig::get('sf_logging_active')) $this->getContext()->getLogger()->info('{sfUser} add credential(s) "'.implode(', ', $credentials).'"');
 
     foreach ($credentials as $aCredential)
-      if (!in_array($aCredential, $this->credentials)) $this->credentials[] = $aCredential;
+    {
+      if (!in_array($aCredential, $this->credentials))
+      {
+        $this->credentials[] = $aCredential;
+      }
+    }
   }
 
   /**
@@ -99,15 +104,38 @@ class sfBasicSecurityUser extends sfUser implements sfSecurityUser
    */
   public function hasCredential($credential)
   {
-    if (func_num_args() == 0) return false;
+    if (is_array($credential))
+    {
+      $credentials = (array)$credential;
+      foreach ($credentials as $credential)
+      {
+        if (is_array($credential))
+        {
+          foreach ($credential as $subcred)
+          {
+            if (in_array($subcred, $this->credentials, true))
+            {
+              continue 2;
+            }
+          }
 
-    // Get all credentials
-    $credentials = (is_array(func_get_arg(0))) ? func_get_arg(0) : func_get_args();
+          return false;
+        }
+        else
+        {
+          if (!in_array($credential, $this->credentials, true))
+          {
+            return false;
+          }
+        }
+      }
 
-    foreach ($credentials as $aCredential)
-      if (in_array($aCredential, $this->credentials)) return true;
-
-    return false;
+      return true;
+    }
+    else
+    {
+      return in_array($credential, $this->credentials, true);
+    }
   }
 
   /**

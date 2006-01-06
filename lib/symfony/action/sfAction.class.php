@@ -509,16 +509,18 @@ abstract class sfAction
   {
     if (isset($this->security[$this->getActionName()]['credentials']))
     {
-      return $this->security[$this->getActionName()]['credentials'];
+      $credentials = $this->security[$this->getActionName()]['credentials'];
     }
     else if (isset($this->security['all']) && isset($this->security['all']['credentials']))
     {
-      return $this->security['all']['credentials'];
+      $credentials = $this->security['all']['credentials'];
     }
     else
     {
-      return null;
+      $credentials = null;
     }
+
+    return $credentials;
   }
 
   public function getController()
