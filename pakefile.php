@@ -38,10 +38,20 @@ function run_alltests($task, $args)
   );
 
   // initialize our test environment
-  mkdir('/tmp/symfonytest');
+  require_once(dirname(__FILE__).'/lib/symfony/util/sfToolkit.class.php');
+  sfToolkit::clearDirectory('/tmp/symfonytest');
+  $root_dir = tempnam('/tmp/symfonytest', 'tmp');
+  unlink($root_dir);
+  $tmp_dir = $root_dir.DIRECTORY_SEPARATOR.md5(uniqid(rand(), true));
+  if (!is_dir($root_dir))
+  {
+    mkdir($root_dir, 0777);
+  }
+  mkdir($tmp_dir, 0777);
+
   require_once(dirname(__FILE__).'/lib/symfony/config/sfConfig.class.php');
   sfConfig::add(array(
-    'sf_root_dir'         => '/tmp/symfonytest',
+    'sf_root_dir'         => $tmp_dir,
     'sf_app'              => 'test',
     'sf_environment'      => 'test',
     'sf_debug'            => true,
@@ -51,12 +61,13 @@ function run_alltests($task, $args)
     'sf_version'          => 'test',
   ));
   require_once(dirname(__FILE__).'/data/symfony/config/constants.php');
-  require_once(dirname(__FILE__).'/lib/symfony/util/sfToolkit.class.php');
   require_once(dirname(__FILE__).'/lib/symfony/symfony_autoload.php');
 
   pake_import('simpletest', false);
 
   pakeSimpletestTask::run_test($task, $args);
+
+  sfToolkit::clearDirectory($tmp_dir);
 }
 
 function run_create_pear_package($task, $args)
