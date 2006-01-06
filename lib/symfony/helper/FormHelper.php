@@ -50,7 +50,7 @@ function options_for_select($options = array(), $selected = '')
     if (
       (is_array($selected) && in_array($key, $selected))
       ||
-      ($value === $selected)
+      (strval($value) == strval($selected))
     )
     {
       $html_options .= ' selected="selected"';
@@ -96,7 +96,7 @@ function objects_for_select($options = array(), $value_method, $text_method = nu
     if (
       (is_array($selected) && in_array($key, $selected))
       ||
-      ($value == $selected)
+      (strval($value) == strval($selected))
     )
     {
       $html_options .= ' selected="selected"';
