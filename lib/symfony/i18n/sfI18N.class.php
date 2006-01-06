@@ -135,7 +135,7 @@ class sfI18N
 
   public static function getCountry($iso, $culture)
   {
-    $c = new CultureInfo($culture);
+    $c = new sfCultureInfo($culture);
     $countries = $c->getCountries();
 
     return (array_key_exists($iso, $countries)) ? $countries[$iso] : '';
@@ -143,14 +143,14 @@ class sfI18N
 
   public static function getNativeName($culture)
   {
-    $cult = new CultureInfo($culture);
+    $cult = new sfCultureInfo($culture);
     return $cult->getNativeName();
   }
 
   // Return timestamp from a date formatted with a given culture
   public static function getTimestampForCulture($date, $culture)
   {
-    list($d, $m, $y) = sfI18N::getDateForCulture($date, $culture);
+    list($d, $m, $y) = self::getDateForCulture($date, $culture);
     return mktime(0, 0, 0, $m, $d, $y);
   }
 
@@ -159,7 +159,7 @@ class sfI18N
   {
     if (!$date) return 0;
 
-    $dateFormatInfo = @DateTimeFormatInfo::getInstance($culture);
+    $dateFormatInfo = @sfDateTimeFormatInfo::getInstance($culture);
     $dateFormat = $dateFormatInfo->getShortDatePattern();
 
     // We construct the regexp based on date format

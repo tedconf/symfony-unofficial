@@ -90,7 +90,6 @@ class sfExecutionFilter extends sfFilter
           {
             require(sfConfigCache::checkConfig(sfConfig::get('sf_app_module_dir_name').'/'.$cacheConfigFile, array('moduleName' => $moduleName)));
           }
-
         }
 
         // page in cache?
