@@ -4,11 +4,7 @@
 
 <div id="sf_admin_content">
 
-[?php if ($sf_params->get('save') == 'ok'): ?]
-<div class="save-ok">
-<h2>[?php echo __('Your modifications has been saved') ?]</h2>
-</div>
-[?php elseif ($sf_request->hasErrors()): ?]
+[?php if ($sf_request->hasErrors()): ?]
 <div class="form-errors">
 <h2>[?php echo __('There are some errors that prevent the form to validate') ?]</h2>
 <ul>
@@ -16,6 +12,10 @@
   <li>[?php echo $sf_request->getError($name) ?]</li>
 [?php endforeach ?]
 </ul>
+</div>
+[?php elseif ($sf_flash->has('notice')): ?]
+<div class="save-ok">
+<h2>[?php echo __($sf_flash->get('notice')) ?]</h2>
 </div>
 [?php endif ?]
 

@@ -630,6 +630,26 @@ abstract class sfAction
   {
     $this->request->setAttribute($js, $js, 'helper/asset/auto/javascript');
   }
+
+  public function setFlash($name, $value, $persist = true)
+  {
+    $this->getUser()->setAttribute($name, $value, 'symfony/flash');
+
+    if (!$persist)
+    {
+      $this->getUser()->setAttribute($name, true, 'symfony/flash/remove');
+    }
+  }
+
+  public function getFlash($name)
+  {
+    return $this->getUser()->getAttribute($name, null, 'symfony/flash');
+  }
+
+  public function hasFlash($name)
+  {
+    return $this->getUser()->hasAttribute($name, 'symfony/flash');
+  }
 }
 
 ?>

@@ -205,6 +205,9 @@ class sfExecutionFilter extends sfFilter
         throw new sfInitializationException($error);
       }
     }
+
+    // execute next filter
+    $filterChain->execute();
   }
 
   private function doConditionalGet($timestamp)

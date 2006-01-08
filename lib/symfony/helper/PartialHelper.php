@@ -49,6 +49,13 @@ function include_partial($name, $vars = array())
     'sf_first_action'  => $firstActionEntry->getActionName(),
   ));
 
+  if (sfConfig::get('sf_use_flash'))
+  {
+    $sf_flash = new sfParameterHolder();
+    $sf_flash->add($context->getUser()->getAttributeHolder()->getAll('symfony/flash'));
+    $vars['sf_flash'] = $sf_flash;
+  }
+
   // local action variables
   $action = $context->getActionStack()->getLastEntry()->getActionInstance();
   if (method_exists($action, 'getVars'))

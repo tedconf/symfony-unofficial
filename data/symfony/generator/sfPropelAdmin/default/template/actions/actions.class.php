@@ -60,7 +60,9 @@ class <?php echo $this->getGeneratedModuleName() ?>Actions extends sfActions
       $this->update<?php echo $this->getClassName() ?>FromRequest();
       $this-><?php echo $this->getSingularName() ?>->save();
 
-      return $this->redirect('<?php echo $this->getModuleName() ?>/edit?<?php echo $this->getPrimaryKeyUrlParams('this->') ?>.'&save=ok');
+      $this->setFlash('notice', 'Your modifications has been saved');
+
+      return $this->redirect('<?php echo $this->getModuleName() ?>/edit?<?php echo $this->getPrimaryKeyUrlParams('this->') ?>);
 <?php //' ?>
     }
   }

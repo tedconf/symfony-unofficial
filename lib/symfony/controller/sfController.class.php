@@ -217,11 +217,26 @@ abstract class sfController
           $this->loadModuleFilters($filterChain);
         }
 
+        if (sfConfig::get('sf_use_flash'))
+        {
+          // register flash filter before execution filter
+          $flashFilter = new sfFlashBeforeFilter();
+          $flashFilter->initialize($this->context);
+          $filterChain->register($flashFilter);
+        }
+
         // register the execution filter
         $execFilter = new $this->executionFilterClassName();
-
         $execFilter->initialize($this->context);
         $filterChain->register($execFilter);
+
+        if (sfConfig::get('sf_use_flash'))
+        {
+          // register flash filter after execution filter
+          $flashFilter = new sfFlashAfterFilter();
+          $flashFilter->initialize($this->context);
+          $filterChain->register($flashFilter);
+        }
 
         if ($moduleName == sfConfig::get('sf_error_404_module') && $actionName == sfConfig::get('sf_error_404_action') && !headers_sent())
         {
@@ -486,7 +501,9 @@ abstract class sfController
       $config = sfConfig::get('sf_app_module_dir').'/'.$moduleName.'/'.sfConfig::get('sf_app_module_config_dir_name').'/filters.yml';
 
       if (is_readable($config))
+      {
         require_once(sfConfigCache::checkConfig($config));
+      }
       else
       {
         // add an emptry array for this module since no filters exist
@@ -496,7 +513,9 @@ abstract class sfController
 
     // register filters
     foreach ($list[$moduleName] as $filter)
+    {
       $filterChain->register($filter);
+    }
   }
 
   /**

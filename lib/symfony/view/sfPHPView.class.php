@@ -29,7 +29,7 @@ class sfPHPView extends sfView
   /**
    * Assigns some common variables to the template.
    */
-  protected function assignGlobalVars()
+  protected function getGlobalVars()
   {
     $context = $this->getContext();
 
@@ -48,16 +48,24 @@ class sfPHPView extends sfView
       'sf_first_action'  => $firstActionEntry->getActionName(),
     );
 
-    $this->attribute_holder->add($shortcuts);
+    if (sfConfig::get('sf_use_flash'))
+    {
+      $sf_flash = new sfParameterHolder();
+      $sf_flash->add($context->getUser()->getAttributeHolder()->getAll('symfony/flash'));
+      $shortcuts['sf_flash'] = $sf_flash;
+    }
+
+    return $shortcuts;
   }
 
   /**
    * Assigns some action variables to the template.
    */
-  protected function assignModuleVars()
+  protected function getModuleVars()
   {
     $action = $this->getContext()->getActionStack()->getLastEntry()->getActionInstance();
-    $this->attribute_holder->add($action->getVarHolder()->getAll());
+
+    return $action->getVarHolder()->getAll();
   }
 
   protected function loadCoreAndStandardHelpers()
@@ -99,8 +107,8 @@ class sfPHPView extends sfView
 
   protected function renderFile($file)
   {
-    $this->assignGlobalVars();
-    $this->assignModuleVars();
+    $this->attribute_holder->add($this->getGlobalVars());
+    $this->attribute_holder->add($this->getModuleVars());
 
     extract($this->attribute_holder->getAll());
 
