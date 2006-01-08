@@ -337,13 +337,18 @@ class sfWebDebug
     if (sfConfig::get('sf_debug'))
     {
       // get Propel statistics if available (user created a model and a db)
-      try
+      // we require Propel here to avoid autoloading and automatic connection
+      require_once('propel/Propel.php');
+      if (Propel::isInit())
       {
-        $con = Propel::getConnection();
-        $result .= '<div><span class="float bold">['.$con->getNumQueriesExecuted().']</span>db requests</div>';
-      }
-      catch (Exception $e)
-      {
+        try
+        {
+          $con = Propel::getConnection();
+          $result .= '<div><span class="float bold">['.$con->getNumQueriesExecuted().']</span>db requests</div>';
+        }
+        catch (Exception $e)
+        {
+        }
       }
     }
 
