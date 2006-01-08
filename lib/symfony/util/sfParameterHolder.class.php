@@ -113,7 +113,7 @@ class sfParameterHolder
       return array_keys($this->parameters[$ns]);
     }
 
-    return null;
+    return array();
   }
 
   /**
