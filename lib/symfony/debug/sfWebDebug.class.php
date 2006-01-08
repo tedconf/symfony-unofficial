@@ -137,9 +137,8 @@ class sfWebDebug
       $log_line = str_replace(realpath(sfConfig::get($constant)), $constant, $log_line);
     }
 
-    $log_line = preg_replace('/"(.+?)"/s', '"<span class="sfStatsFileInfo">\\1</span>"', $log_line);
+    $log_line = preg_replace('/&quot;(.+?)&quot;/s', '&quot;<span class="sfStatsFileInfo">\\1</span>&quot;', $log_line);
     $log_line = preg_replace('/^(.+?)\(\)\:/s', '<span class="sfStatsFileInfo">\\1()</span>:', $log_line);
-    $log_line = preg_replace('/in (.+?) at line (\d+)/s', 'in <span class="sfStatsFileInfo">\\1</span> at line <span class="sfStatsFileInfo">\\2</span>', $log_line);
 
     // special formatting for creole/SQL lines
     if (strtolower($type) == 'creole')
