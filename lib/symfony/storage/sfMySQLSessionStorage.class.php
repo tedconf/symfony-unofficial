@@ -56,7 +56,7 @@ class sfMySQLSessionStorage extends sfSessionStorage
     $parameters['auto_start'] = false;
 
     // initialize the parent
-    parent::initialize($context $parameters);
+    parent::initialize($context, $parameters);
 
     if (!$this->getParameterHolder()->has('db_table'))
     {
