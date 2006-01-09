@@ -32,6 +32,8 @@ require_once('symfony/helper/FormHelper.php');
  */
 function object_input_date_tag($object, $method, $options = array(), $default_value = null)
 {
+  $options = _parse_attributes($options);
+
   $value = _get_object_value($object, $method, $default_value);
 
   return input_date_tag(_convert_method_to_name($method, $options), $value, $options);
@@ -50,6 +52,8 @@ function object_input_date_tag($object, $method, $options = array(), $default_va
  */
 function object_textarea_tag($object, $method, $options = array(), $default_value = null)
 {
+  $options = _parse_attributes($options);
+
   $value = _get_object_value($object, $method, $default_value);
 
   return textarea_tag(_convert_method_to_name($method, $options), $value, $options);
@@ -139,6 +143,8 @@ function _get_values_for_objet_select_tag($object, $class)
 
 function object_select_country_tag($object, $method, $options = array(), $default_value = null)
 {
+  $options = _parse_attributes($options);
+
   $value = _get_object_value($object, $method, $default_value);
 
   return select_country_tag(_convert_method_to_name($method, $options), $value, $options);
@@ -146,6 +152,8 @@ function object_select_country_tag($object, $method, $options = array(), $defaul
 
 function object_select_language_tag($object, $method, $options = array(), $default_value = null)
 {
+  $options = _parse_attributes($options);
+
   $value = _get_object_value($object, $method, $default_value);
 
   return select_language_tag(_convert_method_to_name($method, $options), $value, $options);
@@ -164,6 +172,8 @@ function object_select_language_tag($object, $method, $options = array(), $defau
  */
 function object_input_hidden_tag($object, $method, $options = array(), $default_value = null)
 {
+  $options = _parse_attributes($options);
+
   $value = _get_object_value($object, $method, $default_value);
 
   return input_hidden_tag(_convert_method_to_name($method, $options), $value, $options);
@@ -182,6 +192,8 @@ function object_input_hidden_tag($object, $method, $options = array(), $default_
  */
 function object_input_tag($object, $method, $options = array(), $default_value = null)
 {
+  $options = _parse_attributes($options);
+
   $value = _get_object_value($object, $method, $default_value);
 
   return input_tag(_convert_method_to_name($method, $options), $value, $options);
@@ -200,6 +212,8 @@ function object_input_tag($object, $method, $options = array(), $default_value =
  */
 function object_checkbox_tag($object, $method, $options = array(), $default_value = null)
 {
+  $options = _parse_attributes($options);
+
   $value = _get_object_value($object, $method, $default_value);
   $value = ($value === true || $value == 'on' || $value == 1) ? 1 : 0;
 
