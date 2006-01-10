@@ -11,7 +11,7 @@
 /**
  * @package    symfony.runtime.addon
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
- * @version    SVN: $Id: sfMediaLibrary.class.php 391 2005-08-30 09:26:44Z fabien $
+ * @version    SVN: $Id$
  */
 
 /**
@@ -20,7 +20,7 @@
  *
  * @package    symfony.runtime.addon
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
- * @version    SVN: $Id: sfMediaLibrary.class.php 391 2005-08-30 09:26:44Z fabien $
+ * @version    SVN: $Id$
  */
 require_once 'model/SfMediaCategory.php';
 require_once 'model/SfMedia.php';

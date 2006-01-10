@@ -11,7 +11,7 @@
 /**
  * @package    symfony.runtime.addon
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
- * @version    SVN: $Id: sfShoppingCart.class.php 492 2005-09-29 09:26:19Z root $
+ * @version    SVN: $Id$
  */
 
 /**
@@ -23,7 +23,7 @@
  *
  * @package    symfony.runtime.addon
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
- * @version    SVN: $Id: sfShoppingCart.class.php 492 2005-09-29 09:26:19Z root $
+ * @version    SVN: $Id$
  */
 class sfShoppingCart
 {

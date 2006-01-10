@@ -11,7 +11,7 @@
 /**
  * @package    symfony.runtime.addon
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
- * @version    SVN: $Id: sfHistory.class.php 370 2005-08-18 09:00:01Z fabien $
+ * @version    SVN: $Id$
  */
 
 /**
@@ -20,7 +20,7 @@
  *
  * @package    symfony.runtime.addon
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
- * @version    SVN: $Id: sfHistory.class.php 370 2005-08-18 09:00:01Z fabien $
+ * @version    SVN: $Id$
  */
 class sfHistory
 {

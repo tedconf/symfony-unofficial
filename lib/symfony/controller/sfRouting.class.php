@@ -20,7 +20,7 @@
  * @package    symfony
  * @subpackage controller
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
- * @version    SVN: $Id: sfRouting.class.php 522 2005-10-17 08:23:26Z fabien $
+ * @version    SVN: $Id$
  */
 class sfRouting
 {

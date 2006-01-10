@@ -14,7 +14,7 @@
  * @package    symfony
  * @subpackage util
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
- * @version    SVN: $Id: sfFrontWebController.class.php 375 2005-08-25 10:46:12Z fabien $
+ * @version    SVN: $Id$
  */
 class sfYaml
 {

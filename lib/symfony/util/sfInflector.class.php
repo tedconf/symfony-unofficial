@@ -13,7 +13,7 @@
  * @package    symfony
  * @subpackage util
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
- * @version    SVN: $Id: sfInflector.class.php 432 2005-09-07 12:30:24Z fabien $
+ * @version    SVN: $Id$
  */
 class sfInflector
 {

@@ -16,7 +16,7 @@
  * @subpackage util
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  * @author     Sean Kerr <skerr@mojavi.org>
- * @version    SVN: $Id: sfAction.class.php 368 2005-08-13 16:22:38Z fabien $
+ * @version    SVN: $Id$
  */
 class sfTidy
 {

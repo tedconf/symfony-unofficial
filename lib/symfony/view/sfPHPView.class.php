@@ -15,7 +15,7 @@
  * @subpackage view
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  * @author     Sean Kerr <skerr@mojavi.org>
- * @version    SVN: $Id: sfPHPView.class.php 533 2005-10-18 12:44:42Z fabien $
+ * @version    SVN: $Id$
  */
 class sfPHPView extends sfView
 {
