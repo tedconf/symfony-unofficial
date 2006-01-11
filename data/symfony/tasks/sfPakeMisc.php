@@ -49,7 +49,7 @@ function run_clear_cache($task, $args)
   $finder = pakeFinder::type('file')->prune('.svn')->discard('.svn', '.sf');
 
   // finder to find directories (1 level) in a directory
-  $dir_finder = pakeFinder::type('dir')->prune('.svn')->discard('.svn')->maxdepth(0)->relative();
+  $dir_finder = pakeFinder::type('dir')->prune('.svn')->discard('.svn', '.sf')->maxdepth(0)->relative();
 
   // iterate through applications
   $apps = array();
