@@ -3,7 +3,12 @@
 if (!sfConfig::get('sf_in_bootstrap'))
 {
   // YAML support
-  require_once('spyc/spyc.php');
+  if (!function_exists('syck_load')) {
+    // avoid E_STRICT errors when loading spyc
+    $errReporting = error_reporting(error_reporting() ^ E_STRICT);
+    require_once('spyc/spyc.php');
+    error_reporting($errReporting);
+  }
   require_once('symfony/util/sfYaml.class.php');
 
   // cache support
@@ -82,8 +87,7 @@ function __autoload($class)
     }
 
     // unspecified class
-    $error = 'Autoloading of class "%s" failed. Try to clear the symfony cache and refresh. [err0003]';
-    $error = sprintf($error, $class);
+    $error = sprintf('Autoloading of class "%s" failed. Try to clear the symfony cache and refresh. [err0003]', $class);
     $e = new sfAutoloadException($error);
 
     $e->printStackTrace();

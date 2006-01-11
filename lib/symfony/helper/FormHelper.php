@@ -62,8 +62,8 @@ function options_for_select($options = array(), $selected = '')
 }
 
 /*
-      # Accepts a container of objects, the method name to use for the value, and the method name to use for the display. It returns 
-      # a string of option tags. 
+      # Accepts a container of objects, the method name to use for the value, and the method name to use for the display. It returns
+      # a string of option tags.
       # NOTE: Only the option tags are returned, you have to wrap this call in a regular HTML select tag.
 */
 function objects_for_select($options = array(), $value_method, $text_method = null, $selected = null)
@@ -74,18 +74,14 @@ function objects_for_select($options = array(), $value_method, $text_method = nu
     // text method exists?
     if ($text_method && !method_exists($option, $text_method))
     {
-      $error = 'Method "%s" doesn\'t exist for object of class "%s"';
       $error = sprintf($error, $text_method, get_class($option));
-
       throw new sfViewException($error);
     }
 
     // value method exists?
     if (!method_exists($option, $value_method))
     {
-      $error = 'Method "%s" doesn\'t exist for object of class "%s"';
       $error = sprintf($error, $value_method, get_class($option));
-
       throw new sfViewException($error);
     }
 
@@ -264,7 +260,7 @@ function textarea_tag($name, $content = null, $options = array())
 
       $css    = file_get_contents(sfConfig::get('sf_web_dir').DIRECTORY_SEPARATOR.$css_path);
       $styles = array();
-      preg_match_all('#^/\*\s*user\:\s*(.+?)\s*\*/\s*\015?\012\s*\.([^\s]+)#smi', $css, $matches, PREG_SET_ORDER);
+      preg_match_all('#^/\*\s*user:\s*(.+?)\s*\*/\s*\015?\012\s*\.([^\s]+)#Smi', $css, $matches, PREG_SET_ORDER);
       foreach ($matches as $match)
       {
         $styles[] = $match[1].'='.$match[2];
@@ -294,7 +290,7 @@ tinyMCE.init({
   '.($tinymce_options ? ','.$tinymce_options : '').'
 });';
 
-    return 
+    return
       content_tag('script', javascript_cdata_section($tinymce_js), array('type' => 'text/javascript')).
       content_tag('textarea', $content, array_merge(array('name' => $name, 'id' => $name), _convert_options($options)));
   }
@@ -385,10 +381,10 @@ function input_date_tag($name, $value, $options = array())
 
   // register our javascripts and stylesheets
   $js = array(
-    '/sf/js/calendar/calendar_stripped',
+    '/sf/js/calendar/calendar',
 //  '/sf/js/calendar/lang/calendar-'.substr($culture, 0, 2),
     '/sf/js/calendar/lang/calendar-en',
-    '/sf/js/calendar/calendar-setup_stripped',
+    '/sf/js/calendar/calendar-setup',
   );
   $context->getRequest()->setAttribute('date', $js, 'helper/asset/auto/javascript');
   $context->getRequest()->setAttribute('date', '/sf/js/calendar/skins/aqua/theme', 'helper/asset/auto/stylesheet');
@@ -399,9 +395,8 @@ function input_date_tag($name, $value, $options = array())
 
   // calendar date format
   $calendar_date_format = $date_format;
-  $calendar_date_format = preg_replace('~M~', 'm', $calendar_date_format);
-  $calendar_date_format = preg_replace('~y~', 'Y', $calendar_date_format);
-  $calendar_date_format = preg_replace('~([mdy])+~i', '%$1', $calendar_date_format);
+  $calendar_date_format = strtr($calendar_date_format, array('M' => 'm', 'y' => 'Y'));
+  $calendar_date_format = preg_replace('/([mdy])+/i', '%\\1', $calendar_date_format);
 
   $js = '
     document.getElementById("trigger_'.$name.'").disabled = false;
