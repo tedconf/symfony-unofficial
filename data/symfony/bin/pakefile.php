@@ -87,7 +87,7 @@ function run_module_exists($task, $args)
 }
 
 /* include all tasks definitions */
-$tasks = pakeFinder::type('file')->name('sfPake*.php')->in(realpath(dirname(__FILE__).'/..').DIRECTORY_SEPARATOR.'tasks');
+$tasks = pakeFinder::type('file')->name('sfPake*.php')->in(dirname(__FILE__).'/../tasks');
 foreach ($tasks as $task)
 {
   include_once($task);

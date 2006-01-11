@@ -34,7 +34,7 @@ function run_upgrade_to_0_6($task, $args)
 
   foreach ($apps as $app_module_dir)
   {
-    $app = str_replace('/modules', '', $app_module_dir);
+    $app = str_replace(DIRECTORY_SEPARATOR.'modules', '', $app_module_dir);
     if ($verbose) echo '>> app       '.pakeApp::excerpt('converting "'.$app.'"'.' application')."\n";
 
     $app_dir = 'apps/'.$app;
