@@ -4,7 +4,7 @@
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
  * (c) 2004-2006 Sean Kerr.
- * 
+ *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -53,9 +53,8 @@ class sfContext
     if (sfConfig::get('sf_logging_active'))
     {
       $this->logger = sfLogger::getInstance();
+      $this->logger->info('{sfContext} initialization');
     }
-
-    if (sfConfig::get('sf_logging_active')) $this->logger->info('{sfContext} initialization');
 
     if (sfConfig::get('sf_use_database'))
     {
@@ -77,7 +76,7 @@ class sfContext
 
     if (sfConfig::get('sf_cache'))
     {
-      $this->viewCacheManager->initialize($this, $this->config);
+      $this->viewCacheManager->initialize($this);
     }
 
     if (sfConfig::get('sf_i18n'))

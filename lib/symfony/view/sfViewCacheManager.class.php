@@ -3,7 +3,7 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- * 
+ *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -31,19 +31,16 @@ class sfViewCacheManager
     $cacheConfig        = array(),
     $viewCacheClassName = '',
     $context            = null,
-    $config             = null,
     $controller         = null;
 
-  public function initialize($context, $config)
+  public function initialize($context)
   {
     $this->context = $context;
-    $this->config  = $config;
 
     // cache only works with routing
     if (!sfConfig::get('sf_routing'))
     {
-      $error = 'You must activate routing to use cache system';
-      throw new sfConfigurationException($error);
+      throw new sfConfigurationException('You must activate routing to use cache system');
     }
 
     $this->controller = $context->getController();
