@@ -17,9 +17,21 @@
  * @version    SVN: $Id$
  */
 
-function url_for($url, $absolute = false)
+ function url_for($url, $absolute = false)
 {
-  return sfContext::getInstance()->getController()->genUrl(null, $url, $absolute);
+  $anchorPos = stripos($url, '#');
+  $anchorText = null;
+  if($anchorPos !== false)
+	{
+    $anchorText = substr($url, $anchorPos + 1);    
+    $url = substr($url, 0, $anchorPos);
+	}
+    
+  $url = sfContext::getInstance()->getController()->genUrl(null, $url, $absolute);
+  
+  if($anchorText) $url = $url . '#' . $anchorText;
+  
+  return $url;
 }
  
 /*
@@ -44,13 +56,13 @@ function link_to($name = '', $options = '', $html_options = array())
     unset($html_options['absolute_url']);
     $absolute = true;
   }
-
+  
   $html_options['href'] = url_for($options, $absolute);
   if (!strlen($name))
   {
     $name = $html_options['href'];
   }
-
+  
   return content_tag('a', $name, $html_options);
 }
 
