@@ -39,7 +39,7 @@ class sfYaml
     if (function_exists('syck_load')) {
       if (!empty($input) && is_readable($input))
       {
-        $inpit = file_get_contents($input);
+        $input = file_get_contents($input);
       }
 
       return syck_load($input);

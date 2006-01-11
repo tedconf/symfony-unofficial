@@ -5,7 +5,7 @@ require_once('symfony/helper/ValidationHelper.php');
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- * 
+ *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -43,22 +43,24 @@ require_once('symfony/helper/ValidationHelper.php');
 */
 function options_for_select($options = array(), $selected = '')
 {
-  $html_options = '';
+  $html = '';
   foreach($options as $key => $value)
   {
-    $html_options .= '<option value="'.$value.'"';
+    $html_options = array('value' => $value);
     if (
-      (is_array($selected) && in_array($key, $selected))
-      ||
-      (strval($value) == strval($selected))
-    )
+        $selected
+        &&
+        (is_array($selected) && in_array($key, $selected))
+        ||
+        ($value == $selected)
+       )
     {
-      $html_options .= ' selected="selected"';
+      $html_options['selected'] = 'selected';
     }
-    $html_options .= '>'.$key.'</option>';
+    $html .= content_tag('option', $key, $html_options) . "\n";
   }
 
-  return $html_options;
+  return $html;
 }
 
 /*
@@ -68,39 +70,30 @@ function options_for_select($options = array(), $selected = '')
 */
 function objects_for_select($options = array(), $value_method, $text_method = null, $selected = null)
 {
-  $html_options = '';
+  $select_options = array();
   foreach($options as $option)
   {
     // text method exists?
     if ($text_method && !method_exists($option, $text_method))
     {
-      $error = sprintf($error, $text_method, get_class($option));
+      $error = sprintf('Method "%s" doesn\'t exist for object of class "%s"', $text_method, get_class($option));
       throw new sfViewException($error);
     }
 
     // value method exists?
     if (!method_exists($option, $value_method))
     {
-      $error = sprintf($error, $value_method, get_class($option));
+      $error = sprintf('Method "%s" doesn\'t exist for object of class "%s"', $value_method, get_class($option));
       throw new sfViewException($error);
     }
 
     $value = $option->$value_method();
     $key = ($text_method != null) ? $option->$text_method() : $value;
 
-    $html_options .= '<option value="'.$value.'"';
-    if (
-      (is_array($selected) && in_array($key, $selected))
-      ||
-      (strval($value) == strval($selected))
-    )
-    {
-      $html_options .= ' selected="selected"';
-    }
-    $html_options .= '>'.$key.'</option>';
+    $select_options[$key] = $value;
   }
 
-  return $html_options;
+  return options_for_select($select_options, $selected);
 }
 
 /*
