@@ -50,7 +50,7 @@ function run_build_schema($task, $args)
 
 function _call_phing($task, $task_name, $check_schema = true)
 {
-  if ($check_schema && !file_exists('config/schema.xml'))
+  if ($check_schema && !glob('config/*schema.xml'))
   {
     throw new Exception('you must create a schema.xml file');
   }

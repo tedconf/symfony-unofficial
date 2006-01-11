@@ -49,7 +49,7 @@ function run_clear_cache($task, $args)
   $finder = pakeFinder::type('file')->prune('.svn')->discard('.svn', '.sf');
 
   // finder to find directories (1 level) in a directory
-  $dir_finder = pakeFinder::type('dir')->prune('.svn')->discard('.svn', '.sf')->maxdepth(0)->relative();
+  $dir_finder = pakeFinder::type('dir')->prune('.svn')->discard('.svn')->maxdepth(0)->relative();
 
   // iterate through applications
   $apps = array();
@@ -64,7 +64,10 @@ function run_clear_cache($task, $args)
 
   foreach ($apps as $app)
   {
-    if (!is_dir($cache_dir.'/'.$app)) continue;
+    if (!is_dir($cache_dir.'/'.$app))
+    {
+      continue;
+    }
 
     // remove cache for all environments
     foreach ($dir_finder->in($cache_dir.'/'.$app) as $env)
@@ -84,7 +87,10 @@ function run_clear_cache($task, $args)
       {
         $sub_dir = $cache_dir.'/'.$app.'/'.$env.'/'.$type;
 
-        if (!is_dir($sub_dir)) continue;
+        if (!is_dir($sub_dir))
+        {
+          continue;
+        }
 
         // remove cache files
         if (in_array($type, $safe_types))
