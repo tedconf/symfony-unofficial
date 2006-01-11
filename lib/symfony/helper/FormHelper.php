@@ -43,16 +43,22 @@ require_once('symfony/helper/ValidationHelper.php');
 */
 function options_for_select($options = array(), $selected = '')
 {
+  if (is_array($selected))
+  {
+    $valid = array_values($selected);
+    $valid = array_map('strval', $valid);
+  }
+
   $html = '';
   foreach($options as $key => $value)
   {
     $html_options = array('value' => $value);
     if (
-        $selected
+        isset($selected)
         &&
-        (is_array($selected) && in_array($key, $selected))
+        (is_array($selected) && in_array(strval($key), $valid, true))
         ||
-        ($value == $selected)
+        (strval($value) == strval($selected))
        )
     {
       $html_options['selected'] = 'selected';
