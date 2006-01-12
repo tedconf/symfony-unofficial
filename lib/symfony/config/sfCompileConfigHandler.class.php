@@ -86,9 +86,8 @@ class sfCompileConfigHandler extends sfYamlConfigHandler
     }
 
     // strip php tags
-    $data = strtr($data, array('<?php' => '',
-                               '<?'    => '',
-                               '?>'    => ''));
+    $data = sfToolkit::pregtr($data, array('/^\s*<\?(php)?/m' => '',
+                                           '/^\s*\?>/m'       => ''));
 
     // replace windows and mac format with unix format
     $data = str_replace("\r",  "\n", $data);
@@ -118,9 +117,8 @@ class sfCompileConfigHandler extends sfYamlConfigHandler
               file_get_contents(sfConfigCache::getCacheName($configFile));
 
     // strip php tags
-    $config = strtr($config, array('<?php' => '',
-                                   '<?'    => '',
-                                   '?>'    => ''));
+    $config = sfToolkit::pregtr($config, array('/^\s*<\?(php)?/m' => '',
+                                               '/^\s*\?>/m'       => ''));
 
     return $config;
   }
