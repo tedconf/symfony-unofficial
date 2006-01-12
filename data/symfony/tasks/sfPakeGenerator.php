@@ -27,7 +27,7 @@ function run_init_project($task, $args)
   $project_name = $args[0];
 
   // create basic project structure
-  $finder = pakeFinder::type('any')->prune('.svn')->discard('.svn');
+  $finder = pakeFinder::type('any')->prune('.svn')->discard('.svn', '.sf');
   pake_mirror($finder, sfConfig::get('sf_symfony_data_dir').'/symfony/skeleton/project', getcwd());
 
   $finder = pakeFinder::type('file')->name('properties.ini', 'apache.conf', 'propel.ini');
@@ -56,7 +56,7 @@ function run_init_app($task, $args)
   $app = $args[0];
 
   // create basic application structure
-  $finder = pakeFinder::type('any')->prune('.svn')->discard('.svn');
+  $finder = pakeFinder::type('any')->prune('.svn')->discard('.svn', '.sf');
   pake_mirror($finder, sfConfig::get('sf_symfony_data_dir').'/symfony/skeleton/app/app', getcwd().'/apps/'.$app);
 
   // create $app.php or index.php if it is our first app
@@ -100,7 +100,7 @@ function run_init_module($task, $args)
   );
 
   // create basic application structure
-  $finder = pakeFinder::type('any')->prune('.svn')->discard('.svn');
+  $finder = pakeFinder::type('any')->prune('.svn')->discard('.svn', '.sf');
   pake_mirror($finder, sfConfig::get('sf_symfony_data_dir').'/symfony/skeleton/module/module/', getcwd().'/apps/'.$app.'/modules/'.$module);
 
   // create basic test

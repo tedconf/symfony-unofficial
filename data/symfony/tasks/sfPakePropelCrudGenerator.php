@@ -30,7 +30,7 @@ function run_init_propelcrud($task, $args)
   );
 
   // create basic application structure
-  $finder = pakeFinder::type('any')->prune('.svn')->discard('.svn');
+  $finder = pakeFinder::type('any')->prune('.svn')->discard('.svn', '.sf');
   pake_mirror($finder, sfConfig::get('sf_symfony_data_dir').'/symfony/generator/sfPropelCrud/default/skeleton/', getcwd().'/apps/'.$app.'/modules/'.$module);
 
   // create basic test
