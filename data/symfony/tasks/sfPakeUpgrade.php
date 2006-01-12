@@ -77,6 +77,9 @@ function run_upgrade_to_0_6($task, $args)
   // sfPager in global libraries
   _upgrade_0_6_sfpager('lib');
 
+  // location of config/config.php
+  _upgrade_0_6_config('web');
+
   // clear cache
   run_clear_cache($task, array());
 }
@@ -286,6 +289,31 @@ function _upgrade_0_6_constants($dirs)
     $content = preg_replace('/defined\(\''.$regex.'\'\)/e', "'sfConfig::get(\''.strtolower('\\1').'\')'", $content);
     $content = preg_replace('/define\(\''.$regex.'\',\s*(.+?)\)/e', "'sfConfig::set(\''.strtolower('\\1').'\', \\3)'", $content);
     $content = preg_replace('/'.$regex.'/e', "'sfConfig::get(\''.strtolower('\\1').'\')'", $content);
+
+    file_put_contents($php_file, $content);
+  }
+}
+
+function _upgrade_0_6_config($dirs)
+{
+  $verbose = pakeApp::get_instance()->get_verbose();
+
+  $php_files = pakeFinder::type('file')->name('*.php')->in($dirs);
+
+  $search = 'SF_ROOT_DIR.DIRECTORY_SEPARATOR.SF_APP.';
+
+  foreach ($php_files as $php_file)
+  {
+    $content = file_get_contents($php_file);
+
+    if (strpos($content, $search) === false)
+    {
+      continue;
+    }
+
+    if ($verbose) echo '>> file      '.pakeApp::excerpt('updating location of config.php for "'.$php_file.'"')."\n";
+
+    $content = str_replace($search, "SF_ROOT_DIR.DIRECTORY_SEPARATOR.'apps'.DIRECTORY_SEPARATOR.SF_APP.", $content);
 
     file_put_contents($php_file, $content);
   }
