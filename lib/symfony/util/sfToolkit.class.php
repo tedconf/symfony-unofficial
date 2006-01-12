@@ -146,6 +146,9 @@ class sfToolkit
     // tokenizer available?
     if (!function_exists('token_get_all'))
     {
+      $source = sfToolkit::pregtr($source, array('#/\*((?!\*/)[\d\D\s])*\*/#' => '',   // remove /* ... */
+                                                 '#^\s*//.*$#m'               => '')); // remove // ...
+
       return $source;
     }
 
