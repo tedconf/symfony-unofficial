@@ -386,7 +386,7 @@ class sfFileCache extends sfCache
           if ($mode == 'old')
           {
             // files older than lifeTime get deleted from cache
-            if ((mktime() - filemtime($file2)) < $this->lifeTime)
+            if ((time() - filemtime($file2)) < $this->lifeTime)
             {
               $unlink = 0;
             }
