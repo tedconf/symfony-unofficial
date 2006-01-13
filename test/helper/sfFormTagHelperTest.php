@@ -90,13 +90,15 @@ class sfFormTagHelperTest extends UnitTestCase
 
     $obj1 = new TestObject();
     $obj2 = new TestObject();
+    $obj2->setText('text2');
+    $obj2->setValue('value2');
 
     $actual = objects_for_select(Array($obj1, $obj2), 'getValue', 'getText');
-    $expected = '<option value="value">text</option><option value="value">text</option>';
+    $expected = "<option value=\"value\">text</option>\n<option value=\"value2\">text2</option>\n";
     $this->assertEqual($expected, $actual);
 
     $actual = objects_for_select(Array($obj1, $obj2), 'getValue');
-    $expected = '<option value="value">value</option><option value="value">value</option>';
+    $expected = "<option value=\"value\">value</option>\n<option value=\"value2\">value2</option>\n";
     $this->assertEqual($expected, $actual);
 
     try

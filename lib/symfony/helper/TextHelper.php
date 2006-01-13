@@ -84,10 +84,10 @@
   */
   function simple_format_text($text)
   {
-    $text = sfToolkit::pregtr($text, array("/(\r\n|\r)/"        => "\n",              // lets make them newlines crossplatform
-                                           "/\n{3,}/"           => "\n\n",            // zap dupes
-                                           "/\n\n/"             => "</p>\\0<p>",      // turn two newlines into paragraph
-                                           "/([^\n])\n([^\n])/" => '\\1\n<br/>\\3')); // turn single newline into <br/>
+    $text = sfToolkit::pregtr($text, array("/(\r\n|\r)/"        => "\n",               // lets make them newlines crossplatform
+                                           "/\n{3,}/"           => "\n\n",             // zap dupes
+                                           "/\n\n/"             => "</p>\\0<p>",       // turn two newlines into paragraph
+                                           "/([^\n])\n([^\n])/" => "\\1\n<br />\\2")); // turn single newline into <br/>
 
     return '<p>'.$text.'</p>'; // wrap the first and last line in paragraphs before we're done
   }
@@ -176,7 +176,7 @@
       def strip_links(text)
         text.gsub(/<a.*>(.*)<\/a>/m, '\1')
       end
-      
+
       private
     end
   end
