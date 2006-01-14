@@ -175,7 +175,7 @@ class sfWebDebug
 
     // max priority
     $log_image = '';
-    if (sfConfig::get('sf_logging_active'))
+    if ($sf_logging_active = sfConfig::get('sf_logging_active'))
     {
       if ($this->max_priority >= 6)
       {
@@ -207,7 +207,7 @@ class sfWebDebug
       </div>
     ';
 
-    if (sfConfig::get('sf_logging_active'))
+    if ($sf_logging_active)
     {
       $logs  = '<table id="sfStatsLogs">';
       $logs .= "<tr>

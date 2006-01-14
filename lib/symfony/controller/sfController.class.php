@@ -4,7 +4,7 @@
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
  * (c) 2004-2006 Sean Kerr.
- * 
+ *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -127,7 +127,8 @@ abstract class sfController
     }
 
     // check for a module generator config file
-    $generatorConfig = sfConfig::get('sf_app_module_dir').'/'.$moduleName.'/'.sfConfig::get('sf_app_module_config_dir_name').'/generator.yml';
+    $sf_app_module_dir = sfConfig::get('sf_app_module_dir');
+    $generatorConfig = $sf_app_module_dir.'/'.$moduleName.'/'.sfConfig::get('sf_app_module_config_dir_name').'/generator.yml';
     if (is_readable($generatorConfig))
     {
       sfConfigCache::import($generatorConfig, true, array('moduleName' => $moduleName));
@@ -180,7 +181,7 @@ abstract class sfController
       // module is enabled
 
       // check for a module config.php
-      $moduleConfig = sfConfig::get('sf_app_module_dir').'/'.$moduleName.'/'.sfConfig::get('sf_app_module_config_dir_name').'/config.php';
+      $moduleConfig = $sf_app_module_dir.'/'.$moduleName.'/'.sfConfig::get('sf_app_module_config_dir_name').'/config.php';
       if (is_readable($moduleConfig))
       {
         require_once($moduleConfig);
@@ -217,7 +218,7 @@ abstract class sfController
           $this->loadModuleFilters($filterChain);
         }
 
-        if (sfConfig::get('sf_use_flash'))
+        if ($sf_use_flash = sfConfig::get('sf_use_flash'))
         {
           // register flash filter before execution filter
           $flashFilter = new sfFlashBeforeFilter();
@@ -230,7 +231,7 @@ abstract class sfController
         $execFilter->initialize($this->context);
         $filterChain->register($execFilter);
 
-        if (sfConfig::get('sf_use_flash'))
+        if ($sf_use_flash)
         {
           // register flash filter after execution filter
           $flashFilter = new sfFlashAfterFilter();
@@ -247,7 +248,7 @@ abstract class sfController
         // change i18n message source directory to our module
         if (sfConfig::get('sf_i18n'))
         {
-          $this->context->getI18N()->setMessageSourceDir(sfConfig::get('sf_app_module_dir').'/'.$moduleName.'/'.sfConfig::get('sf_app_module_i18n_dir_name'), $this->context->getUser()->getCulture());
+          $this->context->getI18N()->setMessageSourceDir($sf_app_module_dir.'/'.$moduleName.'/'.sfConfig::get('sf_app_module_i18n_dir_name'), $this->context->getUser()->getCulture());
         }
 
         // process the filter chain
@@ -446,7 +447,10 @@ abstract class sfController
   {
     $this->context = $context;
 
-    if (sfConfig::get('sf_logging_active')) $this->context->getLogger()->info('{sfController} initialization');
+    if (sfConfig::get('sf_logging_active'))
+    {
+      $this->context->getLogger()->info('{sfController} initialization');
+    }
 
     // set max forwards
     $this->maxForwards = sfConfig::get('sf_max_forwards');

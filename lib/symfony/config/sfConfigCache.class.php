@@ -4,7 +4,7 @@
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
  * (c) 2004-2006 Sean Kerr.
- * 
+ *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -233,20 +233,20 @@ class sfConfigCache
     // module level configuration handlers
 
     // make sure our modules directory exists
-    if (is_readable(sfConfig::get('sf_app_module_dir')))
+    if (is_readable($sf_app_module_dir = sfConfig::get('sf_app_module_dir')))
     {
       // ignore names
       $ignore = array('.', '..', 'CVS', '.svn');
 
       // create a file pointer to the module dir
-      $fp = opendir(sfConfig::get('sf_app_module_dir'));
+      $fp = opendir($sf_app_module_dir);
 
       // loop through the directory and grab the modules
       while (($directory = readdir($fp)) !== false)
       {
         if (!in_array($directory, $ignore))
         {
-          $configPath = sfConfig::get('sf_app_module_dir').'/'.$directory.'/'.sfConfig::get('sf_app_module_config_dir_name').'/config_handlers.yml';
+          $configPath = $sf_app_module_dir.'/'.$directory.'/'.sfConfig::get('sf_app_module_config_dir_name').'/config_handlers.yml';
 
           if (is_readable($configPath))
           {

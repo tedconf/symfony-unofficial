@@ -63,7 +63,7 @@ class sfContext
       $this->databaseManager->initialize();
     }
 
-    if (sfConfig::get('sf_cache'))
+    if ($sf_cache = sfConfig::get('sf_cache'))
     {
       $this->viewCacheManager = new sfViewCacheManager();
     }
@@ -74,7 +74,7 @@ class sfContext
     // include the factories configuration
     require(sfConfigCache::checkConfig(sfConfig::get('sf_app_config_dir_name').'/factories.yml'));
 
-    if (sfConfig::get('sf_cache'))
+    if ($sf_cache)
     {
       $this->viewCacheManager->initialize($this);
     }

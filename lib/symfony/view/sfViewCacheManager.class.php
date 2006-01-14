@@ -175,13 +175,13 @@ class sfViewCacheManager
     $namespace = $this->generateNamespace($internalUri);
     $id        = $suffix;
 
-    if (sfConfig::get('sf_logging_active'))
+    if ($sf_logging_active = sfConfig::get('sf_logging_active'))
     {
       $length = strlen($data);
     }
 
     $ret = $this->cache->set($id, $namespace, $data);
-    if (sfConfig::get('sf_logging_active'))
+    if ($sf_logging_active)
     {
       if (!$ret)
       {

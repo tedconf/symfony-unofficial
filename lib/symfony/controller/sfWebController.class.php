@@ -4,7 +4,7 @@
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
  * (c) 2004-2006 Sean Kerr.
- * 
+ *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -42,13 +42,13 @@ abstract class sfWebController extends sfController
      }
 
      $url = '';
-     if (!sfConfig::get('sf_no_script_name'))
+     if (!($sf_no_script_name = sfConfig::get('sf_no_script_name')))
      {
        $url = $_SERVER['SCRIPT_NAME'];
      }
-     else if (sfConfig::get('sf_relative_url_root') && sfConfig::get('sf_no_script_name'))
+     else if ($sf_relative_url_root = sfConfig::get('sf_relative_url_root') && $sf_no_script_name)
      {
-       $url = sfConfig::get('sf_relative_url_root');
+       $url = $sf_relative_url_root;
      }
 
      $route_name = '';

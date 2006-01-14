@@ -4,7 +4,7 @@
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
  * (c) 2004-2006 Sean Kerr.
- * 
+ *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -25,13 +25,13 @@ class sfWebRequest extends sfRequest
 {
   /**
    * A list of languages accepted by the browser.
-   * @var array 
+   * @var array
    */
   protected $languages = null;
 
   /**
    * A list of charsets accepted by the browser
-   * @var array 
+   * @var array
    */
   protected $charsets = null;
 
@@ -275,7 +275,8 @@ class sfWebRequest extends sfRequest
     $pathArray = $this->getPathInfoArray();
 
     // simulate PATH_INFO if needed
-    if (!isset($pathArray[sfConfig::get('sf_path_info_key')]) || !$pathArray[sfConfig::get('sf_path_info_key')])
+    $sf_path_info_key = sfConfig::get('sf_path_info_key');
+    if (!isset($pathArray[$sf_path_info_key]) || !$pathArray[$sf_path_info_key])
     {
       if (isset($pathArray['REQUEST_URI']))
       {
@@ -288,10 +289,10 @@ class sfWebRequest extends sfRequest
     }
     else
     {
-      $pathInfo = $pathArray[sfConfig::get('sf_path_info_key')];
-      if (sfConfig::get('sf_relative_url_root'))
+      $pathInfo = $pathArray[$sf_path_info_key];
+      if ($sf_relative_url_root = sfConfig::get('sf_relative_url_root'))
       {
-        $pathInfo = preg_replace('/^'.str_replace('/', '\\/', sfConfig::get('sf_relative_url_root')).'\//', '', $pathInfo);
+        $pathInfo = preg_replace('/^'.str_replace('/', '\\/', $sf_relative_url_root).'\//', '', $pathInfo);
       }
     }
     // for IIS
@@ -356,10 +357,10 @@ class sfWebRequest extends sfRequest
       $parameters = '';
       foreach ($this->getParameterHolder()->getAll() as $key => $value)
       {
-        $parameters .= ''.$key.' => "'.$value.'", ';
+        $parameters .= $key.' => "'.$value.'", ';
       }
 
-      if (sfConfig::get('sf_logging_active')) $this->getContext()->getLogger()->info('{sfWebRequest} request parameters { '.$parameters.'}');
+      $this->getContext()->getLogger()->info('{sfWebRequest} request parameters { '.$parameters.'}');
     }
 
     // move some parameters in other namespaces
@@ -483,25 +484,31 @@ class sfWebRequest extends sfRequest
   /**
    * Get a list of languages acceptable by the client browser
    *
-   * @return array languages ordered in the user browser preferences. 
+   * @return array languages ordered in the user browser preferences.
    */
   public function getLanguages()
   {
     if ($this->languages)
+    {
       return $this->languages;
+    }
 
     $this->languages = array();
 
     if (!isset($_SERVER['HTTP_ACCEPT_LANGUAGE']))
+    {
       return $this->languages;
+    }
 
-    foreach (explode(',', $_SERVER['HTTP_ACCEPT_LANGUAGE']) as $lang) 
+    foreach (explode(',', $_SERVER['HTTP_ACCEPT_LANGUAGE']) as $lang)
     {
       // Cut off any q-value that might come after a semi-colon
       if ($pos = strpos($lang, ';'))
+      {
         $lang = trim(substr($lang, 0, $pos));
+      }
 
-      if (strstr($lang, '-')) 
+      if (strstr($lang, '-'))
       {
         $codes = explode('-', $lang);
         if ($codes[0] == 'i')
@@ -510,16 +517,22 @@ class sfWebRequest extends sfRequest
           // of any listed language, which can be registerd with the
           // i-prefix, such as i-cherokee
           if (count($codes) > 1)
+          {
             $lang = $codes[1];
+          }
         }
         else
         {
           for ($i = 0, $max = count($codes); $i < $max; $i++)
           {
             if ($i == 0)
+            {
               $lang = strtolower($codes[0]);
+            }
             else
+            {
               $lang .= '_'.strtoupper($codes[$i]);
+            }
           }
         }
       }
@@ -534,7 +547,7 @@ class sfWebRequest extends sfRequest
   /**
    * Get a list of charsets acceptable by the client browser.
    *
-   * @return array list of charsets in preferable order. 
+   * @return array list of charsets in preferable order.
    */
   public function getCharsets()
   {
@@ -544,13 +557,11 @@ class sfWebRequest extends sfRequest
     $this->charsets = array();
 
     if (!isset($_SERVER['HTTP_ACCEPT_CHARSET']))
-      return $this->charsets;
-
-    foreach (explode(',', $_SERVER['HTTP_ACCEPT_CHARSET']) as $charset) 
     {
-      if (!empty($charset)) 
-        $this->charsets[] = preg_replace('/;.*/', '', $charset);
+      return $this->charsets;
     }
+
+    $this->charsets = preg_replace('/;.*/', '', explode(',', $_SERVER['HTTP_ACCEPT_CHARSET']));
 
     return $this->charsets;
   }
