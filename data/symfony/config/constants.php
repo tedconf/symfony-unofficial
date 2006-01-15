@@ -20,13 +20,13 @@ sfConfig::add(array(
   'sf_apps_dir_name'    => $sf_apps_dir_name   = 'apps',
 
   // global directory structure
-  'sf_app_dir'        => $sf_app_dir        = $sf_root_dir.DIRECTORY_SEPARATOR.$sf_apps_dir_name.DIRECTORY_SEPARATOR.$sf_app,
-  'sf_base_cache_dir' => $sf_base_cache_dir = $sf_root_dir.DIRECTORY_SEPARATOR.$sf_cache_dir_name.DIRECTORY_SEPARATOR.$sf_app,
-  'sf_cache_dir'      => $sf_cache_dir      = $sf_base_cache_dir.DIRECTORY_SEPARATOR.$sf_environment,
+  'sf_app_dir'        => $sf_app_dir = $sf_root_dir.DIRECTORY_SEPARATOR.$sf_apps_dir_name.DIRECTORY_SEPARATOR.$sf_app,
   'sf_model_dir'      => $sf_root_dir.DIRECTORY_SEPARATOR.$sf_model_dir_name,
   'sf_lib_dir'        => $sf_root_dir.DIRECTORY_SEPARATOR.$sf_lib_dir_name,
   'sf_web_dir'        => $sf_root_dir.DIRECTORY_SEPARATOR.$sf_web_dir_name,
   'sf_upload_dir'     => $sf_root_dir.DIRECTORY_SEPARATOR.$sf_web_dir_name.DIRECTORY_SEPARATOR.$sf_upload_dir_name,
+  'sf_base_cache_dir' => $sf_base_cache_dir = $sf_root_dir.DIRECTORY_SEPARATOR.$sf_cache_dir_name.DIRECTORY_SEPARATOR.$sf_app,
+  'sf_cache_dir'      => $sf_cache_dir      = $sf_base_cache_dir.DIRECTORY_SEPARATOR.$sf_environment,
   'sf_log_dir'        => $sf_root_dir.DIRECTORY_SEPARATOR.$sf_log_dir_name,
   'sf_data_dir'       => $sf_root_dir.DIRECTORY_SEPARATOR.$sf_data_dir_name,
   'sf_config_dir'     => $sf_root_dir.DIRECTORY_SEPARATOR.$sf_config_dir_name,
@@ -40,8 +40,8 @@ sfConfig::add(array(
 
   // SF_APP_DIR sub-directories names
   'sf_app_i18n_dir_name'     => $sf_app_i18n_dir_name     = 'i18n',
-  'sf_app_config_dir_name'   => $sf_app_config_dir_name   = $sf_config_dir_name,
-  'sf_app_lib_dir_name'      => $sf_app_lib_dir_name      = $sf_lib_dir_name,
+  'sf_app_config_dir_name'   => $sf_app_config_dir_name   = 'config',
+  'sf_app_lib_dir_name'      => $sf_app_lib_dir_name      = 'lib',
   'sf_app_module_dir_name'   => $sf_app_module_dir_name   = 'modules',
   'sf_app_template_dir_name' => $sf_app_template_dir_name = 'templates',
 
@@ -55,10 +55,10 @@ sfConfig::add(array(
   // SF_APP_MODULE_DIR sub-directories names
   'sf_app_module_action_dir_name'   => 'actions',
   'sf_app_module_template_dir_name' => 'templates',
-  'sf_app_module_lib_dir_name'      => $sf_lib_dir_name,
+  'sf_app_module_lib_dir_name'      => 'lib',
   'sf_app_module_view_dir_name'     => 'views',
   'sf_app_module_validate_dir_name' => 'validate',
-  'sf_app_module_config_dir_name'   => $sf_config_dir_name,
+  'sf_app_module_config_dir_name'   => 'config',
   'sf_app_module_i18n_dir_name'     => 'i18n',
 ));
 

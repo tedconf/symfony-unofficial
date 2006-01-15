@@ -83,6 +83,7 @@ class sfContext
     {
       $this->i18n = new sfI18N();
       $this->i18n->initialize($this);
+      sfConfig::set('sf_i18n_instance', $this->i18n);
     }
 
     // register our shutdown function
@@ -104,6 +105,11 @@ class sfContext
     }
 
     return self::$instance;
+  }
+
+  public static function hasInstance()
+  {
+    return isset(self::$instance);
   }
 
   /**
@@ -203,9 +209,9 @@ class sfContext
   public function getModuleName ()
   {
     // get the last action stack entry
-    $actionEntry = $this->actionStack->getLastEntry();
+    $actionStack = $this->actionStack;
 
-    return $actionEntry ? $actionEntry->getModuleName() : null;
+    return $actionStack ? $actionStack->getLastEntry()->getModuleName() : null;
   }
 
   /**
