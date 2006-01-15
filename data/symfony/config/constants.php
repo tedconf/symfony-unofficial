@@ -22,7 +22,7 @@ sfConfig::add(array(
   // global directory structure
   'sf_app_dir'        => $sf_app_dir = $sf_root_dir.DIRECTORY_SEPARATOR.$sf_apps_dir_name.DIRECTORY_SEPARATOR.$sf_app,
   'sf_model_dir'      => $sf_root_dir.DIRECTORY_SEPARATOR.$sf_model_dir_name,
-  'sf_lib_dir'        => $sf_root_dir.DIRECTORY_SEPARATOR.$sf_lib_dir_name,
+  'sf_lib_dir'        => $sf_lib_dir = $sf_root_dir.DIRECTORY_SEPARATOR.$sf_lib_dir_name,
   'sf_web_dir'        => $sf_root_dir.DIRECTORY_SEPARATOR.$sf_web_dir_name,
   'sf_upload_dir'     => $sf_root_dir.DIRECTORY_SEPARATOR.$sf_web_dir_name.DIRECTORY_SEPARATOR.$sf_upload_dir_name,
   'sf_base_cache_dir' => $sf_base_cache_dir = $sf_root_dir.DIRECTORY_SEPARATOR.$sf_cache_dir_name.DIRECTORY_SEPARATOR.$sf_app,
@@ -30,6 +30,20 @@ sfConfig::add(array(
   'sf_log_dir'        => $sf_root_dir.DIRECTORY_SEPARATOR.$sf_log_dir_name,
   'sf_data_dir'       => $sf_root_dir.DIRECTORY_SEPARATOR.$sf_data_dir_name,
   'sf_config_dir'     => $sf_root_dir.DIRECTORY_SEPARATOR.$sf_config_dir_name,
+
+  // lib directory names
+  'sf_model_dir_name'      => $sf_model_dir_name      = 'model',
+  'sf_plugin_lib_dir_name' => $sf_plugin_lib_dir_name = 'plugins',
+
+  // lib directory structure
+  'sf_model_lib_dir'  => $sf_lib_dir.DIRECTORY_SEPARATOR.$sf_model_dir_name,
+  'sf_plugin_lib_dir' => $sf_lib_dir.DIRECTORY_SEPARATOR.$sf_plugin_lib_dir_name,
+
+  // data directory names
+  'sf_plugin_data_dir'  => $sf_root_dir.DIRECTORY_SEPARATOR.'data'.DIRECTORY_SEPARATOR.'plugins',
+
+  // data directory structure
+  'sf_plugin_dir' => $sf_root_dir.DIRECTORY_SEPARATOR.'lib'.DIRECTORY_SEPARATOR.'plugins',
 
   // SF_CACHE_DIR directory structure
   'sf_template_cache_dir' => $sf_cache_dir.DIRECTORY_SEPARATOR.'template',
