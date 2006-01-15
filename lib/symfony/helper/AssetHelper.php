@@ -60,7 +60,7 @@
     foreach (func_get_args() as $source)
     {
       $source = javascript_path($source);
-      $html .= content_tag('script', '', array('language' => 'javascript', 'type' => 'text/javascript', 'src' => $source))."\n";
+      $html .= content_tag('script', '', array('type' => 'text/javascript', 'src' => $source))."\n";
     }
 
     return $html;
