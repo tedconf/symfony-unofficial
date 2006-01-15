@@ -153,6 +153,11 @@
 
   function _compute_public_path($source, $dir, $ext)
   {
+    if (strpos($source, '://'))
+    {
+      return $source;
+    }
+
     $sf_relative_url_root = sfConfig::get('sf_relative_url_root');
     if (strpos($source, '/') !== 0)
     {
