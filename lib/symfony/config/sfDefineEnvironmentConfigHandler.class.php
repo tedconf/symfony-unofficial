@@ -27,7 +27,7 @@ class sfDefineEnvironmentConfigHandler extends sfYamlConfigHandler
    * @throws sfConfigurationException If a requested configuration file does not exist or is not readable.
    * @throws sfParseException If a requested configuration file is improperly formatted.
    */
-  public function & execute($configFile, $param = array())
+  public function execute($configFile, $param = array())
   {
     // parse the yaml
     $config = $this->parseYaml($configFile);
@@ -77,17 +77,6 @@ class sfDefineEnvironmentConfigHandler extends sfYamlConfigHandler
       $values = array_merge($values, $this->getValues($prefix, $category, $keys));
     }
 
-    // init our data array
-    $data = array();
-
-    // populate data
-/*
-    foreach ($values as $key => $value)
-    {
-      $tmp = "\$config->set('%s', %s);";
-      $data[] = sprintf($tmp, $key, $value);
-    }
-*/
     // compile data
     if ($values)
     {
@@ -113,7 +102,7 @@ class sfDefineEnvironmentConfigHandler extends sfYamlConfigHandler
     $category = $this->fixCategoryName($category, $prefix);
 
     // loop through all key/value pairs
-    foreach ($keys as $key => &$value)
+    foreach ($keys as $key => $value)
     {
       list($key, $value) = $this->fixCategoryValue($category, $key, $value);
       $values[$key] = $value;
