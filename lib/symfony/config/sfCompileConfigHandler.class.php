@@ -69,7 +69,7 @@ class sfCompileConfigHandler extends sfYamlConfigHandler
         $contents = file_get_contents($file);
 
         // append file data
-        $data = "\n".$contents;
+        $data .= "\n".$contents;
       }
     }
 
