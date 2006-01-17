@@ -67,7 +67,7 @@ abstract class sfController
       require_once($module_file);
 
       // action is defined in this class?
-      if (is_callable(array($moduleName.'Actions', 'execute'.$actionName)))
+      if (is_callable(array($this->getAction($moduleName,  $actionName), 'execute'.$actionName)))
       {
         $exists = true;
       }
