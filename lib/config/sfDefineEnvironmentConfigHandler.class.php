@@ -78,6 +78,7 @@ class sfDefineEnvironmentConfigHandler extends sfYamlConfigHandler
     }
 
     // compile data
+    $retval = '';
     if ($values)
     {
       $retval = "<?php\n".

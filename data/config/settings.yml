@@ -56,7 +56,7 @@ default:
 
     routing:                on
     no_script_name:         on
-    relative_url_root:      
+    relative_url_root:
 
     stats:                  off
 
@@ -70,3 +70,5 @@ default:
     use_flash:              on
 
     activated_modules:      [default]
+
+    strip_comments:         off

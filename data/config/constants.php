@@ -54,7 +54,7 @@ sfConfig::add(array(
   'sf_i18n_cache_dir'     => $sf_cache_dir.DIRECTORY_SEPARATOR.'i18n',
   'sf_config_cache_dir'   => $sf_cache_dir.DIRECTORY_SEPARATOR.$sf_config_dir_name,
   'sf_test_cache_dir'     => $sf_cache_dir.DIRECTORY_SEPARATOR.'test',
-  'sf_module_cache_dir'   => $sf_cache_dir.DIRECTORY_SEPARATOR.$sf_module_dir_name,
+  'sf_module_cache_dir'   => $sf_cache_dir.DIRECTORY_SEPARATOR.'modules',
 
   // SF_APP_DIR sub-directories names
   'sf_app_i18n_dir_name'     => $sf_app_i18n_dir_name     = 'i18n',

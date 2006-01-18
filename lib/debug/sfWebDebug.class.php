@@ -266,7 +266,7 @@ class sfWebDebug
       function toggleMessages(myclass)
       {
         elements = document.getElementsByClassName(myclass);
-        for (i = 0; i < elements.length; ++i)
+        for (i = 0, x = elements.length; i < x; ++i)
         {
           Element.toggle(elements[i]);
         }

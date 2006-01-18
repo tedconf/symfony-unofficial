@@ -77,7 +77,7 @@ function run_generate_propelcrud($task, $args)
   // generate module
   $tmp_dir = $sf_root_dir.DIRECTORY_SEPARATOR.'cache'.DIRECTORY_SEPARATOR.'tmp'.DIRECTORY_SEPARATOR.md5(uniqid(rand(), true));
   sfConfig::set('sf_module_cache_dir', $tmp_dir);
-  $sf_symfony_lib_dir = sfConfig::get('sf_symfony_lib_dir')
+  $sf_symfony_lib_dir = sfConfig::get('sf_symfony_lib_dir');
   require_once($sf_symfony_lib_dir.'/config/sfConfig.class.php');
   require_once($sf_symfony_lib_dir.'/exception/sfException.class.php');
   require_once($sf_symfony_lib_dir.'/exception/sfInitializationException.class.php');

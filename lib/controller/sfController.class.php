@@ -89,7 +89,9 @@ abstract class sfController
         require_once($module_file);
 
         // action is defined in this class?
-        $defined = (is_callable(array($moduleName.'Actions', 'execute'.$actionName)));
+        $module = $moduleName.'Actions';
+        $module = new $module();
+        $defined = (is_callable(array($module, 'execute'.$actionName)));
 
         if ($defined)
         {
@@ -418,7 +420,7 @@ abstract class sfController
 
     // view class (as configured in module.yml or defined in action)
     $viewName = $this->getContext()->getRequest()->getAttribute($moduleName.'_'.$actionName.'_view_name', '', 'action/view') ? $this->getContext()->getRequest()->getAttribute($moduleName.'_'.$actionName.'_view_name', '', 'symfony/action/view') : sfConfig::get('mod_'.strtolower($moduleName).'_view_class');
-    $file     = sfConfig::get('sf_symfony_lib_dir').'/symfony/view/'.$viewName.'View.class.php';
+    $file     = sfConfig::get('sf_symfony_lib_dir').'/view/'.$viewName.'View.class.php';
     if (is_readable($file))
     {
       $class = $viewName.'View';

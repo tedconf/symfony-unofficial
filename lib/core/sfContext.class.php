@@ -209,9 +209,9 @@ class sfContext
   public function getModuleName ()
   {
     // get the last action stack entry
-    $actionStack = $this->actionStack;
+    $actionEntry = $this->actionStack->getLastEntry();
 
-    return $actionStack ? $actionStack->getLastEntry()->getModuleName() : null;
+    return $actionEntry ? $actionEntry->getModuleName() : null;
   }
 
   /**

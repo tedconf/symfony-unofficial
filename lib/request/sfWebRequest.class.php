@@ -282,7 +282,7 @@ class sfWebRequest extends sfRequest
       {
         $script_name = $pathArray['SCRIPT_NAME'];
         $pathInfo = preg_replace('/^'.preg_quote($script_name, '/').'/', '', $pathArray['REQUEST_URI']);
-        $prefix_name = preg_replace('#\/[^/]+$#', '', $script_name);
+        $prefix_name = preg_replace('#/[^/]+$#', '', $script_name);
         $pathInfo = preg_replace('/^'.preg_quote($prefix_name, '/').'/', '', $pathArray['REQUEST_URI']);
         $pathInfo = preg_replace('/'.preg_quote($pathArray['QUERY_STRING'], '/').'$/', '', $pathInfo);
       }
@@ -564,6 +564,16 @@ class sfWebRequest extends sfRequest
     $this->charsets = preg_replace('/;.*/', '', explode(',', $_SERVER['HTTP_ACCEPT_CHARSET']));
 
     return $this->charsets;
+  }
+
+  /**
+   * Return true id the request is a XMLHttpRequest (via prototype 'HTTP_X_REQUESTED_WITH' header).
+   *
+   * @return boolean
+   */
+  public function isXmlHttpRequest ()
+  {
+    return (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] == 'XMLHttpRequest');
   }
 
   /**
