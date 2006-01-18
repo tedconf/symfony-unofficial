@@ -26,7 +26,7 @@ function run_plugin_install($task, $args)
   // install plugin
   $packages = array($args[0]);
   if ($verbose) echo '>> plugin    '.pakeApp::excerpt('installing plugin "'.$args[0].'"')."\n";
-  $ret = _pear_run_command($config, 'install', array('offline' => true), $packages);
+  $ret = _pear_run_command($config, 'install', array(), $packages);
   if ($ret && !strpos($ret, 'not installed'))
   {
     throw new Exception($ret);
@@ -153,12 +153,12 @@ function _pear_init()
   // current symfony release
   if (is_readable('lib/symfony'))
   {
-    $sf_version = file_get_contents('lib/symfony/symfony/BRANCH');
+    $sf_version = file_get_contents('lib/symfony/BRANCH');
   }
   else
   {
     // PEAR config
-    if ((include('symfony/symfony/pear.php')) != 'OK')
+    if ((include('symfony/pear.php')) != 'OK')
     {
       throw new Exception('Unable to find symfony librairies');
     }

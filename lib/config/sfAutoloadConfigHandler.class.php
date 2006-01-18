@@ -39,11 +39,22 @@ class sfAutoloadConfigHandler extends sfYamlConfigHandler
     // parse the yaml
     $config = $this->parseYaml($configFile);
 
+    // get default configuration
+    $defaultConfigFile = sfConfig::get('sf_symfony_data_dir').'/config/'.basename($configFile);
+    $defaultConfig = array();
+    if (is_readable($defaultConfigFile))
+    {
+      $defaultConfig = $this->parseYaml($defaultConfigFile);
+    }
+
+    // merge with autoload configurations
+    $myConfig = sfToolkit::array_deep_merge($defaultConfig, $config);
+
     // init our data array
     $data = array();
 
     // let's do our fancy work
-    foreach ($config['autoload'] as $name => $entry)
+    foreach ($myConfig['autoload'] as $name => $entry)
     {
       if (isset($entry['name']))
       {
@@ -56,8 +67,7 @@ class sfAutoloadConfigHandler extends sfYamlConfigHandler
         // file mapping
         foreach ($entry['files'] as $class => $path)
         {
-          $path = $this->replaceConstants($path);
-          $path = $this->replacePath($path);
+          $path   = $this->replaceConstants($path);
 
           $data[] = sprintf("'%s' => '%s',", $class, $path);
         }
@@ -65,7 +75,7 @@ class sfAutoloadConfigHandler extends sfYamlConfigHandler
       else
       {
         // directory mapping
-        $ext = $entry['ext'];
+        $ext  = $entry['ext'];
         $path = $entry['path'];
 
         $path = $this->replaceConstants($path);
@@ -77,8 +87,8 @@ class sfAutoloadConfigHandler extends sfYamlConfigHandler
         }
 
         // we automatically add our php classes
-        require_once 'pake/pakeFinder.class.php';
-        $finder = pakeFinder::type('file')->name('*'.$ext);
+        require_once(sfConfig::get('sf_symfony_lib_dir').'/util/sfFinder.class.php');
+        $finder = sfFinder::type('file')->name('*'.$ext);
 
         // recursive mapping?
         $recursive = ((isset($entry['recursive'])) ? $entry['recursive'] : false);

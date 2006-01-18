@@ -28,7 +28,9 @@ pake_desc('launch symfony test suite');
 pake_task('alltests');
 
 pake_desc('release a new symfony version');
-pake_task('release', 'alltests');
+//pake_task('release', 'alltests');
+
+pake_task('release');
 
 function run_alltests($task, $args)
 {
@@ -38,7 +40,7 @@ function run_alltests($task, $args)
   );
 
   // initialize our test environment
-  require_once(dirname(__FILE__).'/lib/symfony/util/sfToolkit.class.php');
+  require_once(dirname(__FILE__).'/lib/util/sfToolkit.class.php');
   sfToolkit::clearDirectory('/tmp/symfonytest');
   $root_dir = tempnam('/tmp/symfonytest', 'tmp');
   unlink($root_dir);
@@ -48,7 +50,7 @@ function run_alltests($task, $args)
     mkdir($tmp_dir, 0777, true);
   }
 
-  require_once(dirname(__FILE__).'/lib/symfony/config/sfConfig.class.php');
+  require_once(dirname(__FILE__).'/lib/config/sfConfig.class.php');
   sfConfig::add(array(
     'sf_root_dir'         => $tmp_dir,
     'sf_app'              => 'test',
@@ -62,9 +64,9 @@ function run_alltests($task, $args)
   mkdir($tmp_dir.'/apps');
   mkdir($tmp_dir.'/apps/test');
   mkdir($tmp_dir.'/apps/test/modules');
-  require_once(dirname(__FILE__).'/data/symfony/config/constants.php');
-  require_once(dirname(__FILE__).'/lib/symfony/symfony_autoload.php');
-  require_once('symfony/core/sfContext.class.php');
+  require_once(dirname(__FILE__).'/data/config/constants.php');
+  require_once(dirname(__FILE__).'/lib/symfony_autoload.php');
+  require_once(dirname(__FILE__).'/lib/core/sfContext.class.php');
 
   pake_import('simpletest', false);
 
@@ -103,7 +105,7 @@ function run_create_pear_package($task, $args)
   // add class files
   $finder = pakeFinder::type('file')->prune('.svn')->discard('.svn')->relative();
   $xml_classes = '';
-  $dirs = array('lib' => 'php', 'data/symfony' => 'data');
+  $dirs = array('lib' => 'php', 'data' => 'data');
   foreach ($dirs as $dir => $role)
   {
     $class_files = $finder->in($dir);

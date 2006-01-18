@@ -1,6 +1,6 @@
 <?php
 
-require_once('symfony/helper/FormHelper.php');
+require_once(sfConfig::get('sf_symfony_lib_dir').'/helper/FormHelper.php');
 
 /*
  * This file is part of the symfony package.
@@ -110,7 +110,7 @@ function _get_values_for_objet_select_tag($object, $class)
 
   $select_options = array();
 
-  require_once('model/'.$class.'Peer.php');
+  require_once(sfConfig::get('sf_model_lib_dir').'/'.$class.'Peer.php');
   $objects = call_user_func(array($class.'Peer', 'doSelect'), new Criteria());
   if ($objects)
   {

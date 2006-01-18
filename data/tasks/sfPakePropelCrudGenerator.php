@@ -10,12 +10,12 @@ function run_init_propelcrud($task, $args)
 {
   if (count($args) < 2)
   {
-    throw new Exception('you must provide your module name');
+    throw new Exception('You must provide your module name.');
   }
 
   if (count($args) < 3)
   {
-    throw new Exception('you must provide your model class name');
+    throw new Exception('You must provide your model class name.');
   }
 
   $app         = $args[0];
@@ -34,10 +34,10 @@ function run_init_propelcrud($task, $args)
 
   // create basic application structure
   $finder = pakeFinder::type('any')->prune('.svn')->discard('.svn', '.sf');
-  pake_mirror($finder, sfConfig::get('sf_symfony_data_dir').'/symfony/generator/sfPropelCrud/default/skeleton/', $moduleDir);
+  pake_mirror($finder, sfConfig::get('sf_symfony_data_dir').'/generator/sfPropelCrud/default/skeleton/', $moduleDir);
 
   // create basic test
-  pake_copy(sfConfig::get('sf_symfony_data_dir').'/symfony/skeleton/module/test/actionsTest.php', $sf_root_dir.'/test/'.$app.'/'.$module.'ActionsTest.php');
+  pake_copy(sfConfig::get('sf_symfony_data_dir').'/skeleton/module/test/actionsTest.php', $sf_root_dir.'/test/'.$app.'/'.$module.'ActionsTest.php');
 
   // customize test file
   pake_replace_tokens($module.'ActionsTest.php', $sf_root_dir.'/test/'.$app, '##', '##', $constants);
@@ -51,12 +51,12 @@ function run_generate_propelcrud($task, $args)
 {
   if (count($args) < 2)
   {
-    throw new Exception('you must provide your module name');
+    throw new Exception('You must provide your module name.');
   }
 
   if (count($args) < 3)
   {
-    throw new Exception('you must provide your model class name');
+    throw new Exception('You must provide your model class name.');
   }
 
   $theme = isset($args[3]) ? $args[3] : 'default';
@@ -68,8 +68,7 @@ function run_generate_propelcrud($task, $args)
   // model class exists?
   if (!is_readable('lib/model/'.$model_class.'.php'))
   {
-    $error = 'the model class "%s" does not exist';
-    $error = sprintf($error, $model_class);
+    $error = sprintf('The model class "%s" does not exist.', $model_class);
     throw new Exception($error);
   }
 
@@ -78,18 +77,19 @@ function run_generate_propelcrud($task, $args)
   // generate module
   $tmp_dir = $sf_root_dir.DIRECTORY_SEPARATOR.'cache'.DIRECTORY_SEPARATOR.'tmp'.DIRECTORY_SEPARATOR.md5(uniqid(rand(), true));
   sfConfig::set('sf_module_cache_dir', $tmp_dir);
-  require_once('symfony/config/sfConfig.class.php');
-  require_once('symfony/exception/sfException.class.php');
-  require_once('symfony/exception/sfInitializationException.class.php');
-  require_once('symfony/exception/sfParseException.class.php');
-  require_once('symfony/exception/sfConfigurationException.class.php');
-  require_once('symfony/cache/sfCache.class.php');
-  require_once('symfony/cache/sfFileCache.class.php');
-  require_once('symfony/generator/sfGenerator.class.php');
-  require_once('symfony/generator/sfGeneratorManager.class.php');
-  require_once('symfony/generator/sfPropelCrudGenerator.class.php');
-  require_once('symfony/util/sfInflector.class.php');
-  require_once('propel/Propel.php');
+  $sf_symfony_lib_dir = sfConfig::get('sf_symfony_lib_dir')
+  require_once($sf_symfony_lib_dir.'/config/sfConfig.class.php');
+  require_once($sf_symfony_lib_dir.'/exception/sfException.class.php');
+  require_once($sf_symfony_lib_dir.'/exception/sfInitializationException.class.php');
+  require_once($sf_symfony_lib_dir.'/exception/sfParseException.class.php');
+  require_once($sf_symfony_lib_dir.'/exception/sfConfigurationException.class.php');
+  require_once($sf_symfony_lib_dir.'/cache/sfCache.class.php');
+  require_once($sf_symfony_lib_dir.'/cache/sfFileCache.class.php');
+  require_once($sf_symfony_lib_dir.'/generator/sfGenerator.class.php');
+  require_once($sf_symfony_lib_dir.'/generator/sfGeneratorManager.class.php');
+  require_once($sf_symfony_lib_dir.'/generator/sfPropelCrudGenerator.class.php');
+  require_once($sf_symfony_lib_dir.'/util/sfInflector.class.php');
+  require_once($sf_symfony_lib_dir.'/vendor/propel/Propel.php');
   require_once('lib/model/'.$model_class.'.php');
   $generator_manager = new sfGeneratorManager();
   $generator_manager->initialize();

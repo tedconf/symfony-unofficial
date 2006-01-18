@@ -7,12 +7,12 @@ function run_init_propeladmin($task, $args)
 {
   if (count($args) < 2)
   {
-    throw new Exception('you must provide your module name');
+    throw new Exception('You must provide your module name.');
   }
 
   if (count($args) < 3)
   {
-    throw new Exception('you must provide your model class name');
+    throw new Exception('You must provide your model class name.');
   }
 
   $app         = $args[0];
@@ -30,7 +30,7 @@ function run_init_propeladmin($task, $args)
 
   // create basic application structure
   $finder = pakeFinder::type('any')->prune('.svn')->discard('.svn', '.sf');
-  pake_mirror($finder, sfConfig::get('sf_symfony_data_dir').'/symfony/generator/sfPropelAdmin/default/skeleton/', $moduleDir);
+  pake_mirror($finder, sfConfig::get('sf_symfony_data_dir').'/generator/sfPropelAdmin/default/skeleton/', $moduleDir);
 
   // customize php and yml files
   $finder = pakeFinder::type('file')->name('*.php', '*.yml');
