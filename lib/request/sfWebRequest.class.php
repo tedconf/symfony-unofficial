@@ -296,9 +296,10 @@ class sfWebRequest extends sfRequest
       }
     }
     // for IIS
-    if (stripos($pathInfo, '.php') > 0)
+    if ($pos = stripos($pathInfo, '.php'))
     {
-      $pathInfo = substr($pathInfo, stripos($pathInfo, '.php') + 4);
+      $pathInfo = substr($pathInfo, $pos+ 4);
+      $pathInfo = $pathInfo? $pathInfo: '/';
     }
 
     return $pathInfo;
