@@ -598,6 +598,15 @@ abstract class sfController
     throw new sfRenderException($error);
   }
 
+  /**
+   * Indicates whether or not we were called using the CLI version of PHP.
+   *
+   * @return bool true, if using cli, otherwise false.
+   */
+  public function inCLI()
+  {
+    return 'cli' == php_sapi_name();
+  }
 }
 
 ?>
