@@ -47,12 +47,12 @@
 
   function get_callbacks()
   {
-    $callbacks = array(
-      'uninitialized', 'loading', 'loaded', 'interactive', 'complete', 'failure', 'success'
-    );
-    for ($i = 100; $i <= 599; $i++)
+    static $callbacks;
+    if (!$callbacks)
     {
-      $callbacks[] = $i;
+      $callbacks = array_merge(array(
+        'uninitialized', 'loading', 'loaded', 'interactive', 'complete', 'failure', 'success'
+        ), range(100, 599));
     }
 
     return $callbacks;
@@ -60,12 +60,16 @@
 
   function get_ajax_options()
   {
-    $ajax_options = array(
-      'before', 'after', 'condition', 'url', 'asynchronous', 'method',
-      'insertion', 'position', 'form', 'with', 'update', 'script'
-    );
+    static $ajax_options;
+    if (!$ajax_options)
+    {
+      $ajax_options = array_merge(array(
+        'before', 'after', 'condition', 'url', 'asynchronous', 'method',
+        'insertion', 'position', 'form', 'with', 'update', 'script'
+        ), get_callbacks());
+    }
 
-    return array_merge($ajax_options, get_callbacks());
+    return $ajaxOptions;
   }
 
   /**
@@ -724,7 +728,7 @@
     $editor_options = _convert_options($editor_options);
     $default_options = array('tag' => 'span', 'id' => '\''.$name.'_in_place_editor', 'class' => 'in_place_editor_field');
 
-    return _in_place_editor($name, $url, array_merge($editor_options, $default_options));
+    return _in_place_editor($name, $url, array_merge($default_options, $editor_options));
   }
 
   /*
