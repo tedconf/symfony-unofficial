@@ -30,6 +30,12 @@ try
   // get config instance
   $sf_app_config_dir_name = sfConfig::get('sf_app_config_dir_name');
 
+  // load base settings
+  include(sfConfigCache::checkConfig($sf_app_config_dir_name.'/logging.yml'));
+  sfConfigCache::import($sf_app_config_dir_name.'/php.yml');
+  include(sfConfigCache::checkConfig($sf_app_config_dir_name.'/settings.yml'));
+  include(sfConfigCache::checkConfig($sf_app_config_dir_name.'/app.yml'));
+
   // create bootstrap file for next time
   $sf_debug = sfConfig::get('sf_debug');
   if (!$sf_in_bootstrap && !$sf_debug && !sfConfig::get('sf_test'))
@@ -45,12 +51,6 @@ try
     // clear our config and module cache
     sfConfigCache::clear();
   }
-
-  // load base settings
-  include(sfConfigCache::checkConfig($sf_app_config_dir_name.'/logging.yml'));
-  sfConfigCache::import($sf_app_config_dir_name.'/php.yml');
-  include(sfConfigCache::checkConfig($sf_app_config_dir_name.'/settings.yml'));
-  include(sfConfigCache::checkConfig($sf_app_config_dir_name.'/app.yml'));
 
   // error settings
   ini_set('display_errors', $sf_debug ? 'on' : 'off');
