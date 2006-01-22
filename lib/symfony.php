@@ -25,22 +25,37 @@ if (!($sf_in_bootstrap = sfConfig::get('sf_in_bootstrap')))
 
 try
 {
+  $configCache = sfConfigCache::getInstance();
+
   ini_set('unserialize_callback_func', '__autoload');
+
+  // force setting default timezone if not set
+  if (function_exists('date_default_timezone_get'))
+  {
+    if ($default_timezone = sfConfig::get('sf_default_timezone'))
+    {
+      date_default_timezone_set($default_timezone);
+    }
+    else if (sfConfig::get('sf_force_default_timezone', true))
+    {
+      date_default_timezone_set(@date_default_timezone_get());
+    }
+  }
 
   // get config instance
   $sf_app_config_dir_name = sfConfig::get('sf_app_config_dir_name');
 
   // load base settings
-  include(sfConfigCache::checkConfig($sf_app_config_dir_name.'/logging.yml'));
-  sfConfigCache::import($sf_app_config_dir_name.'/php.yml');
-  include(sfConfigCache::checkConfig($sf_app_config_dir_name.'/settings.yml'));
-  include(sfConfigCache::checkConfig($sf_app_config_dir_name.'/app.yml'));
+  include($configCache->checkConfig($sf_app_config_dir_name.'/logging.yml'));
+  $configCache->import($sf_app_config_dir_name.'/php.yml');
+  include($configCache->checkConfig($sf_app_config_dir_name.'/settings.yml'));
+  include($configCache->checkConfig($sf_app_config_dir_name.'/app.yml'));
 
   // create bootstrap file for next time
   $sf_debug = sfConfig::get('sf_debug');
   if (!$sf_in_bootstrap && !$sf_debug && !sfConfig::get('sf_test'))
   {
-    sfConfigCache::checkConfig($sf_app_config_dir_name.'/bootstrap_compile.yml');
+    $configCache->checkConfig($sf_app_config_dir_name.'/bootstrap_compile.yml');
   }
 
   // set exception format
@@ -49,7 +64,7 @@ try
   if ($sf_debug)
   {
     // clear our config and module cache
-    sfConfigCache::clear();
+    $configCache->clear();
   }
 
   // error settings
@@ -71,14 +86,14 @@ try
   if (!$sf_debug && !sfConfig::get('sf_test'))
   {
     $core_classes = $sf_app_config_dir_name.'/core_compile.yml';
-    sfConfigCache::import($core_classes);
+    $configCache->import($core_classes);
   }
 
   if (sfConfig::get('sf_routing'))
   {
     // we cannot cache the routing rules because of configuration problem
     $routing = $sf_app_config_dir_name.'/routing.yml';
-    sfConfigCache::import($routing);
+    $configCache->import($routing);
   }
 }
 catch (sfException $e)

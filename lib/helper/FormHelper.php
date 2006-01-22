@@ -58,7 +58,7 @@ function options_for_select($options = array(), $selected = '')
         &&
         (is_array($selected) && in_array(strval($key), $valid, true))
         ||
-        (strval($value) == strval($selected))
+        (strval($key) == strval($selected))
        )
     {
       $html_options['selected'] = 'selected';
@@ -141,7 +141,7 @@ function select_country_tag($name, $value, $options = array())
   $countries = $c->getCountries();
   asort($countries);
 
-  $option_tags = options_for_select(array_flip($countries), $value);
+  $option_tags = options_for_select($countries, $value);
 
   return select_tag($name, $option_tags, $options);
 }
@@ -152,7 +152,7 @@ function select_language_tag($name, $value, $options = array())
   $languages = $c->getLanguages();
   asort($languages);
 
-  $option_tags = options_for_select(array_flip($languages), $value);
+  $option_tags = options_for_select($languages, $value);
 
   return select_tag($name, $option_tags, $options);
 }

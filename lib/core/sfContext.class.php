@@ -72,7 +72,7 @@ class sfContext
     $this->actionStack = new sfActionStack();
 
     // include the factories configuration
-    require(sfConfigCache::checkConfig(sfConfig::get('sf_app_config_dir_name').'/factories.yml'));
+    require(sfConfigCache::getInstance()->checkConfig(sfConfig::get('sf_app_config_dir_name').'/factories.yml'));
 
     if ($sf_cache)
     {

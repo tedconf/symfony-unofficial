@@ -302,6 +302,11 @@ class sfWebRequest extends sfRequest
       $pathInfo = $pathInfo? $pathInfo: '/';
     }
 
+    if (!$pathInfo)
+    {
+      $pathInfo = '/';
+    }
+
     return $pathInfo;
   }
 

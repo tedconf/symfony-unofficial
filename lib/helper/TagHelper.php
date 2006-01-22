@@ -66,10 +66,9 @@ function _tag_options($options = array())
   $options = _parse_attributes($options);
 
   $html = '';
-//FIXME : addslashes / htmlspecialchars pour $value
   foreach ($options as $key => $value)
   {
-    $html .= ' '.$key.'="'.$value.'"';
+    $html .= ' '.$key.'="'.htmlentities($value).'"';
   }
 
   return $html;

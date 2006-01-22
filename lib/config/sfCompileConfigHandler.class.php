@@ -74,8 +74,8 @@ class sfCompileConfigHandler extends sfYamlConfigHandler
     }
 
     // insert configuration files
-    $data = preg_replace_callback(array('#(require|include)(_once)?\(sfConfigCache\:\:checkConfig\([^_]+sf_app_config_dir_name[^\.]*\.\'/([^\']+)\'\)\);#m',
-                                        '#()()sfConfigCache\:\:import\(.sf_app_config_dir_name\.\'/([^\']+)\'\);#m'),
+    $data = preg_replace_callback(array('#(require|include)(_once)?\((sfConfigCache::getInstance\(\)|\$configCache)->checkConfig\([^_]+sf_app_config_dir_name[^\.]*\.\'/([^\']+)\'\)\);#m',
+                                        '#()()(sfConfigCache::getInstance\(\)|\$configCache)->import\(.sf_app_config_dir_name\.\'/([^\']+)\'\);#m'),
                                   array($this, 'insertConfig'), $data);
 
     // strip comments (not in debug mode)
@@ -108,12 +108,12 @@ class sfCompileConfigHandler extends sfYamlConfigHandler
 
   private function insertConfig($matches)
   {
-    $configFile = sfConfig::get('sf_app_config_dir_name').'/'.$matches[3];
+    $configFile = sfConfig::get('sf_app_config_dir_name').'/'.$matches[4];
 
-    sfConfigCache::checkConfig($configFile);
+    sfConfigCache::getInstance()->checkConfig($configFile);
 
     $config = "// '$configFile' config file\n".
-              file_get_contents(sfConfigCache::getCacheName($configFile));
+              file_get_contents(sfConfigCache::getInstance()->getCacheName($configFile));
 
     return $config;
   }
