@@ -1,7 +1,3 @@
-cli:
-  controler:  myConsoleController
-  request:    myConsoleRequest
-
 prod:
   no_script_name:           ##NO_SCRIPT_NAME##
 
