@@ -1,5 +1,5 @@
 cli:
-  controler:  myConsolecontroler
+  controler:  myConsoleController
   request:    myConsoleRequest
 
 prod:
