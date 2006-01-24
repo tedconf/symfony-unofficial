@@ -93,7 +93,7 @@
 	<property name="propel.project.dir" value="./projects/${project}" override="true"/>
 </target>
 
-<target name="configure" unless="projBuildPopertiesExists" depends="set-project-dir,check-buildprops-for-propel-gen,check-buildprops">
+<target name="configure" depends="set-project-dir,check-buildprops-for-propel-gen,check-buildprops">
 	<echo msg="Loading project-specific props from ${propel.project.dir}/${propel.buildProperties}"/>
 	<property file="${propel.project.dir}/${propel.buildProperties}"/>
 </target>
