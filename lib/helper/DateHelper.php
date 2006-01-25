@@ -53,10 +53,8 @@ function format_datetime($date, $format = 'F', $culture = null)
   return $dateFormat->format($date, $format);
 }
 
-function distance_of_time_in_words($from_time, $to_time = null, $include_seconds = false)
+function distance_of_time_in_words($from_time, $to_time, $include_seconds = false)
 {
-  $to_time = $to_time? $to_time: time();
-
   $distance_in_minutes = abs(round(($to_time - $from_time) / 60));
   $distance_in_seconds = abs(round(($to_time - $from_time)));
 
