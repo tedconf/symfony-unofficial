@@ -907,7 +907,7 @@
     $js_options['asynchronous'] = (isset($options['type'])) ? ($options['type'] != 'synchronous') : 'true';
     if (isset($options['method'])) $js_options['method'] = _method_option_to_s($options['method']);
     if (isset($options['insertion'])) $js_options['insertion'] = "Insertion.".sfInflector::camelize($options['position']);
-    $js_options['evalScripts'] = (!isset($options['script']) || $options['script'] == 'false') ? 'false' : 'true';
+    $js_options['evalScripts'] = (isset($options['script']) && ($options['script'] != 0 || $options['script'] != 'false')) ? 'true' : 'false';
 
     if (isset($options['form']))
     {
