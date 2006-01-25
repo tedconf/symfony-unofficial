@@ -48,6 +48,24 @@ To access the `frontend` application in the `dev` environment, type:
     http://localhost/sf_sandbox/web/frontend_dev.php/
                (don't forget the final /)
 
+Modules
+-------
+
+To create a new module `mymodule`, just type in the command line:
+
+    $ ./symfony.sh init-module frontend mymodule    (*nix)
+    symfony init-module frontend mymodule           (Windows)
+
+To access it, call:
+
+    http://localhost/sf_sandbox/web/mymodule
+
+If, at this point, you meet an error, this means that your web server doesn't
+support mod_rewrite. Delete the `.htaccess` file from the `web/` directory and
+call instead: 
+
+    http://localhost/sf_sandbox/web/index.php/mymodule
+
 What's in the sandbox?
 ----------------------
 

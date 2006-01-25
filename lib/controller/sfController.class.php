@@ -63,7 +63,7 @@ abstract class sfController
     foreach ($dirs as $dir => $checkActivated)
     {
       // plugin module activated?
-      if ($checkActivated && !in_array($moduleName, sfConfig::get('sf_activated_modules')))
+      if ($checkActivated && !in_array($moduleName, sfConfig::get('sf_activated_modules')) && is_readable($dir))
       {
         $error = 'The module "%s" is not activated.';
         $error = sprintf($error, $moduleName);
@@ -259,10 +259,10 @@ abstract class sfController
           $filterChain->register($flashFilter);
         }
 
-        if ($moduleName == sfConfig::get('sf_error_404_module') && $actionName == sfConfig::get('sf_error_404_action') && !headers_sent())
+        if ($moduleName == sfConfig::get('sf_error_404_module') && $actionName == sfConfig::get('sf_error_404_action'))
         {
-          header('HTTP/1.0 404 Not Found');
-          header('Status: 404 Not Found');
+          $this->getContext()->getResponse()->setStatus('404', 'Not Found');
+          $this->getContext()->getResponse()->setHeader('Status', '404 Not Found');
         }
 
         // change i18n message source directory to our module
@@ -483,7 +483,7 @@ abstract class sfController
   {
     static $list = array();
 
-    // grab our global filter ini and preset the module name
+    // grab our global filter yaml and preset the module name
     $config     = sfConfig::get('sf_app_config_dir').'/filters.yml';
     $moduleName = 'global';
 

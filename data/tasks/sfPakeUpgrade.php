@@ -10,7 +10,7 @@ function run_upgrade($task, $args)
 {
   if (!isset($args[0]))
   {
-    throw new Exception('you must provide the upgrade script to use (0.6 to upgrade to 0.6 for example)');
+    throw new Exception('You must provide the upgrade script to use (0.6 to upgrade to 0.6 for example).');
   }
 
   $version = $args[0];
@@ -21,7 +21,7 @@ function run_upgrade($task, $args)
   }
   else
   {
-    throw new Exception('i have no upgrade script for this release.');
+    throw new Exception('I have no upgrade script for this release.');
   }
 }
 
@@ -30,11 +30,11 @@ function run_upgrade_to_0_6($task, $args)
   $verbose = pakeApp::get_instance()->get_verbose();
 
   // find all applications for this project
-  $apps = pakeFinder::type('directory')->name(sfConfig::get('sf_module_dir_name'))->mindepth(1)->maxdepth(1)->relative()->in(sfConfig::get('sf_apps_dir_name'));
+  $apps = pakeFinder::type('directory')->name(sfConfig::get('sf_app_module_dir_name'))->mindepth(1)->maxdepth(1)->relative()->in(sfConfig::get('sf_apps_dir_name'));
 
   foreach ($apps as $app_module_dir)
   {
-    $app = str_replace(DIRECTORY_SEPARATOR.sfConfig::get('sf_module_dir_name'), '', $app_module_dir);
+    $app = str_replace(DIRECTORY_SEPARATOR.sfConfig::get('sf_app_module_dir_name'), '', $app_module_dir);
     if ($verbose) echo '>> app       '.pakeApp::excerpt('converting "'.$app.'"'.' application')."\n";
 
     $app_dir = sfConfig::get('sf_apps_dir_name').'/'.$app;
@@ -47,7 +47,7 @@ function run_upgrade_to_0_6($task, $args)
     _upgrade_0_6_constants(array($app_dir.'/'.sfConfig::get('sf_app_module_dir_name'), $app_dir.'/'.sfConfig::get('sf_app_module_dir_name'), $app_dir.'/'.sfConfig::get('sf_app_lib_dir_name')));
 
     // change view shortcuts in global and modules template directories
-    $template_dirs[] = pakeFinder::type('directory')->name('templates')->mindepth(1)->maxdepth(1)->in($app_dir.'/'.sfConfig::get('sf_app_module_dir_name'));
+    $template_dirs   = pakeFinder::type('directory')->name('templates')->mindepth(1)->maxdepth(1)->in($app_dir.'/'.sfConfig::get('sf_app_module_dir_name'));
     $template_dirs[] = $app_dir.'/'.sfConfig::get('sf_app_template_dir_name');
 
     _upgrade_0_6_view_shortcuts($template_dirs);
@@ -72,6 +72,9 @@ function run_upgrade_to_0_6($task, $args)
     $action_dirs = pakeFinder::type('directory')->name('actions')->mindepth(1)->maxdepth(1)->in($app_dir.'/'.sfConfig::get('sf_app_module_dir_name'));
 
     _upgrade_0_6_action($action_dirs);
+
+    // rename sf_default_culture to sf_i18n_default_culture in all libraries
+    _upgrade_0_6_i18n_config($app_dir);
   }
 
   // constants in global libraries
@@ -83,8 +86,30 @@ function run_upgrade_to_0_6($task, $args)
   // location of config/config.php
   _upgrade_0_6_config(array(sfConfig::get('sf_web_dir_name'), sfConfig::get('sf_bin_dir_name')));
 
+  // change propelpropel builder paths
+  _upgrade_0_6_propel_builder();
+
+  // rename sf_default_culture to sf_i18n_default_culture in all libraries
+  _upgrade_0_6_i18n_config(sfConfig::get('sf_lib_dir_name'));
+
   // clear cache
   run_clear_cache($task, array());
+}
+
+function _upgrade_0_6_propel_builder()
+{
+  $verbose = pakeApp::get_instance()->get_verbose();
+
+  $propel_file = sfConfig::get('sf_config_dir').DIRECTORY_SEPARATOR.'propel.ini';
+
+  if (is_readable($propel_file))
+  {
+    $propel_ini = file_get_contents($propel_file);
+
+    $propel_ini = str_replace('symfony.symfony.addon.propel.builder', 'symfony.addon.propel.builder', $propel_ini);
+
+    file_put_contents($propel_file, $propel_ini);
+  }
 }
 
 function _upgrade_0_6_yml_comments($dir)
@@ -112,13 +137,38 @@ function _upgrade_0_6_yml_comments($dir)
   }
 }
 
+function _upgrade_0_6_i18n_config($dir)
+{
+  $verbose = pakeApp::get_instance()->get_verbose();
+
+  $php_files = pakeFinder::type('file')->name('*.php')->in($dir);
+
+  $regex = '/sf_default_culture/m';
+
+  foreach ($php_files as $php_file)
+  {
+    $content = file_get_contents($php_file);
+
+    if (!preg_match($regex, $content))
+    {
+      continue;
+    }
+
+    if ($verbose) echo '>> file      '.pakeApp::excerpt('change i18n constants for "'.$php_file.'"')."\n";
+
+    $content = preg_replace($regex, 'sf_i18n_default_culture', $content);
+
+    file_put_contents($php_file, $content);
+  }
+}
+
 function _upgrade_0_6_action($dir)
 {
   $verbose = pakeApp::get_instance()->get_verbose();
 
   $php_files = pakeFinder::type('file')->name('*.php')->in($dir);
 
-  $regex = '(forward(404)_(if|unless))';
+  $regex = '(forward404|forward|redirect)_(if|unless)';
 
   foreach ($php_files as $php_file)
   {
@@ -129,9 +179,9 @@ function _upgrade_0_6_action($dir)
       continue;
     }
 
-    if ($verbose) echo '>> file      '.pakeApp::excerpt('rename deprecated forward methods for "'.$php_file.'"')."\n";
+    if ($verbose) echo '>> file      '.pakeApp::excerpt('rename deprecated forward/redirect methods for "'.$php_file.'"')."\n";
 
-    $content = preg_replace('/'.$regex.'/e', "'forward'.'\\2'.ucfirst('\\3')", $content);
+    $content = preg_replace('/'.$regex.'/e', "'\\1'.ucfirst('\\2')", $content);
 
     file_put_contents($php_file, $content);
   }
@@ -254,7 +304,7 @@ function _upgrade_0_6_view_shortcuts($dirs)
 
   $php_files = pakeFinder::type('file')->name('*.php')->in($dirs);
 
-  $regex = '(context\-|params\[|request\-|user\-|view\-|last_module|last_action|first_module|first_action)';
+  $regex = '(context\-|params\-|request\-|user\-|view\-|last_module|last_action|first_module|first_action)';
 
   foreach ($php_files as $php_file)
   {
@@ -279,7 +329,7 @@ function _upgrade_0_6_mail_to($dirs)
 
   $php_files = pakeFinder::type('file')->name('*.php')->in($dirs);
 
-  $regex = 'mail_to\s*\(\s*([^,]+?), ([^,]+?)\)';
+  $regex = 'mail_to\s*\(\s*([^,\)]+?), ([^,\)]+?)\)';
 
   foreach ($php_files as $php_file)
   {
@@ -331,7 +381,7 @@ function _upgrade_0_6_config($dirs)
 
   $php_files = pakeFinder::type('file')->name('*.php')->in($dirs);
 
-  $search = 'SF_ROOT_DIR.DIRECTORY_SEPARATOR.SF_APP.';
+  $search = "SF_ROOT_DIR.DIRECTORY_SEPARATOR.SF_APP.DIRECTORY_SEPARATOR.'config'.";
 
   foreach ($php_files as $php_file)
   {
@@ -344,7 +394,7 @@ function _upgrade_0_6_config($dirs)
 
     if ($verbose) echo '>> file      '.pakeApp::excerpt('updating location of config.php for "'.$php_file.'"')."\n";
 
-    $content = str_replace($search, "SF_ROOT_DIR.DIRECTORY_SEPARATOR.'".sfConfig::get('sf_apps_dir_name')."'.DIRECTORY_SEPARATOR.SF_APP.", $content);
+    $content = str_replace($search, "SF_ROOT_DIR.DIRECTORY_SEPARATOR.'".sfConfig::get('sf_apps_dir_name')."'.DIRECTORY_SEPARATOR.SF_APP.DIRECTORY_SEPARATOR.'config'.", $content);
 
     file_put_contents($php_file, $content);
   }

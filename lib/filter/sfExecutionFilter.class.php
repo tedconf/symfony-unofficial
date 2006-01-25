@@ -85,10 +85,9 @@ class sfExecutionFilter extends sfFilter
         $validated = $validatorManager->execute();
       }
 
+      $sf_logging_active = sfConfig::get('sf_logging_active');
       if ($validated)
       {
-        $sf_logging_active = sfConfig::get('sf_logging_active');
-
         // register our cache configuration
         if ($sf_cache = sfConfig::get('sf_cache'))
         {
@@ -211,6 +210,13 @@ class sfExecutionFilter extends sfFilter
         if ($controller->getRenderMode() == sfView::RENDER_VAR)
         {
           $actionEntry->setPresentation($viewData);
+        }
+        else
+        {
+          // send response
+          $response = $this->getContext()->getResponse();
+          $response->sendHeaders();
+          $response->sendContent();
         }
       }
       else

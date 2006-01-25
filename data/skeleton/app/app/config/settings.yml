@@ -1,5 +1,6 @@
 prod:
-  no_script_name:           ##NO_SCRIPT_NAME##
+  .settings:
+    no_script_name:           ##NO_SCRIPT_NAME##
 
 dev:
   .settings:
@@ -17,9 +18,10 @@ test:
     cache:                  off
     stats:                  off
     web_debug:              off
+    no_script_name:         off
 
 all:
-  .actions:
+#  .actions:
 #    default_module:         default
 #    default_action:         index
 #
@@ -38,7 +40,7 @@ all:
 #    unavailable_module:     default
 #    unavailable_action:     unavailable
 #
-  .settings:
+#  .settings:
 #    available:              on
 #
 #    module_accessor:        module

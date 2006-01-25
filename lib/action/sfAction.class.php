@@ -328,15 +328,15 @@ abstract class sfAction
     throw new sfActionStopException();
   }
 
-  public function redirect_if ($condition, $url)
+  public function redirectIf ($condition, $url)
   {
     if ($condition)
     {
-      $this->redirecti($url);
+      $this->redirect($url);
     }
   }
 
-  public function redirect_unless ($condition, $url)
+  public function redirectUnless ($condition, $url)
   {
     if (!$condition)
     {
