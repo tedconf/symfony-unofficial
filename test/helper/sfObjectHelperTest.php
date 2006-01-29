@@ -21,8 +21,8 @@ class sfObjectHelperTest extends UnitTestCase
     $obj2->setText('text2');
     $obj2->setValue('value2');
 
-    $actual = objects_for_select(Array($obj1, $obj2), 'getValue', 'getText');
-    $expected = "<option value=\"value\">text</option>\n<option value=\"value2\">text2</option>\n";
+    $actual = objects_for_select(Array($obj1, $obj2), 'getValue', 'getText', 'value');
+    $expected = "<option value=\"value\" selected=\"selected\">text</option>\n<option value=\"value2\">text2</option>\n";
     $this->assertEqual($expected, $actual);
 
     $actual = objects_for_select(Array($obj1, $obj2), 'getValue');

@@ -86,7 +86,7 @@ function objects_for_select($options = array(), $value_method, $text_method = nu
     $value = $option->$value_method();
     $key = ($text_method != null) ? $option->$text_method() : $value;
 
-    $select_options[$key] = $value;
+    $select_options[$value] = $key;
   }
 
   return options_for_select($select_options, $selected);
@@ -143,7 +143,10 @@ function _get_values_for_objet_select_tag($object, $class)
 
   $select_options = array();
 
-  require_once(sfConfig::get('sf_model_lib_dir').'/'.$class.'Peer.php');
+  if (!class_exists($class.'Peer'))
+  {
+    __autoload($class.'Peer');
+  }
   $objects = call_user_func(array($class.'Peer', 'doSelect'), new Criteria());
   if ($objects)
   {
