@@ -243,7 +243,7 @@
     $title = sfContext::getInstance()->getRequest()->getAttributeHolder()->get('title', '', 'helper/asset/auto/meta');
     if (!sfConfig::get('sf_i18n'))
     {
-      $title = sfConfig::get('sf_i18n_instance')->__($title)
+      $title = sfConfig::get('sf_i18n_instance')->__($title);
     }
 
     echo content_tag('title', $title)."\n";
