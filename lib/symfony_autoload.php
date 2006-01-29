@@ -78,9 +78,17 @@ function __autoload($class)
         $module_lib = sfConfig::get('sf_app_module_dir').'/'.$current_module.'/'.sfConfig::get('sf_app_module_lib_dir_name').'/'.$class.'.class.php';
         if (is_readable($module_lib))
         {
-          require_once($module_lib);
+          try
+          {
+            require_once($module_lib);
 
-          return;
+            return;
+          }
+          catch (Exception $e)
+          {
+            $e = new sfAutoloadException($e->getMessage());
+            $e->printStackTrace();
+          }
         }
       }
     }
@@ -94,7 +102,15 @@ function __autoload($class)
   else
   {
     // class exists, let's include it
-    require_once($classes[$class]);
+    try
+    {
+      require_once($classes[$class]);
+    }
+    catch (Exception $e)
+    {
+      $e = new sfAutoloadException($error);
+      $e->printStackTrace();
+    }
   }
 }
 
