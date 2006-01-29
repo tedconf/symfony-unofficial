@@ -52,10 +52,23 @@ abstract class sfWebController extends sfController
     }
 
     $route_name = '';
+    $fragment = null;
 
     if (!is_array($parameters))
     {
-      list($route_name, $parameters) = $this->convertUrlStringToParameters($parameters);
+      preg_match('|(?:(?P<schema>[^:/?#]+):)?(?://(?P<authority>[^/?#]*))?(?P<path>[^?#]*)(?:\?(?P<query>[^#]*))?(?:#(?P<fragment>.*))?|', $parameters, $matches);
+      list($route_name, $parameters) = $this->convertUrlStringToParameters($matches['path']);
+
+      if (isset($matches['query']))
+      {
+        parse_str($matches['query'], $queryArray);
+        $parameters = array_merge($queryArray, $parameters);
+      }
+
+      if (isset($matches['fragment']))
+      {
+        $fragment = $matches['fragment'];
+      }
     }
 
     if (sfConfig::get('sf_url_format') == 'PATH')
@@ -108,6 +121,10 @@ abstract class sfWebController extends sfController
       $url = 'http://'.$this->getContext()->getRequest()->getHost().$url;
     }
 
+    if (isset($fragment))
+    {
+      $url .= '#'.$fragment;
+    }
     return $url;
   }
 
