@@ -9,7 +9,7 @@
  */
 
 /**
- * sfWebDebug prints debug information in the browser for easy debugging.
+ * sfWebDebug creates debug information for easy debugging in the browser.
  *
  * @package    symfony
  * @subpackage debug
@@ -53,15 +53,22 @@ class sfWebDebug
     return self::$instance;
   }
 
+  /**
+   * Removes current sfWebDebug instance
+   *
+   * This method only exists for testing purpose. Don't use it in your application code.
+   */
+  public static function removeInstance()
+  {
+    self::$instance = null;
+  }
+
   public function registerAssets()
   {
     if (!$this->context)
     {
       $this->context = sfContext::getInstance();
     }
-
-    // load helpers
-    $this->loadHelpers();
 
     // register our css and js
     $this->context->getRequest()->setAttribute(
@@ -112,16 +119,10 @@ class sfWebDebug
     $this->log[] = $logEntry;
   }
 
-  public function printResults()
-  {
-    $this->loadHelpers();
-    echo $this->getResults();
-  }
-
   private function loadHelpers()
   {
     // require needed helpers
-    foreach (array('Tag', 'Url', 'Asset', 'Javascript') as $helperName)
+    foreach (array('Helper', 'Url', 'Asset', 'Tag', 'Javascript') as $helperName)
     {
       include_once(sfConfig::get('sf_symfony_lib_dir').'/helper/'.$helperName.'Helper.php');
     }
@@ -162,6 +163,8 @@ class sfWebDebug
     {
       return '';
     }
+
+    $this->loadHelpers();
 
     $result = '';
 
@@ -364,12 +367,13 @@ class sfWebDebug
 
   public function decorateContentWithDebug($internalUri, $suffix, $retval, $border_color, $bg_color)
   {
-    $cache = $this->context->getViewCacheManager();
-
     if (!sfConfig::get('sf_web_debug'))
     {
       return $retval;
     }
+
+    $cache = $this->context->getViewCacheManager();
+    $this->loadHelpers();
 
     $last_modified = $cache->lastModified($internalUri, $suffix);
     $id            = md5($internalUri);

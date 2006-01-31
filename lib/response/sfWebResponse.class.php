@@ -21,9 +21,69 @@
 class sfWebResponse extends sfResponse
 {
   private
-    $cookies = array(),
-    $headers = array(),
-    $status  = 'HTTP/1.0 200 OK';
+    $cookies    = array(),
+    $headers    = array(),
+    $statusCode = 200,
+    $statusText = 'OK',
+    $statusTexts = array();
+
+  /**
+   * Initialize this sfWebResponse.
+   *
+   * @param sfContext A sfContext instance.
+   *
+   * @return bool true, if initialization completes successfully, otherwise false.
+   *
+   * @throws <b>sfInitializationException</b> If an error occurs while initializing this Response.
+   */
+  public function initialize ($context, $parameters = array())
+  {
+    parent::initialize($context, $parameters);
+
+    $this->statusTexts = array(
+      '100' => 'Continue',
+      '101' => 'Switching Protocols',
+      '200' => 'OK',
+      '201' => 'Created',
+      '202' => 'Accepted',
+      '203' => 'Non-Authoritative Information',
+      '204' => 'No Content',
+      '205' => 'Reset Content',
+      '206' => 'Partial Content',
+      '300' => 'Multiple Choices',
+      '301' => 'Moved Permanently',
+      '302' => 'Found',
+      '303' => 'See Other',
+      '304' => 'Not Modified',
+      '305' => 'Use Proxy',
+      '306' => '(Unused)',
+      '307' => 'Temporary Redirect',
+      '400' => 'Bad Request',
+      '401' => 'Unauthorized',
+      '402' => 'Payment Required',
+      '403' => 'Forbidden',
+      '404' => 'Not Found',
+      '405' => 'Method Not Allowed',
+      '406' => 'Not Acceptable',
+      '407' => 'Proxy Authentication Required',
+      '408' => 'Request Timeout',
+      '409' => 'Conflict',
+      '410' => 'Gone',
+      '411' => 'Length Required',
+      '412' => 'Precondition Failed',
+      '413' => 'Request Entity Too Large',
+      '414' => 'Request-URI Too Long',
+      '415' => 'Unsupported Media Type',
+      '416' => 'Requested Range Not Satisfiable',
+      '417' => 'Expectation Failed',
+      '500' => 'Internal Server Error',
+      '501' => 'Not Implemented',
+      '502' => 'Bad Gateway',
+      '503' => 'Service Unavailable',
+      '504' => 'Gateway Timeout',
+      '505' => 'HTTP Version Not Supported',
+    );
+  }
 
   /**
    * Set a cookie.
@@ -49,13 +109,19 @@ class sfWebResponse extends sfResponse
    * Set response status code.
    *
    * @param string HTTP status code
-   * @param string
+   * @param string HTTP status text
    *
    * @return void
    */
-  public function setStatus ($code, $name = 'OK')
+  public function setStatusCode ($code, $name = null)
   {
-    $this->status = 'HTTP/1.0 '.$code.' '.$name;
+    $this->statusCode = $code;
+    $this->statusText = $name ? $name : $this->statusTexts[$code];
+  }
+
+  public function getStatusCode ()
+  {
+    return $this->statusCode;
   }
 
   /**
@@ -66,11 +132,17 @@ class sfWebResponse extends sfResponse
    *
    * @return void
    */
-  public function setHeader ($name, $value, $replace = true)
+  public function setHttpHeader ($name, $value, $replace = true)
   {
     $name = $this->normalizeHeaderName($name);
+    $exists = isset($this->headers[$name]);
 
-    if (!isset($this->headers[$name]) || $replace)
+    if ($exists && !$replace)
+    {
+      return;
+    }
+
+    if (!$exists || $replace)
     {
       $this->headers[$name] = array();
     }
@@ -83,9 +155,9 @@ class sfWebResponse extends sfResponse
    *
    * @return array
    */
-  public function getHeader ($name, $defaultValue = null)
+  public function getHttpHeader ($name, $defaultValue = null)
   {
-    $retval = $defaultValue;
+    $retval = array($defaultValue);
 
     if (isset($this->headers[$this->normalizeHeaderName($name)]))
     {
@@ -93,6 +165,30 @@ class sfWebResponse extends sfResponse
     }
 
     return $retval;
+  }
+
+  /**
+   * Set response content type.
+   *
+   * @param string value
+   *
+   * @return void
+   */
+  public function setContentType ($value)
+  {
+    $this->setHttpHeader('Content-Type', $value, true);
+  }
+
+  /**
+   * Get response content type.
+   *
+   * @return array
+   */
+  public function getContentType ()
+  {
+    $ct = $this->getHttpHeader('Content-Type', 'text/html');
+
+    return $ct[0];
   }
 
   /**
@@ -110,20 +206,21 @@ class sfWebResponse extends sfResponse
    *
    * @return void
    */
-  public function sendHeaders ()
+  public function sendHttpHeaders ()
   {
     // status
-    header($this->status);
+    $status = 'HTTP/1.0 '.$this->statusCode.' '.$this->statusText;
+    header($status);
 
     if (sfConfig::get('sf_logging_active'))
     {
-      $this->getContext()->getLogger()->info('{sfResponse} send status "'.$this->status.'"');
+      $this->getContext()->getLogger()->info('{sfWebResponse} send status "'.$status.'"');
     }
 
     // set headers from HTTP meta
     foreach ($this->getContext()->getRequest()->getAttributeHolder()->getAll('helper/asset/auto/httpmeta') as $name => $value)
     {
-      $this->setHeader($name, $value);
+      $this->setHttpHeader($name, $value, false);
     }
 
     // headers
@@ -135,7 +232,7 @@ class sfWebResponse extends sfResponse
 
         if (sfConfig::get('sf_logging_active'))
         {
-          $this->getContext()->getLogger()->info('{sfResponse} send header "'.$name.'": "'.$value.'"');
+          $this->getContext()->getLogger()->info('{sfWebResponse} send header "'.$name.'": "'.$value.'"');
         }
       }
     }
@@ -147,14 +244,77 @@ class sfWebResponse extends sfResponse
 
       if (sfConfig::get('sf_logging_active'))
       {
-        $this->getContext()->getLogger()->info('{sfResponse} send cookie "'.$cookie['name'].'": "'.$cookie['value'].'"');
+        $this->getContext()->getLogger()->info('{sfWebResponse} send cookie "'.$cookie['name'].'": "'.$cookie['value'].'"');
       }
     }
   }
 
   private function normalizeHeaderName($name)
   {
+    if (strtolower($name) == 'etag')
+    {
+      return 'ETag';
+    }
+
     return preg_replace('/\-(.)/e', "'-'.strtoupper('\\1')", strtr(ucfirst(strtolower($name)), '_', '-'));
+  }
+
+  public function getDate($timestamp, $type = 'rfc1123')
+  {
+    $type = strtolower($type);
+
+    if ($type == 'rfc1123')
+    {
+      return substr(gmdate('r', $timestamp), 0, -5).'GMT';
+    }
+    else if ($type == 'rfc1036')
+    {
+      return gmdate('l, d-M-y H:i:s ', $timestamp).'GMT';
+    }
+    else if ($type == 'asctime')
+    {
+      return gmdate('D M j H:i:s', $timestamp);
+    }
+    else
+    {
+      $error = 'The second getDate() method parameter must be one of: rfc1123, rfc1036 or asctime';
+
+      throw new sfParameterException($error);
+    }
+  }
+
+  public function addVaryHttpHeader($header)
+  {
+    $vary = $this->getHttpHeader('Vary');
+    $currentHeaders = array();
+    if ($vary[0])
+    {
+      $currentHeaders = split('/\s*,\s*/', $vary[0]);
+    }
+    $header = $this->normalizeHeaderName($header);
+
+    if (!in_array($header, $currentHeaders))
+    {
+      $currentHeaders[] = $header;
+      $this->setHttpHeader('Vary', implode(', ', $currentHeaders));
+    }
+  }
+
+  public function addCacheControlHttpHeader($name, $value = null)
+  {
+    $cacheControl = $this->getHttpHeader('Cache-Control');
+    $currentHeaders = array();
+    if ($cacheControl[0])
+    {
+      $currentHeaders = split('/\s*,\s*/', $cacheControl[0]);
+    }
+    $name = strtr(strtolower($name), '_', '-');
+
+    if (!in_array($name, $currentHeaders))
+    {
+      $currentHeaders[] = $name.($value !== null ? '='.$value : '');
+      $this->setHttpHeader('Cache-Control', implode(', ', $currentHeaders));
+    }
   }
 
   /**

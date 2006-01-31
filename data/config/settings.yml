@@ -24,8 +24,6 @@ default:
     module_accessor:        module
     action_accessor:        action
 
-    content_type:           html
-
     path_info_array:        SERVER
     path_info_key:          PATH_INFO
 
@@ -51,7 +49,7 @@ default:
 
     web_debug:              off
 
-    cache:                  on
+    cache:                  off
     default_cache_lifetime: 86400
 
     routing:                on

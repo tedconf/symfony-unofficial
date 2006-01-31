@@ -40,7 +40,7 @@ class sfCacheConfigHandler extends sfYamlConfigHandler
     $this->initialize($categories);
 
     // parse the yaml
-    $this->config = $this->parseYaml($configFile);
+    $this->yamlConfig = $this->parseYaml($configFile);
 
     // init our data array
     $data = array();
@@ -60,7 +60,7 @@ class sfCacheConfigHandler extends sfYamlConfigHandler
 
     // iterate through all action names
     $first = true;
-    foreach ($this->config as $actionName => $values)
+    foreach ($this->yamlConfig as $actionName => $values)
     {
       if ($actionName == 'all')
       {
@@ -107,20 +107,19 @@ class sfCacheConfigHandler extends sfYamlConfigHandler
     // lifetime
     $lifeTime = $this->getConfigValue('lifetime', $actionName);
 
-    // uri
-    $uri = $this->getConfigValue('uri', $actionName);
+    // client_lifetime
+    $clientLifetime = $this->getConfigValue('client_lifetime', $actionName, $lifeTime);
+
+    // vary
+    $vary = $this->getConfigValue('vary', $actionName, array());
+    if (is_string($vary))
+    {
+      $vary = array($vary);
+    }
 
     // add cache information to cache manager
-    if ($uri)
-    {
-      $data[] = sprintf("  \$cacheManager->addCache('%s', '%s', '%s', %s, '%s');\n\n",
-                        $this->moduleName, $actionName, $type, $lifeTime, $uri);
-    }
-    else
-    {
-      $data[] = sprintf("  \$cacheManager->addCache('%s', '%s', '%s', %s);\n\n",
-                        $this->moduleName, $actionName, $type, $lifeTime);
-    }
+    $data[] = sprintf("  \$this->cacheManager->addCache('%s', '%s', '%s', %s, '%s', %s);\n\n",
+                      $this->moduleName, $actionName, $type, $lifeTime, $clientLifetime, var_export($vary, true));
 
     return implode("\n", $data);
   }

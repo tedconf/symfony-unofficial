@@ -21,17 +21,17 @@ class sfObjectHelperTest extends UnitTestCase
     $obj2->setText('text2');
     $obj2->setValue('value2');
 
-    $actual = objects_for_select(Array($obj1, $obj2), 'getValue', 'getText', 'value');
+    $actual = objects_for_select(array($obj1, $obj2), 'getValue', 'getText', 'value');
     $expected = "<option value=\"value\" selected=\"selected\">text</option>\n<option value=\"value2\">text2</option>\n";
     $this->assertEqual($expected, $actual);
 
-    $actual = objects_for_select(Array($obj1, $obj2), 'getValue');
+    $actual = objects_for_select(array($obj1, $obj2), 'getValue');
     $expected = "<option value=\"value\">value</option>\n<option value=\"value2\">value2</option>\n";
     $this->assertEqual($expected, $actual);
 
     try
     {
-      $actual = objects_for_select(Array($obj1, $obj2), 'getNonExistantMethod');
+      $actual = objects_for_select(array($obj1, $obj2), 'getNonExistantMethod');
       $this->assertEqual($expected, $actual);
 
       $this->assertTrue(0);
@@ -43,7 +43,7 @@ class sfObjectHelperTest extends UnitTestCase
 
     try
     {
-      $actual = objects_for_select(Array($obj1, $obj2), 'getValue', 'getNonExistantMethod');
+      $actual = objects_for_select(array($obj1, $obj2), 'getValue', 'getNonExistantMethod');
       $this->assertEqual($expected, $actual);
 
       $this->assertTrue(0);

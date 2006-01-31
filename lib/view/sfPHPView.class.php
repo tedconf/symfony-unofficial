@@ -112,7 +112,12 @@ class sfPHPView extends sfView
         $this->getContext()->getLogger()->info('{sfPHPView} render "'.$template.'"');
       }
 
-      $retval = $this->getCacheContent();
+      $retval = null;
+      if (sfConfig::get('sf_cache'))
+      {
+        list($uri, $suffix) = $this->getContext()->getViewCacheManager()->getInternalUri('slot');
+        $retval = $this->getContext()->getResponse()->getParameter($uri.'_'.$suffix, null, 'symfony/cache');
+      }
 
       // render template if no cache
       if ($retval === null)
@@ -125,7 +130,10 @@ class sfPHPView extends sfView
           $retval = sfTidy::tidy($retval, $template);
         }
 
-        $retval = $this->setCacheContent($retval);
+        if (sfConfig::get('sf_cache'))
+        {
+          $this->getContext()->getResponse()->setParameter($uri.'_'.$suffix, $retval, 'symfony/cache');
+        }
       }
 
       // now render decorator template, if one exists
@@ -137,16 +145,7 @@ class sfPHPView extends sfView
       // render to client
       if ($mode == sfView::RENDER_CLIENT)
       {
-        if ($sf_logging_active)
-        {
-          $this->getContext()->getLogger()->info('{sfPHPView} render to client');
-        }
-
-        $retval = $this->setPageCacheContent($retval);
-
         $this->getContext()->getResponse()->setContent($retval);
-
-        $retval = null;
       }
     }
 

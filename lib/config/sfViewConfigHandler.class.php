@@ -82,6 +82,7 @@ class sfViewConfigHandler extends sfYamlConfigHandler
 
       $data[] = $this->addLayout($viewName);
       $data[] = $this->addSlots($viewName);
+      $data[] = $this->addComponentSlots($viewName);
       $data[] = $this->addHtmlHead($viewName);
 
       $data[] = "  }\n";
@@ -110,6 +111,7 @@ class sfViewConfigHandler extends sfYamlConfigHandler
 
     $data[] = $this->addLayout();
     $data[] = $this->addSlots();
+    $data[] = $this->addComponentSlots();
     $data[] = $this->addHtmlHead();
 
     $data[] = "  }\n";
@@ -124,6 +126,23 @@ class sfViewConfigHandler extends sfYamlConfigHandler
                       date('Y/m/d H:i:s'), implode('', $data));
 
     return $retval;
+  }
+
+  private function addComponentSlots($viewName = '')
+  {
+    $data = '';
+
+    $components = $this->mergeConfigValue('components', $viewName);
+    foreach ($components as $name => $component)
+    {
+      if (count($component) > 1)
+      {
+        $data .= "    \$this->setComponentSlot('$name', '{$component[0]}', '{$component[1]}');\n";
+        $data .= "    if (sfConfig::get('sf_logging_active')) \$context->getLogger()->info('{sfViewConfig} set component \"$name\" ({$component[0]}/{$component[1]})');\n";
+      }
+    }
+
+    return $data;
   }
 
   private function addSlots($viewName = '')
@@ -143,12 +162,12 @@ class sfViewConfigHandler extends sfYamlConfigHandler
       if ($viewName == '')
       {
         // is category all: turning off default_slots or was it just not set?
-        if (isset($this->config['all']['use_default_slots']))
+        if (isset($this->yamlConfig['all']['use_default_slots']))
         {
           // only use slots defined within all
-          if (isset($this->config['all']['slots']))
+          if (isset($this->yamlConfig['all']['slots']))
           {
-            $slots = $this->config['all']['slots'];
+            $slots = $this->yamlConfig['all']['slots'];
           }
         }
         else
@@ -159,7 +178,7 @@ class sfViewConfigHandler extends sfYamlConfigHandler
       }
       else
       {
-        $slots = isset($this->config[$viewName]['slots']) ? $this->config[$viewName]['slots'] : null;
+        $slots = isset($this->yamlConfig[$viewName]['slots']) ? $this->yamlConfig[$viewName]['slots'] : null;
       }
     }
 
@@ -169,7 +188,6 @@ class sfViewConfigHandler extends sfYamlConfigHandler
       {
         if (count($slot) > 1)
         {
-          sfLogger::getInstance()->info("{sfViewConfigHandler} setting slots for view: $viewName  $name : {$slot[0]} : {$slot[1]}");
           $data .= "    \$this->setSlot('$name', '{$slot[0]}', '{$slot[1]}');\n";
           $data .= "    if (sfConfig::get('sf_logging_active')) \$context->getLogger()->info('{sfViewConfig} set slot \"$name\" ({$slot[0]}/{$slot[1]})');\n";
         }

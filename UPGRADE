@@ -18,6 +18,10 @@ Main steps
   
         $ pear upgrade symfony/symfony
 
+    If you want to try symfony 0.6 alpha, use:
+
+        $ pear upgrade symfony/symfony-alpha
+
  1. Make a backup of your project (this is the most important step!)
 
  2. Move all your application directories under a new `apps/` directory 
@@ -156,6 +160,10 @@ For all your applications within a project:
               password:     
               compat_assoc_lower:  true
               compat_rtrim_string: true
+
+    The `datasource` parameter (`symfony` in this example) refers to the database connection as defined in the the `name` attribute of the `<database>` tag in the `schema.xml`.
+
+    If you don't specify the `datasource` param, it takes the value of the label given to the connection settings (`propel` in this example).
 
     To get a dabatase connection, you must now use the symfony database manager:
 
