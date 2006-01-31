@@ -66,7 +66,8 @@ function run_generate_propelcrud($task, $args)
   $model_class = $args[2];
 
   // model class exists?
-  if (!is_readable('lib/model/'.$model_class.'.php'))
+  list($file) = pakeFinder::type('file')->name($model_class.'.php')->in(sfConfig::get('sf_lib_dir'));
+  if (!is_readable($file))
   {
     $error = sprintf('The model class "%s" does not exist.', $model_class);
     throw new Exception($error);
@@ -90,7 +91,7 @@ function run_generate_propelcrud($task, $args)
   require_once($sf_symfony_lib_dir.'/generator/sfPropelCrudGenerator.class.php');
   require_once($sf_symfony_lib_dir.'/util/sfInflector.class.php');
   require_once($sf_symfony_lib_dir.'/vendor/propel/Propel.php');
-  require_once('lib/model/'.$model_class.'.php');
+  require_once($file);
   $generator_manager = new sfGeneratorManager();
   $generator_manager->initialize();
   $generator_manager->generate('sfPropelCrudGenerator', array('model_class' => $model_class, 'moduleName' => $module, 'theme' => $theme));
