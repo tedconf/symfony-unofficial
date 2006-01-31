@@ -108,7 +108,7 @@ function __autoload($class)
     }
     catch (Exception $e)
     {
-      $e = new sfAutoloadException($error);
+      $e = new sfAutoloadException($e->getMessage());
       $e->printStackTrace();
     }
   }
