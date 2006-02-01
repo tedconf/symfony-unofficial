@@ -199,7 +199,11 @@ class sfConfigCache
   public static function import ($config, $once = true, $param = array())
   {
     // check the config file
-    $cache = self::checkConfig($config, $param);
+    $cache = sfConfigCache::getCacheName($config);
+    if (defined('SF_IN_BOOTSTRAP') || !is_readable($cache))
+    {
+      $cache = sfConfigCache::checkConfig($config, $param);
+    }
 
     // include cache file
     if ($once)

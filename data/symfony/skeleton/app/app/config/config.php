@@ -50,6 +50,7 @@ require_once(dirname(__FILE__).'/../../config/config.php');
 $bootstrap = SF_CONFIG_CACHE_DIR.'/config_bootstrap_compile.yml.php';
 if (is_readable($bootstrap))
 {
+  define('SF_IN_BOOTSTRAP', true);
   require_once($bootstrap);
 }
 else

@@ -32,24 +32,8 @@ function __autoload($class)
 
   if (!isset($classes))
   {
-    try
-    {
-      // include the list of autoload classes
-      $config = sfConfigCache::checkConfig(SF_APP_CONFIG_DIR_NAME.'/autoload.yml');
-    }
-    catch (sfException $e)
-    {
-      $e->printStackTrace();
-    }
-    catch (Exception $e)
-    {
-      // unknown exception
-      $e = new sfException($e->getMessage());
-
-      $e->printStackTrace();
-    }
-
-    require_once($config);
+    // include the list of autoload classes
+    include_once(sfConfigCache::checkConfig(SF_APP_CONFIG_DIR_NAME.'/autoload.yml'));
   }
 
   if (!isset($classes[$class]))
