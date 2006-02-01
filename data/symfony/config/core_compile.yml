@@ -10,8 +10,6 @@
 - %SF_SYMFONY_LIB_DIR%/symfony/request/sfRequest.class.php
 - %SF_SYMFONY_LIB_DIR%/symfony/storage/sfStorage.class.php
 - %SF_SYMFONY_LIB_DIR%/symfony/user/sfUser.class.php
-- %SF_SYMFONY_LIB_DIR%/symfony/validator/sfValidator.class.php
-- %SF_SYMFONY_LIB_DIR%/symfony/validator/sfValidatorManager.class.php
 - %SF_SYMFONY_LIB_DIR%/symfony/view/sfView.class.php
 
 # these classes are optionals but very likely to be used (in web context)

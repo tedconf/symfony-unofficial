@@ -106,6 +106,10 @@ try
       sfConfigCache::checkConfig(SF_APP_CONFIG_DIR_NAME.'/bootstrap_compile.yml');
     }
   }
+  else
+  {
+    require_once('symfony/config/sfConfigCache.class.php');
+  }
 
   // set exception format
   sfException::setFormat(isset($_SERVER['HTTP_HOST']) ? 'html' : 'plain');

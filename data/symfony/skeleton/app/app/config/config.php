@@ -51,11 +51,8 @@ $bootstrap = SF_CONFIG_CACHE_DIR.'/config_bootstrap_compile.yml.php';
 if (is_readable($bootstrap))
 {
   define('SF_IN_BOOTSTRAP', true);
-  require_once($bootstrap);
 }
-else
-{
-  require_once 'symfony/symfony.php';
-}
+
+require_once('symfony/symfony.php');
 
 ?>
