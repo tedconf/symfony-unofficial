@@ -44,7 +44,7 @@ class sfI18N
 
   public function createMessageSource($dir)
   {
-    if (in_array(sfConfig::get('sf_i18n_source'), array('Creole', 'MySQL', 'XSLite')))
+    if (in_array(sfConfig::get('sf_i18n_source'), array('Creole', 'MySQL', 'SQLite')))
     {
       $messageSource = sfMessageSource::factory(sfConfig::get('sf_i18n_source'), sfConfig::get('sf_i18n_database', 'default'));
     }
