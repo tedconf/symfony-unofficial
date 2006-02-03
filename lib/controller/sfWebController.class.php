@@ -40,6 +40,14 @@ abstract class sfWebController extends sfController
     {
       return $parameters;
     }
+    
+    $anchorPos = stripos($parameters, '#');
+    $anchorText = null;
+    if($anchorPos !== false)
+    {
+      $anchorText = substr($parameters, $anchorPos + 1);
+      $parameters = substr($parameters, 0, $anchorPos);
+    }    
 
     $url = '';
     if (!($sf_no_script_name = sfConfig::get('sf_no_script_name')))
@@ -102,6 +110,8 @@ abstract class sfWebController extends sfController
 
       $url .= $query;
     }
+    
+    if($anchorText) $url = $url . '#' . $anchorText;
 
     if ($absolute)
     {
