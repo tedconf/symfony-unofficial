@@ -75,7 +75,7 @@ function __autoload($class)
   }
 
   $classes = sfConfig::get('sf_class_autoload', array());
-
+var_dump($class, $classes[$class]);
   require_once($classes[$class]);
 }
 
@@ -110,7 +110,7 @@ function run_alltests($task, $args)
   ));
   pake_mkdirs($tmp_dir.'/apps/test/modules');
   require_once(dirname(__FILE__).'/data/config/constants.php');
-  require_once(dirname(__FILE__).'/lib/core/sfContext.class.php');
+  require_once(dirname(__FILE__).'/lib/util/sfContext.class.php');
 
   pake_import('simpletest', false);
 
