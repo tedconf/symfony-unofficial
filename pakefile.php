@@ -75,7 +75,7 @@ function __autoload($class)
   }
 
   $classes = sfConfig::get('sf_class_autoload', array());
-var_dump($class, $classes[$class]);
+
   require_once($classes[$class]);
 }
 
