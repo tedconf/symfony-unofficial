@@ -57,7 +57,7 @@ th {
         <td class="message"><?php echo $message ?>
         <?php if ($error_reference): ?>
           <a href='http://www.symfony-project.com/errors/<?php echo $error_reference ?>'>learn more about this issue</a>
-        <?php endif ?>
+        <?php endif; ?>
         </td>
     </tr>
     <tr>
@@ -80,8 +80,8 @@ th {
     <tr><th colspan="2">stack trace</th></tr>
     <?php foreach ($trace as $line): ?>
     <tr><td colspan="2"><?php echo $line ?></td></tr>
-    <?php endforeach ?>
-<?php endif ?>
+    <?php endforeach; ?>
+<?php endif; ?>
 
   <tr><th colspan="2">info</th></tr>
     <tr>

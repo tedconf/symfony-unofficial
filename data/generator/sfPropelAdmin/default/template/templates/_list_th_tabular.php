@@ -9,7 +9,7 @@
       [?php endif ?]
     <?php else: ?>
     [?php echo __('<?php echo $this->getParameterValue('list.fields.'.$column->getName().'.name') ?>') ?]
-    <?php endif ?>
+    <?php endif; ?>
     <?php echo $this->getHelp($column, 'list') ?>
   </th>
-<?php endforeach ?>
+<?php endforeach; ?>

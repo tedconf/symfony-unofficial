@@ -5,5 +5,5 @@
 <?php endforeach ?>
 <?php else: ?>
   <?php echo $this->getButtonToAction('_create', array(), false) ?>
-<?php endif ?>
+<?php endif; ?>
 </ul>
