@@ -93,7 +93,7 @@ class sfWebResponse extends sfResponse
    *
    * @return void
    */
-  public function setCookie ($name, $value, $expire = '', $path = '', $domain = '', $secure = 0)
+  public function setCookie ($name, $value, $expire = '', $path = '/', $domain = '', $secure = 0)
   {
     $this->cookies[] = array(
       'name'   => $name,
@@ -230,7 +230,7 @@ class sfWebResponse extends sfResponse
       {
         header($name.': '.$value);
 
-        if (sfConfig::get('sf_logging_active'))
+        if (sfConfig::get('sf_logging_active') && $value != '')
         {
           $this->getContext()->getLogger()->info('{sfWebResponse} send header "'.$name.'": "'.$value.'"');
         }

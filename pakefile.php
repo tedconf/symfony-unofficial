@@ -32,6 +32,53 @@ pake_desc('release a new symfony version');
 
 pake_task('release');
 
+$sf_symfony_lib_dir = dirname(__FILE__).'/lib';
+
+// YAML support
+if (!function_exists('syck_load'))
+{
+  require_once($sf_symfony_lib_dir.'/util/Spyc.class.php');
+}
+require_once($sf_symfony_lib_dir.'/util/sfYaml.class.php');
+
+// cache support
+require_once($sf_symfony_lib_dir.'/cache/sfCache.class.php');
+require_once($sf_symfony_lib_dir.'/cache/sfFileCache.class.php');
+
+// config support
+require_once($sf_symfony_lib_dir.'/config/sfConfigCache.class.php');
+require_once($sf_symfony_lib_dir.'/config/sfConfigHandler.class.php');
+require_once($sf_symfony_lib_dir.'/config/sfYamlConfigHandler.class.php');
+require_once($sf_symfony_lib_dir.'/config/sfAutoloadConfigHandler.class.php');
+require_once($sf_symfony_lib_dir.'/config/sfRootConfigHandler.class.php');
+
+// basic exception classes
+require_once($sf_symfony_lib_dir.'/exception/sfException.class.php');
+require_once($sf_symfony_lib_dir.'/exception/sfAutoloadException.class.php');
+require_once($sf_symfony_lib_dir.'/exception/sfCacheException.class.php');
+require_once($sf_symfony_lib_dir.'/exception/sfConfigurationException.class.php');
+require_once($sf_symfony_lib_dir.'/exception/sfParseException.class.php');
+
+// utils
+require_once($sf_symfony_lib_dir.'/util/sfParameterHolder.class.php');
+
+function __autoload($class)
+{
+  static $loaded;
+
+  if (!$loaded)
+  {
+    // load the list of autoload classes
+    include_once(sfConfigCache::getInstance()->checkConfig(sfConfig::get('sf_app_config_dir_name').'/autoload.yml'));
+
+    $loaded = true;
+  }
+
+  $classes = sfConfig::get('sf_class_autoload', array());
+
+  require_once($classes[$class]);
+}
+
 function run_alltests($task, $args)
 {
   set_include_path(
@@ -47,7 +94,7 @@ function run_alltests($task, $args)
   $tmp_dir = $root_dir.DIRECTORY_SEPARATOR.md5(uniqid(rand(), true));
   if (!is_dir($tmp_dir))
   {
-    mkdir($tmp_dir, 0777, true);
+    pake_mkdirs($tmp_dir, 0777);
   }
 
   require_once(dirname(__FILE__).'/lib/config/sfConfig.class.php');
@@ -61,11 +108,8 @@ function run_alltests($task, $args)
     'sf_test'             => false,
     'sf_version'          => 'test',
   ));
-  mkdir($tmp_dir.'/apps');
-  mkdir($tmp_dir.'/apps/test');
-  mkdir($tmp_dir.'/apps/test/modules');
+  pake_mkdirs($tmp_dir.'/apps/test/modules');
   require_once(dirname(__FILE__).'/data/config/constants.php');
-  require_once(dirname(__FILE__).'/lib/symfony_autoload.php');
   require_once(dirname(__FILE__).'/lib/core/sfContext.class.php');
 
   pake_import('simpletest', false);

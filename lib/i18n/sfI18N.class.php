@@ -64,7 +64,7 @@ class sfI18N
       {
         $cache_dir = str_replace('/', DIRECTORY_SEPARATOR, $cache_dir);
         $current_umask = umask(0000);
-        mkdir($cache_dir, 0777, true);
+        @mkdir($cache_dir, 0777, true);
         umask($current_umask);
       }
 
