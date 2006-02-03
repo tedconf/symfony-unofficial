@@ -69,7 +69,7 @@ class sfYaml
   private static function get_include_contents($input)
  {
    //if input is a file, process it 
-   if(is_file($input)) 
+   if(strpos($input, "\n") === false && is_file($input)) 
    {
       require_once(sfConfig::get('sf_symfony_lib_dir').'/helper/TextHelper.php');
       ob_start();
