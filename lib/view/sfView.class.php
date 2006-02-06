@@ -76,7 +76,8 @@ abstract class sfView
   protected
     $attribute_holder   = null,
     $moduleName         = '',
-    $viewName           = '';
+    $viewName           = '',
+    $extension          = '.php';
 
   protected static
     $coreHelpersLoaded = 0;
@@ -226,11 +227,13 @@ abstract class sfView
    *
    * @return void
    */
-  public function configure($extension = '.php')
+  public function configure()
   {
     $context          = $this->getContext();
     $actionStackEntry = $context->getController()->getActionStack()->getLastEntry();
     $action           = $actionStackEntry->getActionInstance();
+
+    $extension = $$this->extension;
 
     // store our current view
     $actionStackEntry->setViewInstance($this);
@@ -562,7 +565,7 @@ abstract class sfView
    *                the controller render mode is sfView::RENDER_VAR, otherwise
    *                null.
    */
-  abstract function & render ();
+  abstract public function &render();
 
   /**
    * Set the decorator template directory for this view.
@@ -594,7 +597,14 @@ abstract class sfView
       $this->decoratorTemplate  = basename($template);
     }
     else
+    {
       $this->decoratorTemplate = $template;
+    }
+
+    if (!strpos($this->decoratorTemplate, '.'))
+    {
+      $this->decoratorTemplate .= $this->extension;
+    }
 
     // set decorator status
     $this->decorator = true;
@@ -702,7 +712,9 @@ abstract class sfView
       $this->template  = basename($template);
     }
     else
+    {
       $this->template = $template;
+    }
   }
 }
 
