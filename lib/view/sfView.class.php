@@ -233,7 +233,7 @@ abstract class sfView
     $actionStackEntry = $context->getController()->getActionStack()->getLastEntry();
     $action           = $actionStackEntry->getActionInstance();
 
-    $extension = $$this->extension;
+    $extension = $this->extension;
 
     // store our current view
     $actionStackEntry->setViewInstance($this);
