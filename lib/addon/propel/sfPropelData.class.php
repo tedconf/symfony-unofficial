@@ -277,7 +277,7 @@ class sfPropelData
     }
 
     // safe to file(s)
-    if (1 || $sameFile)
+    if ($sameFile)
     {
       $yaml = Spyc::YAMLDump($dumpData);
       file_put_contents($directory_or_file, $yaml);
