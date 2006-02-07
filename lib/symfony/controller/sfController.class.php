@@ -67,7 +67,8 @@ abstract class sfController
       require_once($module_file);
 
       // action is defined in this class?
-      if (is_callable(array($moduleName.'Actions', 'execute'.$actionName)))
+      $defined = in_array(strtolower('execute'.$actionName), array_map('strtolower', get_class_methods($moduleName.'Actions')));
+      if ($defined)
       {
         $exists = true;
       }
