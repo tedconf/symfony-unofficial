@@ -3,6 +3,7 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
+ * (c) 2004 David Heinemeier Hansson
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -14,6 +15,7 @@
  * @package    symfony
  * @subpackage helper
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
+ * @author     David Heinemeier Hansson
  * @version    SVN: $Id$
  */
 
@@ -207,12 +209,11 @@
     return preg_replace('/([\w\.!#\$%\-+.]+@[A-Za-z0-9\-]+(\.[A-Za-z0-9\-]+)+)/', '<a href="mailto:\\1">\\1</a>', $text);
   }
   
-  /*
-   * #Wrap echo to automatically provide a newline
+  /**
+   * Wraps echo to automatically provide a newline
    */
   function echoln($string)
   {
-    echo $string . "\n";
+    echo $string."\n";
   }
-
 ?>

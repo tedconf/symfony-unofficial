@@ -5,6 +5,7 @@ require_once(sfConfig::get('sf_symfony_lib_dir').'/helper/ValidationHelper.php')
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
+ * (c) 2004 David Heinemeier Hansson
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -16,6 +17,7 @@ require_once(sfConfig::get('sf_symfony_lib_dir').'/helper/ValidationHelper.php')
  * @package    symfony
  * @subpackage helper
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
+ * @author     David Heinemeier Hansson
  * @version    SVN: $Id$
  */
 
@@ -68,39 +70,6 @@ function options_for_select($options = array(), $selected = '')
   }
 
   return $html;
-}
-
-/*
-      # Accepts a container of objects, the method name to use for the value, and the method name to use for the display. It returns
-      # a string of option tags.
-      # NOTE: Only the option tags are returned, you have to wrap this call in a regular HTML select tag.
-*/
-function objects_for_select($options = array(), $value_method, $text_method = null, $selected = null)
-{
-  $select_options = array();
-  foreach($options as $option)
-  {
-    // text method exists?
-    if ($text_method && !method_exists($option, $text_method))
-    {
-      $error = sprintf('Method "%s" doesn\'t exist for object of class "%s"', $text_method, get_class($option));
-      throw new sfViewException($error);
-    }
-
-    // value method exists?
-    if (!method_exists($option, $value_method))
-    {
-      $error = sprintf('Method "%s" doesn\'t exist for object of class "%s"', $value_method, get_class($option));
-      throw new sfViewException($error);
-    }
-
-    $value = $option->$value_method();
-    $key   = ($text_method != null) ? $option->$text_method() : $value;
-
-    $select_options[$value] = $key;
-  }
-
-  return options_for_select($select_options, $selected);
 }
 
 /*
@@ -296,7 +265,7 @@ tinyMCE.init({
   }
   else
   {
-    return content_tag('textarea', htmlspecialchars($content), array_merge(array('name' => $name, 'id' => $name), _convert_options($options)));
+    return content_tag('textarea', htmlspecialchars((is_object($content)) ? $content->__toString() : $content), array_merge(array('name' => $name, 'id' => $name), _convert_options($options)));
   }
 }
 
@@ -449,7 +418,7 @@ function input_date_tag($name, $value, $options = array())
 
 function submit_tag($value = 'Save changes', $options = array())
 {
-  return tag('input', array_merge(array('type' => 'submit', 'name' => 'submit', 'value' => $value), _convert_options($options)));
+  return tag('input', array_merge(array('type' => 'submit', 'name' => 'commit', 'value' => $value), _convert_options($options)));
 }
 
 function reset_tag($value = 'Reset', $options = array())
@@ -459,7 +428,7 @@ function reset_tag($value = 'Reset', $options = array())
 
 function submit_image_tag($source, $options = array())
 {
-  return tag('input', array_merge(array('type' => 'image', 'name' => 'submit', 'src' => image_path($source)), _convert_options($options)));
+  return tag('input', array_merge(array('type' => 'image', 'name' => 'commit', 'src' => image_path($source)), _convert_options($options)));
 }
 
 function _convert_options($options)
