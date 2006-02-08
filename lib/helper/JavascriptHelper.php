@@ -3,6 +3,7 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
+ * (c) 2004 David Heinemeier Hansson
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -15,6 +16,7 @@
  * @subpackage helper
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  * @author     John Christopher <john.christopher@symfony-project.com>
+ * @author     David Heinemeier Hansson
  * @version    SVN: $Id$
  */
 
@@ -586,6 +588,11 @@
       $options['containment'] = _array_or_string_for_javascript($options['containment']);
     }
 
+    if (isset($options['hoverclass']))
+    {
+      $options['hoverclass'] = "'{$options['hoverclass']}'";
+    }
+
     if (isset($options['only']))
     {
       $options['only'] = _array_or_string_for_javascript($options['only']);
@@ -815,6 +822,10 @@
       {
         $js_options['highlightendcolor'] = "'".$options['highlightendcolor']."'";
       }
+      if(isset($options['loadTextURL']))
+      {
+        $js_options['loadTextURL'] =  "'".$options['loadTextURL']."'";
+      }
 
       $javascript .= ', '._options_for_javascript($js_options);
       $javascript .= ');';
@@ -906,8 +917,8 @@
 
     $js_options['asynchronous'] = (isset($options['type'])) ? ($options['type'] != 'synchronous') : 'true';
     if (isset($options['method'])) $js_options['method'] = _method_option_to_s($options['method']);
-    if (isset($options['insertion'])) $js_options['insertion'] = "Insertion.".sfInflector::camelize($options['position']);
-    $js_options['evalScripts'] = (isset($options['script']) && ($options['script'] == 1 || $options['script'] == 'true')) ? 'true' : 'false';
+    if (isset($options['position'])) $js_options['insertion'] = "Insertion.".sfInflector::camelize($options['position']);
+    $js_options['evalScripts'] = (!isset($options['script']) || $options['script'] == '0' || $options['script'] == 'false') ? 'false' : 'true';
 
     if (isset($options['form']))
     {

@@ -49,6 +49,10 @@ if (!sfConfig::get('sf_in_bootstrap'))
   // utils
   require_once($sf_symfony_lib_dir.'/util/sfParameterHolder.class.php');
 }
+else
+{
+  require_once($sf_symfony_lib_dir.'/config/sfConfigCache.class.php');
+}
 
 /**
  * Handles autoloading of classes that have been specified in autoload.yml.
@@ -57,63 +61,66 @@ if (!sfConfig::get('sf_in_bootstrap'))
  *
  * @return void
  */
-function __autoload($class)
+if (!function_exists('__autoload'))
 {
-  static $loaded;
-
-  if (!$loaded)
+  function __autoload($class)
   {
-    // load the list of autoload classes
-    include_once(sfConfigCache::getInstance()->checkConfig(sfConfig::get('sf_app_config_dir_name').'/autoload.yml'));
+    static $loaded;
 
-    $loaded = true;
-  }
-
-  $classes = sfConfig::get('sf_class_autoload', array());
-  if (!isset($classes[$class]))
-  {
-    if (sfContext::hasInstance())
+    if (!$loaded)
     {
-      // see if the file exists in the current module lib directory
-      // must be in a module context
-      $current_module = sfContext::getInstance()->getModuleName();
-      if ($current_module)
-      {
-        $module_lib = sfConfig::get('sf_app_module_dir').'/'.$current_module.'/'.sfConfig::get('sf_app_module_lib_dir_name').'/'.$class.'.class.php';
-        if (is_readable($module_lib))
-        {
-          try
-          {
-            require_once($module_lib);
+      // load the list of autoload classes
+      include_once(sfConfigCache::getInstance()->checkConfig(sfConfig::get('sf_app_config_dir_name').'/autoload.yml'));
 
-            return;
-          }
-          catch (Exception $e)
+      $loaded = true;
+    }
+
+    $classes = sfConfig::get('sf_class_autoload', array());
+    if (!isset($classes[$class]))
+    {
+      if (sfContext::hasInstance())
+      {
+        // see if the file exists in the current module lib directory
+        // must be in a module context
+        $current_module = sfContext::getInstance()->getModuleName();
+        if ($current_module)
+        {
+          $module_lib = sfConfig::get('sf_app_module_dir').'/'.$current_module.'/'.sfConfig::get('sf_app_module_lib_dir_name').'/'.$class.'.class.php';
+          if (is_readable($module_lib))
           {
-            $e = new sfAutoloadException($e->getMessage());
-            $e->printStackTrace();
+            try
+            {
+              require_once($module_lib);
+
+              return;
+            }
+            catch (Exception $e)
+            {
+              $e = new sfAutoloadException($e->getMessage());
+              $e->printStackTrace();
+            }
           }
         }
       }
-    }
 
-    // unspecified class
-    $error = sprintf('Autoloading of class "%s" failed. Try to clear the symfony cache and refresh. [err0003]', $class);
-    $e = new sfAutoloadException($error);
+      // unspecified class
+      $error = sprintf('Autoloading of class "%s" failed. Try to clear the symfony cache and refresh. [err0003]', $class);
+      $e = new sfAutoloadException($error);
 
-    $e->printStackTrace();
-  }
-  else
-  {
-    // class exists, let's include it
-    try
-    {
-      require_once($classes[$class]);
-    }
-    catch (Exception $e)
-    {
-      $e = new sfAutoloadException($e->getMessage());
       $e->printStackTrace();
+    }
+    else
+    {
+      // class exists, let's include it
+      try
+      {
+        require_once($classes[$class]);
+      }
+      catch (Exception $e)
+      {
+        $e = new sfAutoloadException($e->getMessage());
+        $e->printStackTrace();
+      }
     }
   }
 }
@@ -184,10 +191,7 @@ try
     $configCache->import($core_classes);
   }
 
-  if (sfConfig::get('sf_routing'))
-  {
-    $configCache->import($sf_app_config_dir_name.'/routing.yml');
-  }
+  $configCache->import($sf_app_config_dir_name.'/routing.yml');
 }
 catch (sfException $e)
 {

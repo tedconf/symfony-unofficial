@@ -1,71 +1,71 @@
 <?php
 
 pake_desc('create classes for current model');
-pake_task('build-propelmodel', 'project_exists');
+pake_task('propel-build-model', 'project_exists');
 pake_task('build-model');
 
 pake_desc('create sql for current model');
-pake_task('build-propelsql', 'project_exists');
+pake_task('propel-build-sql', 'project_exists');
 pake_task('build-sql');
 
 pake_desc('create schema.xml from existing database');
-pake_task('build-propelschema', 'project_exists');
+pake_task('propel-build-schema', 'project_exists');
 pake_task('build-schema');
 
 pake_desc('create database for current model');
-pake_task('build-propeldb', 'project_exists');
+pake_task('propel-build-db', 'project_exists');
 pake_task('build-db');
 
 pake_desc('insert sql for current model');
-pake_task('insert-propelsql', 'project_exists');
+pake_task('propel-insert-sql', 'project_exists');
 pake_task('insert-sql');
 
 function run_build_model($task, $args)
 {
-  throw new Exception('This task is deprecated. Please use "build-propelmodel".');
+  throw new Exception('This task is deprecated. Please use "propel-build-model".');
 }
 
 function run_build_sql($task, $args)
 {
-  throw new Exception('This task is deprecated. Please use "build-propelsql".');
+  throw new Exception('This task is deprecated. Please use "propel-build-sql".');
 }
 
 function run_build_schema($task, $args)
 {
-  throw new Exception('This task is deprecated. Please use "build-propelschema".');
+  throw new Exception('This task is deprecated. Please use "propel-build-schema".');
 }
 
 function run_build_db($task, $args)
 {
-  throw new Exception('This task is deprecated. Please use "build-propeldb".');
+  throw new Exception('This task is deprecated. Please use "propel-build-db".');
 }
 
 function run_insert_sql($task, $args)
 {
-  throw new Exception('This task is deprecated. Please use "insert-propelsql".');
+  throw new Exception('This task is deprecated. Please use "propel-insert-sql".');
 }
 
-function run_build_propelmodel($task, $args)
+function run_propel_build_model($task, $args)
 {
   _call_phing($task, 'build-om');
 }
 
-function run_build_propelsql($task, $args)
+function run_propel_build_sql($task, $args)
 {
   _call_phing($task, 'build-sql');
 }
 
-function run_build_propeldb($task, $args)
+function run_propel_build_db($task, $args)
 {
   _call_phing($task, 'build-db');
 }
 
-function run_insert_propelsql($task, $args)
+function run_propel_insert_sql($task, $args)
 {
   _call_phing($task, 'insert-sql');
 }
 
-function run_build_propelschema($task, $args)
+function run_propel_build_schema($task, $args)
 {
   _call_phing($task, 'build-model-schema', false);
 
@@ -95,7 +95,8 @@ function _call_phing($task, $task_name, $check_schema = true)
   file_put_contents($propelIniFileName, $propelIni);
 
   // update database information
-  
+  $projectConfigFile = sfConfig::get('sf_config_dir').DIRECTORY_SEPARATOR.'databases.yml';
+  $appConfigFile     = sfConfig::get('sf_apps_dir_name').DIRECTORY_SEPARATOR.'apps'.DIRECTORY_SEPARATOR.sfConfig::get('sf_app_config_dir_name').DIRECTORY_SEPARATOR.'databases.yml';
 
   $propel_generator_dir = sfConfig::get('sf_symfony_lib_dir').'/vendor/propel-generator';
 

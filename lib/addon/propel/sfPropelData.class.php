@@ -210,7 +210,7 @@ class sfPropelData
   public function dumpData($directory_or_file = null, $tables = 'all', $connectionName = 'propel')
   {
     $sameFile = true;
-    if ( is_dir($directory_or_file) && 'all' === $tables ||  (is_array($tables) && 1 < count($tables)))
+    if (is_dir($directory_or_file) && 'all' === $tables ||  (is_array($tables) && 1 < count($tables)))
     {
       // multi files
       $sameFile = false;
@@ -266,17 +266,17 @@ class sfPropelData
           {
             $relatedTable = $this->maps[$table]->getDatabaseMap()->getTable($column->getRelatedTableName());
 
-            $dumpData[$table][$table . $pk][$col] = $relatedTable->getPhpName() . '_' . $rs->get($col);
+            $dumpData[$table][$table.$pk][$col] = $relatedTable->getPhpName().'_'.$rs->get($col);
           }
           else
           {
-            $dumpData[$table][$table . $pk][$col] = $rs->get($col);
+            $dumpData[$table][$table.$pk][$col] = $rs->get($col);
           }
         } // foreach
       } // while
     }
 
-    // safe to file(s)
+    // save to file(s)
     if ($sameFile)
     {
       $yaml = Spyc::YAMLDump($dumpData);
