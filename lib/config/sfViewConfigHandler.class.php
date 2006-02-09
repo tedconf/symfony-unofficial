@@ -138,7 +138,10 @@ class sfViewConfigHandler extends sfYamlConfigHandler
       if (count($component) > 1)
       {
         $data .= "    \$this->setComponentSlot('$name', '{$component[0]}', '{$component[1]}');\n";
-        $data .= "    if (sfConfig::get('sf_logging_active')) \$context->getLogger()->info('{sfViewConfig} set component \"$name\" ({$component[0]}/{$component[1]})');\n";
+        $data .= "    if (sfConfig::get('sf_logging_active'))\n";
+        $data .= "    {\n";
+        $data .= "      \$context->getLogger()->info('{sfViewConfig} set component \"$name\" ({$component[0]}/{$component[1]})');\n";
+        $data .= "    }\n";
       }
     }
 
@@ -201,12 +204,11 @@ class sfViewConfigHandler extends sfYamlConfigHandler
   {
     $data = '';
 
-    $has_layout = $this->getConfigValue('has_layout', $viewName);
-    if ($has_layout)
+    if ($this->getConfigValue('has_layout', $viewName))
     {
-      $layout = $this->getconfigValue('layout', $viewName);
+      $layout = $this->getConfigValue('layout', $viewName);
       $data .= "    \$this->setDecoratorDirectory(sfConfig::get('sf_app_template_dir'));\n".
-               "    \$this->setDecoratorTemplate('$layout.php');\n";
+               "    \$this->setDecoratorTemplate('$layout');\n";
     }
 
     return $data;
