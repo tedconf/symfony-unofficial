@@ -1,6 +1,6 @@
 <?php
 
-class myView extends sfView
+class myView extends sfPHPView
 {
 }
 
