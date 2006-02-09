@@ -75,6 +75,9 @@ function run_upgrade_to_0_6($task, $args)
 
     // rename sf_default_culture to sf_i18n_default_culture in all libraries
     _upgrade_0_6_i18n_config($app_dir);
+
+    // update myView
+    _upgrade_0_6_myView($app_dir.'/'.sfConfig::get('sf_lib_dir_name'));
   }
 
   // constants in global libraries
@@ -395,6 +398,31 @@ function _upgrade_0_6_config($dirs)
     if ($verbose) echo '>> file      '.pakeApp::excerpt('updating location of config.php for "'.$php_file.'"')."\n";
 
     $content = str_replace($search, "SF_ROOT_DIR.DIRECTORY_SEPARATOR.'".sfConfig::get('sf_apps_dir_name')."'.DIRECTORY_SEPARATOR.SF_APP.DIRECTORY_SEPARATOR.'config'.", $content);
+
+    file_put_contents($php_file, $content);
+  }
+}
+
+function _upgrade_0_6_myView($dir)
+{
+  $verbose = pakeApp::get_instance()->get_verbose();
+
+  $php_files = pakeFinder::type('file')->name('myView.class.php')->in($dir);
+
+  $search = 'sfView';
+
+  foreach ($php_files as $php_file)
+  {
+    $content = file_get_contents($php_file);
+
+    if (strpos($content, $search) === false)
+    {
+      continue;
+    }
+
+    if ($verbose) echo '>> file      '.pakeApp::excerpt('updating default view class for "'.$php_file.'"')."\n";
+
+    $content = str_replace($search, 'sfPHPView', $content);
 
     file_put_contents($php_file, $content);
   }
