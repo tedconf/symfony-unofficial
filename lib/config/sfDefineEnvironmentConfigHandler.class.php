@@ -92,7 +92,29 @@ class sfDefineEnvironmentConfigHandler extends sfYamlConfigHandler
     $key = strtolower($category.$key);
 
     // replace constant values
-    $value = $this->replaceConstants($value);
+    if (is_array($value)) {
+      $available[] = array(&$value, array_keys($value));
+      $curKeys = null;
+
+      while (1) {
+        if (!$curKeys && $available) {
+          list ($curArray, $curKeys) = array_shift($available);
+        }
+        if (!$curKeys) {
+          break;
+        }
+
+        $curKey = array_shift($curKeys);
+
+        if (is_array($curArray[$curKey])) {
+          $available[] = array(&$curArray[$curKey], array_keys($curArray[$curKey]));
+        } else {
+          $curArray[$curKey] = $this->replaceConstants($curArray[$curKey]);
+        }
+      }
+    } else {
+      $value = $this->replaceConstants($value);
+    }
 
     return array($key, $value);
   }
