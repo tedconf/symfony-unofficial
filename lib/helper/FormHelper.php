@@ -43,8 +43,10 @@ require_once(sfConfig::get('sf_symfony_lib_dir').'/helper/ValidationHelper.php')
       #
       # NOTE: Only the option tags are returned, you have to wrap this call in a regular HTML select tag.
 */
-function options_for_select($options = array(), $selected = '')
+function options_for_select($options = array(), $selected = '', $html_options = array())
 {
+  $html_options = _parse_attributes($html_options);
+
   if (is_array($selected))
   {
     $valid = array_values($selected);
@@ -52,9 +54,19 @@ function options_for_select($options = array(), $selected = '')
   }
 
   $html = '';
+
+  if (isset($html_options['include_blank']))
+  {
+    $html .= content_tag('option', '', array('value' => ''))."\n";
+  }
+  else if (isset($html_options['include_custom']))
+  {
+    $html .= content_tag('option', $html_options['include_custom'], array('value' => ''))."\n";
+  }
+
   foreach ($options as $key => $value)
   {
-    $html_options = array('value' => $key);
+    $option_options = array('value' => $key);
     if (
         isset($selected)
         &&
@@ -63,10 +75,10 @@ function options_for_select($options = array(), $selected = '')
         (strval($key) == strval($selected))
        )
     {
-      $html_options['selected'] = 'selected';
+      $option_options['selected'] = 'selected';
     }
 
-    $html .= content_tag('option', $value, $html_options)."\n";
+    $html .= content_tag('option', $value, $option_options)."\n";
   }
 
   return $html;
@@ -133,7 +145,7 @@ function input_tag($name, $value = null, $options = array())
   {
     $value = null;
   }
-  else if ( $reqvalue = _get_request_value($name) )
+  else if (($reqvalue = _get_request_value($name)) !== null)
   {
     $value = $reqvalue;
   }
@@ -143,11 +155,6 @@ function input_tag($name, $value = null, $options = array())
 
 function input_hidden_tag($name, $value = null, $options = array())
 {
-  if ($reqvalue = _get_request_value($name))
-  {
-    $value = $reqvalue;
-  }
-
   $options = _parse_attributes($options);
 
   $options['type'] = 'hidden';
@@ -179,13 +186,13 @@ function input_password_tag($name = 'password', $value = null, $options = array(
  */
 function textarea_tag($name, $content = null, $options = array())
 {
- if ( $reqvalue = _get_request_value($name) )
+  if (($reqvalue = _get_request_value($name)) !== null)
   {
     $content = $reqvalue;
   }
 
   $options = _parse_attributes($options);
-
+  
   if (array_key_exists('size', $options))
   {
     list($options['cols'], $options['rows']) = split('x', $options['size'], 2);
@@ -197,17 +204,20 @@ function textarea_tag($name, $content = null, $options = array())
   if (isset($options['rich']))
   {
     $rich = $options['rich'];
+    if ($rich == true || $rich == 'true')
+    {
+      $rich = 'tinymce';
+    }
     unset($options['rich']);
   }
 
-  if ($rich)
+  if ($rich == 'tinymce')
   {
-
     // tinymce installed?
     $js_path = sfConfig::get('sf_rich_text_js_dir') ? '/'.sfConfig::get('sf_rich_text_js_dir').'/tiny_mce.js' : '/sf/js/tinymce/tiny_mce.js';
     if (!is_readable(sfConfig::get('sf_web_dir').$js_path))
     {
-      throw new sfConfigurationException('You must install Tiny MCE to use this helper (see rich_text_js_dir settings).');
+      throw new sfConfigurationException('You must install TinyMCE to use this helper (see rich_text_js_dir settings).');
     }
 
     sfContext::getInstance()->getRequest()->setAttribute('tinymce', $js_path, 'helper/asset/auto/javascript');
@@ -263,6 +273,56 @@ tinyMCE.init({
       content_tag('script', javascript_cdata_section($tinymce_js), array('type' => 'text/javascript')).
       content_tag('textarea', $content, array_merge(array('name' => $name, 'id' => $name), _convert_options($options)));
   }
+  elseif ($rich === 'fck')
+  {
+    $php_file = sfConfig::get('sf_rich_text_fck_js_dir').DIRECTORY_SEPARATOR.'fckeditor.php';
+
+    if (!is_readable(sfConfig::get('sf_web_dir').DIRECTORY_SEPARATOR.$php_file))
+    {
+      throw new sfConfigurationException('You must install FCKEditor to use this helper (see rich_text_fck_js_dir settings).');
+    }
+
+    // FCKEditor.php class is written with backward compatibility of PHP4.
+    // This reportings are to turn off errors with public properties and already declared constructor
+    $error_reporting = ini_get('error_reporting');
+    error_reporting(E_ALL);
+
+    require_once(sfConfig::get('sf_web_dir').DIRECTORY_SEPARATOR.$php_file);
+
+    // turn error reporting back to your settings
+    error_reporting($error_reporting);
+
+    $fckeditor           = new FCKeditor($name);
+    $fckeditor->BasePath = DIRECTORY_SEPARATOR.sfConfig::get('sf_rich_text_fck_js_dir').DIRECTORY_SEPARATOR;
+    $fckeditor->Value    = $content;
+
+    if (isset($options['width']))
+    {
+      $fckeditor->Width = $options['width'];
+    }   
+    elseif (isset($options['cols']))
+    {
+      $fckeditor->Width = (string)((int) $options['cols'] * 10).'px';
+    }
+
+    if (isset($options['height']))
+    {
+      $fckeditor->Height = $options['height'];
+    }
+    elseif (isset($options['rows']))
+    {
+      $fckeditor->Height = (string)((int) $options['rows'] * 10).'px';
+    }
+
+    if (isset($options['tool']))
+    {
+      $fckeditor->ToolbarSet = $options['tool'];
+    }
+
+    $content = $fckeditor->CreateHtml();
+
+    return $content;
+  }
   else
   {
     return content_tag('textarea', htmlspecialchars((is_object($content)) ? $content->__toString() : $content), array_merge(array('name' => $name, 'id' => $name), _convert_options($options)));
@@ -271,7 +331,12 @@ tinyMCE.init({
 
 function checkbox_tag($name, $value = '1', $checked = false, $options = array())
 {
-  if ( $reqvalue = _get_request_value($name) )
+  $request = sfContext::getInstance()->getRequest();
+  if ($request->hasErrors())
+  {
+    $checked = $request->getParameter($name, null);
+  }
+  elseif (($reqvalue = _get_request_value($name)) !== null)
   {
     $checked = $reqvalue;
   }
@@ -284,7 +349,7 @@ function checkbox_tag($name, $value = '1', $checked = false, $options = array())
 
 function radiobutton_tag($name, $value, $checked = false, $options = array())
 {
-  if ( $reqvalue = _get_request_value($name) )
+  if (($reqvalue = _get_request_value($name)) !== null)
   {
     $checked = $reqvalue == $value;
   }

@@ -2,6 +2,10 @@
 
 <h1><?php echo $this->getParameterValue('list.title', $this->getModuleName().' list') ?></h1>
 
+<div id="sf_admin_header">
+[?php include_partial('<?php echo $this->getModuleName() ?>/list_header') ?]
+</div>
+
 <div id="sf_admin_bar">
 
 <?php if ($this->getParameterValue('list.filters')): ?>
@@ -51,4 +55,8 @@
 
 [?php echo include_partial('list_actions') ?]
 
+</div>
+
+<div id="sf_admin_footer">
+[?php include_partial('<?php echo $this->getModuleName() ?>/list_footer') ?]
 </div>
