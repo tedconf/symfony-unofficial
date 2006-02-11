@@ -286,7 +286,7 @@ function radiobutton_tag($name, $value, $checked = false, $options = array())
 {
   if ( $reqvalue = _get_request_value($name) )
   {
-    $checked = $reqvalue;
+    $checked = $reqvalue == $value;
   }
 
   $html_options = array_merge(array('type' => 'radio', 'name' => $name, 'value' => $value), _convert_options($options));
