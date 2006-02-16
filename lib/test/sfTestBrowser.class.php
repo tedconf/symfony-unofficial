@@ -41,7 +41,6 @@ class sfTestBrowser
 
   public function get($request_uri = '/', $with_layout = true, $followRedirects = false)
   {
-    //echo "calling get on TestBrowser \n";
     $this->populateGetVariables($request_uri, $with_layout);
     $context = $this->initRequest();
     $html = $this->getContent();
@@ -57,7 +56,6 @@ class sfTestBrowser
   
   public function post($action_uri, $params = array(), $with_layout = true, $followRedirects = false)
   {
-    echo "In post URI is $action_uri \n";
     $this->populatePostVariables($action_uri, $params, $with_layout);
     $context = $this->initRequest();
     
@@ -85,10 +83,8 @@ class sfTestBrowser
 
     $request->getParameterHolder()->clear();
     $request->initialize($context);
-    
-     echo "Uri in initRequest is: " . $request->getUri() . "\n";
 
-    ob_start();
+     ob_start();
     $controller->dispatch();
     $this->presentation = ob_get_clean();
 
@@ -127,6 +123,9 @@ class sfTestBrowser
     self::$current_context = null;
     sfContext::removeInstance();
     sfWebDebug::removeInstance();
+    
+    $this->presentation = '';
+    $_SERVER = null;
   }
 
   public function shutdown()
