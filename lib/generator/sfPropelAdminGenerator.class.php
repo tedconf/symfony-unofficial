@@ -1,31 +1,6 @@
 <?php
 
 /*
-
-symfony init-propeladmin-app app
-
-symfony init-propeladmin app test Test
-symfony init-propeladmin-main
-
-symfony install-module sfAuth
-symfony install-module sfMedia
-
-- filtres (avec filtres prédéfinis ?) => dates, fk, enums, 
-- breadcrumb
-- many to many (ajax?)
-- edition des tables liées en inline ou tabular (cf. django)
-- module d'authentification avec page de login toute faite (paramètre: classes à utiliser pour les utilisateurs)
-- module de gestion des images (sfMedia...)
-- mettre de la doc phpdoc dans les fichiers générées -> PDF automatique / html OK
-- autocomplete (pour des listes longues -> choix d'un utilisateur par exemple à la place d'un select)
-  avec erreur si existe pas en BDD au retour!!! (ou champ caché user_id_real)
-- generateur spécifique pour gérer la home page et aggréger les modules générés et les autres
-- gestion des types enums en passant un paramètre value
-- support des tables i18n
-
-*/
-
-/*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
  * 
@@ -489,7 +464,7 @@ class sfPropelAdminGenerator extends sfPropelCrudGenerator
       $relatedTable = $this->getMap()->getDatabaseMap()->getTable($column->getRelatedTableName());
       $params = $this->getObjectTagParams($params, array('include_blank' => true));
 
-      $options = "objects_for_select(".$relatedTable->getPhpName()."Peer::doSelect(new Criteria()), 'getId', '__toString', $default_value, $params)";
+      $options = "objects_for_select(".$relatedTable->getPhpName()."Peer::doSelect(new Criteria()), 'getPrimaryKey', '__toString', $default_value, $params)";
 
       return "select_tag($name, $options, $params)";
     }
@@ -547,6 +522,14 @@ class sfPropelAdminGenerator extends sfPropelCrudGenerator
   }
 }
 
+/**
+ * Propel admin generator column.
+ *
+ * @package    symfony
+ * @subpackage generator
+ * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
+ * @version    SVN: $Id$
+ */
 class sfAdminColumn
 {
   private
