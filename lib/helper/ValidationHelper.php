@@ -3,7 +3,7 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- * 
+ *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -22,7 +22,7 @@ function form_has_error($param)
   return sfContext::getInstance()->getRequest()->hasError($param);
 }
 
-function form_error($param, $options = array())
+function form_error($param, $options = array(), $catalogue = 'messages')
 {
   $options = _parse_attributes($options);
 
@@ -39,7 +39,7 @@ function form_error($param, $options = array())
   {
     $style = 'display:none;';
   }
-  $options['style'] = isset($options['style']) ? $options['style'].';'.$style : $style;
+  $options['style'] = $style.(isset($options['style']) ? $options['style']:'');
   if (!isset($options['class'])) $options['class'] = 'form_error';
   if (!isset($options['id'])) $options['id'] = 'content:_TRequiredFielValidator';
 
@@ -57,7 +57,7 @@ function form_error($param, $options = array())
     unset($options['suffix']);
   }
 
-  $error = $request->getError($param);
+  $error = $request->getError($param, $catalogue);
 
   return content_tag('div', $prefix.$error.$suffix, $options)."\n";
 }

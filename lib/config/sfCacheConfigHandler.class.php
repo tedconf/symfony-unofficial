@@ -19,7 +19,6 @@
 class sfCacheConfigHandler extends sfYamlConfigHandler
 {
   private
-    $moduleName  = '',
     $cacheConfig = array();
 
   /**
@@ -33,34 +32,27 @@ class sfCacheConfigHandler extends sfYamlConfigHandler
    * @throws <b>sfParseException</b> If a requested configuration file is improperly formatted.
    * @throws <b>sfInitializationException</b> If a cache.yml key check fails.
    */
-  public function execute($configFile, $param = array())
+  public function execute($configFiles)
   {
     // set our required categories list and initialize our handler
     $categories = array('required_categories' => array());
     $this->initialize($categories);
 
     // parse the yaml
-    $this->config = $this->parseYaml($configFile);
+    $myConfig = $this->parseYamls($configFiles);
 
-    // init our data array
-    $data = array();
+    $myConfig['all'] = sfToolkit::arrayDeepMerge(
+      isset($myConfig['default']) && is_array($myConfig['default']) ? $myConfig['default'] : array(),
+      isset($myConfig['all']) && is_array($myConfig['all']) ? $myConfig['all'] : array()
+    );
 
-    $this->moduleName = $param['moduleName'];
+    unset($myConfig['default']);
 
-    // get default configuration
-    $this->defaultConfig = array();
-    $defaultConfigFile = sfConfig::get('sf_app_config_dir').'/'.basename($configFile);
-    if (is_readable($defaultConfigFile))
-    {
-      $categories = array('required_categories' => array('default'));
-      $this->initialize($categories);
-
-      $this->defaultConfig = $this->parseYaml($defaultConfigFile);
-    }
+    $this->yamlConfig = $myConfig;
 
     // iterate through all action names
     $first = true;
-    foreach ($this->config as $actionName => $values)
+    foreach ($this->yamlConfig as $actionName => $values)
     {
       if ($actionName == 'all')
       {
@@ -107,20 +99,19 @@ class sfCacheConfigHandler extends sfYamlConfigHandler
     // lifetime
     $lifeTime = $this->getConfigValue('lifetime', $actionName);
 
-    // uri
-    $uri = $this->getConfigValue('uri', $actionName);
+    // client_lifetime
+    $clientLifetime = $this->getConfigValue('client_lifetime', $actionName, $lifeTime);
+
+    // vary
+    $vary = $this->getConfigValue('vary', $actionName, array());
+    if (is_string($vary))
+    {
+      $vary = array($vary);
+    }
 
     // add cache information to cache manager
-    if ($uri)
-    {
-      $data[] = sprintf("  \$cacheManager->addCache('%s', '%s', '%s', %s, '%s');\n\n",
-                        $this->moduleName, $actionName, $type, $lifeTime, $uri);
-    }
-    else
-    {
-      $data[] = sprintf("  \$cacheManager->addCache('%s', '%s', '%s', %s);\n\n",
-                        $this->moduleName, $actionName, $type, $lifeTime);
-    }
+    $data[] = sprintf("  \$this->cacheManager->addCache(\$context->getModuleName(), '%s', '%s', %s, '%s', %s);\n\n",
+                      $actionName, $type, $lifeTime, $clientLifetime, var_export($vary, true));
 
     return implode("\n", $data);
   }

@@ -33,17 +33,16 @@ class sfDatabaseConfigHandler extends sfYamlConfigHandler
    * @throws sfConfigurationException If a requested configuration file does not exist or is not readable.
    * @throws sfParseException If a requested configuration file is improperly formatted.
    */
-  public function execute($configFile, $param = array())
+  public function execute($configFiles)
   {
     // parse the yaml
-    $config = $this->parseYaml($configFile);
+    $myConfig = $this->parseYamls($configFiles);
 
-    // merge all configuration with specific environment configuration
-    $myConfig = isset($config['all']) ? $config['all'] : array();
-    if (isset($config[sfConfig::get('sf_environment')]) && is_array($config[sfConfig::get('sf_environment')]))
-    {
-      $myConfig = sfToolkit::array_deep_merge($myConfig, $config[sfConfig::get('sf_environment')]);
-    }
+    $myConfig = sfToolkit::arrayDeepMerge(
+      isset($myConfig['default']) && is_array($myConfig['default']) ? $myConfig['default'] : array(),
+      isset($myConfig['all']) && is_array($myConfig['all']) ? $myConfig['all'] : array(),
+      isset($myConfig[sfConfig::get('sf_environment')]) && is_array($myConfig[sfConfig::get('sf_environment')]) ? $myConfig[sfConfig::get('sf_environment')] : array()
+    );
 
     // init our data and includes arrays
     $data      = array();
@@ -57,8 +56,7 @@ class sfDatabaseConfigHandler extends sfYamlConfigHandler
       if (in_array($key, $databases))
       {
         // this category is already registered
-        $error = sprintf('Configuration file "%s" specifies previously registered category "%s"',
-                         $configFile, $key);
+        $error = sprintf('Configuration file "%s" specifies previously registered category "%s"', $configFile, $key);
         throw new sfParseException($error);
       }
 
@@ -69,8 +67,7 @@ class sfDatabaseConfigHandler extends sfYamlConfigHandler
       if (!isset($dbConfig['class']))
       {
         // missing class key
-        $error = sprintf('Configuration file "%s" specifies category "%s" with missing class key',
-                         $configFile, $key);
+        $error = sprintf('Configuration file "%s" specifies category "%s" with missing class key', $configFile, $key);
         throw new sfParseException($error);
       }
 
@@ -83,8 +80,7 @@ class sfDatabaseConfigHandler extends sfYamlConfigHandler
         if (!is_readable($file))
         {
           // database file doesn't exist
-          $error = sprintf('Configuration file "%s" specifies class "%s" with nonexistent or unreadable file "%s"',
-                           $configFile, $dbConfig['class'], $file);
+          $error = sprintf('Configuration file "%s" specifies class "%s" with nonexistent or unreadable file "%s"', $configFile, $dbConfig['class'], $file);
           throw new sfParseException($error);
         }
 
@@ -96,8 +92,8 @@ class sfDatabaseConfigHandler extends sfYamlConfigHandler
       $parameters = (isset($dbConfig['param']) ? var_export($dbConfig['param'], true) : 'null');
 
       // append new data
-      $data[] = sprintf("\n\$database = new %s();\n" .
-                        "\$database->initialize(%s, '%s');\n" .
+      $data[] = sprintf("\n\$database = new %s();\n".
+                        "\$database->initialize(%s, '%s');\n".
                         "\$this->databases['%s'] = \$database;",
                         $dbConfig['class'], $parameters, $key, $key);
     }

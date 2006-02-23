@@ -31,7 +31,11 @@ Let's assume that you run an Apache server. To setup a virtual host for the `mya
       </Directory>
     </VirtualHost>
 
-The `Alias` statement in the middle is necessary for the images of the debug sidebar to be displayed.
+The `Alias` statement in the middle is necessary for the images of the debug sidebar to be displayed. The `$data_dir` has to be replaced by your PEAR data directory. For example, for *nix, you should type:
+
+    Alias /sf /usr/local/lib/php/data/symfony/web/sf
+
+You will find more about the PEAR directories in the [installation chapter](installation.txt).
 
 Restart Apache, and that's it: the webapp can now be called and viewed through a standard web browser at the URL:
 
@@ -90,7 +94,7 @@ If you already have a website on a domain name, and if you wish that your symfon
 
 To do that, open the `httpd.conf` and add the following lines:
 
-    Alias /webapp/ /home/steve/myproject/web/
+    Alias /myapp/ /home/steve/myproject/web/
     <Directory "/home/steve/myproject/web">
        AllowOverride All
     </Directory>
@@ -101,13 +105,7 @@ You also need to edit the `.htaccess` file located in your `myproject/web/` dire
 
 to
 
-    RewriteRule ^(.*)$ /webapp/index.php [QSA,L]
-
-In addition, in the `settings.yml` configuration file of your application (located in `myproject/apps/myapp/config/`, add the following line under the `.settings` of all environments:
-
-    all:
-      .settings:
-        relative_url_root:    /webapp
+    RewriteRule ^(.*)$ /myapp/index.php [QSA,L]
 
 Restart Apache, and try to access your webapp:
 
@@ -167,21 +165,15 @@ to
 
     RewriteRule ^(.*)$ /admin/index.php [QSA,L]
 
-In the `settings.yml` configuration file of the application (located in `myproject/admin/config/`, add the following line under the `.settings` of all environments:
-
-    all:
-      .settings:
-        relative_url_root:    /admin
-
 Eventually, edit both front controllers (`myproject/web/admin/index.php` and `myproject/web/admin/admin_dev.php`) and change:
 
     [php]
-    define('SF_ROOT_DIR',    realpath(dirname(__FILE__).'/..'));
+    define('SF_ROOT_DIR', realpath(dirname(__FILE__).'/..'));
 
 to:
 
     [php]
-    define('SF_ROOT_DIR',    realpath(dirname(__FILE__).'/../..'));
+    define('SF_ROOT_DIR', realpath(dirname(__FILE__).'/../..'));
     
 And this is enough to be able to access the `admin` application by:
 

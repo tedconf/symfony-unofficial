@@ -46,7 +46,7 @@ abstract class sfWebController extends sfController
     {
       $url = $_SERVER['SCRIPT_NAME'];
     }
-    else if (($sf_relative_url_root = sfConfig::get('sf_relative_url_root')) && $sf_no_script_name)
+    else if (($sf_relative_url_root = $this->getContext()->getRequest()->getRelativeUrlRoot()) && $sf_no_script_name)
     {
       $url = $sf_relative_url_root;
     }
@@ -167,27 +167,18 @@ abstract class sfWebController extends sfController
    */
   public function redirect ($url, $delay = 0)
   {
-    // redirect
-    header('Location: '.$url);
+    $response = $this->getContext()->getResponse();
 
-    printf('<html><head><meta http-equiv="refresh" content="%d;url=%s"/></head></html>',
-      $delay, $url);
+    // redirect
+    $response->setHttpHeader('Location', $url);
+    $response->setContent(sprintf('<html><head><meta http-equiv="refresh" content="%d;url=%s"/></head></html>', $delay, $url));
+
+    $response->sendHttpHeaders();
+    $response->sendContent();
 
     // empty any buffers
     flush();
     ob_end_flush();
-  }
-
-  /**
-   * Set the content type for this request.
-   *
-   * @param string A content type.
-   *
-   * @return void
-   */
-  public function setContentType ($type)
-  {
-    $this->contentType = $type;
   }
 }
 

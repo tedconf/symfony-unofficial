@@ -35,6 +35,10 @@ class sfWebRequest extends sfRequest
    */
   protected $charsets = null;
 
+  protected $pathInfoArray = null;
+
+  protected $relativeUrlRoot = null;
+
   /**
    * Retrieve an array of file information.
    *
@@ -246,19 +250,22 @@ class sfWebRequest extends sfRequest
    */
   private function getPathInfoArray()
   {
-    // parse PATH_INFO
-    switch (sfConfig::get('sf_path_info_array'))
+    if (!$this->pathInfoArray)
     {
-      case 'SERVER':
-        $pathArray =& $_SERVER;
-        break;
+      // parse PATH_INFO
+      switch (sfConfig::get('sf_path_info_array'))
+      {
+        case 'SERVER':
+          $this->pathInfoArray =& $_SERVER;
+          break;
 
-      case 'ENV':
-      default:
-        $pathArray =& $_ENV;
+        case 'ENV':
+        default:
+          $this->pathInfoArray =& $_ENV;
+      }
     }
 
-    return $pathArray;
+    return $this->pathInfoArray;
   }
 
   public function getUri()
@@ -290,7 +297,7 @@ class sfWebRequest extends sfRequest
     else
     {
       $pathInfo = $pathArray[$sf_path_info_key];
-      if ($sf_relative_url_root = sfConfig::get('sf_relative_url_root'))
+      if ($sf_relative_url_root = $this->getRelativeUrlRoot())
       {
         $pathInfo = preg_replace('/^'.str_replace('/', '\\/', $sf_relative_url_root).'\//', '', $pathInfo);
       }
@@ -488,6 +495,18 @@ class sfWebRequest extends sfRequest
   }
 
   /**
+   * Returns request method.
+   *
+   * @return  string
+   */
+  public function getRequestMethod()
+  {
+    $pathArray = $this->getPathInfoArray();
+
+    return isset($pathArray['REQUEST_METHOD']) ? $pathArray['REQUEST_METHOD'] : 'GET';
+  }
+
+  /**
    * Get a list of languages acceptable by the client browser
    *
    * @return array languages ordered in the user browser preferences.
@@ -579,7 +598,85 @@ class sfWebRequest extends sfRequest
    */
   public function isXmlHttpRequest ()
   {
-    return (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] == 'XMLHttpRequest');
+    return ($this->getHttpHeader('X_REQUESTED_WITH') == 'XMLHttpRequest');
+  }
+
+  public function getHttpHeader ($name, $prefix = 'http')
+  {
+    $name = strtoupper($prefix).'_'.strtoupper(strtr($name, '-', '_'));
+
+    $pathArray = $this->getPathInfoArray();
+
+    return isset($pathArray[$name]) ? stripslashes($pathArray[$name]) : null;
+  }
+
+  public function __call ($name, $arguments)
+  {
+    if (0 === stripos($name, 'getHttp'))
+    {
+      $header = sfInflector::underscore(substr($name, 7));
+
+      return $this->getHttpHeader($header);
+    }
+    else if (0 === stripos($name, 'getSsl'))
+    {
+      $header = sfInflector::underscore(substr($name, 6));
+
+      return $this->getHttpHeader($header, 'ssl');
+    }
+
+    $error = sprintf('Call to undefined function: %s::%s().', get_class($this), $name);
+    trigger_error($error, E_USER_ERROR);
+  }
+
+  /**
+   * Get cookie value.
+   *
+   * @return mixed
+   */
+  public function getCookie ($name, $defaultValue = null)
+  {
+    $retval = $defaultValue;
+
+    if (isset($_COOKIE[$name]))
+    {
+      $retval = $_COOKIE[$name];
+    }
+
+    return $retval;
+  }
+
+  /**
+   * Returns true if the current request is secure (HTTPS protocol).
+   *
+   * @return boolean
+   */
+  public function isSecure()
+  {
+    $pathArray = $this->getPathInfoArray();
+
+    return (
+      (isset($pathArray['HTTPS']) && strtolower($pathArray['HTTPS']) == 'on')
+      ||
+      (isset($pathArray['HTTP_X_FORWARDED_PROTO']) && strtolower($pathArray['HTTP_X_FORWARDED_PROTO']) == 'https')
+    );
+  }
+
+  public function getRelativeUrlRoot()
+  {
+    if ($this->relativeUrlRoot === null)
+    {
+      $pathArray = $this->getPathInfoArray();
+
+      $this->relativeUrlRoot = preg_replace('#/[^/]+\.php$#', '', $pathArray['SCRIPT_NAME']);
+    }
+
+    return $this->relativeUrlRoot;
+  }
+
+  public function setRelativeUrlRoot($value)
+  {
+    $this->relativeUrlRoot = $value;
   }
 
   /**

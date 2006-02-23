@@ -49,6 +49,8 @@ class sfTestBrowser
 
   public function get($request_uri = '/', $with_layout = true)
   {
+    sfConfig::set('sf_timer_start', microtime(true));
+
     $context = $this->initRequest($request_uri, $with_layout);
     $html = $this->getContent();
     $this->closeRequest();
@@ -111,6 +113,7 @@ class sfTestBrowser
     self::$current_context->shutdown();
     self::$current_context = null;
     sfContext::removeInstance();
+    sfWebDebug::removeInstance();
   }
 
   public function shutdown()

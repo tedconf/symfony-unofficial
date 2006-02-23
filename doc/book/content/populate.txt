@@ -79,11 +79,13 @@ An import batch is a PHP script that reads the data from YAML files and transfer
     define('SF_ENVIRONMENT', 'dev');
     define('SF_DEBUG',       true);
     
-    require_once(SF_ROOT_DIR.DIRECTORY_SEPARATOR.SF_APP.DIRECTORY_SEPARATOR.'config'.DIRECTORY_SEPARATOR.'config.php');
+    require_once(SF_ROOT_DIR.DIRECTORY_SEPARATOR.'apps'.DIRECTORY_SEPARATOR.SF_APP.DIRECTORY_SEPARATOR.'config'.DIRECTORY_SEPARATOR.'config.php');
+    
+    sfContext::getInstance();
+    
+The definition of an application (`myapp`) and of an environment (`dev`) allows symfony to determine a configuration to be loaded. Once executed, this code allows the batch to access Propel objects, and to autoload any symfony class.
 
-The definition of an application (`myapp`) and an environments (`dev`) allow symfony to determine a configuration to be loaded. Once executed, this code allows the batch to access Propel objects, and to autoload any symfony class.
-
-### sfPropelData call
+### `sfPropelData` call
 
 The `sfPropelData` is an object who knows how to read a YAML data file and use it to add records to a Propel-enabled database. It is very easy to use: you just need to call its `->loadData()` method, passing as an argument a file or a directory that contains the data to be loaded into the database.
 
@@ -91,16 +93,16 @@ Create a `load_data.php` script in the `myproject/batch/` directory starting wit
 
     [php]
     $data = new sfPropelData();
-    $data->loadData(SF_DATA_DIR.'/fixtures');
+    $data->loadData(sfConfig::get('sf_data_dir').DIRECTORY_SEPARATOR.'fixtures');
 
-     %>
+     ?>
 
 To launch the script, just type in a command line:
 
     $ cd myproject/batch
     $ php load_data.php
 
-This batch will put the two records labeled `bob_walter` and `peter_clive` in the database - provided that the database connection settings are properly entered in the `myproject/apps/myapp/config/database.yml` configuration file.
+This batch will put the two records labeled `bob_walter` and `peter_clive` in the database - provided that the database connection settings are properly entered in the `myproject/apps/myapp/config/databases.yml` configuration file.
 
 ### Add or replace
 
@@ -191,12 +193,12 @@ It is getting quite long. Symfony allows you to cut the file in pieces, that wil
 The same `->loadData()` method call still works, since the parameter was a directory:
 
     [php]
-    $data->loadData(SF_DATA_DIR.'/fixtures');
+    $data->loadData(sfConfig::get('sf_data_dir').DIRECTORY_SEPARATOR.'fixtures');
 
 You can, if you wish, use only one of these files for the batch:
 
     [php]
-    $data->loadData(SF_DATA_DIR.'/fixtures/100_user_import_data.yml');
+    $data->loadData(sfConfig::get('sf_data_dir').DIRECTORY_SEPARATOR.'fixtures'.DIRECTORY_SEPARATOR.'100_user_import_data.yml');
 
 Alternate YAML syntax
 ---------------------

@@ -70,12 +70,15 @@ abstract class sfView
     $decoratorTemplate  = null,
     $directory          = null,
     $slots              = array(),
+    $componentSlots     = array(),
     $template           = null;
 
   protected
     $attribute_holder   = null,
+    $parameter_holder   = null,
     $moduleName         = '',
-    $viewName           = '';
+    $viewName           = '',
+    $extension          = '.php';
 
   /**
    * Loop through all template slots and fill them in with the results of presentation data.
@@ -143,7 +146,7 @@ abstract class sfView
    *
    * @return void
    */
-  abstract function configure ($extension = '.php');
+  abstract function configure ();
 
   /**
    * Retrieve the current application context.
@@ -322,6 +325,9 @@ abstract class sfView
 
     $this->context = $context;
     $this->attribute_holder = new sfParameterHolder();
+    $this->parameter_holder = new sfParameterHolder();
+
+    $this->parameter_holder->add(sfConfig::get('mod_'.strtolower($moduleName).'_view_param', array()));
 
     // set the currently executing module's template directory as the default template directory
     $module = $context->getModuleName();
@@ -353,6 +359,26 @@ abstract class sfView
   public function setAttribute($name, $value, $ns = null)
   {
     return $this->attribute_holder->set($name, $value, $ns);
+  }
+
+  public function getParameterHolder()
+  {
+    return $this->parameter_holder;
+  }
+
+  public function getParameter($name, $default = null, $ns = null)
+  {
+    return $this->parameter_holder->get($name, $default, $ns);
+  }
+
+  public function hasParameter($name, $ns = null)
+  {
+    return $this->parameter_holder->has($name, $ns);
+  }
+
+  public function setParameter($name, $value, $ns = null)
+  {
+    return $this->parameter_holder->set($name, $value, $ns);
   }
 
   /**
@@ -452,7 +478,14 @@ abstract class sfView
       $this->decoratorTemplate  = basename($template);
     }
     else
+    {
       $this->decoratorTemplate = $template;
+    }
+
+    if (!strpos($this->decoratorTemplate, '.')) 
+    {
+      $this->decoratorTemplate .= $this->extension;
+    }
 
     // set decorator status
     $this->decorator = true;
@@ -495,7 +528,51 @@ abstract class sfView
    */
   public function hasSlot($name)
   {
-    return array_key_exists($name, $this->slots);
+    return isset($this->slots[$name]);
+  }
+
+  /**
+   * Set the module and action to be executed in place of a particular
+   * template attribute.
+   *
+   * @param string A template attribute name.
+   * @param string A module name.
+   * @param string A omponent name.
+   *
+   * @return void
+   */
+  public function setComponentSlot ($attributeName, $moduleName, $componentName)
+  {
+    $this->componentSlots[$attributeName]                   = array();
+    $this->componentSlots[$attributeName]['module_name']    = $moduleName;
+    $this->componentSlots[$attributeName]['component_name'] = $componentName;
+  }
+
+  /**
+   * Indicates whether or not a component slot exists.
+   *
+   * @param  string component slot name
+   * @return bool true, if the component slot exists, otherwise false.
+   */
+  public function hasComponentSlot($name)
+  {
+    return isset($this->componentSlots[$name]);
+  }
+
+  /**
+   * Get a component slot.
+   *
+   * @param  string component slot name
+   * @return array component slot.
+   */
+  public function getComponentSlot($name)
+  {
+    if (isset($this->componentSlots[$name]))
+    {
+      return array($this->componentSlots[$name]['module_name'], $this->componentSlots[$name]['component_name']);
+    }
+
+    return null;
   }
 
   /**
@@ -516,7 +593,9 @@ abstract class sfView
       $this->template  = basename($template);
     }
     else
+    {
       $this->template = $template;
+    }
   }
 }
 

@@ -1,5 +1,6 @@
 prod:
-  no_script_name:           ##NO_SCRIPT_NAME##
+  .settings:
+    no_script_name:           ##NO_SCRIPT_NAME##
 
 dev:
   .settings:
@@ -9,6 +10,7 @@ dev:
     cache:                  off
     stats:                  off
     no_script_name:         off
+    etag:                   off
 
 test:
   .settings:
@@ -17,6 +19,8 @@ test:
     cache:                  off
     stats:                  off
     web_debug:              off
+    no_script_name:         off
+    etag:                   off
 
 all:
 #  .actions:
@@ -40,11 +44,6 @@ all:
 #
 #  .settings:
 #    available:              on
-#
-#    module_accessor:        module
-#    action_accessor:        action
-#
-#    content_type:           html
 #
 #    path_info_array:        SERVER
 #    path_info_key:          PATH_INFO
@@ -74,9 +73,7 @@ all:
 #    cache:                  on
 #    default_cache_lifetime: 86400
 #
-#    routing:                on
 #    no_script_name:         on
-#    relative_url_root:
 #
 #    stats:                  off
 #
@@ -92,3 +89,5 @@ all:
 #    activated_modules:      [default]
 #
 #    strip_comments:         off
+#
+#    etag:                   on

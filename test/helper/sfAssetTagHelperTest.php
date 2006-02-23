@@ -4,17 +4,25 @@ require_once 'helper/TagHelper.php';
 require_once 'helper/AssetHelper.php';
 require_once 'symfony/helper/UrlHelper.php';
 
+require_once 'symfony/request/sfRequest.class.php';
+require_once 'symfony/request/sfWebRequest.class.php';
+
 Mock::generate('sfContext');
+Mock::generate('sfWebRequest');
 
 class sfAssetTagHelperTest extends UnitTestCase
 {
   private
-    $context = null;
+    $context = null,
+    $request = null;
 
   public function SetUp()
   {
+    $this->request = new MockSfWebRequest($this);
+    $this->request->setReturnValue('getRelativeUrlRoot', '');
+
     $this->context = new MockSfContext($this);
-    sfConfig::set('sf_relative_url_root', '');
+    $this->context->setReturnValue('getRequest', $this->request);
   }
 
   public function test_image_tag()
@@ -131,8 +139,11 @@ class sfAssetTagHelperNonVhostTest extends UnitTestCase
 
   public function SetUp()
   {
+    $this->request = new MockSfRequest($this);
+    $this->request->setReturnValue('getRelativeUrlRoot', '/mypath');
+
     $this->context = new MockSfContext($this);
-    sfConfig::set('sf_relative_url_root', '/mypath');
+    $this->context->setReturnValue('getRequest', $this->request);
   }
 /*
   public function test_auto_discovery()
@@ -162,23 +173,6 @@ class sfAssetTagHelperNonVhostTest extends UnitTestCase
       '<script type="text/javascript" src="/mypath/js/common.javascript"></script>'."\n".
       '<script type="text/javascript" src="/mypath/elsewhere/cools.js"></script>'."\n");
   }
-
-/*
-  public function test_register_javascript_include_default()
-  {
-    // add ('slider') to default include
-    sfContext::getInstance()->getRequest()->add('slider', 'helper/asset/auto/javascript');
-
-    $this->assertEqual(include_javascripts(),
-      '<script type="text/javascript" src="/mypath/js/slider.js"></script>'."\n");
-
-    // add ('lib1', '/elsewhere/blub/lib2') to default include
-    $this->assertEqual(include_javascripts(),
-      '<script src="/mypath/js/slider.js" type="text/javascript"></script>'."\n".
-      '<script src="/mypath/js/lib1.js" type="text/javascript"></script>'."\n".
-      '<script src="/mypath/elsewhere/blub/lib2.js" type="text/javascript"></script>'."\n");
-  }
-*/
 
   public function test_style_path()
   {

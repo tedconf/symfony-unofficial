@@ -2,6 +2,10 @@
 
 <h1><?php echo $this->getI18NString('edit.title', 'edit '.$this->getModuleName()) ?></h1>
 
+<div id="sf_admin_header">
+[?php include_partial('<?php echo $this->getModuleName() ?>/edit_header', array('<?php echo $this->getSingularName() ?>' => $<?php echo $this->getSingularName() ?>)) ?]
+</div>
+
 <div id="sf_admin_content">
 
 [?php if ($sf_request->hasErrors()): ?]
@@ -61,4 +65,20 @@
 
 </form>
 
+<ul class="sf_admin_actions">
+<?php
+/*
+ * WARNING: delete is a form, it must be outside the main form
+ */
+ $editActions = $this->getParameterValue('edit.actions');
+?>
+  <?php if (!$editActions || isset($editActions['_delete'])): ?>
+    <?php echo $this->getButtonToAction('_delete', array(), true) ?>
+  <?php endif ?>
+</ul>
+
+</div>
+
+<div id="sf_admin_footer">
+[?php include_partial('<?php echo $this->getModuleName() ?>/edit_footer', array('<?php echo $this->getSingularName() ?>' => $<?php echo $this->getSingularName() ?>)) ?]
 </div>

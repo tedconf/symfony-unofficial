@@ -29,28 +29,26 @@ class sfViewConfigHandler extends sfYamlConfigHandler
    * @throws <b>sfParseException</b> If a requested configuration file is improperly formatted.
    * @throws <b>sfInitializationException</b> If a view.yml key check fails.
    */
-  public function execute($configFile, $param = array())
+  public function execute($configFiles)
   {
     // set our required categories list and initialize our handler
     $categories = array('required_categories' => array());
     $this->initialize($categories);
 
     // parse the yaml
-    $this->yamlConfig = $this->parseYaml($configFile);
+    $myConfig = $this->parseYamls($configFiles);
+
+    $myConfig['all'] = sfToolkit::arrayDeepMerge(
+      isset($myConfig['default']) && is_array($myConfig['default']) ? $myConfig['default'] : array(),
+      isset($myConfig['all']) && is_array($myConfig['all']) ? $myConfig['all'] : array()
+    );
+
+    unset($myConfig['default']);
+
+    $this->yamlConfig = $myConfig;
 
     // init our data array
     $data = array();
-
-    // get default configuration
-    $this->defaultConfig = array();
-    $defaultConfigFile = sfConfig::get('sf_app_config_dir').'/'.basename($configFile);
-    if (is_readable($defaultConfigFile))
-    {
-      $categories = array('required_categories' => array('default'));
-      $this->initialize($categories);
-
-      $this->defaultConfig = $this->parseYaml($defaultConfigFile);
-    }
 
     $data[] = "\$sf_safe_slot = sfConfig::get('sf_safe_slot');\n";
 
@@ -82,6 +80,7 @@ class sfViewConfigHandler extends sfYamlConfigHandler
 
       $data[] = $this->addLayout($viewName);
       $data[] = $this->addSlots($viewName);
+      $data[] = $this->addComponentSlots($viewName);
       $data[] = $this->addHtmlHead($viewName);
 
       $data[] = "  }\n";
@@ -110,6 +109,7 @@ class sfViewConfigHandler extends sfYamlConfigHandler
 
     $data[] = $this->addLayout();
     $data[] = $this->addSlots();
+    $data[] = $this->addComponentSlots();
     $data[] = $this->addHtmlHead();
 
     $data[] = "  }\n";
@@ -124,6 +124,23 @@ class sfViewConfigHandler extends sfYamlConfigHandler
                       date('Y/m/d H:i:s'), implode('', $data));
 
     return $retval;
+  }
+
+  private function addComponentSlots($viewName = '')
+  {
+    $data = '';
+
+    $components = $this->mergeConfigValue('components', $viewName);
+    foreach ($components as $name => $component)
+    {
+      if (count($component) > 1)
+      {
+        $data .= "    \$this->setComponentSlot('$name', '{$component[0]}', '{$component[1]}');\n";
+        $data .= "    if (sfConfig::get('sf_logging_active')) \$context->getLogger()->info('{sfViewConfig} set component \"$name\" ({$component[0]}/{$component[1]})');\n";
+      }
+    }
+
+    return $data;
   }
 
   private function addSlots($viewName = '')
@@ -143,12 +160,12 @@ class sfViewConfigHandler extends sfYamlConfigHandler
       if ($viewName == '')
       {
         // is category all: turning off default_slots or was it just not set?
-        if (isset($this->config['all']['use_default_slots']))
+        if (isset($this->yamlConfig['all']['use_default_slots']))
         {
           // only use slots defined within all
-          if (isset($this->config['all']['slots']))
+          if (isset($this->yamlConfig['all']['slots']))
           {
-            $slots = $this->config['all']['slots'];
+            $slots = $this->yamlConfig['all']['slots'];
           }
         }
         else
@@ -159,7 +176,7 @@ class sfViewConfigHandler extends sfYamlConfigHandler
       }
       else
       {
-        $slots = isset($this->config[$viewName]['slots']) ? $this->config[$viewName]['slots'] : null;
+        $slots = isset($this->yamlConfig[$viewName]['slots']) ? $this->yamlConfig[$viewName]['slots'] : null;
       }
     }
 
@@ -169,7 +186,6 @@ class sfViewConfigHandler extends sfYamlConfigHandler
       {
         if (count($slot) > 1)
         {
-          sfLogger::getInstance()->info("{sfViewConfigHandler} setting slots for view: $viewName  $name : {$slot[0]} : {$slot[1]}");
           $data .= "    \$this->setSlot('$name', '{$slot[0]}', '{$slot[1]}');\n";
           $data .= "    if (sfConfig::get('sf_logging_active')) \$context->getLogger()->info('{sfViewConfig} set slot \"$name\" ({$slot[0]}/{$slot[1]})');\n";
         }
@@ -200,12 +216,12 @@ class sfViewConfigHandler extends sfYamlConfigHandler
 
     foreach ($this->mergeConfigValue('http_metas', $viewName) as $httpequiv => $content)
     {
-      $data[] = sprintf("    \$action->addHttpMeta('%s', '%s', false);", $httpequiv, $content);
+      $data[] = sprintf("    \$action->getResponse()->addHttpMeta('%s', '%s', false);", $httpequiv, $content);
     }
 
     foreach ($this->mergeConfigValue('metas', $viewName) as $name => $content)
     {
-      $data[] = sprintf("    \$action->addMeta('%s', '%s', false);", $name, $content);
+      $data[] = sprintf("    \$action->getResponse()->addMeta('%s', '%s', false);", $name, $content);
     }
 
     return implode("\n", $data)."\n";
@@ -220,7 +236,16 @@ class sfViewConfigHandler extends sfYamlConfigHandler
     {
       foreach ($stylesheets as $css)
       {
-        $data[] = sprintf("  \$action->addStylesheet('%s');", $css);
+        if (is_array($css))
+        {
+          $key = key($css);
+          $options = $css[$key];
+          $data[] = sprintf("  \$action->getResponse()->addStylesheet('%s', '', %s);", $key, var_export($options, true));
+        }
+        else
+        {
+          $data[] = sprintf("  \$action->getResponse()->addStylesheet('%s');", $css);
+        }
       }
     }
 
@@ -229,7 +254,7 @@ class sfViewConfigHandler extends sfYamlConfigHandler
     {
       foreach ($javascripts as $js)
       {
-        $data[] = sprintf("  \$action->addJavascript('%s');", $js);
+        $data[] = sprintf("  \$action->getResponse()->addJavascript('%s');", $js);
       }
     }
 

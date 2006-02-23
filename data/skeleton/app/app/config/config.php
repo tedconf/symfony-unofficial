@@ -77,6 +77,7 @@ if ($version != $sf_version)
 $bootstrap = sfConfig::get('sf_config_cache_dir').'/config_bootstrap_compile.yml.php';
 if (is_readable($bootstrap))
 {
+  sfConfig::set('sf_in_bootstrap', true);
   require_once($bootstrap);
 }
 else

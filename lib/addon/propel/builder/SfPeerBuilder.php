@@ -60,8 +60,13 @@ class sfPeerBuilder extends PHP5ComplexPeerBuilder
    * @throws PropelException Any exceptions caught during processing will be
    *     rethrown wrapped into a PropelException.
    */
-  public static function doSelectWithI18n(Criteria \$c, \$culture, \$con = null)
+  public static function doSelectWithI18n(Criteria \$c, \$culture = null, \$con = null)
   {
+    if (\$culture === null)
+    {
+      \$culture = sfContext::getInstance()->getUser()->getCulture();
+    }
+
     // Set the correct dbName if it has not been overridden
     if (\$c->getDbName() == Propel::getDefaultDB())
     {
@@ -89,7 +94,7 @@ class sfPeerBuilder extends PHP5ComplexPeerBuilder
               $script .= "
       \$omClass = ".$this->getPeerClassname()."::getOMClass();
 ";
-            } 
+            }
             $script .= "
       \$cls = Propel::import(\$omClass);
       \$obj1 = new \$cls();
@@ -99,7 +104,7 @@ class sfPeerBuilder extends PHP5ComplexPeerBuilder
               $script .= "
       \$omClass = ".$i18nTablePeerBuilder->getPeerClassname()."::getOMClass(\$rs, \$startcol);
 ";
-//            } else { 
+//            } else {
 //              $script .= "
 //      \$omClass = ".$i18nTablePeerBuilder->getPeerClassname()."::getOMClass();
 //";
@@ -118,6 +123,22 @@ class sfPeerBuilder extends PHP5ComplexPeerBuilder
     return \$results;
   }
 ";
+  }
+
+  public function addDoValidate(&$script) {
+	    $tmp = '';
+      parent::addDoValidate($tmp);
+
+      $script .= str_replace("return {$this->basePeerClassname}::doValidate(".$this->getPeerClassname()."::DATABASE_NAME, ".$this->getPeerClassname()."::TABLE_NAME, \$columns);\n",
+        "\$res =  {$this->basePeerClassname}::doValidate(".$this->getPeerClassname()."::DATABASE_NAME, ".$this->getPeerClassname()."::TABLE_NAME, \$columns);\n".
+        "    if (\$res !== true) {\n".
+        "        \$request = sfContext::getInstance()->getRequest();\n".
+        "        foreach (\$res as \$failed) {\n".
+        "            \$col = ".$this->getPeerClassname()."::translateFieldname(\$failed->getColumn(), BasePeer::TYPE_COLNAME, BasePeer::TYPE_PHPNAME);\n".
+        "            \$request->setError(\$col, \$failed->getMessage());\n".
+        "        }\n".
+        "    }\n\n".
+        "    return \$res;\n", $tmp);
   }
 }
 

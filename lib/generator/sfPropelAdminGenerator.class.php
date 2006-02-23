@@ -1,31 +1,6 @@
 <?php
 
 /*
-
-symfony init-propeladmin-app app
-
-symfony init-propeladmin app test Test
-symfony init-propeladmin-main
-
-symfony install-module sfAuth
-symfony install-module sfMedia
-
-- filtres (avec filtres prédéfinis ?) => dates, fk, enums, 
-- breadcrumb
-- many to many (ajax?)
-- edition des tables liées en inline ou tabular (cf. django)
-- module d'authentification avec page de login toute faite (paramètre: classes à utiliser pour les utilisateurs)
-- module de gestion des images (sfMedia...)
-- mettre de la doc phpdoc dans les fichiers générées -> PDF automatique / html OK
-- autocomplete (pour des listes longues -> choix d'un utilisateur par exemple à la place d'un select)
-  avec erreur si existe pas en BDD au retour!!! (ou champ caché user_id_real)
-- generateur spécifique pour gérer la home page et aggréger les modules générés et les autres
-- gestion des types enums en passant un paramètre value
-- support des tables i18n
-
-*/
-
-/*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
  * 
@@ -108,6 +83,7 @@ class sfPropelAdminGenerator extends sfPropelCrudGenerator
       'listSuccess', 'editSuccess', '_filters', 
       '_list_th_'.$this->getParameterValue('list.display.layout', 'tabular'), '_list_td_'.$this->getParameterValue('list.display.layout', 'tabular'),
       '_list_th_tabular',
+      '_list_header', '_edit_header', '_list_footer', '_edit_footer',
       '_list_td_actions', '_list_actions', '_edit_actions',
     );
     $this->generatePhpFiles($this->generatedModuleName, $templateFiles);
@@ -247,7 +223,14 @@ class sfPropelAdminGenerator extends sfPropelCrudGenerator
     {
       $params = $this->getObjectTagParams($params, array('control_name' => $this->getSingularName().'['.$column->getName().']'));
 
-      return "object_$type(\${$this->getSingularName()}, 'get{$column->getPhpName()}', $params)";
+      if ($type == 'plain')
+      {
+        return "\${$this->getSingularName()}->get{$column->getPhpName()}()";
+      }
+      else
+      {
+        return "object_$type(\${$this->getSingularName()}, 'get{$column->getPhpName()}', $params)";
+      }
     }
 
     // guess the best tag to use with column type
@@ -313,7 +296,7 @@ class sfPropelAdminGenerator extends sfPropelCrudGenerator
         // not a "real" column, so we simulate one
         if (!$found)
         {
-          $phpNames[] = new sfAdminColumn($phpName);
+          $phpNames[] = new sfAdminColumn($phpName, null, $flag);
         }
       }
     }
@@ -416,12 +399,15 @@ class sfPropelAdminGenerator extends sfPropelCrudGenerator
     preg_match_all('/%%([^%]+)%%/', $value, $matches, PREG_PATTERN_ORDER);
     foreach ($matches[1] as $name)
     {
+      list($name, $flag) = $this->splitFlag($name);
+
       foreach ($columns as $column)
       {
         $found = false;
         if ($column->getName() == $name)
         {
-          $vars[] = '\'%%'.$name.'%%\' => $'.$this->getSingularName().'->get'.$column->getPhpName().'()';
+          $method = $column->getPhpName();
+
           $found = true;
           break;
         }
@@ -429,9 +415,21 @@ class sfPropelAdminGenerator extends sfPropelCrudGenerator
 
       if (!$found)
       {
-        $vars[] = '\'%%'.$name.'%%\' => $'.$this->getSingularName().'->get'.sfInflector::camelize($name).'()';
+        $method = sfInflector::camelize($name);
+      }
+
+      if ($flag === '=')
+      {
+        $vars[] = '\'%%'.$name.'%%\' => link_to($'.$this->getSingularName().'->get'.$method.'(), \''.$this->getModuleName().'/edit?'.$this->getPrimaryKeyUrlParams().')';
+      }
+      else
+      {
+        $vars[] = '\'%%'.$name.'%%\' => $'.$this->getSingularName().'->get'.$method.'()';
       }
     }
+
+    // strip all = signs
+    $value = preg_replace('/%%=([^%]+)%%/', '%%$1%%', $value);
 
     return '[?php echo __(\''.$value.'\', array('.implode(', ', $vars).')) ?]';
   }
@@ -446,7 +444,7 @@ class sfPropelAdminGenerator extends sfPropelCrudGenerator
     }
     elseif ($type == CreoleTypes::BOOLEAN)
     {
-      return "\${$this->getSingularName()}->get{$column->getPhpName()}() ? image_tag('/sf/images/sf_admin/ok.png') : ''";
+      return "\${$this->getSingularName()}->get{$column->getPhpName()}() ? image_tag('/sf/images/sf_admin/ok.png') : '&nbsp;'";
     }
     else
     {
@@ -464,8 +462,11 @@ class sfPropelAdminGenerator extends sfPropelCrudGenerator
     if ($column->isForeignKey())
     {
       $relatedTable = $this->getMap()->getDatabaseMap()->getTable($column->getRelatedTableName());
-      $params = $this->getObjectTagParams($params, array('related_class' => $relatedTable->getPhpName()));
-      return "select_tag($name, $default_value, $params)";
+      $params = $this->getObjectTagParams($params, array('include_blank' => true));
+
+      $options = "objects_for_select(".$relatedTable->getPhpName()."Peer::doSelect(new Criteria()), 'getPrimaryKey', '__toString', $default_value, $params)";
+
+      return "select_tag($name, $options, $params)";
     }
     else if ($type == CreoleTypes::DATE)
     {
@@ -481,8 +482,11 @@ class sfPropelAdminGenerator extends sfPropelCrudGenerator
     }
     else if ($type == CreoleTypes::BOOLEAN)
     {
-      $params = $this->getObjectTagParams($params);
-      return "checkbox_tag($name, $default_value, $params)";
+      $params = $this->getObjectTagParams($params, array('include_custom' => 'yes or no'));
+
+      $options = "options_for_select(array(1 => 'yes', 0 => 'no'), $default_value, $params)";
+
+      return "select_tag($name, $options, $params)";
     }
     else if ($type == CreoleTypes::CHAR || $type == CreoleTypes::VARCHAR)
     {
@@ -518,6 +522,14 @@ class sfPropelAdminGenerator extends sfPropelCrudGenerator
   }
 }
 
+/**
+ * Propel admin generator column.
+ *
+ * @package    symfony
+ * @subpackage generator
+ * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
+ * @version    SVN: $Id$
+ */
 class sfAdminColumn
 {
   private

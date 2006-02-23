@@ -16,7 +16,7 @@
  * provided.
  *
  * @package    symfony
- * @subpackage core
+ * @subpackage util
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  * @author     Sean Kerr <skerr@mojavi.org>
  * @version    SVN: $Id$
@@ -28,6 +28,7 @@ class sfContext
     $controller        = null,
     $databaseManager   = null,
     $request           = null,
+    $response          = null,
     $storage           = null,
     $securityFilter    = null,
     $viewCacheManager  = null,
@@ -215,6 +216,20 @@ class sfContext
   }
 
   /**
+   * Retrieve the curretn view instance for this context.
+   *
+   * @return sfView The currently view instance, if one is set,
+   *                otherwise null.
+   */
+  public function getCurrentViewInstance ()
+  {
+    // get the last action stack entry
+    $actionEntry = $this->actionStack->getLastEntry();
+
+    return $actionEntry ? $actionEntry->getViewInstance() : null;
+  }
+
+  /**
    * Retrieve the request.
    *
    * @return sfRequest The current sfRequest implementation instance.
@@ -222,6 +237,28 @@ class sfContext
   public function getRequest ()
   {
     return $this->request;
+  }
+
+  /**
+   * Retrieve the response.
+   *
+   * @return sfResponse The current sfResponse implementation instance.
+   */
+  public function getResponse ()
+  {
+    return $this->response;
+  }
+
+  /**
+   * Set the response object.
+   *
+   * @param sfResponse A sfResponse instance.
+   *
+   * @return void.
+   */
+  public function setResponse ($response)
+  {
+    $this->response = $response;
   }
 
   /**
@@ -285,6 +322,7 @@ class sfContext
     $this->getUser()->shutdown();
     $this->getStorage()->shutdown();
     $this->getRequest()->shutdown();
+    $this->getResponse()->shutdown();
 
     if (sfConfig::get('sf_use_database'))
     {

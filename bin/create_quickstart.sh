@@ -81,11 +81,14 @@ svn export http://svn.symfony-project.com/${SVN_PATH}/LICENSE LICENSE
 echo ">>> add README"
 svn export http://svn.symfony-project.com/${SVN_PATH}/doc/SANDBOX_README README
 
-# configuration
+# default: sqlite db
 
-echo ">>> change default configuration"
-sed -i -e "s#all:#all:\\
-  relative_url_root: /${SANDBOX_NAME}/web/#" apps/${APP_NAME}/config/settings.yml
+echo ">>> default to sqlite"
+sed -i '' -e "s#\(propel.database *= *\)mysql#\1sqlite#" config/propel.ini
+sed -i '' -e "s#\(propel.database.createUrl *= *\).*#\1sqlite://./../../../../data/sandbox.db#" config/propel.ini
+sed -i '' -e "s#\(propel.database.url *= *\).*#\1sqlite://./../../../../data/sandbox.db#" config/propel.ini
+
+sed -i '' -e "s#\( *dsn *: *\).*#\1sqlite://./../data/sandbox.db#" config/databases.yml
 
 # create archive
 

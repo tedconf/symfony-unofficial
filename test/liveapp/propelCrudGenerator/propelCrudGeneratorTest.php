@@ -30,16 +30,16 @@ class propelCrudGeneratorTest extends sfLiveProjectUnitTestCase
     $autoload_config_file = sfConfig::get('sf_app_config_dir_name').'/autoload.yml';
     if (is_readable($autoload_config_file))
     {
-      unlink(sfConfigCache::getCacheName($autoload_config_file));
+      unlink(sfConfigCache::getInstance()->getCacheName($autoload_config_file));
     }
-    require(sfConfigCache::checkConfig($autoload_config_file));
+    require(sfConfigCache::getInstance()->checkConfig($autoload_config_file));
 
     // create database
     $this->runSymfony('insert-sql');
 
     // populate with some fixture data
     $data = new sfPropelData();
-    $data->loadData(sfConfig::get('sf_data_dir').DIRECTORY_SEPARATOR.'fixtures.yml');
+    $data->loadData(sfConfig::get('sf_data_dir').DIRECTORY_SEPARATOR.'fixtures.yml', 'propel');
 
     // initialize scaffolding
     $this->runSymfony('init-propelcrud app posti Post');

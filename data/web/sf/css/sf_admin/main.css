@@ -21,6 +21,11 @@ body, td
   background-color: #fff;
 }
 
+p
+{
+  margin-bottom: 5px;
+}
+
 #sf_admin_bar
 {
   margin-top: 8px;
@@ -200,6 +205,8 @@ ul.sf_admin_actions input
   border: 0px;
   border-right: 4px solid #999;
   background-color: #ffc;
+  cursor: hand;
+  cursor: pointer;
 }
 
 .sf_admin_action_create

@@ -9,7 +9,7 @@
  */
 
 /**
- * sfWebDebug prints debug information in the browser for easy debugging.
+ * sfWebDebug creates debug information for easy debugging in the browser.
  *
  * @package    symfony
  * @subpackage debug
@@ -53,6 +53,16 @@ class sfWebDebug
     return self::$instance;
   }
 
+  /**
+   * Removes current sfWebDebug instance
+   *
+   * This method only exists for testing purpose. Don't use it in your application code.
+   */
+  public static function removeInstance()
+  {
+    self::$instance = null;
+  }
+
   public function registerAssets()
   {
     if (!$this->context)
@@ -60,21 +70,9 @@ class sfWebDebug
       $this->context = sfContext::getInstance();
     }
 
-    // load helpers
-    $this->loadHelpers();
-
     // register our css and js
-    $this->context->getRequest()->setAttribute(
-      'sf_web_debug',
-      array('/sf/js/prototype/prototype'),
-      'helper/asset/auto/javascript'
-    );
-
-    $this->context->getRequest()->setAttribute(
-      'sf_web_debug',
-      array('/sf/css/sf_debug_stats/main'),
-      'helper/asset/auto/stylesheet/last'
-    );
+    $this->context->getResponse()->addJavascript('/sf/js/prototype/prototype');
+    $this->context->getResponse()->addStylesheet('/sf/css/sf_debug_stats/main');
   }
 
   public function logShortMessage($message)
@@ -112,16 +110,10 @@ class sfWebDebug
     $this->log[] = $logEntry;
   }
 
-  public function printResults()
-  {
-    $this->loadHelpers();
-    echo $this->getResults();
-  }
-
   private function loadHelpers()
   {
     // require needed helpers
-    foreach (array('Tag', 'Url', 'Asset', 'Javascript') as $helperName)
+    foreach (array('Helper', 'Url', 'Asset', 'Tag', 'Javascript') as $helperName)
     {
       include_once(sfConfig::get('sf_symfony_lib_dir').'/helper/'.$helperName.'Helper.php');
     }
@@ -163,6 +155,8 @@ class sfWebDebug
       return '';
     }
 
+    $this->loadHelpers();
+
     $result = '';
 
     // total time elapsed
@@ -171,6 +165,13 @@ class sfWebDebug
     {
       $total_time = (microtime(true) - sfConfig::get('sf_timer_start')) * 1000;
       $total_time = sprintf(($total_time <= 1) ? '%.2f' : '%.0f', $total_time);
+    }
+
+    // memory used
+    $total_memory = 0;
+    if (sfConfig::get('sf_debug') && function_exists('memory_get_usage'))
+    {
+      $total_memory = sprintf('%.1f', (memory_get_usage() / 1024));
     }
 
     // max priority
@@ -203,6 +204,7 @@ class sfWebDebug
       '.$this->displayMenu($log_image).'
       <div id="sfStatsDetails">'.$this->displayCurrentConfig().'</div>
       <div id="sfStatsTime">processed in <strong>'.$total_time.'</strong> ms</div>
+      '.($total_memory ? '<div id="sfStatsMemory">memory: <strong>'.$total_memory.'</strong> KB</div>' : '').'
       '.$short_messages.'
       </div>
     ';
@@ -328,11 +330,12 @@ class sfWebDebug
       'debug'        => sfConfig::get('sf_debug')          ? 'on' : 'off',
       'xdebug'       => (function_exists('xdebug_get_function_stack')) ? 'on' : 'off',
       'logging'      => sfConfig::get('sf_logging_active') ? 'on' : 'off',
-      'routing'      => sfConfig::get('sf_routing')        ? 'on' : 'off',
       'cache'        => sfConfig::get('sf_cache')          ? 'on' : 'off',
       'eaccelerator' => (function_exists('eaccelerator') && ini_get('eaccelerator.enable')) ? 'on' : 'off',
       'compression'  => sfConfig::get('sf_compressed')     ? 'on' : 'off',
       'tidy'         => (function_exists('tidy_parse_string')) ? 'on' : 'off',
+      'syck'         => (function_exists('syck_load')) ? 'on' : 'off',
+      'memusage'     => (function_exists('memory_get_usage')) ? 'on' : 'off'
     );
 
     $result = '';
@@ -351,7 +354,10 @@ class sfWebDebug
         try
         {
           $con = Propel::getConnection();
-          $result .= '<div><span class="float bold">['.$con->getNumQueriesExecuted().']</span>db requests</div>';
+          if (method_exists($con, 'getNumQueriesExecuted'))
+          {
+            $result .= '<div><span class="float bold">['.$con->getNumQueriesExecuted().']</span>db requests</div>';
+          }
         }
         catch (Exception $e)
         {
@@ -364,12 +370,13 @@ class sfWebDebug
 
   public function decorateContentWithDebug($internalUri, $suffix, $retval, $border_color, $bg_color)
   {
-    $cache = $this->context->getViewCacheManager();
-
     if (!sfConfig::get('sf_web_debug'))
     {
       return $retval;
     }
+
+    $cache = $this->context->getViewCacheManager();
+    $this->loadHelpers();
 
     $last_modified = $cache->lastModified($internalUri, $suffix);
     $id            = md5($internalUri);

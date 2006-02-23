@@ -29,7 +29,7 @@ class sfAutoloadConfigHandler extends sfYamlConfigHandler
    * @throws sfConfigurationException If a requested configuration file does not exist or is not readable.
    * @throws sfParseException If a requested configuration file is improperly formatted.
    */
-  public function execute($configFile, $param = array())
+  public function execute($configFiles)
   {
     // set our required categories list and initialize our handler
     $categories = array('required_categories' => array('autoload'));
@@ -37,18 +37,7 @@ class sfAutoloadConfigHandler extends sfYamlConfigHandler
     $this->initialize($categories);
 
     // parse the yaml
-    $config = $this->parseYaml($configFile);
-
-    // get default configuration
-    $defaultConfigFile = sfConfig::get('sf_symfony_data_dir').'/config/'.basename($configFile);
-    $defaultConfig = array();
-    if (is_readable($defaultConfigFile))
-    {
-      $defaultConfig = $this->parseYaml($defaultConfigFile);
-    }
-
-    // merge with autoload configurations
-    $myConfig = sfToolkit::array_deep_merge($defaultConfig, $config);
+    $myConfig = $this->parseYamls($configFiles);
 
     // init our data array
     $data = array();

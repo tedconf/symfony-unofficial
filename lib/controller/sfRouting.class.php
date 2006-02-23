@@ -304,6 +304,8 @@ class sfRouting
           $defaults = array_merge($defaults, $global_defaults);
         }
 
+        $params = array_merge($defaults, $params);
+
         // we must match all names (all $names keys must be in $params array)
         foreach ($names as $key)
         {
@@ -340,6 +342,8 @@ class sfRouting
         throw new sfConfigurationException($error);
       }
     }
+
+    $params = array_merge($defaults, $params);
 
     $real_url = preg_replace('/\:([^\/]+)/e', 'urlencode($params["\\1"])', $url);
 

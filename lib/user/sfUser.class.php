@@ -80,7 +80,7 @@ class sfUser
     }
 
     $culture = $this->getContext()->getStorage()->read(self::CULTURE_NAMESPACE);
-    if ($this->culture == null)
+    if ($culture == null)
     {
       $culture = sfConfig::get('sf_i18n_default_culture');
     }
@@ -203,6 +203,8 @@ class sfUser
 
     // write culture to the storage
     $storage->write(self::CULTURE_NAMESPACE, $this->culture);
+
+    session_write_close();
   }
 }
 
