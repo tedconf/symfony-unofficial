@@ -6,10 +6,10 @@ if (ini_get('zend.ze1_compatibility_mode'))
 }
 
 // define some PEAR directory constants
-define('PAKEFILE_LIB_DIR',  '@PEAR-DIR@');
-define('PAKEFILE_DATA_DIR', '@DATA-DIR@');
+define('PAKEFILE_LIB_DIR',  '/home/wimsycal/tmp/projects/mysymfony');
+define('PAKEFILE_DATA_DIR', '/home/wimsycal/tmp/projects/mysymfony/data');
 define('PAKEFILE_SYMLINK',  false);
-define('SYMFONY_VERSION',   '@SYMFONY-VERSION@');
+define('SYMFONY_VERSION',   'mysymfony');
 
 require_once 'pake.php';
 

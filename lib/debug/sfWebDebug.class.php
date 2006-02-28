@@ -71,17 +71,8 @@ class sfWebDebug
     }
 
     // register our css and js
-    $this->context->getRequest()->setAttribute(
-      'sf_web_debug',
-      array('/sf/js/prototype/prototype'),
-      'helper/asset/auto/javascript'
-    );
-
-    $this->context->getRequest()->setAttribute(
-      'sf_web_debug',
-      array('/sf/css/sf_debug_stats/main'),
-      'helper/asset/auto/stylesheet/last'
-    );
+    $this->context->getResponse()->addJavascript('/sf/js/prototype/prototype');
+    $this->context->getResponse()->addStylesheet('/sf/css/sf_debug_stats/main');
   }
 
   public function logShortMessage($message)
@@ -139,7 +130,7 @@ class sfWebDebug
     }
 
     // escape HTML
-    $log_line = htmlspecialchars(strip_tags($log_line));
+    $log_line = htmlentities($log_line);
 
     // replace constants value with constant name
     $log_line = strtr($log_line, $constants);

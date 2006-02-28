@@ -56,7 +56,7 @@ abstract class sfAction extends sfComponent
     parent::initialize($context);
 
     // include security configuration
-    require(sfConfigCache::getInstance()->checkConfig('modules/'.$this->getModuleName().'/'.sfConfig::get('sf_app_module_config_dir_name').'/security.yml', true, array('moduleName' => $this->getModuleName())));
+    require(sfConfigCache::getInstance()->checkConfig(sfConfig::get('sf_app_module_dir_name').'/'.$this->getModuleName().'/'.sfConfig::get('sf_app_module_config_dir_name').'/security.yml', true));
 
     return true;
   }
@@ -181,6 +181,8 @@ abstract class sfAction extends sfComponent
     {
       throw new sfException('There was an error when trying to send this email.');
     }
+
+    return $presentation;
   }
 
   public function getPresentationFor($module, $action, $viewName = null)
@@ -416,46 +418,49 @@ abstract class sfAction extends sfComponent
     return $this->template;
   }
 
+  /**
+   * DEPRECATED: Please use the sfResponse object
+   */
   public function addHttpMeta($key, $value, $override = true)
   {
-    if ($override || !$this->request->hasAttribute($key, 'helper/asset/auto/httpmeta'))
-    {
-      $this->request->setAttribute($key, $value, 'helper/asset/auto/httpmeta');
-    }
+    if (sfConfig::get('sf_logging_active')) $this->getContext()->getLogger()->err('This method is deprecated. Please use $this->getResponse()->addHttpMeta($key, $value, $override).');
+    $this->getContext()->getResponse()->addHttpMeta($key, $value, $override);
   }
 
+  /**
+   * DEPRECATED: Please use the sfResponse object
+   */
   public function addMeta($key, $value, $override = true)
   {
-    if ($override || !$this->request->hasAttribute($key, 'helper/asset/auto/meta'))
-    {
-      $this->request->setAttribute($key, $value, 'helper/asset/auto/meta');
-    }
+    if (sfConfig::get('sf_logging_active')) $this->getContext()->getLogger()->err('This method is deprecated. Please use $this->getResponse()->addMeta($key, $value, $override).');
+    $this->getContext()->getResponse()->addMeta($key, $value, $override);
   }
 
+  /**
+   * DEPRECATED: Please use the sfResponse object
+   */
   public function setTitle($title)
   {
-    $this->request->getAttributeHolder()->set('title', $title, 'helper/asset/auto/meta');
+    if (sfConfig::get('sf_logging_active')) $this->getContext()->getLogger()->err('This method is deprecated. Please use $this->getResponse()->setTitle($title).');
+    $this->getContext()->getResponse()->setTitle($title);
   }
 
-  public function addStylesheet($css, $position = '')
+  /**
+   * DEPRECATED: Please use the sfResponse object
+   */
+  public function addStylesheet($css, $position = '', $options = array())
   {
-    if ($position == 'first')
-    {
-      $this->request->setAttribute($css, $css, 'helper/asset/auto/stylesheet/first');
-    }
-    else if ($position == 'last')
-    {
-      $this->request->setAttribute($css, $css, 'helper/asset/auto/stylesheet/last');
-    }
-    else
-    {
-      $this->request->setAttribute($css, $css, 'helper/asset/auto/stylesheet');
-    }
+    if (sfConfig::get('sf_logging_active')) $this->getContext()->getLogger()->err('This method is deprecated. Please use $this->getResponse()->addStylesheet($css, $position, $options).');
+    $this->getContext()->getResponse()->addStylesheet($css, $position, $options);
   }
 
+  /**
+   * DEPRECATED: Please use the sfResponse object
+   */
   public function addJavascript($js)
   {
-    $this->request->setAttribute($js, $js, 'helper/asset/auto/javascript');
+    if (sfConfig::get('sf_logging_active')) $this->getContext()->getLogger()->err('This method is deprecated. Please use $this->getResponse()->addJavascript($js).');
+    $this->getContext()->getResponse()->addJavascript($js);
   }
 }
 

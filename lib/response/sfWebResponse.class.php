@@ -93,15 +93,31 @@ class sfWebResponse extends sfResponse
    *
    * @return void
    */
-  public function setCookie ($name, $value, $expire = '', $path = '/', $domain = '', $secure = 0)
+  public function setCookie ($name, $value, $expire = null, $path = '/', $domain = '', $secure = false)
   {
+    if ($expire !== null)
+    {
+      if (is_numeric($expire))
+      {
+        $expire = (int) $expire;
+      }
+      else
+      {
+        $expire = strtotime($expire);
+        if ($expire === false || $expire == -1)
+        {
+          throw new sfException('Your expire parameter is not valid.');
+        }
+      }
+    }
+
     $this->cookies[] = array(
       'name'   => $name,
       'value'  => $value,
       'expire' => $expire,
       'path'   => $path,
       'domain' => $domain,
-      'secure' => $secure,
+      'secure' => $secure ? true : false,
     );
   }
 
@@ -196,7 +212,7 @@ class sfWebResponse extends sfResponse
    *
    * @return boolean
    */
-  public function hasHeader ($name)
+  public function hasHttpHeader ($name)
   {
     return isset($this->headers[$this->normalizeHeaderName($name)]);
   }
@@ -218,7 +234,7 @@ class sfWebResponse extends sfResponse
     }
 
     // set headers from HTTP meta
-    foreach ($this->getContext()->getRequest()->getAttributeHolder()->getAll('helper/asset/auto/httpmeta') as $name => $value)
+    foreach ($this->getHttpMetas() as $name => $value)
     {
       $this->setHttpHeader($name, $value, false);
     }
@@ -315,6 +331,80 @@ class sfWebResponse extends sfResponse
       $currentHeaders[] = $name.($value !== null ? '='.$value : '');
       $this->setHttpHeader('Cache-Control', implode(', ', $currentHeaders));
     }
+  }
+
+  public function getHttpMetas()
+  {
+    return $this->parameter_holder->getAll('helper/asset/auto/httpmeta');
+  }
+
+  public function addHttpMeta($key, $value, $override = true)
+  {
+    if ($override || !$this->hasParameter($key, 'helper/asset/auto/httpmeta'))
+    {
+      $this->setParameter($key, $value, 'helper/asset/auto/httpmeta');
+    }
+  }
+
+  public function getMetas()
+  {
+    return $this->parameter_holder->getAll('helper/asset/auto/meta');
+  }
+
+  public function addMeta($key, $value, $override = true)
+  {
+    if ($override || !$this->hasParameter($key, 'helper/asset/auto/meta'))
+    {
+      $this->setParameter($key, $value, 'helper/asset/auto/meta');
+    }
+  }
+
+  public function getTitle()
+  {
+    $metas = $this->parameter_holder->getAll('helper/asset/auto/meta');
+
+    return $metas['title'];
+  }
+
+  public function setTitle($title)
+  {
+    $this->setParameter('title', $title, 'helper/asset/auto/meta');
+  }
+
+  public function getStylesheets($position = '')
+  {
+    if ($position)
+    {
+      $position = '/'.$position;
+    }
+
+    return $this->parameter_holder->getAll('helper/asset/auto/stylesheet'.$position);
+  }
+
+  public function addStylesheet($css, $position = '', $options = array())
+  {
+    if ($position == 'first')
+    {
+      $this->setParameter($css, $options, 'helper/asset/auto/stylesheet/first');
+    }
+    else if ($position == 'last')
+    {
+      $this->setParameter($css, $options, 'helper/asset/auto/stylesheet/last');
+    }
+    else
+    {
+      $this->setParameter($css, $options, 'helper/asset/auto/stylesheet');
+    }
+  }
+
+  public function getJavascripts()
+  {
+    return $this->parameter_holder->getAll('helper/asset/auto/javascript');
+  }
+
+  public function addJavascript($js)
+  {
+    $this->setParameter($js, $js, 'helper/asset/auto/javascript');
   }
 
   /**

@@ -55,13 +55,13 @@ function options_for_select($options = array(), $selected = '', $html_options = 
 
   $html = '';
 
-  if (isset($html_options['include_blank']))
-  {
-    $html .= content_tag('option', '', array('value' => ''))."\n";
-  }
-  else if (isset($html_options['include_custom']))
+  if (isset($html_options['include_custom']))
   {
     $html .= content_tag('option', $html_options['include_custom'], array('value' => ''))."\n";
+  }
+  else if (isset($html_options['include_blank']))
+  {
+    $html .= content_tag('option', '', array('value' => ''))."\n";
   }
 
   foreach ($options as $key => $value)
@@ -114,6 +114,11 @@ function form_tag($url_for_options = '', $options = array())
 
 function select_tag($name, $option_tags = null, $options = array())
 {
+  if($reqvalue = _get_request_value($name))
+  {
+    //need to parse the option_tags and set the selected one to the reqvalue
+    $value = $reqvalue;
+  }  
   return content_tag('select', $option_tags, array_merge(array('name' => $name, 'id' => $name), _convert_options($options)));
 }
 
@@ -121,6 +126,18 @@ function select_country_tag($name, $value, $options = array())
 {
   $c = new sfCultureInfo(sfContext::getInstance()->getUser()->getCulture());
   $countries = $c->getCountries();
+
+  if (isset($options['countries']) && is_array($options['countries']))
+  {
+    $diff = array_diff_key($countries, array_flip($options['countries']));
+    foreach ($diff as $key => $v)
+    {
+      unset($countries[$key]);
+    }
+
+    unset($options['countries']);
+  }
+
   asort($countries);
 
   $option_tags = options_for_select($countries, $value);
@@ -132,6 +149,18 @@ function select_language_tag($name, $value, $options = array())
 {
   $c = new sfCultureInfo(sfContext::getInstance()->getUser()->getCulture());
   $languages = $c->getLanguages();
+
+  if (isset($options['languages']) && is_array($options['languages']))
+  {
+    $diff = array_diff_key($languages, array_flip($options['languages']));
+    foreach ($diff as $key => $v)
+    {
+      unset($languages[$key]);
+    }
+
+    unset($options['languages']);
+  }
+
   asort($languages);
 
   $option_tags = options_for_select($languages, $value);
@@ -204,11 +233,23 @@ function textarea_tag($name, $content = null, $options = array())
   if (isset($options['rich']))
   {
     $rich = $options['rich'];
-    if ($rich == true || $rich == 'true')
+    if ($rich === true || $rich == 'true')
     {
       $rich = 'tinymce';
     }
     unset($options['rich']);
+  }
+
+  // we need to know the id for things the rich text editor
+  // in advance of building the tag
+  if (isset($options['id']))
+  {
+    $id = $options['id'];
+    unset($options['id']);
+  }
+  else
+  {
+    $id = $name;
   }
 
   if ($rich == 'tinymce')
@@ -220,7 +261,7 @@ function textarea_tag($name, $content = null, $options = array())
       throw new sfConfigurationException('You must install TinyMCE to use this helper (see rich_text_js_dir settings).');
     }
 
-    sfContext::getInstance()->getRequest()->setAttribute('tinymce', $js_path, 'helper/asset/auto/javascript');
+    sfContext::getInstance()->getResponse()->addJavascript($js_path);
 
     require_once(sfConfig::get('sf_symfony_lib_dir').'/helper/JavascriptHelper.php');
 
@@ -235,7 +276,7 @@ function textarea_tag($name, $content = null, $options = array())
 
       $css_path = stylesheet_path($css_file);
 
-      sfContext::getInstance()->getRequest()->setAttribute('tinymce', $css_path, 'helper/asset/auto/stylesheet');
+      sfContext::getInstance()->getResponse()->addStylesheet($css_path);
 
       $css    = file_get_contents(sfConfig::get('sf_web_dir').DIRECTORY_SEPARATOR.$css_path);
       $styles = array();
@@ -254,7 +295,7 @@ function textarea_tag($name, $content = null, $options = array())
 tinyMCE.init({
   mode: "exact",
   language: "en",
-  elements: "'.$name.'",
+  elements: "'.$id.'",
   plugins: "table,advimage,advlink,flash",
   theme: "advanced",
   theme_advanced_toolbar_location: "top",
@@ -267,11 +308,12 @@ tinyMCE.init({
   relative_urls: false,
   debug: false
   '.($tinymce_options ? ','.$tinymce_options : '').'
+  '.(isset($options['tinymce_options']) ? ','.$options['tinymce_options'] : '').'
 });';
 
     return
       content_tag('script', javascript_cdata_section($tinymce_js), array('type' => 'text/javascript')).
-      content_tag('textarea', $content, array_merge(array('name' => $name, 'id' => $name), _convert_options($options)));
+      content_tag('textarea', $content, array_merge(array('name' => $name, 'id' => $id), _convert_options($options)));
   }
   elseif ($rich === 'fck')
   {
@@ -325,7 +367,7 @@ tinyMCE.init({
   }
   else
   {
-    return content_tag('textarea', htmlspecialchars((is_object($content)) ? $content->__toString() : $content), array_merge(array('name' => $name, 'id' => $name), _convert_options($options)));
+    return content_tag('textarea', htmlspecialchars((is_object($content)) ? $content->__toString() : $content), array_merge(array('name' => $name, 'id' => $id), _convert_options($options)));
   }
 }
 
@@ -414,14 +456,17 @@ function input_date_tag($name, $value, $options = array())
   }
 
   // register our javascripts and stylesheets
-  $js = array(
+  $jss = array(
     '/sf/js/calendar/calendar',
 //  '/sf/js/calendar/lang/calendar-'.substr($culture, 0, 2),
     '/sf/js/calendar/lang/calendar-en',
     '/sf/js/calendar/calendar-setup',
   );
-  $context->getRequest()->setAttribute('date', $js, 'helper/asset/auto/javascript');
-  $context->getRequest()->setAttribute('date', '/sf/js/calendar/skins/aqua/theme', 'helper/asset/auto/stylesheet');
+  foreach ($jss as $js)
+  {
+    $context->getResponse()->addJavascript($js);
+  }
+  $context->getResponse()->addStylesheet('/sf/js/calendar/skins/aqua/theme');
 
   // date format
   $dateFormatInfo = sfDateTimeFormatInfo::getInstance($culture);

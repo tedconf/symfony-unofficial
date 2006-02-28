@@ -31,17 +31,10 @@ class sfCompileConfigHandler extends sfYamlConfigHandler
    * @throws sfConfigurationException If a requested configuration file does not exist or is not readable.
    * @throws sfParseException If a requested configuration file is improperly formatted.
    */
-  public function execute($configFile, $param = array())
+  public function execute($configFiles)
   {
-    if (!is_readable($configFile))
-    {
-      // can't read the configuration
-      $error = sprintf('Configuration file "%s" does not exist or is not readable', $configFile);
-      throw new sfConfigurationException($error);
-    }
-
     // parse the yaml
-    $config = $this->parseYaml($configFile);
+    $config = $this->parseYamls($configFiles);
 
     // init our data
     $data = '';
@@ -61,8 +54,7 @@ class sfCompileConfigHandler extends sfYamlConfigHandler
         if (!is_readable($file))
         {
           // file doesn't exist
-          $error = sprintf('Configuration file "%s" specifies nonexistent or unreadable file "%s"',
-                           $configFile, $file);
+          $error = sprintf('Configuration file "%s" specifies nonexistent or unreadable file "%s"', $configFiles[0], $file);
           throw new sfParseException($error);
         }
 

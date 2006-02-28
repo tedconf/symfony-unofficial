@@ -115,21 +115,37 @@ function object_select_tag($object, $method, $options = array(), $default_value 
   }
   unset($options['related_class']);
 
-  if (isset($options['include_title']))
+  $select_options = _get_values_for_object_select_tag($object, $related_class);
+
+  if (isset($options['include_custom']))
   {
-    $select_options[''] = '-- '._convert_method_to_name($method, $options).' --';
+    array_unshift($select_options, $options['include_custom']);
+    unset($options['include_custom']);
+  }
+  else if (isset($options['include_title']))
+  {
+    array_unshift($select_options, '-- '._convert_method_to_name($method, $options).' --');
     unset($options['include_title']);
   }
-
-  $select_options = _get_values_for_objet_select_tag($object, $related_class);
+  else if (isset($options['include_blank']))
+  {
+    array_unshift($select_options, '');
+    unset($options['include_blank']);
+  }
 
   $value = _get_object_value($object, $method, $default_value);
+  
+  if($reqvalue = _get_request_value(_convert_method_to_name($method, $options)))
+  {
+    $value = $reqvalue;
+  }
+  
   $option_tags = options_for_select($select_options, $value, $options);
 
   return select_tag(_convert_method_to_name($method, $options), $option_tags, $options);
 }
 
-function _get_values_for_objet_select_tag($object, $class)
+function _get_values_for_object_select_tag($object, $class)
 {
   // FIXME: drop Propel dependency
 

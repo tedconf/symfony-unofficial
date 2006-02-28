@@ -180,11 +180,15 @@ abstract class sfWebController extends sfController
   public function redirect ($url, $delay = 0)
   {
     $this->redirectedUri = $url;
-    
-    // redirect
-    header('Location: '.$url);
 
-    printf('<html><head><meta http-equiv="refresh" content="%d;url=%s"/></head></html>', $delay, $url);
+    $response = $this->getContext()->getResponse();
+
+    // redirect
+    $response->setHttpHeader('Location', $url);
+    $response->setContent(sprintf('<html><head><meta http-equiv="refresh" content="%d;url=%s"/></head></html>', $delay, $url));
+
+    $response->sendHttpHeaders();
+    $response->sendContent();
 
     // empty any buffers
     flush();

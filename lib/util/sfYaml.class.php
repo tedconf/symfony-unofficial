@@ -35,12 +35,15 @@ class sfYaml
    */
   public static function load ($input)
   {
-    $input = self::getIncludeContents($input); 
+
+    $input = self::getIncludeContents($input);
 
     // syck is prefered over spyc
-    if (function_exists('syck_load')) 
+    if (function_exists('syck_load'))
     {
-      return syck_load($input);
+      $retval = syck_load($input);
+
+      return (is_array($retval)) ? $retval : array();
     }
     else
     {

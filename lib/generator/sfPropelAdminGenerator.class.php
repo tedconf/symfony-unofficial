@@ -81,7 +81,7 @@ class sfPropelAdminGenerator extends sfPropelCrudGenerator
     $this->setTheme($theme);
     $templateFiles = array(
       'listSuccess', 'editSuccess', '_filters', 
-      '_list_th_'.$this->getParameterValue('list.display.layout', 'tabular'), '_list_td_'.$this->getParameterValue('list.display.layout', 'tabular'),
+      '_list_th_'.$this->getParameterValue('list.layout', 'tabular'), '_list_td_'.$this->getParameterValue('list.layout', 'tabular'),
       '_list_th_tabular',
       '_list_header', '_edit_header', '_list_footer', '_edit_footer',
       '_list_td_actions', '_list_actions', '_edit_actions',
@@ -254,6 +254,24 @@ class sfPropelAdminGenerator extends sfPropelCrudGenerator
     }
 
     return array('NONE');
+  }
+
+  public function addCredentialCondition($content, $params = array())
+  {
+    if (isset($params['credentials']))
+    {
+      $credentials = str_replace("\n", ' ', var_export($params['credentials'], true));
+
+      return <<<EOF
+[?php if (\$sf_user->hasCredential($credentials)): ?]
+$content
+[?php endif ?]
+EOF;
+    }
+    else
+    {
+      return $content;
+    }
   }
 
   /**
@@ -436,11 +454,16 @@ class sfPropelAdminGenerator extends sfPropelCrudGenerator
 
   public function getColumnListTag($column, $params = array())
   {
+    $user_params = $this->getParameterValue('list.fields.'.$column->getName().'.params');
+    $user_params = is_array($user_params) ? $user_params : sfToolkit::stringToArray($user_params);
+    $params      = $user_params ? array_merge($params, $user_params) : $params;
+
     $type = $column->getCreoleType();
 
     if ($type == CreoleTypes::DATE || $type == CreoleTypes::TIMESTAMP)
     {
-      return "format_date(\${$this->getSingularName()}->get{$column->getPhpName()}(), 'f')";
+      $format = isset($params['date_format']) ? $params['date_format'] : 'f';
+      return "format_date(\${$this->getSingularName()}->get{$column->getPhpName()}(), \"$format\")";
     }
     elseif ($type == CreoleTypes::BOOLEAN)
     {
@@ -454,6 +477,10 @@ class sfPropelAdminGenerator extends sfPropelCrudGenerator
 
   public function getColumnFilterTag($column, $params = array())
   {
+    $user_params = $this->getParameterValue('list.fields.'.$column->getName().'.params');
+    $user_params = is_array($user_params) ? $user_params : sfToolkit::stringToArray($user_params);
+    $params      = $user_params ? array_merge($params, $user_params) : $params;
+
     $type = $column->getCreoleType();
 
     $default_value = "isset(\$filters['".$column->getName()."']) ? \$filters['".$column->getName()."'] : null";
@@ -482,9 +509,13 @@ class sfPropelAdminGenerator extends sfPropelCrudGenerator
     }
     else if ($type == CreoleTypes::BOOLEAN)
     {
-      $params = $this->getObjectTagParams($params, array('include_custom' => 'yes or no'));
+      $defaultIncludeCustom = '__("yes or no")';
+      $params = $this->getObjectTagParams($params, array('include_custom' => $defaultIncludeCustom));
 
-      $options = "options_for_select(array(1 => 'yes', 0 => 'no'), $default_value, $params)";
+      // little hack
+      $params = preg_replace("/'".preg_quote($defaultIncludeCustom)."'/", $defaultIncludeCustom, $params);
+
+      $options = "options_for_select(array(1 => __('yes'), 0 => __('no')), $default_value, $params)";
 
       return "select_tag($name, $options, $params)";
     }

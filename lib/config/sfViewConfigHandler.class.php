@@ -29,28 +29,26 @@ class sfViewConfigHandler extends sfYamlConfigHandler
    * @throws <b>sfParseException</b> If a requested configuration file is improperly formatted.
    * @throws <b>sfInitializationException</b> If a view.yml key check fails.
    */
-  public function execute($configFile, $param = array())
+  public function execute($configFiles)
   {
     // set our required categories list and initialize our handler
     $categories = array('required_categories' => array());
     $this->initialize($categories);
 
     // parse the yaml
-    $this->yamlConfig = $this->parseYaml($configFile);
+    $myConfig = $this->parseYamls($configFiles);
+
+    $myConfig['all'] = sfToolkit::arrayDeepMerge(
+      isset($myConfig['default']) && is_array($myConfig['default']) ? $myConfig['default'] : array(),
+      isset($myConfig['all']) && is_array($myConfig['all']) ? $myConfig['all'] : array()
+    );
+
+    unset($myConfig['default']);
+
+    $this->yamlConfig = $myConfig;
 
     // init our data array
     $data = array();
-
-    // get default configuration
-    $this->defaultConfig = array();
-    $defaultConfigFile = sfConfig::get('sf_app_config_dir').'/'.basename($configFile);
-    if (is_readable($defaultConfigFile))
-    {
-      $categories = array('required_categories' => array('default'));
-      $this->initialize($categories);
-
-      $this->defaultConfig = $this->parseYaml($defaultConfigFile);
-    }
 
     $data[] = "\$sf_safe_slot = sfConfig::get('sf_safe_slot');\n";
 
@@ -218,12 +216,12 @@ class sfViewConfigHandler extends sfYamlConfigHandler
 
     foreach ($this->mergeConfigValue('http_metas', $viewName) as $httpequiv => $content)
     {
-      $data[] = sprintf("    \$action->addHttpMeta('%s', '%s', false);", $httpequiv, $content);
+      $data[] = sprintf("    \$action->getResponse()->addHttpMeta('%s', '%s', false);", $httpequiv, $content);
     }
 
     foreach ($this->mergeConfigValue('metas', $viewName) as $name => $content)
     {
-      $data[] = sprintf("    \$action->addMeta('%s', '%s', false);", $name, $content);
+      $data[] = sprintf("    \$action->getResponse()->addMeta('%s', '%s', false);", $name, $content);
     }
 
     return implode("\n", $data)."\n";
@@ -238,7 +236,16 @@ class sfViewConfigHandler extends sfYamlConfigHandler
     {
       foreach ($stylesheets as $css)
       {
-        $data[] = sprintf("  \$action->addStylesheet('%s');", $css);
+        if (is_array($css))
+        {
+          $key = key($css);
+          $options = $css[$key];
+          $data[] = sprintf("  \$action->getResponse()->addStylesheet('%s', '', %s);", $key, var_export($options, true));
+        }
+        else
+        {
+          $data[] = sprintf("  \$action->getResponse()->addStylesheet('%s');", $css);
+        }
       }
     }
 
@@ -247,7 +254,7 @@ class sfViewConfigHandler extends sfYamlConfigHandler
     {
       foreach ($javascripts as $js)
       {
-        $data[] = sprintf("  \$action->addJavascript('%s');", $js);
+        $data[] = sprintf("  \$action->getResponse()->addJavascript('%s');", $js);
       }
     }
 

@@ -176,7 +176,8 @@ $script .= '
         // add automatic CreatedAt updating
         $created = true;
         $date_script .= "
-    if (\$this->isNew())
+
+    if (\$this->isNew() && !\$this->getCreatedAt())
     {
       \$this->setCreatedAt(time());
     }
@@ -187,7 +188,8 @@ $script .= '
         // add automatic CreatedOn updating
         $created = true;
         $date_script .= "
-    if (\$this->isNew())
+
+    if (\$this->isNew() && !\$this->getCreatedOn())
     {
       \$this->setCreatedOn(time());
     }

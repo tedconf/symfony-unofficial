@@ -29,10 +29,10 @@ class sfRootConfigHandler extends sfYamlConfigHandler
    * @throws sfConfigurationException If a requested configuration file does not exist or is not readable.
    * @throws sfParseException If a requested configuration file is improperly formatted.
    */
-  public function execute($configFile, $param = array())
+  public function execute($configFiles)
   {
-    // parse the ini
-    $config = $this->parseYaml($configFile);
+    // parse the yaml
+    $config = $this->parseYamls($configFiles);
 
     // determine if we're loading the system config_handlers.yml or a module config_handlers.yml
     $moduleLevel = ($this->getParameterHolder()->get('module_level') === true) ? true : false;
@@ -60,8 +60,7 @@ class sfRootConfigHandler extends sfYamlConfigHandler
       if (!isset($keys['class']))
       {
         // missing class key
-        $error = sprintf('Configuration file "%s" specifies category "%s" with missing class key',
-                         $configFile, $category);
+        $error = sprintf('Configuration file "%s" specifies category "%s" with missing class key', $configFiles[0], $category);
         throw new sfParseException($error);
       }
 
@@ -76,8 +75,7 @@ class sfRootConfigHandler extends sfYamlConfigHandler
         if (!is_readable($file))
         {
           // handler file doesn't exist
-          $error = sprintf('Configuration file "%s" specifies class "%s" with nonexistent or unreadable file "%s"',
-                           $configFile, $class, $file);
+          $error = sprintf('Configuration file "%s" specifies class "%s" with nonexistent or unreadable file "%s"', $configFiles[0], $class, $file);
           throw new sfParseException($error);
         }
 
