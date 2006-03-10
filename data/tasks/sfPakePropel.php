@@ -20,6 +20,9 @@ pake_desc('insert sql for current model');
 pake_task('propel-insert-sql', 'project_exists');
 pake_task('insert-sql');
 
+pake_desc('generate propel model and sql and initialize database');
+pake_task('propel-build-all', 'project_exists', 'propel-build-model', 'propel-build-sql', 'propel-insert-sql');
+
 function run_build_model($task, $args)
 {
   throw new Exception('This task is deprecated. Please use "propel-build-model".');
@@ -43,6 +46,10 @@ function run_build_db($task, $args)
 function run_insert_sql($task, $args)
 {
   throw new Exception('This task is deprecated. Please use "propel-insert-sql".');
+}
+
+function run_build_all($task, $args)
+{
 }
 
 function run_propel_build_model($task, $args)
@@ -73,7 +80,7 @@ function run_propel_build_schema($task, $args)
   if (file_exists('config/schema.xml'))
   {
     $schema = file_get_contents('config/schema.xml');
-    $schema = preg_replace('/<database\s+name="[^"]+"/s', '<database name="symfony"', $schema);
+    $schema = preg_replace('/<database\s+name="[^"]+"/s', '<database name="propel"', $schema);
     file_put_contents('config/schema.xml', $schema);
   }
 }

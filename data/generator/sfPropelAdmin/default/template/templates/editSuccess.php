@@ -1,4 +1,4 @@
-[?php use_helpers('Object', 'Validation', 'ObjectAdmin', 'I18N') ?]
+[?php use_helpers('Object', 'Validation', 'ObjectAdmin', 'I18N', 'Date') ?]
 
 <h1><?php echo $this->getI18NString('edit.title', 'edit '.$this->getModuleName()) ?></h1>
 
@@ -23,7 +23,7 @@
 </div>
 [?php endif ?]
 
-[?php echo form_tag('<?php echo $this->getModuleName() ?>/edit', 'id=sf_admin_edit_form') ?]
+[?php echo form_tag('<?php echo $this->getModuleName() ?>/edit', 'id=sf_admin_edit_form multipart=true') ?]
 
 <?php foreach ($this->getPrimaryKey() as $pk): ?>
 [?php echo object_input_hidden_tag($<?php echo $this->getSingularName() ?>, 'get<?php echo $pk->getPhpName() ?>') ?]
@@ -48,14 +48,22 @@
 <?php endif ?>
 <?php foreach ($this->getColumns('edit.display', $category) as $name => $column): ?>
 <?php if ($column->isPrimaryKey()) continue ?>
+<?php $credentials = $this->getParameterValue('edit.fields.'.$column->getName().'.credentials') ?>
+<?php if ($credentials): $credentials = str_replace("\n", ' ', var_export($credentials, true)) ?>
+    [?php if ($sf_user->hasCredential(<?php echo $credentials ?>)): ?]
+<?php endif ?>
 <div class="form-row">
-  <label <?php if ($column->isNotNull()): ?>class="required" <?php endif ?>for="<?php echo $column->getName() ?>">[?php echo __('<?php echo $this->getParameterValue('edit.fields.'.$column->getName().'.name') ?>:') ?]<?php echo $this->getHelp($column, 'edit') ?></label>
-  <div[?php if ($sf_request->hasError('<?php echo $this->getSingularName() ?>{<?php echo $column->getName() ?>}')): ?] class="form-error"[?php endif ?]>
+  <label <?php if ($column->isNotNull()): ?>class="required" <?php endif ?>for="<?php echo $this->getSingularName() ?>[<?php echo $column->getName() ?>]">[?php echo __('<?php echo $this->getParameterValue('edit.fields.'.$column->getName().'.name') ?>:') ?]</label>
+  <div class="content[?php if ($sf_request->hasError('<?php echo $this->getSingularName() ?>{<?php echo $column->getName() ?>}')): ?] form-error[?php endif ?]">
   [?php if ($sf_request->hasError('<?php echo $this->getSingularName() ?>{<?php echo $column->getName() ?>}')): ?]<div class="form-error-msg">&darr;&nbsp;[?php echo $sf_request->getError('<?php echo $this->getSingularName() ?>{<?php echo $column->getName() ?>}') ?]&nbsp;&darr;</div>[?php endif ?]
 
   [?php echo <?php echo $this->getColumnEditTag($column) ?> ?]
+  <?php echo $this->getHelp($column, 'edit') ?>
   </div>
 </div>
+<?php if ($credentials): ?>
+    [?php endif ?]
+<?php endif ?>
 
 <?php endforeach ?>
 </fieldset>
