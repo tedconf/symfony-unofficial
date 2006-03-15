@@ -293,10 +293,39 @@ class sfToolkit
     $attributes = array();
     foreach ($matches as $val)
     {
-      $attributes[$val[1]] = $val[3];
+      $attributes[$val[1]] = self::toType($val[3]);
     }
 
     return $attributes;
+  }
+
+  /**
+   * Finds the type of the passed value, returns the value as the new type.
+   * @param string $value
+   * @return mixed
+   */
+  protected static function toType($value)
+  {
+    // lowercase our value for comparison
+    $value  = trim($value);
+    $lvalue = strtolower($value);
+
+    if (in_array($lvalue, array('null', '~', ''))) {
+      $value = null;
+    } if (in_array($lvalue, array('true', 't', 'on', '+', 'yes', 'y'))) {
+      $value = true;
+    } else if (in_array($lvalue, array('false', 'f', 'off', '-', 'no', 'n'))) {
+      $value = false;
+    } else if (ctype_digit($value)) {
+      $value = (int)$value;
+    } else if (is_numeric($value)) {
+      $value = (float)$value;
+    } else {
+      // Just a string
+      $value = strtr($value, array("\\" => "\\\\", "%'" => "\"", "'" => "\\'"));
+    }
+
+    return $value;
   }
 
     /**
