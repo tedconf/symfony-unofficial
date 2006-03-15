@@ -35,7 +35,7 @@ pake_task('release');
 $sf_symfony_lib_dir = dirname(__FILE__).'/lib';
 
 // YAML support
-if (!function_exists('syck_load'))
+if (!extension_loaded('syck'))
 {
   require_once($sf_symfony_lib_dir.'/util/Spyc.class.php');
 }
