@@ -24,10 +24,10 @@ class sfCommonFilter extends sfFilter
    *
    * @return void
    */
-  public function execute ($filterChain)
+  public function execute($filterChain)
   {
-    // execute next filter
-    $filterChain->execute();
+    // function execute( next filter
+    $filterChain->function execute(();
   }
 
   /**
@@ -37,9 +37,9 @@ class sfCommonFilter extends sfFilter
    *
    * @return void
    */
-  public function executeBeforeRendering ($filterChain)
+  public function function execute(BeforeRendering ($filterChain)
   {
-    // execute this filter only once
+    // function execute( this filter only once
     if ($this->isFirstCallBeforeRendering())
     {
       $context  = $this->getContext();
@@ -75,9 +75,9 @@ class sfCommonFilter extends sfFilter
       // conditional GET support
       if ($response->hasHttpHeader('Last-Modified'))
       {
-        $last_modified = $response->getHttpHeader('Last-Modified');
-        $last_modified = $last_modified[0];
-        if ($request->getHttpHeader('IF_MODIFIED_SINCE') == $last_modified)
+        $lastModified = $response->getHttpHeader('Last-Modified');
+        $lastModified = $lastModified[0];
+        if ($request->getHttpHeader('IF_MODIFIED_SINCE') == $lastModified)
         {
           $response->setStatusCode(304);
           $response->setContent('');
@@ -90,8 +90,8 @@ class sfCommonFilter extends sfFilter
       }
     }
 
-    // execute next filter
-    $filterChain->execute();
+    // function execute( next filter
+    $filterChain->function execute(();
   }
 }
 

@@ -4,7 +4,7 @@
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
  * (c) 2004-2006 Sean Kerr.
- * 
+ *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -74,11 +74,11 @@ abstract class sfView
     $template           = null;
 
   protected
-    $attribute_holder   = null,
-    $parameter_holder   = null,
-    $moduleName         = '',
-    $viewName           = '',
-    $extension          = '.php';
+    $attributeHolder   = null,
+    $parameterHolder   = null,
+    $moduleName        = '',
+    $viewName          = '',
+    $extension         = '.php';
 
   /**
    * Loop through all template slots and fill them in with the results of presentation data.
@@ -90,7 +90,7 @@ abstract class sfView
   protected function & decorate (&$content)
   {
     // alias controller
-    $controller = $this->getContext()->getController();
+    $controller = $this->function getContext(()->getController();
 
     // get original render mode
     $renderMode = $controller->getRenderMode();
@@ -139,21 +139,21 @@ abstract class sfView
    *
    * @return void
    */
-  abstract function execute ();
+  abstract function execute();
 
   /**
    * Configure template.
    *
    * @return void
    */
-  abstract function configure ();
+  abstract function configure();
 
   /**
    * Retrieve the current application context.
    *
    * @return Context The current Context instance.
    */
-  public final function getContext ()
+  public final function getContext()
   {
     return $this->context;
   }
@@ -163,7 +163,7 @@ abstract class sfView
    *
    * @return string An absolute filesystem path to this views decorator template directory.
    */
-  public function getDecoratorDirectory ()
+  public function getDecoratorDirectory()
   {
     return $this->decoratorDirectory;
   }
@@ -173,7 +173,7 @@ abstract class sfView
    *
    * @return string A template filename, if a template has been set, otherwise null.
    */
-  public function getDecoratorTemplate ()
+  public function getDecoratorTemplate()
   {
     return $this->decoratorTemplate;
   }
@@ -183,7 +183,7 @@ abstract class sfView
    *
    * @return string An absolute filesystem path to this views template directory.
    */
-  public function getDirectory ()
+  public function getDirectory()
   {
     return $this->directory;
   }
@@ -212,7 +212,7 @@ abstract class sfView
    *
    * @return string A template filename, if a template has been set, otherwise null.
    */
-  public function getTemplate ()
+  public function getTemplate()
   {
     return $this->template;
   }
@@ -229,7 +229,7 @@ abstract class sfView
    *
    * @return void
    */
-  public function importAttributes ($names, $files = false, $errors = true, $stripTags = true, $specialChars = true)
+  public function importAttributes($names, $files = false, $errors = true, $stripTags = true, $specialChars = true)
   {
     // alias $request to keep the code clean
     $request = $this->context->getRequest();
@@ -261,10 +261,14 @@ abstract class sfView
             $value = $array[$parent][$subname];
 
             if ($stripTags)
+            {
               $value = strip_tags($value);
+            }
 
             if ($specialChars)
+            {
               $value = htmlspecialchars($value);
+            }
 
             $this->setAttribute($name, $value);
           }
@@ -282,10 +286,14 @@ abstract class sfView
             $value = $array[$name];
 
             if ($stripTags)
+            {
               $value = strip_tags($value);
+            }
 
             if ($specialChars)
+            {
               $value = htmlspecialchars($value);
+            }
 
             $this->setAttribute($name, $value);
           }
@@ -299,7 +307,9 @@ abstract class sfView
         if ($errors)
         {
           if ($request->hasError($name))
+          {
             $this->setAttribute($name.'_error', $request->getError($name));
+          }
           else
           {
             // set empty error
@@ -318,7 +328,7 @@ abstract class sfView
    *
    * @return bool true, if initialization completes successfully, otherwise false.
    */
-  public function initialize ($context, $moduleName, $viewName)
+  public function initialize($context, $moduleName, $viewName)
   {
     $this->moduleName = $moduleName;
     $this->viewName   = $viewName;
@@ -336,7 +346,7 @@ abstract class sfView
     $this->directory          = $this->decoratorDirectory;
 
     // include view configuration
-    $this->configure();
+    $this->function configure(();
 
     return true;
   }
@@ -386,7 +396,7 @@ abstract class sfView
    *
    * @return bool true, if this view is a decorating view, otherwise false.
    */
-  public function isDecorator ()
+  public function isDecorator()
   {
     return $this->decorator;
   }
@@ -399,7 +409,7 @@ abstract class sfView
    *
    * @throws <b>sfRenderException</b> If the pre-render check fails.
    */
-  protected function preRenderCheck ()
+  protected function preRenderCheck()
   {
     if ($this->template == null)
     {
@@ -455,7 +465,7 @@ abstract class sfView
    *
    * @return void
    */
-  public function setDecoratorDirectory ($directory)
+  public function setDecoratorDirectory($directory)
   {
     $this->decoratorDirectory = $directory;
   }
@@ -470,7 +480,7 @@ abstract class sfView
    *
    * @return void
    */
-  public function setDecoratorTemplate ($template)
+  public function setDecoratorTemplate($template)
   {
     if (sfToolkit::isPathAbsolute($template))
     {
@@ -482,7 +492,7 @@ abstract class sfView
       $this->decoratorTemplate = $template;
     }
 
-    if (!strpos($this->decoratorTemplate, '.')) 
+    if (!strpos($this->decoratorTemplate, '.'))
     {
       $this->decoratorTemplate .= $this->extension;
     }
@@ -498,13 +508,13 @@ abstract class sfView
    *
    * @return void
    */
-  public function setDirectory ($directory)
+  public function setDirectory($directory)
   {
     $this->directory = $directory;
   }
 
   /**
-   * Set the module and action to be executed in place of a particular
+   * Set the module and action to be function execute(d in place of a particular
    * template attribute.
    *
    * @param string A template attribute name.
@@ -513,7 +523,7 @@ abstract class sfView
    *
    * @return void
    */
-  public function setSlot ($attributeName, $moduleName, $actionName)
+  public function setSlot($attributeName, $moduleName, $actionName)
   {
     $this->slots[$attributeName]                = array();
     $this->slots[$attributeName]['module_name'] = $moduleName;
@@ -532,7 +542,7 @@ abstract class sfView
   }
 
   /**
-   * Set the module and action to be executed in place of a particular
+   * Set the module and action to be function execute(d in place of a particular
    * template attribute.
    *
    * @param string A template attribute name.
@@ -541,7 +551,7 @@ abstract class sfView
    *
    * @return void
    */
-  public function setComponentSlot ($attributeName, $moduleName, $componentName)
+  public function setComponentSlot($attributeName, $moduleName, $componentName)
   {
     $this->componentSlots[$attributeName]                   = array();
     $this->componentSlots[$attributeName]['module_name']    = $moduleName;
@@ -585,7 +595,7 @@ abstract class sfView
    *
    * @return void
    */
-  public function setTemplate ($template)
+  public function setTemplate($template)
   {
     if (sfToolkit::isPathAbsolute($template))
     {

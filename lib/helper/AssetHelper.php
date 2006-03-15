@@ -31,13 +31,13 @@
  *   auto_discovery_link_tag('rss', 'module/feed', array('title' => 'My RSS')) =>
  *     <link rel="alternate" type="application/rss+xml" title="My RSS" href="http://www.curenthost.com/module/feed" />
  */
-function auto_discovery_link_tag($type = 'rss', $url_options = array(), $tag_options = array())
+function auto_discovery_link_tag($type = 'rss', $urlOptions = array(), $tagOptions = array())
 {
   return tag('link', array(
-    'rel'   => isset($tag_options['rel']) ? $tag_options['rel'] : 'alternate',
-    'type'  => isset($tag_options['type']) ? $tag_options['type'] : 'application/'.$type.'+xml',
-    'title' => isset($tag_options['title']) ? $tag_options['title'] : ucfirst($type),
-    'href'  => url_for($url_options, true)
+    'rel'   => isset($tagOptions['rel']) ? $tagOptions['rel'] : 'alternate',
+    'type'  => isset($tagOptions['type']) ? $tagOptions['type'] : 'application/'.$type.'+xml',
+    'title' => isset($tagOptions['title']) ? $tagOptions['title'] : ucfirst($type),
+    'href'  => url_for($urlOptions, true)
   ));
 }
 
@@ -161,11 +161,11 @@ function image_tag($source, $options = array())
 
   if (!isset($options['alt']))
   {
-    $path_pos = strrpos($source, '/');
-    $dot_pos = strrpos($source, '.');
-    $begin = $path_pos ? $path_pos + 1 : 0;
-    $nb_str = ($dot_pos ? $dot_pos : strlen($source)) - $begin;
-    $options['alt'] = ucfirst(substr($source, $begin, $nb_str));
+    $pathPos = strrpos($source, '/');
+    $dotPos = strrpos($source, '.');
+    $begin = $pathPos ? $pathPos + 1 : 0;
+    $nbStr = ($dotPos ? $dotPos : strlen($source)) - $begin;
+    $options['alt'] = ucfirst(substr($source, $begin, $nbStr));
   }
 
   if (isset($options['size']))
@@ -203,7 +203,7 @@ function _compute_public_path($source, $dir, $ext)
 
 function include_stylesheets()
 {
-  $already_seen = array();
+  $alreadySeen = array();
 
   foreach (array('first', '', 'last') as $position)
   {
@@ -218,9 +218,12 @@ function include_stylesheets()
       {
         $file = stylesheet_path($file);
 
-        if (isset($already_seen[$file])) continue;
+        if (isset($alreadySeen[$file]))
+        {
+          continue;
+        }
 
-        $already_seen[$file] = 1;
+        $alreadySeen[$file] = 1;
         echo stylesheet_tag($file, $options);
       }
     }
@@ -229,7 +232,7 @@ function include_stylesheets()
 
 function include_javascripts()
 {
-  $already_seen = array();
+  $alreadySeen = array();
   foreach (sfContext::getInstance()->getResponse()->getJavascripts() as $files)
   {
     if (!is_array($files))
@@ -241,9 +244,12 @@ function include_javascripts()
     {
       $file = javascript_path($file);
 
-      if (isset($already_seen[$file])) continue;
+      if (isset($alreadySeen[$file]))
+      {
+        continue;
+      }
 
-      $already_seen[$file] = 1;
+      $alreadySeen[$file] = 1;
       echo javascript_include_tag($file);
     }
   }

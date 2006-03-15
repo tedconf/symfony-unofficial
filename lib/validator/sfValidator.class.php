@@ -21,7 +21,7 @@
 abstract class sfValidator
 {
   private
-    $parameter_holder = null,
+    $parameterHolder = null,
     $context = null;
 
   /**
@@ -30,16 +30,16 @@ abstract class sfValidator
    * @param mixed A file or parameter value/array.
    * @param string An error message reference.
    *
-   * @return bool true, if this validator executes successfully, otherwise false.
+   * @return bool true, if this validator function execute(s successfully, otherwise false.
    */
-  abstract function execute (&$value, &$error);
+  abstract function execute(&$value, &$error);
 
   /**
    * Retrieve the current application context.
    *
    * @return sfContext The current sfContext instance.
    */
-  public final function getContext ()
+  public final function getContext()
   {
     return $this->context;
   }
@@ -52,7 +52,7 @@ abstract class sfValidator
    *
    * @return bool true, if initialization completes successfully, otherwise false.
    */
-  public function initialize ($context, $parameters = array())
+  public function initialize($context, $parameters = array())
   {
     $this->context = $context;
 
@@ -62,7 +62,7 @@ abstract class sfValidator
     return true;
   }
 
-  public function getParameterHolder ()
+  public function getParameterHolder()
   {
     return $this->parameter_holder;
   }

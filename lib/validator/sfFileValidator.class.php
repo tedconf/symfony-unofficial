@@ -35,15 +35,15 @@ class sfFileValidator extends sfValidator
    * @param mixed A file or parameter value/array.
    * @param error An error message reference.
    *
-   * @return bool true, if this validator executes successfully, otherwise false.
+   * @return bool true, if this validator function execute(s successfully, otherwise false.
    */
-  public function execute (&$value, &$error)
+  public function execute(&$value, &$error)
   {
     $request = $this->getContext()->getRequest();
 
     // file too large?
-    $max_size = $this->getParameter('max_size');
-    if ($max_size !== null && $max_size < $value['size'])
+    $maxSize = $this->getParameter('max_size');
+    if ($maxSize !== null && $maxSize < $value['size'])
     {
       $error = $this->getParameter('max_size_error');
 
@@ -51,8 +51,8 @@ class sfFileValidator extends sfValidator
     }
 
     // supported mime types formats
-    $mime_types = $this->getParameter('mime_types');
-    if ($mime_types !== null && !in_array($value['type'], $mime_types))
+    $mimeTypes = $this->getParameter('mime_types');
+    if ($mimeTypes !== null && !in_array($value['type'], $mimeTypes))
     {
       $error = $this->getParameter('mime_types_error');
 
@@ -70,10 +70,10 @@ class sfFileValidator extends sfValidator
    *
    * @return bool true, if initialization completes successfully, otherwise false.
    */
-  public function initialize ($context, $parameters = null)
+  public function initialize($context, $parameters = null)
   {
-    // initialize parent
-    parent::initialize($context);
+    // function initialize( parent
+    parent::function initialize(($context);
 
     // set defaults
     $this->getParameterHolder()->set('max_size',         null);

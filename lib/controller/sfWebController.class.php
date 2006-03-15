@@ -10,7 +10,7 @@
  */
 
 /**
- * sfWebController provides web specific methods to sfController such as, url redirection.
+ * sfWebController provides web specific methods to sfController such as, url function redirect(ion.
  *
  * @package    symfony
  * @subpackage controller
@@ -46,16 +46,16 @@ abstract class sfWebController extends sfController
     {
       $url = $_SERVER['SCRIPT_NAME'];
     }
-    else if (($sf_relative_url_root = $this->getContext()->getRequest()->getRelativeUrlRoot()) && $sf_no_script_name)
+    elseif (($sf_relative_url_root = $this->getContext()->getRequest()->getRelativeUrlRoot()) && $sf_no_script_name)
     {
       $url = $sf_relative_url_root;
     }
 
-    $route_name = '';
+    $routeName = '';
 
     if (!is_array($parameters))
     {
-      list($route_name, $parameters) = $this->convertUrlStringToParameters($parameters);
+      list($routeName, $parameters) = $this->convertUrlStringToParameters($parameters);
     }
 
     if (sfConfig::get('sf_url_format') == 'PATH')
@@ -86,10 +86,10 @@ abstract class sfWebController extends sfController
     }
 
     $r = sfRouting::getInstance();
-    if ($r->hasRoutes() && $generated_url = $r->generate($route_name, $parameters, $divider, $equals))
+    if ($r->hasRoutes() && $generatedUrl = $r->generate($routeName, $parameters, $divider, $equals))
     {
       // strip off first divider character
-      $url .= ltrim($generated_url, $divider);
+      $url .= ltrim($generatedUrl, $divider);
     }
     else
     {
@@ -113,9 +113,9 @@ abstract class sfWebController extends sfController
 
   public function convertUrlStringToParameters($url)
   {
-    $params       = array();
-    $query_string = '';
-    $route_name   = '';
+    $params      = array();
+    $queryString = '';
+    $routeName   = '';
 
     // empty url?
     if (!$url)
@@ -126,7 +126,7 @@ abstract class sfWebController extends sfController
     // we get the query string out of the url
     if ($pos = strpos($url, '?'))
     {
-      $query_string = substr($url, $pos + 1);
+      $queryString = substr($url, $pos + 1);
       $url = substr($url, 0, $pos);
     }
 
@@ -144,7 +144,7 @@ abstract class sfWebController extends sfController
     // route_name?
     if ($url[0] == '@')
     {
-      $route_name = substr($url, 1);
+      $routeName = substr($url, 1);
     }
     else
     {
@@ -154,13 +154,16 @@ abstract class sfWebController extends sfController
       $params['action'] = isset($tmp[1]) ? $tmp[1] : sfConfig::get('sf_default_action');
     }
 
-    $url_params = explode('&', $query_string);
-    $ind_max = count($url_params) - 1;
-    for ($i = 0; $i <= $ind_max; $i++)
+    $urlParams = explode('&', $queryString);
+    $indMax = count($urlParams) - 1;
+    for ($i = 0; $i <= $indMax; ++$i)
     {
-      if (!$url_params[$i]) continue;
+      if (!$urlParams[$i])
+      {
+        continue;
+      }
 
-      $pos = strpos($url_params[$i], '=');
+      $pos = strpos($urlParams[$i], '=');
       if ($pos === false)
       {
         $error = 'Unable to parse url ("%s").';
@@ -169,26 +172,26 @@ abstract class sfWebController extends sfController
         throw new sfParseException($error);
       }
 
-      $params[substr($url_params[$i], 0, $pos)] = substr($url_params[$i], $pos + 1);
+      $params[substr($urlParams[$i], 0, $pos)] = substr($urlParams[$i], $pos + 1);
     }
 
-    return array($route_name, $params);
+    return array($routeName, $params);
   }
 
   /**
    * Redirect the request to another URL.
    *
    * @param string An existing URL.
-   * @param int    A delay in seconds before redirecting. This only works on
+   * @param int    A delay in seconds before function redirect(ing. This only works on
    *               browsers that do not support the PHP header.
    *
    * @return void
    */
-  public function redirect ($url, $delay = 0)
+  public function redirect($url, $delay = 0)
   {
     $response = $this->getContext()->getResponse();
 
-    // redirect
+    // function redirect(
     $response->setHttpHeader('Location', $url);
     $response->setContent(sprintf('<html><head><meta http-equiv="refresh" content="%d;url=%s"/></head></html>', $delay, $url));
 

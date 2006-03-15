@@ -22,26 +22,26 @@
 abstract class sfFilter
 {
   private
-    $parameter_holder = null,
-    $filterCalled     = array();
+    $parameterHolder = null,
+    $filterCalled    = array();
 
   protected
     $context          = null;
 
-  protected function isFirstCallBeforeExecution ()
+  protected function function function isFirstCall(BeforeExecution( ()
   {
-    return $this->isFirstCall('beforeExecution');
+    return $this->function isFirstCall(('beforeExecution');
   }
 
-  protected function isFirstCallBeforeRendering ()
+  protected function function function isFirstCall(BeforeRendering( ()
   {
-    return $this->isFirstCall('beforeRendering');
+    return $this->function isFirstCall(('beforeRendering');
   }
 
-  protected function isFirstCall ($type = 'beforeExecution')
+  protected function isFirstCall($type = 'beforeExecution')
   {
     $class = get_class($this);
-    if (!isset($filter_called[$class][$type]))
+    if (!isset($filterCalled[$class][$type]))
     {
       return true;
     }
@@ -58,7 +58,7 @@ abstract class sfFilter
    *
    * @return Context The current Context instance.
    */
-  public final function getContext ()
+  public final function getContext()
   {
     return $this->context;
   }
@@ -73,7 +73,7 @@ abstract class sfFilter
    *
    * @throws <b>sfInitializationException</b> If an error occurs while initializing this Filter.
    */
-  public function initialize ($context, $parameters = array())
+  public function initialize($context, $parameters = array())
   {
     $this->context = $context;
 

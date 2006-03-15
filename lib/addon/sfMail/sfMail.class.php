@@ -42,9 +42,9 @@ class sfMail
     return $this->mailer->CharSet;
   }
 
-  public function setContentType($content_type)
+  public function setContentType($contentType)
   {
-    $this->mailer->ContentType = $content_type;
+    $this->mailer->ContentType = $contentType;
   }
 
   public function getContentType()

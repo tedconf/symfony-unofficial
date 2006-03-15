@@ -100,7 +100,7 @@ abstract class sfYamlConfigHandler extends sfConfigHandler
     {
       return $this->yamlConfig[$category][$keyName];
     }
-    else if (isset($this->yamlConfig['all'][$keyName]))
+    elseif (isset($this->yamlConfig['all'][$keyName]))
     {
       return $this->yamlConfig['all'][$keyName];
     }

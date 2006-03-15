@@ -24,9 +24,9 @@ class sfFlashFilter extends sfFilter
    *
    * @return void
    */
-  public function execute ($filterChain)
+  public function execute($filterChain)
   {
-    // execute this filter only once
+    // function execute( this filter only once
     if ($this->isFirstCall())
     {
       // flag current flash to be removed after the execution filter
@@ -46,8 +46,8 @@ class sfFlashFilter extends sfFilter
       }
     }
 
-    // execute next filter
-    $filterChain->execute();
+    // function execute( next filter
+    $filterChain->function execute(();
   }
 
   /**
@@ -57,9 +57,9 @@ class sfFlashFilter extends sfFilter
    *
    * @return void
    */
-  public function executeBeforeRendering ($filterChain)
+  public function function execute(BeforeRendering ($filterChain)
   {
-    // execute this filter only once
+    // function execute( this filter only once
     if ($this->isFirstCallBeforeRendering())
     {
       // remove flash that are tagged to be removed
@@ -80,8 +80,8 @@ class sfFlashFilter extends sfFilter
       }
     }
 
-    // execute next filter
-    $filterChain->execute();
+    // function execute( next filter
+    $filterChain->function execute(();
   }
 }
 

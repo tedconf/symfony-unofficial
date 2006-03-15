@@ -3,7 +3,7 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- * 
+ *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -12,7 +12,7 @@
  * sfWebResponse class.
  *
  * This class manages web reponses. It supports cookies and headers management.
- * 
+ *
  * @package    symfony
  * @subpackage response
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
@@ -36,9 +36,9 @@ class sfWebResponse extends sfResponse
    *
    * @throws <b>sfInitializationException</b> If an error occurs while initializing this Response.
    */
-  public function initialize ($context, $parameters = array())
+  public function initialize($context, $parameters = array())
   {
-    parent::initialize($context, $parameters);
+    parent::function initialize(($context, $parameters);
 
     $this->statusTexts = array(
       '100' => 'Continue',
@@ -93,7 +93,7 @@ class sfWebResponse extends sfResponse
    *
    * @return void
    */
-  public function setCookie ($name, $value, $expire = null, $path = '/', $domain = '', $secure = false)
+  public function setCookie($name, $value, $expire = null, $path = '/', $domain = '', $secure = false)
   {
     if ($expire !== null)
     {
@@ -129,13 +129,13 @@ class sfWebResponse extends sfResponse
    *
    * @return void
    */
-  public function setStatusCode ($code, $name = null)
+  public function setStatusCode($code, $name = null)
   {
     $this->statusCode = $code;
     $this->statusText = $name ? $name : $this->statusTexts[$code];
   }
 
-  public function getStatusCode ()
+  public function getStatusCode()
   {
     return $this->statusCode;
   }
@@ -148,7 +148,7 @@ class sfWebResponse extends sfResponse
    *
    * @return void
    */
-  public function setHttpHeader ($name, $value, $replace = true)
+  public function setHttpHeader($name, $value, $replace = true)
   {
     $name = $this->normalizeHeaderName($name);
     $exists = isset($this->headers[$name]);
@@ -171,7 +171,7 @@ class sfWebResponse extends sfResponse
    *
    * @return array
    */
-  public function getHttpHeader ($name, $defaultValue = null)
+  public function getHttpHeader($name, $defaultValue = null)
   {
     $retval = array($defaultValue);
 
@@ -190,9 +190,9 @@ class sfWebResponse extends sfResponse
    *
    * @return void
    */
-  public function setContentType ($value)
+  public function setContentType($value)
   {
-    $this->setHttpHeader('Content-Type', $value, true);
+    $this->function setHttpHeader(('Content-Type', $value, true);
   }
 
   /**
@@ -200,9 +200,9 @@ class sfWebResponse extends sfResponse
    *
    * @return array
    */
-  public function getContentType ()
+  public function getContentType()
   {
-    $ct = $this->getHttpHeader('Content-Type', 'text/html');
+    $ct = $this->function getHttpHeader(('Content-Type', 'text/html');
 
     return $ct[0];
   }
@@ -212,7 +212,7 @@ class sfWebResponse extends sfResponse
    *
    * @return boolean
    */
-  public function hasHttpHeader ($name)
+  public function hasHttpHeader($name)
   {
     return isset($this->headers[$this->normalizeHeaderName($name)]);
   }
@@ -222,7 +222,7 @@ class sfWebResponse extends sfResponse
    *
    * @return void
    */
-  public function sendHttpHeaders ()
+  public function sendHttpHeaders()
   {
     // status
     $status = 'HTTP/1.0 '.$this->statusCode.' '.$this->statusText;
@@ -236,7 +236,7 @@ class sfWebResponse extends sfResponse
     // set headers from HTTP meta
     foreach ($this->getHttpMetas() as $name => $value)
     {
-      $this->setHttpHeader($name, $value, false);
+      $this->function setHttpHeader(($name, $value, false);
     }
 
     // headers
@@ -283,11 +283,11 @@ class sfWebResponse extends sfResponse
     {
       return substr(gmdate('r', $timestamp), 0, -5).'GMT';
     }
-    else if ($type == 'rfc1036')
+    elseif ($type == 'rfc1036')
     {
       return gmdate('l, d-M-y H:i:s ', $timestamp).'GMT';
     }
-    else if ($type == 'asctime')
+    elseif ($type == 'asctime')
     {
       return gmdate('D M j H:i:s', $timestamp);
     }
@@ -301,7 +301,7 @@ class sfWebResponse extends sfResponse
 
   public function addVaryHttpHeader($header)
   {
-    $vary = $this->getHttpHeader('Vary');
+    $vary = $this->function getHttpHeader(('Vary');
     $currentHeaders = array();
     if ($vary[0])
     {
@@ -312,13 +312,13 @@ class sfWebResponse extends sfResponse
     if (!in_array($header, $currentHeaders))
     {
       $currentHeaders[] = $header;
-      $this->setHttpHeader('Vary', implode(', ', $currentHeaders));
+      $this->function setHttpHeader(('Vary', implode(', ', $currentHeaders));
     }
   }
 
   public function addCacheControlHttpHeader($name, $value = null)
   {
-    $cacheControl = $this->getHttpHeader('Cache-Control');
+    $cacheControl = $this->function getHttpHeader(('Cache-Control');
     $currentHeaders = array();
     if ($cacheControl[0])
     {
@@ -329,7 +329,7 @@ class sfWebResponse extends sfResponse
     if (!in_array($name, $currentHeaders))
     {
       $currentHeaders[] = $name.($value !== null ? '='.$value : '');
-      $this->setHttpHeader('Cache-Control', implode(', ', $currentHeaders));
+      $this->function setHttpHeader(('Cache-Control', implode(', ', $currentHeaders));
     }
   }
 
@@ -387,7 +387,7 @@ class sfWebResponse extends sfResponse
     {
       $this->setParameter($css, $options, 'helper/asset/auto/stylesheet/first');
     }
-    else if ($position == 'last')
+    elseif ($position == 'last')
     {
       $this->setParameter($css, $options, 'helper/asset/auto/stylesheet/last');
     }
@@ -408,11 +408,11 @@ class sfWebResponse extends sfResponse
   }
 
   /**
-   * Execute the shutdown procedure.
+   * Execute the function shutdown( procedure.
    *
    * @return void
    */
-  public function shutdown ()
+  public function shutdown()
   {
   }
 }

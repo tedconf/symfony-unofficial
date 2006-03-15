@@ -44,23 +44,23 @@ class sfRequestTest extends UnitTestCase
   public function test_multiple_errors()
   {
     $key1 = "test1";
-    $value_key1_1 = "error1_1";
-    $value_key1_2 = "error1_2";
+    $valueKey1_1 = "error1_1";
+    $valueKey1_2 = "error1_2";
     $key2 = "test 2";
-    $value_key2_1 = "error2_1";
-    $array_errors = array($key1 => $value_key1_2, $key2 => $value_key2_1);
-    $error_names = array($key1, $key2);
+    $valueKey2_1 = "error2_1";
+    $arrayErrors = array($key1 => $valueKey1_2, $key2 => $valueKey2_1);
+    $errorNames = array($key1, $key2);
 
-    $this->request->setError($key1, $value_key1_1);
-    $this->request->setErrors($array_errors);
+    $this->request->setError($key1, $valueKey1_1);
+    $this->request->setErrors($arrayErrors);
     $this->assertEqual($this->request->hasError($key1), true);
     $this->assertEqual($this->request->hasErrors(), true);
-    $this->assertEqual($this->request->getErrorNames(), $error_names);
-    $this->assertEqual($this->request->getErrors(), $array_errors);
-    $this->assertEqual($this->request->getError($key1), $value_key1_2);
-    $this->assertEqual($this->request->removeError($key1), $value_key1_2);
+    $this->assertEqual($this->request->getErrorNames(), $errorNames);
+    $this->assertEqual($this->request->getErrors(), $arrayErrors);
+    $this->assertEqual($this->request->getError($key1), $valueKey1_2);
+    $this->assertEqual($this->request->removeError($key1), $valueKey1_2);
     $this->assertEqual($this->request->hasErrors(), true);
-    $this->assertEqual($this->request->removeError($key2), $value_key2_1);
+    $this->assertEqual($this->request->removeError($key2), $valueKey2_1);
     $this->assertEqual($this->request->hasErrors(), false);
   }
   
@@ -106,41 +106,41 @@ class sfRequestTest extends UnitTestCase
     $this->assertEqual($this->request->getAttribute($name2, '', $ns), $value2);
   }
 
-  protected function populateVariables($request_uri, $with_layout)
+  protected function populateVariables($requestUri, $withLayout)
   {
     $_SERVER['GATEWAY_INTERFACE'] = 'CGI/1.1';
     $_SERVER['REQUEST_METHOD'] = 'GET';
-    $_SERVER['REQUEST_URI'] = $request_uri;
+    $_SERVER['REQUEST_URI'] = $requestUri;
     $_SERVER['SCRIPT_NAME'] = '/index.php';
 
-    if ($request_uri[0] != '/')
+    if ($requestUri[0] != '/')
     {
-      $request_uri = '/'.$request_uri;
+      $requestUri = '/'.$requestUri;
     }
 
     // add index.php if needed
-    if (!strpos($request_uri, '.php'))
+    if (!strpos($requestUri, '.php'))
     {
-      $request_uri = '/index.php'.$request_uri;
+      $requestUri = '/index.php'.$requestUri;
     }
 
     // query string
     $_SERVER['QUERY_STRING'] = '';
-    if ($query_string_pos = strpos($request_uri, '?'))
+    if ($queryStringPos = strpos($requestUri, '?'))
     {
-      $_SERVER['QUERY_STRING'] = substr($request_uri, $query_string_pos + 1);
+      $_SERVER['QUERY_STRING'] = substr($requestUri, $queryStringPos + 1);
     }
     else
     {
-      $query_string_pos = strlen($request_uri);
+      $queryStringPos = strlen($requestUri);
     }
 
     // path info
     $_SERVER['PATH_INFO'] = '/';
-    $script_pos = strpos($request_uri, '.php') + 5;
-    if ($script_pos < $query_string_pos)
+    $scriptPos = strpos($requestUri, '.php') + 5;
+    if ($scriptPos < $queryStringPos)
     {
-      $_SERVER['PATH_INFO'] = '/'.substr($request_uri, $script_pos, $query_string_pos - $script_pos);
+      $_SERVER['PATH_INFO'] = '/'.substr($requestUri, $scriptPos, $queryStringPos - $scriptPos);
     }
 
     // parse query string
@@ -154,7 +154,7 @@ class sfRequestTest extends UnitTestCase
     }
 
     // change layout
-    if (!$with_layout)
+    if (!$withLayout)
     {
       // we simulate an Ajax call to disable layout
       $_SERVER['HTTP_X_REQUESTED_WITH'] = 'XMLHttpRequest';

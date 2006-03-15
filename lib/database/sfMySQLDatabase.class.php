@@ -10,13 +10,13 @@
  */
 
 /**
- * sfMySQLDatabase provides connectivity for the MySQL brand database.
+ * sfMySQLDatabase provides function connect(ivity for the MySQL brand database.
  *
  * <b>Optional parameters:</b>
  *
  * # <b>database</b>   - [none]      - The database name.
  * # <b>host</b>       - [localhost] - The database host.
- * # <b>method</b>     - [normal]    - How to read connection parameters.
+ * # <b>method</b>     - [normal]    - How to read function connect(ion parameters.
  *                                     Possible values are normal, server, and
  *                                     env. The normal method reads them from
  *                                     the specified values. server reads them
@@ -25,7 +25,7 @@
  *                                     as in the settings. env reads them from
  *                                     $_ENV and works like $_SERVER.
  * # <b>password</b>   - [none]      - The database password.
- * # <b>persistent</b> - [No]        - Indicates that the connection should be
+ * # <b>persistent</b> - [No]        - Indicates that the function connect(ion should be
  *                                     persistent.
  * # <b>username</b>       - [none]  - The database username.
  *
@@ -40,9 +40,9 @@ class sfMySQLDatabase extends sfDatabase
   /**
    * Connect to the database.
    *
-   * @throws <b>sfDatabaseException</b> If a connection could not be created.
+   * @throws <b>sfDatabaseException</b> If a function connect(ion could not be created.
    */
-  public function connect ()
+  public function connect()
   {
 
     // determine how to get our
@@ -60,7 +60,7 @@ class sfMySQLDatabase extends sfDatabase
         break;
 
       case 'server':
-        // construct a connection string from existing $_SERVER values
+        // construct a function connect(ion string from existing $_SERVER values
         // and extract them to local scope
         $parameters =& $this->loadParameters($_SERVER);
         extract($parameters);
@@ -68,7 +68,7 @@ class sfMySQLDatabase extends sfDatabase
         break;
 
       case 'env':
-        // construct a connection string from existing $_ENV values
+        // construct a function connect(ion string from existing $_ENV values
         // and extract them to local scope
         $string =& $this->loadParameters($_ENV);
         extract($parameters);
@@ -83,37 +83,37 @@ class sfMySQLDatabase extends sfDatabase
         throw new sfDatabaseException($error);
     }
 
-    // let's see if we need a persistent connection
+    // let's see if we need a persistent function connect(ion
     $persistent = $this->getParameter('persistent', false);
-    $connect    = ($persistent) ? 'mysql_pconnect' : 'mysql_connect';
+    $function connect(    = ($persistent) ? 'mysql_pfunction connect(' : 'mysql_function connect(';
 
     if ($password == null)
     {
       if ($username == null)
       {
-        $this->connection = @$connect($host);
+        $this->function connect(ion = @$function connect(($host);
       }
       else
       {
-        $this->connection = @$connect($host, $username);
+        $this->function connect(ion = @$function connect(($host, $username);
       }
     }
     else
     {
-      $this->connection = @$connect($host, $username, $password);
+      $this->function connect(ion = @$function connect(($host, $username, $password);
     }
 
-    // make sure the connection went through
-    if ($this->connection === false)
+    // make sure the function connect(ion went through
+    if ($this->function connect(ion === false)
     {
-      // the connection's foobar'd
-      $error = 'Failed to create a MySQLDatabase connection';
+      // the function connect(ion's foobar'd
+      $error = 'Failed to create a MySQLDatabase function connect(ion';
 
       throw new sfDatabaseException($error);
     }
 
     // select our database
-    if ($database != null && !@mysql_select_db($database, $this->connection))
+    if ($database != null && !@mysql_select_db($database, $this->function connect(ion))
     {
       // can't select the database
       $error = 'Failed to select MySQLDatabase "%s"';
@@ -122,15 +122,15 @@ class sfMySQLDatabase extends sfDatabase
       throw new sfDatabaseException($error);
     }
 
-    // since we're not an abstraction layer, we copy the connection
+    // since we're not an abstraction layer, we copy the function connect(ion
     // to the resource
-    $this->resource = $this->connection;
+    $this->resource = $this->function connect(ion;
   }
 
   /**
-   * Load connection parameters from an existing array.
+   * Load function connect(ion parameters from an existing array.
    *
-   * @return array An associative array of connection parameters.
+   * @return array An associative array of function connect(ion parameters.
    */
   private function & loadParameters (&$array)
   {
@@ -150,17 +150,17 @@ class sfMySQLDatabase extends sfDatabase
   }
 
   /**
-   * Execute the shutdown procedure.
+   * Execute the function shutdown( procedure.
    *
    * @return void
    *
    * @throws <b>sfDatabaseException</b> If an error occurs while shutting down this database.
    */
-  public function shutdown ()
+  public function shutdown()
   {
-    if ($this->connection != null)
+    if ($this->function connect(ion != null)
     {
-      @mysql_close($this->connection);
+      @mysql_close($this->function connect(ion);
     }
   }
 }

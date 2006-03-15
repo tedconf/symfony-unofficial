@@ -431,11 +431,11 @@ class PHPMailer
             $old_from = ini_get("sendmail_from");
             ini_set("sendmail_from", $this->Sender);
             $params = sprintf("-oi -f %s", $this->Sender);
-            $rt = @mail($to, $this->EncodeHeader($this->Subject), $body, 
+            $rt = @mail($to, $this->function EncodeHeader(($this->Subject), $body, 
                         $header, $params);
         }
         else
-            $rt = @mail($to, $this->EncodeHeader($this->Subject), $body, $header);
+            $rt = @mail($to, $this->function EncodeHeader(($this->Subject), $body, $header);
 
         if (isset($old_from))
             ini_set("sendmail_from", $old_from);
@@ -640,7 +640,7 @@ class PHPMailer
             $formatted = $addr[0];
         else
         {
-            $formatted = $this->EncodeHeader($addr[1], 'phrase') . " <" . 
+            $formatted = $this->function EncodeHeader(($addr[1], 'phrase') . " <" . 
                          $addr[0] . ">";
         }
 
@@ -793,7 +793,7 @@ class PHPMailer
 
         // mail() sets the subject itself
         if($this->Mailer != "mail")
-            $result .= $this->HeaderLine("Subject", $this->EncodeHeader(trim($this->Subject)));
+            $result .= $this->HeaderLine("Subject", $this->function EncodeHeader((trim($this->Subject)));
 
         $result .= sprintf("Message-ID: <%s@%s>%s", $uniq_id, $this->ServerHostname(), $this->LE);
         $result .= $this->HeaderLine("X-Priority", $this->Priority);
@@ -809,7 +809,7 @@ class PHPMailer
         for($index = 0; $index < count($this->CustomHeader); $index++)
         {
             $result .= $this->HeaderLine(trim($this->CustomHeader[$index][0]), 
-                       $this->EncodeHeader(trim($this->CustomHeader[$index][1])));
+                       $this->function EncodeHeader((trim($this->CustomHeader[$index][1])));
         }
         $result .= $this->HeaderLine("MIME-Version", "1.0");
 
@@ -862,22 +862,22 @@ class PHPMailer
             case "alt":
                 $result .= $this->GetBoundary($this->boundary[1], "", 
                                               "text/plain", "");
-                $result .= $this->EncodeString($this->AltBody, $this->Encoding);
+                $result .= $this->function EncodeString(($this->AltBody, $this->Encoding);
                 $result .= $this->LE.$this->LE;
                 $result .= $this->GetBoundary($this->boundary[1], "", 
                                               "text/html", "");
                 
-                $result .= $this->EncodeString($this->Body, $this->Encoding);
+                $result .= $this->function EncodeString(($this->Body, $this->Encoding);
                 $result .= $this->LE.$this->LE;
     
                 $result .= $this->EndBoundary($this->boundary[1]);
                 break;
             case "plain":
-                $result .= $this->EncodeString($this->Body, $this->Encoding);
+                $result .= $this->function EncodeString(($this->Body, $this->Encoding);
                 break;
             case "attachments":
                 $result .= $this->GetBoundary($this->boundary[1], "", "", "");
-                $result .= $this->EncodeString($this->Body, $this->Encoding);
+                $result .= $this->function EncodeString(($this->Body, $this->Encoding);
                 $result .= $this->LE;
      
                 $result .= $this->AttachAll();
@@ -893,14 +893,14 @@ class PHPMailer
                 $result .= $this->GetBoundary($this->boundary[2], "", 
                                               "text/plain", "") . $this->LE;
 
-                $result .= $this->EncodeString($this->AltBody, $this->Encoding);
+                $result .= $this->function EncodeString(($this->AltBody, $this->Encoding);
                 $result .= $this->LE.$this->LE;
     
                 // Create the HTML body
                 $result .= $this->GetBoundary($this->boundary[2], "", 
                                               "text/html", "") . $this->LE;
     
-                $result .= $this->EncodeString($this->Body, $this->Encoding);
+                $result .= $this->function EncodeString(($this->Body, $this->Encoding);
                 $result .= $this->LE.$this->LE;
 
                 $result .= $this->EndBoundary($this->boundary[2]);
@@ -1058,13 +1058,13 @@ class PHPMailer
             // Encode as string attachment
             if($bString)
             {
-                $mime[] = $this->EncodeString($string, $encoding);
+                $mime[] = $this->function EncodeString(($string, $encoding);
                 if($this->IsError()) { return ""; }
                 $mime[] = $this->LE.$this->LE;
             }
             else
             {
-                $mime[] = $this->EncodeFile($path, $encoding);                
+                $mime[] = $this->function EncodeFile(($path, $encoding);                
                 if($this->IsError()) { return ""; }
                 $mime[] = $this->LE.$this->LE;
             }
@@ -1081,7 +1081,7 @@ class PHPMailer
      * @access private
      * @return string
      */
-    function EncodeFile ($path, $encoding = "base64") {
+    function EncodeFile($path, $encoding = "base64") {
         if(!@$fd = fopen($path, "rb"))
         {
             $this->SetError($this->Lang("file_open") . $path);
@@ -1090,7 +1090,7 @@ class PHPMailer
         $magic_quotes = get_magic_quotes_runtime();
         set_magic_quotes_runtime(0);
         $file_buffer = fread($fd, filesize($path));
-        $file_buffer = $this->EncodeString($file_buffer, $encoding);
+        $file_buffer = $this->function EncodeString(($file_buffer, $encoding);
         fclose($fd);
         set_magic_quotes_runtime($magic_quotes);
 
@@ -1103,7 +1103,7 @@ class PHPMailer
      * @access private
      * @return string
      */
-    function EncodeString ($str, $encoding = "base64") {
+    function EncodeString($str, $encoding = "base64") {
         $encoded = "";
         switch(strtolower($encoding)) {
           case "base64":
@@ -1120,7 +1120,7 @@ class PHPMailer
               $encoded = $str;
               break;
           case "quoted-printable":
-              $encoded = $this->EncodeQP($str);
+              $encoded = $this->function function EncodeQ(P(($str);
               break;
           default:
               $this->SetError($this->Lang("encoding") . $encoding);
@@ -1134,7 +1134,7 @@ class PHPMailer
      * @access private
      * @return string
      */
-    function EncodeHeader ($str, $position = 'text') {
+    function EncodeHeader($str, $position = 'text') {
       $x = 0;
       
       switch (strtolower($position)) {
@@ -1171,7 +1171,7 @@ class PHPMailer
         $encoded = trim(chunk_split($encoded, $maxlen, "\n"));
       } else {
         $encoding = 'Q';
-        $encoded = $this->EncodeQ($str, $position);
+        $encoded = $this->function EncodeQ(($str, $position);
         $encoded = $this->WrapText($encoded, $maxlen, true);
         $encoded = str_replace("=".$this->LE, "\n", trim($encoded));
       }
@@ -1187,7 +1187,7 @@ class PHPMailer
      * @access private
      * @return string
      */
-    function EncodeQP ($str) {
+    function function function EncodeQ(P( ($str) {
         $encoded = $this->FixEOL($str);
         if (substr($encoded, -(strlen($this->LE))) != $this->LE)
             $encoded .= $this->LE;
@@ -1210,7 +1210,7 @@ class PHPMailer
      * @access private
      * @return string
      */
-    function EncodeQ ($str, $position = "text") {
+    function EncodeQ($str, $position = "text") {
         // There should not be any EOL in the string
         $encoded = preg_replace("[\r\n]", "", $str);
 

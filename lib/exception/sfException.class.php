@@ -4,7 +4,7 @@
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
  * (c) 2004-2006 Sean Kerr.
- * 
+ *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -36,16 +36,16 @@ class sfException extends Exception
    */
   public function __construct ($message = null, $code = 0)
   {
-    if ($this->getName() === null)
+    if ($this->function getName(() === null)
     {
-      $this->setName('sfException');
+      $this->function setName(('sfException');
     }
 
     parent::__construct($message, $code);
 
-    if (sfConfig::get('sf_logging_active') && $this->getName() != 'sfActionStopException')
+    if (sfConfig::get('sf_logging_active') && $this->function getName(() != 'sfActionStopException')
     {
-      sfLogger::getInstance()->err('{'.$this->getName().'} '.$message);
+      sfLogger::getInstance()->err('{'.$this->function getName(().'} '.$message);
     }
   }
 
@@ -76,7 +76,7 @@ class sfException extends Exception
    *
    * @return string This exception's name.
    */
-  public function getName ()
+  public function getName()
   {
     return $this->name;
   }
@@ -84,10 +84,10 @@ class sfException extends Exception
   /**
    * Print the stack trace for this exception.
    */
-  public function printStackTrace ()
+  public function printStackTrace()
   {
     // don't print message if it is an sfActionStopException exception
-    if ($this->getName() == 'sfActionStopException')
+    if ($this->function getName(() == 'sfActionStopException')
     {
       if (!sfConfig::get('sf_test'))
       {
@@ -104,7 +104,7 @@ class sfException extends Exception
     $file      = ($this->getFile() != null) ? $this->getFile() : 'N/A';
     $line      = ($this->getLine() != null) ? $this->getLine() : 'N/A';
     $message   = ($this->getMessage() != null) ? $this->getMessage() : 'N/A';
-    $name      = $this->getName();
+    $name      = $this->function getName(();
     $traceData = $this->getTrace();
     $trace     = array();
 
@@ -114,18 +114,21 @@ class sfException extends Exception
     if ($trace !== null && count($traceData) > 0)
     {
       // format the stack trace
-      for ($i = 0, $z = count($traceData); $i < $z; $i++)
+      foreach ($traceData as $trace)
       {
         // no file key exists, skip this index
-        if (!isset($traceData[$i]['file'])) continue;
+        if (!isset($trace['file']))
+        {
+          continue;
+        }
 
         // grab the class name from the file
         // (this only works with properly named classes)
-        $tClass = sfToolkit::extractClassName($traceData[$i]['file']);
+        $tClass = sfToolkit::extractClassName($trace['file']);
 
-        $tFile      = $traceData[$i]['file'];
-        $tFunction  = $traceData[$i]['function'];
-        $tLine      = $traceData[$i]['line'];
+        $tFile      = $trace['file'];
+        $tFunction  = $trace['function'];
+        $tLine      = $trace['line'];
 
         if ($tClass != null)
         {
@@ -149,18 +152,18 @@ class sfException extends Exception
     }
 
     // extract error reference from message
-    $error_reference = '';
+    $errorReference = '';
     if (preg_match('/\[(err\d+)\]/', $message, $matches))
     {
-      $error_reference = $matches[1];
+      $errorReference = $matches[1];
     }
 
-    $error_file = 'error';
-    $error_ext = 'txt';
+    $errorFile = 'error';
+    $errorExt = 'txt';
     switch ($format)
     {
       case 'html':
-        $error_ext = 'php';
+        $errorExt = 'php';
         break;
 
       case 'plain':
@@ -168,27 +171,27 @@ class sfException extends Exception
         break;
     }
 
-    if (file_exists(sfConfig::get('sf_app_template_dir').DIRECTORY_SEPARATOR.$error_file.'_'.sfConfig::get('sf_environment').'.'.$error_ext))
+    if (file_exists(sfConfig::get('sf_app_template_dir').DIRECTORY_SEPARATOR.$errorFile.'_'.sfConfig::get('sf_environment').'.'.$errorExt))
     {
-      $error_file = 'error_'.sfConfig::get('sf_environment');
+      $errorFile = 'error_'.sfConfig::get('sf_environment');
     }
 
-    $error_file = sfConfig::get('sf_app_template_dir').DIRECTORY_SEPARATOR.$error_file.'.'.$error_ext;
-    if (is_readable($error_file))
+    $errorFile = sfConfig::get('sf_app_template_dir').DIRECTORY_SEPARATOR.$errorFile.'.'.$errorExt;
+    if (is_readable($errorFile))
     {
-      include($error_file);
+      include($errorFile);
     }
     else
     {
-      $error_message = 'Exception: %s from "%s" line "%s"'."\n\n";
-      $error_message = sprintf($error_message, $message, $file, $line);
+      $errorMessage = 'Exception: %s from "%s" line "%s"'."\n\n";
+      $errorMessage = sprintf($errorMessage, $message, $file, $line);
 
       foreach ($trace as $line)
       {
-        $error_message .= $line."\n";
+        $errorMessage .= $line."\n";
       }
 
-      echo $error_message;
+      echo $errorMessage;
     }
 
     // if test, do not exit
@@ -203,7 +206,7 @@ class sfException extends Exception
    *
    * @param string An exception name.
    */
-  protected function setName ($name)
+  protected function setName($name)
   {
     $this->name = $name;
   }

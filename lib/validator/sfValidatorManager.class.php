@@ -4,7 +4,7 @@
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
  * (c) 2004-2006 Sean Kerr.
- * 
+ *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -31,7 +31,7 @@ class sfValidatorManager
    *
    * @return void
    */
-  public function clear ()
+  public function clear()
   {
     $this->groups = null;
     $this->groups = array();
@@ -44,7 +44,7 @@ class sfValidatorManager
    *
    * @return bool true, if validation completed successfully, otherwise false.
    */
-  public function execute ()
+  public function execute()
   {
     $retval = true;
 
@@ -67,7 +67,7 @@ class sfValidatorManager
               continue;
             }
 
-            if ($subdata['validation_status'] == true && !$this->validate($subname, $subdata, $name))
+            if ($subdata['validation_status'] == true && !$this->function validate(($subname, $subdata, $name))
             {
               // validation failed
               $retval = false;
@@ -77,7 +77,7 @@ class sfValidatorManager
         else
         {
           // single parameter
-          if ($data['validation_status'] == true && !$this->validate($name, $data, null))
+          if ($data['validation_status'] == true && !$this->function validate(($name, $data, null))
           {
             // validation failed
             $retval = false;
@@ -86,10 +86,12 @@ class sfValidatorManager
       }
 
       if (count($this->groups) == 0 || $pass == 2)
+      {
         break;
+      }
 
       // increase our pass indicator
-      $pass++;
+      ++$pass;
     }
 
     return $retval;
@@ -102,7 +104,7 @@ class sfValidatorManager
    *
    * @return void
    */
-  public function initialize ($context)
+  public function initialize($context)
   {
     $this->request = $context->getRequest();
   }
@@ -116,7 +118,7 @@ class sfValidatorManager
    * @param string  A group name.
    * @param string  A parent array.
    */
-  public function registerName ($name, $required = true, $message = 'Required', $parent = null, $group = null, $isFile = false)
+  public function registerName($name, $required = true, $message = 'Required', $parent = null, $group = null, $isFile = false)
   {
     // create the entry
     $entry                      = array();
@@ -173,7 +175,7 @@ class sfValidatorManager
    *
    * @return void
    */
-  public function registerValidator ($name, $validator, $parent = null)
+  public function registerValidator($name, $validator, $parent = null)
   {
     if ($parent != null)
     {
@@ -196,7 +198,7 @@ class sfValidatorManager
    *
    * @return bool true, if validation completes successfully, otherwise false.
    */
-  private function validate (&$name, &$data, $parent)
+  private function validate(&$name, &$data, $parent)
   {
     // get defaults
     $error     = null;
@@ -258,7 +260,7 @@ class sfValidatorManager
     {
       if (!$data['required'] || !$force)
       {
-        // we don't have to validate it
+        // we don't have to function validate( it
         $retval = true;
       }
       else
@@ -287,7 +289,7 @@ class sfValidatorManager
         // loop through our validators
         foreach ($data['validators'] as $validator)
         {
-          if (!$validator->execute($value, $error))
+          if (!$validator->function execute(($value, $error))
           {
             $retval = false;
 

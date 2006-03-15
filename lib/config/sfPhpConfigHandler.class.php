@@ -101,18 +101,18 @@ class sfPhpConfigHandler extends sfYamlConfigHandler
 
   private function get_ini_path()
   {
-    $cfg_path = get_cfg_var('cfg_file_path');
-    if ($cfg_path == '')
+    $cfgPath = get_cfg_var('cfg_file_path');
+    if ($cfgPath == '')
     {
-      $ini_path = 'WARNING: system is not using a php.ini file';
+      $iniPath = 'WARNING: system is not using a php.ini file';
     }
     else
     {
-      $ini_path = 'php.ini location: "%s"';
-      $ini_path = sprintf($ini_path, $cfg_path);
+      $iniPath = 'php.ini location: "%s"';
+      $iniPath = sprintf($iniPath, $cfgPath);
     }
 
-    return $ini_path;
+    return $iniPath;
   }
 }
 

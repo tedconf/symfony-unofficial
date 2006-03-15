@@ -3,7 +3,7 @@
 class sfConfigTest extends UnitTestCase
 {
   private
-    $config_backup = array();
+    $configBackup = array();
 
   public function setUp()
   {

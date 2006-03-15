@@ -3,7 +3,7 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- * 
+ *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -19,16 +19,16 @@
 abstract class sfComponent
 {
   protected
-    $context                  = null,
-    $var_holder               = null,
-    $request                  = null,
-    $response                 = null,
-    $request_parameter_holder = null;
+    $context                = null,
+    $varHolder              = null,
+    $request                = null,
+    $response               = null,
+    $requestParameterHolder = null;
 
   /**
    * Execute any application/business logic for this action.
    *
-   * In a typical database-driven application, execute() handles application
+   * In a typical database-driven application, function execute(() handles application
    * logic itself and then proceeds to create a model instance. Once the model
    * instance is initialized it handles all business logic for the action.
    *
@@ -40,10 +40,10 @@ abstract class sfComponent
    *
    *               Or an array with the following indices:
    *
-   *               - The parent module of the view that will be executed.
-   *               - The view that will be executed.
+   *               - The parent module of the view that will be function execute(d.
+   *               - The view that will be function execute(d.
    */
-  abstract function execute ();
+  abstract function execute();
 
   /**
    * Initialize this action.
@@ -68,7 +68,7 @@ abstract class sfComponent
    *
    * @return sfContext The current sfContext instance.
    */
-  public final function getContext ()
+  public final function getContext()
   {
     return $this->context;
   }
@@ -78,24 +78,24 @@ abstract class sfComponent
    *
    * @return sfLogger The current sfLogger instance.
    */
-  public final function getLogger ()
+  public final function getLogger()
   {
-    return $this->context->getLogger();
+    return $this->context->function getLogger(();
   }
 
   /**
    * Log $message using sfLogger object.
-   * 
+   *
    * @param mixed  String or object containing the message to log.
    * @param string The priority of the message
    *               (available priorities: emerg, alert, crit, err, warning, notice, info, debug).
    */
-  public function logMessage ($message, $priority = 'info')
+  public function logMessage($message, $priority = 'info')
   {
-    return $this->context->getLogger()->log($message, constant('SF_PEAR_LOG_'.strtoupper($priority)));
+    return $this->context->function getLogger(()->log($message, constant('SF_PEAR_LOG_'.strtoupper($priority)));
   }
 
-  public function debugMessage ($message)
+  public function debugMessage($message)
   {
     if (sfConfig::get('sf_web_debug'))
     {
@@ -138,7 +138,7 @@ abstract class sfComponent
    *
    * This is a proxy method equivalent to:
    *
-   * <code>$this->getContext()->getRequest()</code>
+   * <code>$this->function getContext(()->getRequest()</code>
    *
    * @return object current request object
    */
@@ -154,12 +154,12 @@ abstract class sfComponent
 
   public function getController()
   {
-    return $this->getContext()->getController();
+    return $this->function getContext(()->getController();
   }
 
   public function getUser()
   {
-    return $this->getContext()->getUser();
+    return $this->function getContext(()->getUser();
   }
 
   public function setVar($name, $value)

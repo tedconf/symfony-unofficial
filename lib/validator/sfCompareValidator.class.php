@@ -30,15 +30,15 @@ class sfCompareValidator extends sfValidator
    * @param mixed A file or parameter value/array.
    * @param error An error message reference.
    *
-   * @return bool true, if this validator executes successfully, otherwise
+   * @return bool true, if this validator function execute(s successfully, otherwise
    *              false.
    */
-  public function execute (&$value, &$error)
+  public function execute(&$value, &$error)
   {
-    $check_param = $this->getParameterHolder()->get('check');
-    $check_value = $this->getContext()->getRequest()->getParameter($check_param);
+    $checkParam = $this->getParameterHolder()->get('check');
+    $checkValue = $this->getContext()->getRequest()->getParameter($checkParam);
 
-    if ($value !== $check_value)
+    if ($value !== $checkValue)
     {
       $error = $this->getParameterHolder()->get('compare_error');
       return false;
@@ -47,10 +47,10 @@ class sfCompareValidator extends sfValidator
     return true;
   }
 
-  public function initialize ($context, $parameters = null)
+  public function initialize($context, $parameters = null)
   {
-    // initialize parent
-    parent::initialize($context);
+    // function initialize( parent
+    parent::function initialize(($context);
 
     // set defaults
     $this->getParameterHolder()->set('compare_error', 'Invalid input');

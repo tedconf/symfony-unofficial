@@ -11,43 +11,43 @@
  */
 class <?php echo $this->getGeneratedModuleName() ?>Actions extends sfActions
 {
-  public function preExecute ()
+  public function preExecute()
   {
     $this->getResponse()->addStylesheet('<?php echo $this->getParameterValue('css', '/sf/css/sf_admin/main') ?>', 'first');
   }
 
-  public function executeIndex ()
+  public function executeIndex()
   {
     return $this->forward('<?php echo $this->getModuleName() ?>', 'list');
   }
 
-  public function executeList ()
+  public function executeList()
   {
-    $this->processSort();
+    $this->function processSort(();
 
-    $this->processFilters();
+    $this->function processFilters(();
 
     // pager
     $this->pager = new sfPropelPager('<?php echo $this->getClassName() ?>', <?php echo $this->getParameterValue('list.max_per_page', 20) ?>);
     $c = new Criteria();
-    $this->addSortCriteria($c);
-    $this->addFiltersCriteria($c);
+    $this->function addSortCriteria(($c);
+    $this->function addFiltersCriteria(($c);
     $this->pager->setCriteria($c);
     $this->pager->setPage($this->getRequestParameter('page', 1));
     $this->pager->init();
   }
 
-  public function executeCreate ()
+  public function executeCreate()
   {
     return $this->forward('<?php echo $this->getModuleName() ?>', 'edit');
   }
 
-  public function executeSave ()
+  public function executeSave()
   {
     return $this->forward('<?php echo $this->getModuleName() ?>', 'edit');
   }
 
-  public function executeEdit ()
+  public function executeEdit()
   {
     // add javascript
     $this->getResponse()->addJavascript('/sf/js/prototype/prototype');
@@ -74,7 +74,7 @@ class <?php echo $this->getGeneratedModuleName() ?>Actions extends sfActions
     }
   }
 
-  public function executeDelete ()
+  public function executeDelete()
   {
     $this-><?php echo $this->getSingularName() ?> = <?php echo $this->getClassName() ?>Peer::retrieveByPk(<?php echo $this->getRetrieveByPkParamsForDelete() ?>);
     $this->forward404Unless($this-><?php echo $this->getSingularName() ?>);
@@ -83,10 +83,10 @@ class <?php echo $this->getGeneratedModuleName() ?>Actions extends sfActions
 
 <?php foreach ($this->getColumnCategories('edit.display') as $category): ?>
 <?php foreach ($this->getColumns('edit.display', $category) as $name => $column): ?>
-<?php $input_type = $this->getParameterValue('edit.fields.'.$column->getName().'.type') ?>
-<?php if ($input_type == 'admin_input_upload_tag'): ?>
-<?php $upload_dir = $this->getParameterValue('edit.fields.'.$column->getName().'.upload_dir') ?>
-      $currentFile = sfConfig::get('sf_upload_dir').'/<?php echo $upload_dir ?>/'.$this-><?php echo $this->getSingularName() ?>->get<?php echo $column->getPhpName() ?>();
+<?php $inputType = $this->getParameterValue('edit.fields.'.$column->getName().'.type') ?>
+<?php if ($inputType == 'admin_input_upload_tag'): ?>
+<?php $uploadDir = $this->getParameterValue('edit.fields.'.$column->getName().'.upload_dir') ?>
+      $currentFile = sfConfig::get('sf_upload_dir').'/<?php echo $uploadDir ?>/'.$this-><?php echo $this->getSingularName() ?>->get<?php echo $column->getPhpName() ?>();
       if (is_file($currentFile))
       {
         unlink($currentFile);
@@ -100,7 +100,7 @@ class <?php echo $this->getGeneratedModuleName() ?>Actions extends sfActions
 
   public function handleErrorEdit()
   {
-    $this->preExecute();
+    $this->function preExecute(();
     $this-><?php echo $this->getSingularName() ?> = $this->get<?php echo $this->getClassName() ?>OrCreate();
     $this->update<?php echo $this->getClassName() ?>FromRequest();
 
@@ -116,14 +116,14 @@ class <?php echo $this->getGeneratedModuleName() ?>Actions extends sfActions
 <?php $name = $column->getName() ?>
 <?php if ($column->isPrimaryKey()) continue ?>
 <?php $credentials = $this->getParameterValue('edit.fields.'.$column->getName().'.credentials') ?>
-<?php $input_type = $this->getParameterValue('edit.fields.'.$column->getName().'.type') ?>
+<?php $inputType = $this->getParameterValue('edit.fields.'.$column->getName().'.type') ?>
 <?php if ($credentials): $credentials = str_replace("\n", ' ', var_export($credentials, true)) ?>
     if ($this->getUser()->hasCredential(<?php echo $credentials ?>))
     {
 <?php endif ?>
-<?php if ($input_type == 'admin_input_upload_tag'): ?>
-<?php $upload_dir = $this->getParameterValue('edit.fields.'.$column->getName().'.upload_dir') ?>
-    $currentFile = sfConfig::get('sf_upload_dir').'/<?php echo $upload_dir ?>/'.$this-><?php echo $this->getSingularName() ?>->get<?php echo $column->getPhpName() ?>();
+<?php if ($inputType == 'admin_input_upload_tag'): ?>
+<?php $uploadDir = $this->getParameterValue('edit.fields.'.$column->getName().'.upload_dir') ?>
+    $currentFile = sfConfig::get('sf_upload_dir').'/<?php echo $uploadDir ?>/'.$this-><?php echo $this->getSingularName() ?>->get<?php echo $column->getPhpName() ?>();
     if (!$this->getRequest()->hasErrors() && isset($<?php echo $this->getSingularName() ?>['<?php echo $name ?>_remove']))
     {
       $this-><?php echo $this->getSingularName() ?>->set<?php echo $column->getPhpName() ?>('');
@@ -139,14 +139,14 @@ class <?php echo $this->getGeneratedModuleName() ?>Actions extends sfActions
     if (isset($<?php echo $this->getSingularName() ?>['<?php echo $name ?>']))
     {
 <?php endif ?>
-<?php if ($input_type == 'admin_input_upload_tag'): ?>
+<?php if ($inputType == 'admin_input_upload_tag'): ?>
       $fileName = md5($this->getRequest()->getFileName('<?php echo $this->getSingularName() ?>[<?php echo $name ?>]').time());
       $ext = $this->getRequest()->getFileExtension('<?php echo $this->getSingularName() ?>[<?php echo $name ?>]');
       if (is_file($currentFile))
       {
         unlink($currentFile);
       }
-      $this->getRequest()->moveFile('<?php echo $this->getSingularName() ?>[<?php echo $name ?>]', sfConfig::get('sf_upload_dir').'/<?php echo $upload_dir ?>/'.$fileName.$ext);
+      $this->getRequest()->moveFile('<?php echo $this->getSingularName() ?>[<?php echo $name ?>]', sfConfig::get('sf_upload_dir').'/<?php echo $uploadDir ?>/'.$fileName.$ext);
       $this-><?php echo $this->getSingularName() ?>->set<?php echo $column->getPhpName() ?>($fileName.$ext);
 <?php elseif ($type == CreoleTypes::DATE || $type == CreoleTypes::TIMESTAMP): ?>
       if ($<?php echo $this->getSingularName() ?>['<?php echo $name ?>'])
@@ -187,7 +187,7 @@ class <?php echo $this->getGeneratedModuleName() ?>Actions extends sfActions
     return $<?php echo $this->getSingularName() ?>;
   }
 
-  protected function processFilters ()
+  protected function processFilters()
   {
 <?php if ($this->getParameterValue('list.filters')): ?>
     if ($this->getRequest()->hasParameter('filter'))
@@ -198,7 +198,7 @@ class <?php echo $this->getGeneratedModuleName() ?>Actions extends sfActions
 <?php endif ?>
   }
 
-  protected function processSort ()
+  protected function processSort()
   {
     if ($this->getRequestParameter('sort'))
     {
@@ -207,7 +207,7 @@ class <?php echo $this->getGeneratedModuleName() ?>Actions extends sfActions
     }
   }
 
-  protected function addFiltersCriteria (&$c)
+  protected function addFiltersCriteria(&$c)
   {
 <?php if ($this->getParameterValue('list.filters')): ?>
     $this->filters = $this->getUser()->getAttributeHolder()->getAll('sf_admin/<?php echo $this->getSingularName() ?>/filters');
@@ -224,17 +224,17 @@ class <?php echo $this->getGeneratedModuleName() ?>Actions extends sfActions
 <?php endif ?>
   }
 
-  protected function addSortCriteria (&$c)
+  protected function addSortCriteria(&$c)
   {
-    if ($sort_column = $this->getUser()->getAttribute('sort', null, 'sf_admin/<?php echo $this->getSingularName() ?>/sort'))
+    if ($sortColumn = $this->getUser()->getAttribute('sort', null, 'sf_admin/<?php echo $this->getSingularName() ?>/sort'))
     {
       if ($this->getUser()->getAttribute('type', null, 'sf_admin/<?php echo $this->getSingularName() ?>/sort') == 'asc')
       {
-        $c->addAscendingOrderByColumn($sort_column);
+        $c->addAscendingOrderByColumn($sortColumn);
       }
       else
       {
-        $c->addDescendingOrderByColumn($sort_column);
+        $c->addDescendingOrderByColumn($sortColumn);
       }
     }
   }

@@ -16,7 +16,7 @@ class sfDefineEnvironmentConfigHandlerTest extends UnitTestCase
       $dir.'prefix_all.yml',
     );
 
-    $current_env = sfConfig::get('sf_environment');
+    $currentEnv = sfConfig::get('sf_environment');
 
     sfConfig::set('sf_environment', 'prod');
 
@@ -26,7 +26,7 @@ class sfDefineEnvironmentConfigHandlerTest extends UnitTestCase
 
     $this->assertEqual(file_get_contents($dir.'prefix_result.php'), $data);
 
-    sfConfig::set('sf_environment', $current_env);
+    sfConfig::set('sf_environment', $currentEnv);
   }
 }
 

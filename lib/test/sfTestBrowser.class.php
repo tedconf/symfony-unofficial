@@ -3,7 +3,7 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- * 
+ *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -29,9 +29,9 @@ class sfTestBrowser
     $presentation = '';
 
   private static
-    $current_context = null;
+    $currentContext = null;
 
-  public function initialize ($hostname = null)
+  public function initialize($hostname = null)
   {
     // setup our fake environment
     $_SERVER['HTTP_HOST'] = ($hostname ? $hostname : sfConfig::get('sf_app').'-'.sfConfig::get('sf_environment'));
@@ -47,25 +47,25 @@ class sfTestBrowser
     register_shutdown_function(array($this, 'shutdown'));
   }
 
-  public function get($request_uri = '/', $with_layout = true)
+  public function get($requestUri = '/', $withLayout = true)
   {
     sfConfig::set('sf_timer_start', microtime(true));
 
-    $context = $this->initRequest($request_uri, $with_layout);
+    $context = $this->initRequest($requestUri, $withLayout);
     $html = $this->getContent();
     $this->closeRequest();
 
     return $html;
   }
 
-  public function initRequest($request_uri = '/', $with_layout = true)
+  public function initRequest($requestUri = '/', $withLayout = true)
   {
-    if (self::$current_context)
+    if (self::$currentContext)
     {
       throw new sfException('a request is already active');
     }
 
-    $this->populateVariables($request_uri, $with_layout);
+    $this->populateVariables($requestUri, $withLayout);
 
     // launch request via controller
     $context    = sfContext::getInstance();
@@ -73,7 +73,7 @@ class sfTestBrowser
     $request    = $context->getRequest();
 
     $request->getParameterHolder()->clear();
-    $request->initialize($context);
+    $request->function initialize(($context);
 
     ob_start();
     $controller->dispatch();
@@ -82,19 +82,19 @@ class sfTestBrowser
     // manually shutdown user to save current session data
     $context->getUser()->shutdown();
 
-    self::$current_context = $context;
+    self::$currentContext = $context;
 
     return $context;
   }
 
   public function getContext()
   {
-    return self::$current_context;
+    return self::$currentContext;
   }
 
   public function getContent()
   {
-    if (!self::$current_context)
+    if (!self::$currentContext)
     {
       throw new sfException('a request must be active');
     }
@@ -104,14 +104,14 @@ class sfTestBrowser
 
   public function closeRequest()
   {
-    if (!self::$current_context)
+    if (!self::$currentContext)
     {
       throw new sfException('a request must be active');
     }
 
     // clean state
-    self::$current_context->shutdown();
-    self::$current_context = null;
+    self::$currentContext->shutdown();
+    self::$currentContext = null;
     sfContext::removeInstance();
     sfWebDebug::removeInstance();
   }
@@ -122,56 +122,59 @@ class sfTestBrowser
     sfToolkit::clearDirectory(sfConfig::get('sf_test_cache_dir'));
   }
 
-  protected function populateVariables($request_uri, $with_layout)
+  protected function populateVariables($requestUri, $withLayout)
   {
     $_SERVER['GATEWAY_INTERFACE'] = 'CGI/1.1';
     $_SERVER['REQUEST_METHOD'] = 'GET';
     $_SERVER['SCRIPT_NAME'] = '/index.php';
 
-    if ($request_uri[0] != '/')
+    if ($requestUri[0] != '/')
     {
-      $request_uri = '/'.$request_uri;
+      $requestUri = '/'.$requestUri;
     }
 
     // add index.php if needed
-    if (!strpos($request_uri, '.php'))
+    if (!strpos($requestUri, '.php'))
     {
-      $request_uri = '/index.php'.$request_uri;
+      $requestUri = '/index.php'.$requestUri;
     }
 
-    $_SERVER['REQUEST_URI'] = $request_uri;
+    $_SERVER['REQUEST_URI'] = $requestUri;
 
     // query string
     $_SERVER['QUERY_STRING'] = '';
-    if ($query_string_pos = strpos($request_uri, '?'))
+    if ($queryStringPos = strpos($requestUri, '?'))
     {
-      $_SERVER['QUERY_STRING'] = substr($request_uri, $query_string_pos + 1);
+      $_SERVER['QUERY_STRING'] = substr($requestUri, $queryStringPos + 1);
     }
     else
     {
-      $query_string_pos = strlen($request_uri);
+      $queryStringPos = strlen($requestUri);
     }
 
     // path info
     $_SERVER['PATH_INFO'] = '/';
-    $script_pos = strpos($request_uri, '.php') + 5;
-    if ($script_pos < $query_string_pos)
+    $scriptPos = strpos($requestUri, '.php') + 5;
+    if ($scriptPos < $queryStringPos)
     {
-      $_SERVER['PATH_INFO'] = '/'.substr($request_uri, $script_pos, $query_string_pos - $script_pos);
+      $_SERVER['PATH_INFO'] = '/'.substr($requestUri, $scriptPos, $queryStringPos - $scriptPos);
     }
 
     // parse query string
     $params = explode('&', $_SERVER['QUERY_STRING']);
     foreach ($params as $param)
     {
-      if (!$param) continue;
+      if (!$param)
+      {
+        continue;
+      }
 
       list ($key, $value) = explode('=', $param);
       $_GET[$key] = urldecode($value);
     }
 
     // change layout
-    if (!$with_layout)
+    if (!$withLayout)
     {
       // we simulate an Ajax call to disable layout
       $_SERVER['HTTP_X_REQUESTED_WITH'] = 'XMLHttpRequest';

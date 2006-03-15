@@ -149,9 +149,9 @@ class sfViewConfigHandler extends sfYamlConfigHandler
 
     $slots = null;
 
-    $use_default_slots = $this->getConfigValue('use_default_slots', $viewName);
+    $useDefaultSlots = $this->getConfigValue('use_default_slots', $viewName);
 
-    if ($use_default_slots)
+    if ($useDefaultSlots)
     {
       $slots = $this->mergeConfigValue('slots', $viewName);
     }
@@ -199,8 +199,8 @@ class sfViewConfigHandler extends sfYamlConfigHandler
   {
     $data = '';
 
-    $has_layout = $this->getConfigValue('has_layout', $viewName);
-    if ($has_layout)
+    $hasLayout = $this->getConfigValue('has_layout', $viewName);
+    if ($hasLayout)
     {
       $layout = $this->getconfigValue('layout', $viewName);
       $data .= "    \$this->setDecoratorDirectory(sfConfig::get('sf_app_template_dir'));\n".

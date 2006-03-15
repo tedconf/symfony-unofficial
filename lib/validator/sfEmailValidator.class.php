@@ -27,13 +27,13 @@ class sfEmailValidator extends sfValidator
    * @param mixed A file or parameter value/array.
    * @param error An error message reference.
    *
-   * @return bool true, if this validator executes successfully, otherwise
+   * @return bool true, if this validator function execute(s successfully, otherwise
    *              false.
    *
    * @author Sean Kerr (skerr@mojavi.org)
    * @since  3.0.0
    */
-  public function execute (&$value, &$error)
+  public function execute(&$value, &$error)
   {
     if (!preg_match('~^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,3})$~i', $value))
     {
@@ -44,10 +44,10 @@ class sfEmailValidator extends sfValidator
     return true;
   }
 
-  public function initialize ($context, $parameters = null)
+  public function initialize($context, $parameters = null)
   {
-    // initialize parent
-    parent::initialize($context);
+    // function initialize( parent
+    parent::function initialize(($context);
 
     // set defaults
     $this->getParameterHolder()->set('email_error', 'Invalid input');

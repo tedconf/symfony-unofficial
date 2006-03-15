@@ -86,11 +86,14 @@ class sfPeerBuilder extends PHP5ComplexPeerBuilder
 
     while(\$rs->next()) {
 ";
-            if ($table->getChildrenColumn()) {
+            if ($table->getChildrenColumn())
+            {
               $script .= "
       \$omClass = ".$this->getPeerClassname()."::getOMClass(\$rs, 1);
 ";
-            } else {
+            }
+            else
+            {
               $script .= "
       \$omClass = ".$this->getPeerClassname()."::getOMClass();
 ";
@@ -125,8 +128,9 @@ class sfPeerBuilder extends PHP5ComplexPeerBuilder
 ";
   }
 
-  public function addDoValidate(&$script) {
-	    $tmp = '';
+  public function addDoValidate(&$script)
+  {
+      $tmp = '';
       parent::addDoValidate($tmp);
 
       $script .= str_replace("return {$this->basePeerClassname}::doValidate(".$this->getPeerClassname()."::DATABASE_NAME, ".$this->getPeerClassname()."::TABLE_NAME, \$columns);\n",

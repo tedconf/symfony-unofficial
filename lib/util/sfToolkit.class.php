@@ -27,17 +27,21 @@ class sfToolkit
    *
    * @return string A class or interface name, if one can be extracted, otherwise null.
    */
-  public static function extractClassName ($filename)
+  public static function extractClassName($filename)
   {
     $retval = null;
 
-    if (self::isPathAbsolute($filename))
+    if (self::function isPathAbsolute(($filename))
+    {
       $filename = basename($filename);
+    }
 
     $pattern = '/(.*?)\.(class|interface)\.php/i';
 
     if (preg_match($pattern, $filename, $match))
+    {
       $retval = $match[1];
+    }
 
     return $retval;
   }
@@ -49,7 +53,7 @@ class sfToolkit
    *
    * @return void
    */
-  public static function clearDirectory ($directory)
+  public static function clearDirectory($directory)
   {
     if (!is_dir($directory))
     {
@@ -71,10 +75,10 @@ class sfToolkit
           // delete symlink
           unlink($directory.'/'.$file);
         }
-        else if (is_dir($directory.'/'.$file))
+        elseif (is_dir($directory.'/'.$file))
         {
           // recurse through directory
-          self::clearDirectory($directory.'/'.$file);
+          self::function clearDirectory(($directory.'/'.$file);
 
           // delete the directory
           rmdir($directory.'/'.$file);
@@ -98,7 +102,7 @@ class sfToolkit
    *
    * @return bool true, if the path is absolute, otherwise false.
    */
-  public static function isPathAbsolute ($path)
+  public static function isPathAbsolute($path)
   {
     if ($path[0] == '/' || $path[0] == '\\' ||
         (strlen($path) > 3 && ctype_alpha($path[0]) &&
@@ -123,10 +127,10 @@ class sfToolkit
   public static function hasLockFile($lockFile, $maxLockFileLifeTime)
   {
     $isLocked = false;
-    if (is_readable($lockFile) && ($last_access = fileatime($lockFile)))
+    if (is_readable($lockFile) && ($lastAccess = fileatime($lockFile)))
     {
       $now = time();
-      $timeDiff = $now - $last_access;
+      $timeDiff = $now - $lastAccess;
 
       if ($timeDiff < $maxLockFileLifeTime)
       {
@@ -141,7 +145,7 @@ class sfToolkit
     return $isLocked;
   }
 
-  public static function stripComments ($source)
+  public static function stripComments($source)
   {
     if (!sfConfig::get('sf_strip_comments'))
     {
@@ -229,11 +233,11 @@ class sfToolkit
             {
               $args[2][$key] = self::arrayDeepMerge($args[0][$key], $args[1][$key]);
             }
-            else if (is_string($key) && $isKey0 && $isKey1)
+            elseif (is_string($key) && $isKey0 && $isKey1)
             {
               $args[2][$key] = $args[1][$key];
             }
-            else if (is_integer($key) && $isKey0 && $isKey1)
+            elseif (is_integer($key) && $isKey0 && $isKey1)
             {
               if ($isKey0 == $isKey1)
               {
@@ -245,19 +249,19 @@ class sfToolkit
                 $args[2][] = $args[1][$key];
               }
             }
-            else if (is_integer($key) && $isKey0)
+            elseif (is_integer($key) && $isKey0)
             {
               $args[2][] = $args[0][$key];
             }
-            else if (is_integer($key) && $isKey1)
+            elseif (is_integer($key) && $isKey1)
             {
               $args[2][] = $args[1][$key];
             }
-            else if (!$isKey1)
+            elseif (!$isKey1)
             {
               $args[2][$key] = $args[0][$key];
             }
-            else if (!$isKey0)
+            elseif (!$isKey0)
             {
               $args[2][$key] = $args[1][$key];
             }
@@ -310,17 +314,28 @@ class sfToolkit
     $value  = trim($value);
     $lvalue = strtolower($value);
 
-    if (in_array($lvalue, array('null', '~', ''))) {
+    if (in_array($lvalue, array('null', '~', '')))
+    {
       $value = null;
-    } if (in_array($lvalue, array('true', 't', 'on', '+', 'yes', 'y'))) {
+    }
+    elseif (in_array($lvalue, array('true', 't', 'on', '+', 'yes', 'y')))
+    {
       $value = true;
-    } else if (in_array($lvalue, array('false', 'f', 'off', '-', 'no', 'n'))) {
+    }
+    elseif (in_array($lvalue, array('false', 'f', 'off', '-', 'no', 'n')))
+    {
       $value = false;
-    } else if (ctype_digit($value)) {
+    }
+    elseif (ctype_digit($value))
+    {
       $value = (int)$value;
-    } else if (is_numeric($value)) {
+    }
+    elseif (is_numeric($value))
+    {
       $value = (float)$value;
-    } else {
+    }
+    else
+    {
       // Just a string
       $value = strtr($value, array("\\" => "\\\\", "%'" => "\"", "'" => "\\'"));
     }
@@ -328,15 +343,16 @@ class sfToolkit
     return $value;
   }
 
-    /**
-     * Returns subject replaced with regular expression matchs
-     *
-     * @param mixed subject to search
-     * @param array array of search => replace pairs
-     */
-    public static function pregtr($search, $replacePairs) {
-        return preg_replace(array_keys($replacePairs), array_values($replacePairs), $search);
-    }
+  /**
+   * Returns subject replaced with regular expression matchs
+   *
+   * @param mixed subject to search
+   * @param array array of search => replace pairs
+   */
+  public static function pregtr($search, $replacePairs)
+  {
+    return preg_replace(array_keys($replacePairs), array_values($replacePairs), $search);
+  }
 }
 
 ?>

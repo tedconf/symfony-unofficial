@@ -77,10 +77,10 @@ class sfPHPView extends sfView
 
     self::$coreHelpersLoaded = 1;
 
-    $core_helpers = array('Helper', 'Url', 'Asset', 'Tag');
-    $standard_helpers = sfConfig::get('sf_standard_helpers');
+    $coreHelpers = array('Helper', 'Url', 'Asset', 'Tag');
+    $standardHelpers = sfConfig::get('sf_standard_helpers');
 
-    $helpers = array_unique(array_merge($core_helpers, $standard_helpers));
+    $helpers = array_unique(array_merge($coreHelpers, $standardHelpers));
     $this->loadHelpers($helpers);
   }
 
@@ -91,12 +91,12 @@ class sfPHPView extends sfView
    */
   protected function loadHelpers($helpers)
   {
-    $helper_base_dir = sfConfig::get('sf_symfony_lib_dir').'/helper/';
+    $helperBaseDir = sfConfig::get('sf_symfony_lib_dir').'/helper/';
     foreach ($helpers as $helperName)
     {
-      if (is_readable($helper_base_dir.$helperName.'Helper.php'))
+      if (is_readable($helperBaseDir.$helperName.'Helper.php'))
       {
-        include_once($helper_base_dir.$helperName.'Helper.php');
+        include_once($helperBaseDir.$helperName.'Helper.php');
       }
       else
       {

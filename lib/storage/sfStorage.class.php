@@ -21,7 +21,7 @@
 abstract class sfStorage
 {
   private
-    $parameter_holder = null,
+    $parameterHolder = null,
     $context = null;
 
   /**
@@ -29,7 +29,7 @@ abstract class sfStorage
    *
    * @return sfContext A sfContext instance.
    */
-  public function getContext ()
+  public function getContext()
   {
     return $this->context;
   }
@@ -44,7 +44,7 @@ abstract class sfStorage
    *
    * @throws <b>sfInitializationException</b> If an error occurs while initializing this sfStorage.
    */
-  public function initialize ($context, $parameters = array())
+  public function initialize($context, $parameters = array())
   {
     $this->context = $context;
 
@@ -61,7 +61,7 @@ abstract class sfStorage
    *
    * @throws <b>sfFactoryException</b> If a storage implementation instance cannot be created.
    */
-  public static function newInstance ($class)
+  public static function newInstance($class)
   {
     // the class exists
     $object = new $class();
@@ -107,13 +107,13 @@ abstract class sfStorage
   abstract function & remove ($key);
 
   /**
-   * Execute the shutdown procedure.
+   * Execute the function shutdown( procedure.
    *
    * @return void
    *
    * @throws <b>sfStorageException</b> If an error occurs while shutting down this storage.
    */
-  abstract function shutdown ();
+  abstract function shutdown();
 
   /**
    * Write data to this storage.
@@ -128,7 +128,7 @@ abstract class sfStorage
    *
    * @throws <b>sfStorageException</b> If an error occurs while writing to this storage.
    */
-  abstract function write ($key, &$data);
+  abstract function write($key, &$data);
   
   public function getParameterHolder()
   {

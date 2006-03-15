@@ -43,7 +43,7 @@ class sfWebServer extends NS_HTTP_Service_Handler
     {
       return $this->config['browser']->get($url);
     }
-    else if (!is_readable($cfn))
+    elseif (!is_readable($cfn))
     {
       $this->Set_Response_Status(404);
 
@@ -55,7 +55,10 @@ class sfWebServer extends NS_HTTP_Service_Handler
       {
         foreach (scandir($cfn) as $dname)
         {
-          if ($dname == '.') continue;
+          if ($dname == '.')
+          {
+            continue;
+          }
 
           $ret .= "<a href='".addslashes($url.($url{strlen($url)-1} != "/" ? "/" : "").$dname)."'>".$dname."</a><br>";
         }

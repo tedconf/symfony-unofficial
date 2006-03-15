@@ -20,7 +20,7 @@ class sfPropelData
   private
     $deleteCurrentData = true,
     $maps              = array(),
-    $object_references = array();
+    $objectReferences  = array();
 
   public function setDeleteCurrentData($boolean)
   {
@@ -34,9 +34,9 @@ class sfPropelData
 
   // symfony load-data (file|dir)
   // todo: symfony dump-data
-  public function loadData($directory_or_file = null, $connectionName = 'propel')
+  public function loadData($directoryOrFile = null, $connectionName = 'propel')
   {
-    $fixture_files = $this->getFiles($directory_or_file);
+    $fixtureFiles = $this->getFiles($directoryOrFile);
 
     // wrap all databases operations in a single transaction
     $con = sfContext::getInstance()->getDatabaseConnection($connectionName);
@@ -44,9 +44,9 @@ class sfPropelData
     {
       $con->begin();
 
-      $this->doDeleteCurrentData($fixture_files);
+      $this->doDeleteCurrentData($fixtureFiles);
 
-      $this->doLoadData($fixture_files);
+      $this->doLoadData($fixtureFiles);
 
       $con->commit();
     }
@@ -57,29 +57,29 @@ class sfPropelData
     }
   }
 
-  protected function doLoadDataFromFile($fixture_file)
+  protected function doLoadDataFromFile($fixtureFile)
   {
     // import new datas
-    $main_datas = sfYaml::load($fixture_file);
+    $mainDatas = sfYaml::load($fixtureFile);
 
-    if ($main_datas === null)
+    if ($mainDatas === null)
     {
       // no data
       return;
     }
 
-    foreach ($main_datas as $class => $datas)
+    foreach ($mainDatas as $class => $datas)
     {
       $class = trim($class);
 
-      $peer_class = $class.'Peer';
+      $peerClass = $class.'Peer';
 
       // load map class
       $this->loadMapBuilder($class);
 
-      $tableMap = $this->maps[$class]->getDatabaseMap()->getTable(constant($peer_class.'::TABLE_NAME'));
+      $tableMap = $this->maps[$class]->getDatabaseMap()->getTable(constant($peerClass.'::TABLE_NAME'));
 
-      $column_names = call_user_func_array(array($peer_class, 'getFieldNames'), array(BasePeer::TYPE_FIELDNAME));
+      $columnNames = call_user_func_array(array($peerClass, 'getFieldNames'), array(BasePeer::TYPE_FIELDNAME));
 
       // iterate through datas for this class
       foreach ($datas as $key => $data)
@@ -108,13 +108,13 @@ class sfPropelData
           {
           }
 
-          $pos = array_search($name, $column_names);
+          $pos = array_search($name, $columnNames);
           $method = 'set'.sfInflector::camelize($name);
           if ($pos)
           {
             $obj->setByPosition($pos, $value);
           }
-          else if (method_exists($obj, $method))
+          elseif (method_exists($obj, $method))
           {
             $obj->$method($value);
           }
@@ -136,80 +136,80 @@ class sfPropelData
     }
   }
 
-  protected function doLoadData($fixture_files)
+  protected function doLoadData($fixtureFiles)
   {
     $this->object_references = array();
     $this->maps = array();
 
-    sort($fixture_files);
-    foreach ($fixture_files as $fixture_file)
+    sort($fixtureFiles);
+    foreach ($fixtureFiles as $fixtureFile)
     {
-      $this->doLoadDataFromFile($fixture_file);
+      $this->doLoadDataFromFile($fixtureFile);
     }
   }
 
-  protected function doDeleteCurrentData($fixture_files)
+  protected function doDeleteCurrentData($fixtureFiles)
   {
     // delete all current datas in database
     if ($this->deleteCurrentData)
     {
-      rsort($fixture_files);
-      foreach ($fixture_files as $fixture_file)
+      rsort($fixtureFiles);
+      foreach ($fixtureFiles as $fixtureFile)
       {
-        $main_datas = sfYaml::load($fixture_file);
+        $mainDatas = sfYaml::load($fixtureFile);
 
-        if ($main_datas === null)
+        if ($mainDatas === null)
         {
           // no data
           continue;
         }
 
-        $classes = array_keys($main_datas);
+        $classes = array_keys($mainDatas);
         krsort($classes);
         foreach ($classes as $class)
         {
-          $peer_class = trim($class.'Peer');
+          $peerClass = trim($class.'Peer');
 
-          require_once(sfConfig::get('sf_model_lib_dir').'/'.$peer_class.'.php');
+          require_once(sfConfig::get('sf_model_lib_dir').'/'.$peerClass.'.php');
 
-          call_user_func(array($peer_class, 'doDeleteAll'));
+          call_user_func(array($peerClass, 'doDeleteAll'));
         }
       }
     }
   }
 
-  protected function getFiles($directory_or_file = null)
+  protected function getFiles($directoryOrFile = null)
   {
     // directory or file?
-    $fixture_files = array();
-    if (!$directory_or_file)
+    $fixtureFiles = array();
+    if (!$directoryOrFile)
     {
-      $directory_or_file = sfConfig::get('sf_data_dir').'/fixtures';
+      $directoryOrFile = sfConfig::get('sf_data_dir').'/fixtures';
     }
 
-    if (is_file($directory_or_file))
+    if (is_file($directoryOrFile))
     {
-      $fixture_files[] = $directory_or_file;
+      $fixtureFiles[] = $directoryOrFile;
     }
-    else if (is_dir($directory_or_file))
+    elseif (is_dir($directoryOrFile))
     {
-      $fixture_files = sfFinder::type('file')->name('*.yml')->in($directory_or_file);
+      $fixtureFiles = sfFinder::type('file')->name('*.yml')->in($directoryOrFile);
     }
     else
     {
       throw new sfInitializationException('You must give a directory or a file.');
     }
 
-    return $fixture_files;
+    return $fixtureFiles;
   }
 
   private function loadMapBuilder($class)
   {
-    $class_map_builder = $class.'MapBuilder';
+    $classMapBuilder = $class.'MapBuilder';
     if (!isset($this->maps[$class]))
     {
-      require_once(sfConfig::get('sf_model_lib_dir').'/map/'.$class_map_builder.'.php');
-      $this->maps[$class] = new $class_map_builder();
+      require_once(sfConfig::get('sf_model_lib_dir').'/map/'.$classMapBuilder.'.php');
+      $this->maps[$class] = new $classMapBuilder();
       $this->maps[$class]->doBuild();
     }
   }
@@ -221,10 +221,10 @@ class sfPropelData
    * @param mixed name or names of tables to dump
    * @param string connection name
    */
-  public function dumpData($directory_or_file = null, $tables = 'all', $connectionName = 'propel')
+  public function dumpData($directoryOrFile = null, $tables = 'all', $connectionName = 'propel')
   {
     $sameFile = true;
-    if (is_dir($directory_or_file) && 'all' === $tables ||  (is_array($tables) && 1 < count($tables)))
+    if (is_dir($directoryOrFile) && 'all' === $tables ||  (is_array($tables) && 1 < count($tables)))
     {
       // multi files
       $sameFile = false;
@@ -246,7 +246,7 @@ class sfPropelData
         $table = basename($table, '.php');
       }
     }
-    else if (!is_array($tables))
+    elseif (!is_array($tables))
     {
       $tables = array($tables);
     }
@@ -265,7 +265,8 @@ class sfPropelData
 
       $dumpData[$table] = array();
 
-      while ($rs->next()) {
+      while ($rs->next())
+      {
         $pk = '';
         foreach ($tableMap->getColumns() as $column)
         {
@@ -276,7 +277,7 @@ class sfPropelData
             $pk .= '_' .$rs->get($col);
             continue;
           }
-          else if ($column->isForeignKey())
+          elseif ($column->isForeignKey())
           {
             $relatedTable = $this->maps[$table]->getDatabaseMap()->getTable($column->getRelatedTableName());
 
@@ -294,14 +295,14 @@ class sfPropelData
     if ($sameFile)
     {
       $yaml = Spyc::YAMLDump($dumpData);
-      file_put_contents($directory_or_file, $yaml);
+      file_put_contents($directoryOrFile, $yaml);
     }
     else
     {
       foreach ($dumpData as $table => $data)
       {
         $yaml = Spyc::YAMLDump($data);
-        file_put_contents($directory_or_file."/$table.yml", $yaml);
+        file_put_contents($directoryOrFile."/$table.yml", $yaml);
       }
     }
   }

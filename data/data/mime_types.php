@@ -1,13 +1,13 @@
 <?php
 
 $data = preg_match_all('/^([a-z0-9\/_\.+-]+) ([a-z0-9_]+)$/mi', file_get_contents(__FILE__), $matches, PREG_SET_ORDER);
-$mime_types = array();
+$mimeTypes = array();
 foreach ($matches as $match)
 {
-  $mime_types[strtolower($match[1])] = strtolower($match[2]);
+  $mimeTypes[strtolower($match[1])] = strtolower($match[2]);
 }
 
-file_put_contents(dirname(__FILE__).'/mime_types.dat', serialize($mime_types));
+file_put_contents(dirname(__FILE__).'/mime_types.dat', serialize($mimeTypes));
 
 /*
 application/andrew-inset ez

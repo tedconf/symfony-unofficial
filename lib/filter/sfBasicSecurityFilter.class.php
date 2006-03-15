@@ -29,7 +29,7 @@ class sfBasicSecurityFilter extends sfSecurityFilter
    *
    * @return void
    */
-  public function execute ($filterChain)
+  public function execute($filterChain)
   {
     // get the cool stuff
     $context    = $this->getContext();
@@ -43,7 +43,7 @@ class sfBasicSecurityFilter extends sfSecurityFilter
     // disable security on [sf_login_module] / [sf_login_action]
     if ((sfConfig::get('sf_login_module') == $context->getModuleName()) && (sfConfig::get('sf_login_action') == $context->getActionName()))
     {
-      $filterChain->execute();
+      $filterChain->function execute(();
 
       return;
     }
@@ -64,7 +64,7 @@ class sfBasicSecurityFilter extends sfSecurityFilter
       if ($credential === null || $user->hasCredential($credential))
       {
         // the user has access, continue
-        $filterChain->execute();
+        $filterChain->function execute(();
       }
       else
       {

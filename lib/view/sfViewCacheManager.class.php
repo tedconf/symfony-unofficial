@@ -167,7 +167,7 @@ class sfViewCacheManager
 
   private function getCacheConfig($internalUri, $suffix, $key, $defaultValue = null)
   {
-    list($route_name, $params) = $this->controller->convertUrlStringToParameters($internalUri);
+    list($routeName, $params) = $this->controller->convertUrlStringToParameters($internalUri);
 
     $entry = $params['module'].'_'.$params['action'].'_'.$suffix;
 
@@ -176,7 +176,7 @@ class sfViewCacheManager
     {
       $value = $this->cacheConfig[$entry][$key];
     }
-    else if (isset($this->cacheConfig[$params['module'].'_DEFAULT_'.$suffix][$key]))
+    elseif (isset($this->cacheConfig[$params['module'].'_DEFAULT_'.$suffix][$key]))
     {
       $value = $this->cacheConfig[$params['module'].'_DEFAULT_'.$suffix][$key];
     }
@@ -186,7 +186,7 @@ class sfViewCacheManager
 
   public function hasCacheConfig($internalUri, $suffix)
   {
-    list($route_name, $params) = $this->controller->convertUrlStringToParameters($internalUri);
+    list($routeName, $params) = $this->controller->convertUrlStringToParameters($internalUri);
     $entry = $params['module'].'_'.$params['action'].'_'.$suffix;
 
     if (isset($this->cacheConfig[$entry]) || isset($this->cacheConfig[$params['module'].'_DEFAULT_'.$suffix]))
@@ -289,7 +289,10 @@ class sfViewCacheManager
     $namespace = $this->generateNamespace($internalUri, $suffix);
     $id        = $suffix;
 
-    if (sfConfig::get('sf_logging_active')) $this->context->getLogger()->info('{sfViewCacheManager} remove cache for "'.$internalUri.'" / "'.$suffix.'"');
+    if (sfConfig::get('sf_logging_active'))
+    {
+      $this->context->getLogger()->info('{sfViewCacheManager} remove cache for "'.$internalUri.'" / "'.$suffix.'"');
+    }
 
     $this->cache->remove($id, $namespace);
   }
@@ -330,7 +333,7 @@ class sfViewCacheManager
     }
 
     // add cache config to cache manager
-    list($route_name, $params) = $this->controller->convertUrlStringToParameters($internalUri);
+    list($routeName, $params) = $this->controller->convertUrlStringToParameters($internalUri);
     $this->addCache($params['module'], $params['action'], $suffix, $lifeTime, $clientLifeTime, $vary);
 
     // get data from cache if available
@@ -365,11 +368,11 @@ class sfViewCacheManager
   }
 
   /**
-   * Execute the shutdown procedure.
+   * Execute the function shutdown( procedure.
    *
    * @return void
    */
-  public function shutdown ()
+  public function shutdown()
   {
   }
 }

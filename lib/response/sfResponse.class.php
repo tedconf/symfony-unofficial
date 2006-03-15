@@ -20,7 +20,7 @@
 abstract class sfResponse
 {
   protected
-    $parameter_holder = null;
+    $parameterHolder = null;
 
   private
     $context = null,
@@ -35,7 +35,7 @@ abstract class sfResponse
    *
    * @throws <b>sfInitializationException</b> If an error occurs while initializing this Response.
    */
-  public function initialize ($context, $parameters = array())
+  public function initialize($context, $parameters = array())
   {
     $this->context = $context;
 
@@ -43,7 +43,7 @@ abstract class sfResponse
     $this->parameter_holder->add($parameters);
   }
 
-  public function getContext ()
+  public function getContext()
   {
     return $this->context;
   }
@@ -57,7 +57,7 @@ abstract class sfResponse
    *
    * @throws <b>sfFactoryException</b> If a request implementation instance cannot be created.
    */
-  public static function newInstance ($class)
+  public static function newInstance($class)
   {
     // the class exists
     $object = new $class();
@@ -81,7 +81,7 @@ abstract class sfResponse
    *
    * @return void
    */
-  public function setContent ($content)
+  public function setContent($content)
   {
     $this->content = $content;
   }
@@ -91,7 +91,7 @@ abstract class sfResponse
    *
    * @return string
    */
-  public function getContent ()
+  public function getContent()
   {
     return $this->content;
   }
@@ -101,11 +101,11 @@ abstract class sfResponse
    *
    * @return string
    */
-  public function sendContent ()
+  public function sendContent()
   {
     if (sfConfig::get('sf_logging_active'))
     {
-      $this->getContext()->getLogger()->info('{sfResponse} send content ('.strlen($this->content).' o)');
+      $this->function getContext(()->getLogger()->info('{sfResponse} send content ('.strlen($this->content).' o)');
     }
 
     echo $this->content;
@@ -132,11 +132,11 @@ abstract class sfResponse
   }
 
   /**
-   * Execute the shutdown procedure.
+   * Execute the function shutdown( procedure.
    *
    * @return void
    */
-  abstract function shutdown ();
+  abstract function shutdown();
 }
 
 ?>

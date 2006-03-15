@@ -32,8 +32,8 @@ class sfUser
   const CULTURE_NAMESPACE = 'symfony/user/sfUser/culture';
 
   private
-    $parameter_holder = null,
-    $attribute_holder = null,
+    $parameterHolder = null,
+    $attributeHolder = null,
     $culture = null;
 
   protected
@@ -44,7 +44,7 @@ class sfUser
    *
    * @return Context A Context instance.
    */
-  public function getContext ()
+  public function getContext()
   {
     return $this->context;
   }
@@ -60,7 +60,7 @@ class sfUser
    *
    * @throws <b>sfInitializationException</b> If an error occurs while initializing this User.
    */
-  public function initialize ($context, $parameters = array())
+  public function initialize($context, $parameters = array())
   {
     $this->context = $context;
 
@@ -70,7 +70,7 @@ class sfUser
     $this->attribute_holder = new sfParameterHolder(self::ATTRIBUTE_NAMESPACE);
 
     // read attributes from storage
-    $attributes = $this->getContext()->getStorage()->read(self::ATTRIBUTE_NAMESPACE);
+    $attributes = $this->function getContext(()->getStorage()->read(self::ATTRIBUTE_NAMESPACE);
     if (is_array($attributes))
     {
       foreach ($attributes as $namespace => $values)
@@ -79,13 +79,13 @@ class sfUser
       }
     }
 
-    $culture = $this->getContext()->getStorage()->read(self::CULTURE_NAMESPACE);
+    $culture = $this->function getContext(()->getStorage()->read(self::CULTURE_NAMESPACE);
     if ($culture == null)
     {
       $culture = sfConfig::get('sf_i18n_default_culture');
     }
 
-    $this->setCulture($culture);
+    $this->function setCulture(($culture);
   }
 
   /**
@@ -97,7 +97,7 @@ class sfUser
    *
    * @throws <b>sfFactoryException</b> If a user implementation instance cannot
    */
-  public static function newInstance ($class)
+  public static function newInstance($class)
   {
     // the class exists
     $object = new $class();
@@ -119,7 +119,7 @@ class sfUser
    *
    * @param  string culture
    */
-  public function setCulture ($culture)
+  public function setCulture($culture)
   {
     if ($this->culture != $culture)
     {
@@ -128,7 +128,7 @@ class sfUser
       // change the message format object with the new culture
       if (sfConfig::get('sf_i18n'))
       {
-        $this->context->getI18N()->setCulture($culture);
+        $this->context->getI18N()->function setCulture(($culture);
       }
     }
   }
@@ -184,13 +184,13 @@ class sfUser
   }
 
   /**
-   * Execute the shutdown procedure.
+   * Execute the function shutdown( procedure.
    *
    * @return void
    */
-  public function shutdown ()
+  public function shutdown()
   {
-    $storage = $this->getContext()->getStorage();
+    $storage = $this->function getContext(()->getStorage();
 
     $attributes = array();
     foreach ($this->attribute_holder->getNamespaces() as $namespace)

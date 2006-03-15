@@ -22,7 +22,7 @@ $sf_symfony_lib_dir = sfConfig::get('sf_symfony_lib_dir');
 if (!sfConfig::get('sf_in_bootstrap'))
 {
   // YAML support
-  if (!function_exists('syck_load'))
+  if (!extension_loaded('syck'))
   {
     require_once($sf_symfony_lib_dir.'/util/Spyc.class.php');
   }
@@ -65,30 +65,28 @@ if (!function_exists('__autoload'))
 {
   function __autoload($class)
   {
-    static $loaded;
+    $classes = sfConfig::get('sf_class_autoload', array());
 
-    if (!$loaded)
+    if (!$classes)
     {
       // load the list of autoload classes
       include_once(sfConfigCache::getInstance()->checkConfig(sfConfig::get('sf_app_config_dir_name').'/autoload.yml'));
 
-      $loaded = true;
+      $classes = sfConfig::get('sf_class_autoload', array());
     }
-
-    $classes = sfConfig::get('sf_class_autoload', array());
-    if (!isset($classes[$class]))
+    elseif (!isset($classes[$class]))
     {
       if (sfContext::hasInstance())
       {
         // see if the file exists in the current module lib directory
         // must be in a module context
-        $current_module = sfContext::getInstance()->getModuleName();
-        if ($current_module)
+        $currentModule = sfContext::getInstance()->getModuleName();
+        if ($currentModule)
         {
-          $module_lib = sfConfig::get('sf_app_module_dir').'/'.$current_module.'/'.sfConfig::get('sf_app_module_lib_dir_name').'/'.$class.'.class.php';
-          if (is_readable($module_lib))
+          $moduleLib = sfConfig::get('sf_app_module_dir').'/'.$currentModule.'/'.sfConfig::get('sf_app_module_lib_dir_name').'/'.$class.'.class.php';
+          if (is_readable($moduleLib))
           {
-            require_once($module_lib);
+            require_once($moduleLib);
 
             return;
           }
@@ -118,11 +116,11 @@ try
   // force setting default timezone if not set
   if (function_exists('date_default_timezone_get'))
   {
-    if ($default_timezone = sfConfig::get('sf_default_timezone'))
+    if ($defaultTimezone = sfConfig::get('sf_default_timezone'))
     {
-      date_default_timezone_set($default_timezone);
+      date_default_timezone_set($defaultTimezone);
     }
-    else if (sfConfig::get('sf_force_default_timezone', true))
+    elseif (sfConfig::get('sf_force_default_timezone', true))
     {
       date_default_timezone_set(@date_default_timezone_get());
     }
@@ -166,8 +164,8 @@ try
   // create a temp var to avoid substitution during compilation
   if (!$sf_debug && !sfConfig::get('sf_test'))
   {
-    $core_classes = $sf_app_config_dir_name.'/core_compile.yml';
-    $configCache->import($core_classes);
+    $coreClasses = $sf_app_config_dir_name.'/core_compile.yml';
+    $configCache->import($coreClasses);
   }
 
   $configCache->import($sf_app_config_dir_name.'/routing.yml');

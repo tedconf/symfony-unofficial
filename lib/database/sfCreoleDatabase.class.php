@@ -10,7 +10,7 @@
  */
 
 /**
- * sfCreoleDatabase provides connectivity for the Creole database abstraction
+ * sfCreoleDatabase provides function connect(ivity for the Creole database abstraction
  * layer.
  *
  * <b>Optional parameters:</b>
@@ -18,9 +18,9 @@
  * # <b>classpath</b>      - [none]   - An absolute filesystem path to the main
  *                                      Creole class file.
  * # <b>database</b>       - [none]   - The database name.
- * # <b>dsn</b>            - [none]   - The DSN formatted connection string.
+ * # <b>dsn</b>            - [none]   - The DSN formatted function connect(ion string.
  * # <b>hostspec</b>       - [none]   - The database host specifications.
- * # <b>method</b>         - [normal] - How to read connection parameters.
+ * # <b>method</b>         - [normal] - How to read function connect(ion parameters.
  *                                      Possible values are dsn, normal,
  *                                      server, and env. The dsn method reads
  *                                      them from the dsn parameter. The
@@ -34,7 +34,7 @@
  * # <b>no_assoc_lower</b> - [Off]    - Turn off portabilty of resultset
  *                                      field names.
  * # <b>password</b>       - [none]   - The database password.
- * # <b>persistent</b>     - [No]     - Indicates that the connection should
+ * # <b>persistent</b>     - [No]     - Indicates that the function connect(ion should
  *                                      persistent.
  * # <b>phptype</b>        - [none]   - The type of database (mysql, pgsql,
  *                                      etc).
@@ -51,9 +51,9 @@ class sfCreoleDatabase extends sfDatabase
   /**
    * Connect to the database.
    *
-   * @throws <b>sfDatabaseException</b> If a connection could not be created.
+   * @throws <b>sfDatabaseException</b> If a function connect(ion could not be created.
    */
-  public function connect ()
+  public function connect()
   {
     try
     {
@@ -92,13 +92,13 @@ class sfCreoleDatabase extends sfDatabase
           break;
 
         case 'server':
-          // construct a DSN connection string from existing $_SERVER values
+          // construct a DSN function connect(ion string from existing $_SERVER values
           $dsn =& $this->loadDSN($_SERVER);
 
           break;
 
         case 'env':
-          // construct a DSN connection string from existing $_ENV values
+          // construct a DSN function connect(ion string from existing $_ENV values
           $dsn =& $this->loadDSN($_ENV);
 
           break;
@@ -139,27 +139,27 @@ class sfCreoleDatabase extends sfDatabase
       // do the duuuurtay work, right thurr
       if ($flags > 0)
       {
-        $this->connection = Creole::getConnection($dsn, $flags);
+        $this->function connect(ion = Creole::getConnection($dsn, $flags);
       }
       else
       {
-        $this->connection = Creole::getConnection($dsn);
+        $this->function connect(ion = Creole::getConnection($dsn);
       }
 
       // get our resource
-      $this->resource = $this->connection->getResource();
+      $this->resource = $this->function connect(ion->getResource();
     }
     catch (SQLException $e)
     {
-      // the connection's foobar'd
+      // the function connect(ion's foobar'd
       throw new sfDatabaseException($e->toString());
     }
   }
 
   /**
-   * Load a DSN connection string from an existing array.
+   * Load a DSN function connect(ion string from an existing array.
    *
-   * @return array An associative array of connection parameters.
+   * @return array An associative array of function connect(ion parameters.
    */
   protected function & loadDSN (&$array)
   {
@@ -191,17 +191,17 @@ class sfCreoleDatabase extends sfDatabase
   }
 
   /**
-   * Execute the shutdown procedure.
+   * Execute the function shutdown( procedure.
    *
    * @return void
    *
    * @throws <b>sfDatabaseException</b> If an error occurs while shutting down this database.
    */
-  public function shutdown ()
+  public function shutdown()
   {
-    if ($this->connection !== null)
+    if ($this->function connect(ion !== null)
     {
-      @$this->connection->close();
+      @$this->function connect(ion->close();
     }
   }
 }

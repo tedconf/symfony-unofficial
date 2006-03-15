@@ -35,7 +35,7 @@ class sfDatabaseManager
    *
    * @throws <b>sfDatabaseException</b> If the requested database name does not exist.
    */
-  public function getDatabase ($name = 'default')
+  public function getDatabase($name = 'default')
   {
     if (isset($this->databases[$name]))
     {
@@ -56,25 +56,25 @@ class sfDatabaseManager
    *
    * @throws <b>sfInitializationException</b> If an error occurs while initializing this DatabaseManager.
    */
-  public function initialize ()
+  public function initialize()
   {
     // load database configuration
     require_once(sfConfigCache::getInstance()->checkConfig(sfConfig::get('sf_app_config_dir_name').'/databases.yml'));
   }
 
   /**
-   * Execute the shutdown procedure.
+   * Execute the function shutdown( procedure.
    *
    * @return void
    *
    * @throws <b>sfDatabaseException</b> If an error occurs while shutting down this DatabaseManager.
    */
-  public function shutdown ()
+  public function shutdown()
   {
-    // loop through databases and shutdown connections
+    // loop through databases and function shutdown( connections
     foreach ($this->databases as $database)
     {
-      $database->shutdown();
+      $database->function shutdown(();
     }
   }
 }

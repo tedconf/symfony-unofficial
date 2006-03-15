@@ -24,7 +24,7 @@ function run_init_project($task, $args)
     throw new Exception('You must provide a project name.');
   }
 
-  $project_name = $args[0];
+  $projectName = $args[0];
 
   $sf_root_dir = sfConfig::get('sf_root_dir');
 
@@ -33,7 +33,7 @@ function run_init_project($task, $args)
   pake_mirror($finder, sfConfig::get('sf_symfony_data_dir').'/skeleton/project', $sf_root_dir);
 
   $finder = pakeFinder::type('file')->name('properties.ini', 'apache.conf', 'propel.ini');
-  pake_replace_tokens($finder, $sf_root_dir, '##', '##', array('PROJECT_NAME' => $project_name));
+  pake_replace_tokens($finder, $sf_root_dir, '##', '##', array('PROJECT_NAME' => $projectName));
 
   $finder = pakeFinder::type('file')->name('propel.ini');
   pake_replace_tokens($finder, $sf_root_dir, '##', '##', array('PROJECT_DIR' => $sf_root_dir));
@@ -64,21 +64,21 @@ function run_init_app($task, $args)
   pake_mirror($finder, sfConfig::get('sf_symfony_data_dir').'/skeleton/app/app', $sf_root_dir.'/'.sfConfig::get('sf_apps_dir_name').'/'.$app);
 
   // create $app.php or index.php if it is our first app
-  $index_name = 'index';
-  $first_app = file_exists(sfConfig::get('sf_web_dir').'/index.php') ? false : true;
-  if (!$first_app)
+  $indexName = 'index';
+  $firstApp = file_exists(sfConfig::get('sf_web_dir').'/index.php') ? false : true;
+  if (!$firstApp)
   {
-    $index_name = $app;
+    $indexName = $app;
   }
 
   // set no_script_name value in settings.yml for production environment
   $finder = pakeFinder::type('file')->name('settings.yml');
-  pake_replace_tokens($finder, $sf_root_dir.'/'.sfConfig::get('sf_apps_dir_name').'/'.$app.'/'.sfConfig::get('sf_app_config_dir_name'), '##', '##', array('NO_SCRIPT_NAME' => ($first_app ? 'on' : 'off')));
+  pake_replace_tokens($finder, $sf_root_dir.'/'.sfConfig::get('sf_apps_dir_name').'/'.$app.'/'.sfConfig::get('sf_app_config_dir_name'), '##', '##', array('NO_SCRIPT_NAME' => ($firstApp ? 'on' : 'off')));
 
-  pake_copy(sfConfig::get('sf_symfony_data_dir').'/skeleton/app/web/index.php', sfConfig::get('sf_web_dir').'/'.$index_name.'.php');
+  pake_copy(sfConfig::get('sf_symfony_data_dir').'/skeleton/app/web/index.php', sfConfig::get('sf_web_dir').'/'.$indexName.'.php');
   pake_copy(sfConfig::get('sf_symfony_data_dir').'/skeleton/app/web/index_dev.php', sfConfig::get('sf_web_dir').'/'.$app.'_dev.php');
 
-  $finder = pakeFinder::type('file')->name($index_name.'.php', $app.'_dev.php');
+  $finder = pakeFinder::type('file')->name($indexName.'.php', $app.'_dev.php');
   pake_replace_tokens($finder, sfConfig::get('sf_web_dir'), '##', '##', array('APP_NAME' => $app));
 
   run_fix_perms($task, $args);

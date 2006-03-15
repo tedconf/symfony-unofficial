@@ -97,17 +97,17 @@ function run_alltests($task, $args)
   // initialize our test environment
   require_once(dirname(__FILE__).'/lib/util/sfToolkit.class.php');
   sfToolkit::clearDirectory('/tmp/symfonytest');
-  $root_dir = tempnam('/tmp/symfonytest', 'tmp');
-  unlink($root_dir);
-  $tmp_dir = $root_dir.DIRECTORY_SEPARATOR.md5(uniqid(rand(), true));
-  if (!is_dir($tmp_dir))
+  $rootDir = tempnam('/tmp/symfonytest', 'tmp');
+  unlink($rootDir);
+  $tmpDir = $rootDir.DIRECTORY_SEPARATOR.md5(uniqid(rand(), true));
+  if (!is_dir($tmpDir))
   {
-    pake_mkdirs($tmp_dir, 0777);
+    pake_mkdirs($tmpDir, 0777);
   }
 
   require_once(dirname(__FILE__).'/lib/config/sfConfig.class.php');
   sfConfig::add(array(
-    'sf_root_dir'         => $tmp_dir,
+    'sf_root_dir'         => $tmpDir,
     'sf_app'              => 'test',
     'sf_environment'      => 'test',
     'sf_debug'            => true,
@@ -116,7 +116,7 @@ function run_alltests($task, $args)
     'sf_test'             => false,
     'sf_version'          => 'test',
   ));
-  pake_mkdirs($tmp_dir.'/apps/test/modules');
+  pake_mkdirs($tmpDir.'/apps/test/modules');
   require_once(dirname(__FILE__).'/data/config/constants.php');
   require_once(dirname(__FILE__).'/lib/util/sfContext.class.php');
 
@@ -125,9 +125,9 @@ function run_alltests($task, $args)
   pakeSimpletestTask::run_test($task, $args);
 
   // cleanup our test enviroment
-  sfToolkit::clearDirectory($tmp_dir);
-  rmdir($tmp_dir);
-  rmdir($root_dir);
+  sfToolkit::clearDirectory($tmpDir);
+  rmdir($tmpDir);
+  rmdir($rootDir);
 }
 
 function run_create_pear_package($task, $args)
@@ -154,14 +154,14 @@ function run_create_pear_package($task, $args)
 
   // add class files
   $finder = pakeFinder::type('file')->prune('.svn')->discard('.svn')->relative();
-  $xml_classes = '';
+  $xmlClasses = '';
   $dirs = array('lib' => 'php', 'data' => 'data');
   foreach ($dirs as $dir => $role)
   {
-    $class_files = $finder->in($dir);
-    foreach ($class_files as $file)
+    $classFiles = $finder->in($dir);
+    foreach ($classFiles as $file)
     {
-      $xml_classes .= '<file role="'.$role.'" baseinstalldir="symfony" install-as="'.$file.'" name="'.$dir.'/'.$file.'" />'."\n";
+      $xmlClasses .= '<file role="'.$role.'" baseinstalldir="symfony" install-as="'.$file.'" name="'.$dir.'/'.$file.'" />'."\n";
     }
   }
 
@@ -169,7 +169,7 @@ function run_create_pear_package($task, $args)
   pake_replace_tokens('package.xml', getcwd(), '##', '##', array(
     'SYMFONY_VERSION' => $version,
     'CURRENT_DATE'    => date('Y-m-d'),
-    'CLASS_FILES'     => $xml_classes,
+    'CLASS_FILES'     => $xmlClasses,
     'STABILITY'       => $stability,
   ));
   pakePearTask::run_pear($task, $args);
@@ -192,7 +192,7 @@ function run_release($task, $args)
 
   if ($stability == 'beta' || $stability == 'alpha')
   {
-    $version_prefix = $args[0];
+    $versionPrefix = $args[0];
 
     $result = pake_sh('svn status -u '.getcwd());
 
@@ -207,7 +207,7 @@ function run_release($task, $args)
     }
 
     // make a PEAR compatible version
-    $version = $version_prefix.'.'.$version;
+    $version = $versionPrefix.'.'.$version;
   }
   else
   {

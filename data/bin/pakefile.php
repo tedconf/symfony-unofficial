@@ -8,7 +8,7 @@ if (is_readable(dirname(__FILE__).'/../../lib/symfony.php'))
   $sf_symfony_data_dir = realpath(dirname(__FILE__).'/..');
   $symlink = true;
 }
-else if (is_readable(dirname(__FILE__).'/../../../lib/symfony/symfony.php'))
+elseif (is_readable(dirname(__FILE__).'/../../../lib/symfony/symfony.php'))
 {
   // symlink exists
   $sf_symfony_lib_dir  = realpath(dirname(__FILE__).'/../../../lib/symfony');

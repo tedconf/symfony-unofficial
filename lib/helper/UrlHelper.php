@@ -3,7 +3,7 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- * 
+ *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -39,25 +39,25 @@ function url_for($url, $absolute = false)
     # Example:
     #   link_to "Delete this page", { :action => "destroy", :id => @page.id }, :confirm => "Are you sure?"
 */
-function link_to($name = '', $options = '', $html_options = array())
+function link_to($name = '', $options = '', $htmlOptions = array())
 {
-  $html_options = _parse_attributes($html_options);
+  $htmlOptions = _parse_attributes($htmlOptions);
 
-  $html_options = _convert_options_to_javascript($html_options);
+  $htmlOptions = _convert_options_to_javascript($htmlOptions);
 
   $absolute = false;
-  if (isset($html_options['absolute_url']))
+  if (isset($htmlOptions['absolute_url']))
   {
-    unset($html_options['absolute_url']);
+    unset($htmlOptions['absolute_url']);
     $absolute = true;
   }
 
-  $html_options['href'] = url_for($options, $absolute);
+  $htmlOptions['href'] = url_for($options, $absolute);
 
-  if (isset($html_options['query_string']))
+  if (isset($htmlOptions['query_string']))
   {
-    $html_options['href'] .= '?'.$html_options['query_string'];
-    unset($html_options['query_string']);
+    $htmlOptions['href'] .= '?'.$htmlOptions['query_string'];
+    unset($htmlOptions['query_string']);
   }
 
   if (is_object($name))
@@ -67,147 +67,147 @@ function link_to($name = '', $options = '', $html_options = array())
 
   if (!strlen($name))
   {
-    $name = $html_options['href'];
+    $name = $htmlOptions['href'];
   }
 
-  return content_tag('a', $name, $html_options);
+  return content_tag('a', $name, $htmlOptions);
 }
 
-function link_to_if($condition, $name = '', $options = '', $html_options = array(), $parameters_for_method_reference = array())
+function link_to_if($condition, $name = '', $options = '', $htmlOptions = array(), $parametersForMethodReference = array())
 {
   if ($condition)
   {
-    return link_to($name, $options, $html_options, $parameters_for_method_reference);
+    return link_to($name, $options, $htmlOptions, $parametersForMethodReference);
   }
   else
   {
-    if (isset($html_options['tag']))
+    if (isset($htmlOptions['tag']))
     {
-      $tag = $html_options['tag'];
-      unset($html_options['tag']);
+      $tag = $htmlOptions['tag'];
+      unset($htmlOptions['tag']);
     }
     else
     {
       $tag = 'span';
     }
 
-    return content_tag($tag, $name, $html_options);
+    return content_tag($tag, $name, $htmlOptions);
   }
 }
 
-function link_to_unless($condition, $name = '', $options = '', $html_options = array(), $parameters_for_method_reference = array())
+function link_to_unless($condition, $name = '', $options = '', $htmlOptions = array(), $parametersForMethodReference = array())
 {
-  return link_to_if(!$condition, $name, $options, $html_options, $parameters_for_method_reference);
+  return link_to_if(!$condition, $name, $options, $htmlOptions, $parametersForMethodReference);
 }
 
 function button_to($name, $target, $options = array())
 {
-  $html_options = _convert_options($options);
-  $html_options['value']   = $name;
- 
-  if (isset($html_options['post']) && $html_options['post'])
+  $htmlOptions = _convert_options($options);
+  $htmlOptions['value']   = $name;
+
+  if (isset($htmlOptions['post']) && $htmlOptions['post'])
   {
-    if (isset($html_options['popup']))
+    if (isset($htmlOptions['popup']))
     {
       throw new sfConfigurationException('You can\'t use "popup" and "post" together');
     }
-    $html_options['type'] = 'submit';
-    unset($html_options['post']);
-    $html_options = _convert_options_to_javascript($html_options);
- 
-    return form_tag($target, array('method' => 'post', 'class' => 'button_to')).tag('input', $html_options).'</form>';
+    $htmlOptions['type'] = 'submit';
+    unset($htmlOptions['post']);
+    $htmlOptions = _convert_options_to_javascript($htmlOptions);
+
+    return form_tag($target, array('method' => 'post', 'class' => 'button_to')).tag('input', $htmlOptions).'</form>';
   }
-  else if (isset($html_options['popup']))
+  elseif (isset($htmlOptions['popup']))
   {
-    $html_options['type']    = 'button';
-    $html_options = _convert_options_to_javascript($html_options, $target);
- 
-    return tag('input', $html_options);
+    $htmlOptions['type']    = 'button';
+    $htmlOptions = _convert_options_to_javascript($htmlOptions, $target);
+
+    return tag('input', $htmlOptions);
   }
   else
   {
-    $html_options['type']    = 'button';
-    $html_options['onclick'] = "document.location.href='".url_for($target)."';";
-    $html_options = _convert_options_to_javascript($html_options);
- 
-    return tag('input', $html_options);
+    $htmlOptions['type']    = 'button';
+    $htmlOptions['onclick'] = "document.location.href='".url_for($target)."';";
+    $htmlOptions = _convert_options_to_javascript($htmlOptions);
+
+    return tag('input', $htmlOptions);
   }
 }
 
-function mail_to($email, $name = '', $html_options = array())
+function mail_to($email, $name = '', $htmlOptions = array())
 {
-  $html_options = _parse_attributes($html_options);
+  $htmlOptions = _parse_attributes($htmlOptions);
 
-  $html_options = _convert_options_to_javascript($html_options);
+  $htmlOptions = _convert_options_to_javascript($htmlOptions);
 
   if (!$name)
   {
     $name = $email;
   }
 
-  if (isset($html_options['encode']) && $html_options['encode'])
+  if (isset($htmlOptions['encode']) && $htmlOptions['encode'])
   {
-    unset($html_options['encode']);
-    $html_options['href'] = _encodeText('mailto:'.$email);
+    unset($htmlOptions['encode']);
+    $htmlOptions['href'] = _encodeText('mailto:'.$email);
     $name = _encodeText($name);
   }
   else
   {
-    $html_options['href'] = 'mailto:'.$email;
+    $htmlOptions['href'] = 'mailto:'.$email;
   }
 
-  return content_tag('a', $name, $html_options);
+  return content_tag('a', $name, $htmlOptions);
 }
 
-function _convert_options_to_javascript($html_options, $target = '')
+function _convert_options_to_javascript($htmlOptions, $target = '')
 {
   // confirm
-  $confirm = isset($html_options['confirm']) ? $html_options['confirm'] : '';
-  unset($html_options['confirm']);
+  $confirm = isset($htmlOptions['confirm']) ? $htmlOptions['confirm'] : '';
+  unset($htmlOptions['confirm']);
 
   // popup
-  $popup = isset($html_options['popup']) ? $html_options['popup'] : '';
-  unset($html_options['popup']);
+  $popup = isset($htmlOptions['popup']) ? $htmlOptions['popup'] : '';
+  unset($htmlOptions['popup']);
 
   // post
-  $post = isset($html_options['post']) ? $html_options['post'] : '';
-  unset($html_options['post']);
+  $post = isset($htmlOptions['post']) ? $htmlOptions['post'] : '';
+  unset($htmlOptions['post']);
 
-  $onclick = isset($html_options['onclick']) ? $html_options['onclick'] : '';
+  $onclick = isset($htmlOptions['onclick']) ? $htmlOptions['onclick'] : '';
 
   if ($popup && $post)
   {
     throw new sfConfigurationException('You can\'t use "popup" and "post" in the same link');
   }
-  else if ($confirm && $popup)
+  elseif ($confirm && $popup)
   {
-    $html_options['onclick'] = $onclick.'if ('._confirm_javascript_function($confirm).') { '._popup_javascript_function($popup, $target).' };return false;';
+    $htmlOptions['onclick'] = $onclick.'if ('._confirm_javascript_function($confirm).') { '._popup_javascript_function($popup, $target).' };return false;';
   }
-  else if ($confirm && $post)
+  elseif ($confirm && $post)
   {
-    $html_options['onclick'] = $onclick.'if ('._confirm_javascript_function($confirm).') { '._post_javascript_function().' };return false;';
+    $htmlOptions['onclick'] = $onclick.'if ('._confirm_javascript_function($confirm).') { '._post_javascript_function().' };return false;';
   }
-  else if ($confirm)
+  elseif ($confirm)
   {
     if ($onclick)
     {
-      $html_options['onclick'] = 'if ('._confirm_javascript_function($confirm).') {'.$onclick.'}';
+      $htmlOptions['onclick'] = 'if ('._confirm_javascript_function($confirm).') {'.$onclick.'}';
     }
     else
     {
-      $html_options['onclick'] = 'return '._confirm_javascript_function($confirm).';';
+      $htmlOptions['onclick'] = 'return '._confirm_javascript_function($confirm).';';
     }
   }
-  else if ($post)
+  elseif ($post)
   {
-    $html_options['onclick'] = $onclick._post_javascript_function().'return false;';
+    $htmlOptions['onclick'] = $onclick._post_javascript_function().'return false;';
   }
-  else if ($popup)
+  elseif ($popup)
   {
-    $html_options['onclick'] = $onclick._popup_javascript_function($popup, $target).'return false;';
+    $htmlOptions['onclick'] = $onclick._popup_javascript_function($popup, $target).'return false;';
   }
 
-  return $html_options;
+  return $htmlOptions;
 }
 
 function _confirm_javascript_function($confirm)
@@ -243,30 +243,29 @@ function _post_javascript_function()
 
 function _encodeText($text)
 {
-  $encoded_text = '';
+  $encodedText = '';
 
-  for ($i = 0; $i < strlen($text); $i++)
+  foreach (str_split($text) as $char)
   {
-    $char = $text{$i};
     $r = rand(0, 100);
 
     # roughly 10% raw, 45% hex, 45% dec
     # '@' *must* be encoded. I insist.
     if ($r > 90 && $char != '@')
     {
-      $encoded_text .= $char;
+      $encodedText .= $char;
     }
-    else if ($r < 45)
+    elseif ($r < 45)
     {
-      $encoded_text .= '&#x'.dechex(ord($char)).';';
+      $encodedText .= '&#x'.dechex(ord($char)).';';
     }
     else
     {
-      $encoded_text .= '&#'.ord($char).';';
+      $encodedText .= '&#'.ord($char).';';
     }
   }
 
-  return $encoded_text;
+  return $encodedText;
 }
 
 ?>

@@ -30,41 +30,41 @@ class sfWebRequestTest extends UnitTestCase
 //    $this->assertEqual($this->request->getPathInfo(), '/test/value');
   }
 
-  protected function populateVariables($request_uri, $with_layout)
+  protected function populateVariables($requestUri, $withLayout)
   {
     $_SERVER['GATEWAY_INTERFACE'] = 'CGI/1.1';
     $_SERVER['REQUEST_METHOD'] = 'GET';
-    $_SERVER['REQUEST_URI'] = $request_uri;
+    $_SERVER['REQUEST_URI'] = $requestUri;
     $_SERVER['SCRIPT_NAME'] = '/index.php';
 
-    if ($request_uri[0] != '/')
+    if ($requestUri[0] != '/')
     {
-      $request_uri = '/'.$request_uri;
+      $requestUri = '/'.$requestUri;
     }
 
     // add index.php if needed
-    if (!strpos($request_uri, '.php'))
+    if (!strpos($requestUri, '.php'))
     {
-      $request_uri = '/index.php'.$request_uri;
+      $requestUri = '/index.php'.$requestUri;
     }
 
     // query string
     $_SERVER['QUERY_STRING'] = '';
-    if ($query_string_pos = strpos($request_uri, '?'))
+    if ($queryStringPos = strpos($requestUri, '?'))
     {
-      $_SERVER['QUERY_STRING'] = substr($request_uri, $query_string_pos + 1);
+      $_SERVER['QUERY_STRING'] = substr($requestUri, $queryStringPos + 1);
     }
     else
     {
-      $query_string_pos = strlen($request_uri);
+      $queryStringPos = strlen($requestUri);
     }
 
     // path info
     $_SERVER['PATH_INFO'] = '/';
-    $script_pos = strpos($request_uri, '.php') + 5;
-    if ($script_pos < $query_string_pos)
+    $scriptPos = strpos($requestUri, '.php') + 5;
+    if ($scriptPos < $queryStringPos)
     {
-      $_SERVER['PATH_INFO'] = '/'.substr($request_uri, $script_pos, $query_string_pos - $script_pos);
+      $_SERVER['PATH_INFO'] = '/'.substr($requestUri, $scriptPos, $queryStringPos - $scriptPos);
     }
 
     // parse query string
@@ -78,7 +78,7 @@ class sfWebRequestTest extends UnitTestCase
     }
 
     // change layout
-    if (!$with_layout)
+    if (!$withLayout)
     {
       // we simulate an Ajax call to disable layout
       $_SERVER['HTTP_X_REQUESTED_WITH'] = 'XMLHttpRequest';

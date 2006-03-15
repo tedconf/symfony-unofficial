@@ -21,7 +21,7 @@ class sfRegistry
     $instance = false;
 
   protected
-    $parameter_holder = null;
+    $parameterHolder = null;
 
   private function __construct()
   {

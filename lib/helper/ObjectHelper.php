@@ -30,11 +30,11 @@ require_once(sfConfig::get('sf_symfony_lib_dir').'/helper/FormHelper.php');
  * @return string An html string which represents a date control.
  *
  */
-function object_input_date_tag($object, $method, $options = array(), $default_value = null)
+function object_input_date_tag($object, $method, $options = array(), $defaultValue = null)
 {
   $options = _parse_attributes($options);
 
-  $value = _get_object_value($object, $method, $default_value);
+  $value = _get_object_value($object, $method, $defaultValue);
 
   return input_date_tag(_convert_method_to_name($method, $options), $value, $options);
 }
@@ -50,11 +50,11 @@ function object_input_date_tag($object, $method, $options = array(), $default_va
  * @return string An html string which represents a textarea tag.
  *
  */
-function object_textarea_tag($object, $method, $options = array(), $default_value = null)
+function object_textarea_tag($object, $method, $options = array(), $defaultValue = null)
 {
   $options = _parse_attributes($options);
 
-  $value = _get_object_value($object, $method, $default_value);
+  $value = _get_object_value($object, $method, $defaultValue);
 
   return textarea_tag(_convert_method_to_name($method, $options), $value, $options);
 }
@@ -66,32 +66,32 @@ function object_textarea_tag($object, $method, $options = array(), $default_valu
  *
  * NOTE: Only the option tags are returned, you have to wrap this call in a regular HTML select tag.
  */
-function objects_for_select($options = array(), $value_method, $text_method = null, $selected = null, $html_options = array())
+function objects_for_select($options = array(), $valueMethod, $textMethod = null, $selected = null, $htmlOptions = array())
 {
-  $select_options = array();
+  $selectOptions = array();
   foreach($options as $option)
   {
     // text method exists?
-    if ($text_method && !method_exists($option, $text_method))
+    if ($textMethod && !method_exists($option, $textMethod))
     {
-      $error = sprintf('Method "%s" doesn\'t exist for object of class "%s"', $text_method, get_class($option));
+      $error = sprintf('Method "%s" doesn\'t exist for object of class "%s"', $textMethod, get_class($option));
       throw new sfViewException($error);
     }
 
     // value method exists?
-    if (!method_exists($option, $value_method))
+    if (!method_exists($option, $valueMethod))
     {
-      $error = sprintf('Method "%s" doesn\'t exist for object of class "%s"', $value_method, get_class($option));
+      $error = sprintf('Method "%s" doesn\'t exist for object of class "%s"', $valueMethod, get_class($option));
       throw new sfViewException($error);
     }
 
-    $value = $option->$value_method();
-    $key = ($text_method != null) ? $option->$text_method() : $value;
+    $value = $option->$valueMethod();
+    $key = ($textMethod != null) ? $option->$textMethod() : $value;
 
-    $select_options[$value] = $key;
+    $selectOptions[$value] = $key;
   }
 
-  return options_for_select($select_options, $selected, $html_options);
+  return options_for_select($selectOptions, $selected, $htmlOptions);
 }
 
 /**
@@ -105,52 +105,52 @@ function objects_for_select($options = array(), $value_method, $text_method = nu
  * @return string A list string which represents an input tag.
  *
  */
-function object_select_tag($object, $method, $options = array(), $default_value = null)
+function object_select_tag($object, $method, $options = array(), $defaultValue = null)
 {
   $options = _parse_attributes($options);
-  $related_class = isset($options['related_class']) ? $options['related_class'] : '';
+  $relatedClass = isset($options['related_class']) ? $options['related_class'] : '';
   if (!isset($options['related_class']) && preg_match('/^get(.+?)Id$/', $method, $match))
   {
-    $related_class = $match[1];
+    $relatedClass = $match[1];
   }
   unset($options['related_class']);
 
-  $select_options = _get_values_for_object_select_tag($object, $related_class);
+  $selectOptions = _get_values_for_object_select_tag($object, $relatedClass);
 
   if (isset($options['include_custom']))
   {
-    array_unshift($select_options, $options['include_custom']);
+    array_unshift($selectOptions, $options['include_custom']);
     unset($options['include_custom']);
   }
-  else if (isset($options['include_title']))
+  elseif (isset($options['include_title']))
   {
-    array_unshift($select_options, '-- '._convert_method_to_name($method, $options).' --');
+    array_unshift($selectOptions, '-- '._convert_method_to_name($method, $options).' --');
     unset($options['include_title']);
   }
-  else if (isset($options['include_blank']))
+  elseif (isset($options['include_blank']))
   {
-    array_unshift($select_options, '');
+    array_unshift($selectOptions, '');
     unset($options['include_blank']);
   }
 
-  $value = _get_object_value($object, $method, $default_value);
-  $option_tags = options_for_select($select_options, $value, $options);
+  $value = _get_object_value($object, $method, $defaultValue);
+  $optionTags = options_for_select($selectOptions, $value, $options);
 
-  return select_tag(_convert_method_to_name($method, $options), $option_tags, $options);
+  return select_tag(_convert_method_to_name($method, $options), $optionTags, $options);
 }
 
 function _get_values_for_object_select_tag($object, $class)
 {
   // FIXME: drop Propel dependency
 
-  $select_options = array();
+  $selectOptions = array();
 
   require_once(sfConfig::get('sf_model_lib_dir').'/'.$class.'Peer.php');
   $objects = call_user_func(array($class.'Peer', 'doSelect'), new Criteria());
   if ($objects)
   {
     // multi primary keys handling
-    $multi_primary_keys = is_array($objects[0]->getPrimaryKey()) ? true : false;
+    $multiPrimaryKeys = is_array($objects[0]->getPrimaryKey()) ? true : false;
 
     // which method to call?
     $methodToCall = '';
@@ -164,32 +164,32 @@ function _get_values_for_object_select_tag($object, $class)
     }
 
     // construct select option list
-    foreach ($objects as $tmp_object)
+    foreach ($objects as $tmpObject)
     {
-      $key   = $multi_primary_keys ? implode('/', $tmp_object->getPrimaryKey()) : $tmp_object->getPrimaryKey();
-      $value = $tmp_object->$methodToCall();
+      $key   = $multiPrimaryKeys ? implode('/', $tmpObject->getPrimaryKey()) : $tmpObject->getPrimaryKey();
+      $value = $tmpObject->$methodToCall();
 
-      $select_options[$key] = $value;
+      $selectOptions[$key] = $value;
     }
   }
 
-  return $select_options;
+  return $selectOptions;
 }
 
-function object_select_country_tag($object, $method, $options = array(), $default_value = null)
+function object_select_country_tag($object, $method, $options = array(), $defaultValue = null)
 {
   $options = _parse_attributes($options);
 
-  $value = _get_object_value($object, $method, $default_value);
+  $value = _get_object_value($object, $method, $defaultValue);
 
   return select_country_tag(_convert_method_to_name($method, $options), $value, $options);
 }
 
-function object_select_language_tag($object, $method, $options = array(), $default_value = null)
+function object_select_language_tag($object, $method, $options = array(), $defaultValue = null)
 {
   $options = _parse_attributes($options);
 
-  $value = _get_object_value($object, $method, $default_value);
+  $value = _get_object_value($object, $method, $defaultValue);
 
   return select_language_tag(_convert_method_to_name($method, $options), $value, $options);
 }
@@ -205,11 +205,11 @@ function object_select_language_tag($object, $method, $options = array(), $defau
  * @return string An html string which represents a hidden input tag.
  *
  */
-function object_input_hidden_tag($object, $method, $options = array(), $default_value = null)
+function object_input_hidden_tag($object, $method, $options = array(), $defaultValue = null)
 {
   $options = _parse_attributes($options);
 
-  $value = _get_object_value($object, $method, $default_value);
+  $value = _get_object_value($object, $method, $defaultValue);
 
   return input_hidden_tag(_convert_method_to_name($method, $options), $value, $options);
 }
@@ -225,11 +225,11 @@ function object_input_hidden_tag($object, $method, $options = array(), $default_
  * @return string An html string which represents an input tag.
  *
  */
-function object_input_tag($object, $method, $options = array(), $default_value = null)
+function object_input_tag($object, $method, $options = array(), $defaultValue = null)
 {
   $options = _parse_attributes($options);
 
-  $value = _get_object_value($object, $method, $default_value);
+  $value = _get_object_value($object, $method, $defaultValue);
 
   return input_tag(_convert_method_to_name($method, $options), $value, $options);
 }
@@ -245,11 +245,11 @@ function object_input_tag($object, $method, $options = array(), $default_value =
  * @return string An html string which represents a checkbox tag.
  *
  */
-function object_checkbox_tag($object, $method, $options = array(), $default_value = null)
+function object_checkbox_tag($object, $method, $options = array(), $defaultValue = null)
 {
   $options = _parse_attributes($options);
 
-  $value = _get_object_value($object, $method, $default_value);
+  $value = _get_object_value($object, $method, $defaultValue);
   $value = in_array($value, array(true, 1, 'on', 'true', 't', 'yes', 'y'), true);
 
   return checkbox_tag(_convert_method_to_name($method, $options), 1, $value, $options);
@@ -269,7 +269,7 @@ function _convert_method_to_name ($method, &$options)
 }
 
 // returns default_value if object value is null
-function _get_object_value ($object, $method, $default_value = null)
+function _get_object_value ($object, $method, $defaultValue = null)
 {
   // method exists?
   if (!method_exists($object, $method))
@@ -280,9 +280,9 @@ function _get_object_value ($object, $method, $default_value = null)
     throw new sfViewException($error);
   }
 
-  $object_value = $object->$method();
+  $objectValue = $object->$method();
 
-  return ($default_value !== null && $object_value === null) ? $default_value : $object_value;
+  return ($defaultValue !== null && $objectValue === null) ? $defaultValue : $objectValue;
 }
 
 ?>

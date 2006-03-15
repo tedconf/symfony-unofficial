@@ -69,23 +69,23 @@ class sfInflectorTest extends UnitTestCase
 
   public function test_foreign_key()
   {
-    foreach (sfInflectorTest::$ClassNameToForeignKeyWithUnderscore as $klass => $foreign_key)
-      $this->assertEqual($foreign_key, sfInflector::foreign_key($klass));
+    foreach (sfInflectorTest::$ClassNameToForeignKeyWithUnderscore as $klass => $foreignKey)
+      $this->assertEqual($foreignKey, sfInflector::foreign_key($klass));
 
-    foreach (sfInflectorTest::$ClassNameToForeignKeyWithoutUnderscore as $klass => $foreign_key)
-      $this->assertEqual($foreign_key, sfInflector::foreign_key($klass, false));
+    foreach (sfInflectorTest::$ClassNameToForeignKeyWithoutUnderscore as $klass => $foreignKey)
+      $this->assertEqual($foreignKey, sfInflector::foreign_key($klass, false));
   }
 
   public function test_tableize()
   {
-    foreach (sfInflectorTest::$ClassNameToTableName as $class_name => $table_name)
-      $this->assertEqual($table_name, sfInflector::tableize($class_name));
+    foreach (sfInflectorTest::$ClassNameToTableName as $className => $tableName)
+      $this->assertEqual($tableName, sfInflector::tableize($className));
   }
 
   public function test_classify()
   {
-    foreach (sfInflectorTest::$ClassNameToTableName as $class_name => $table_name)
-      $this->assertEqual($class_name, sfInflector::classify($table_name));
+    foreach (sfInflectorTest::$ClassNameToTableName as $className => $tableName)
+      $this->assertEqual($className, sfInflector::classify($tableName));
   }
   
   public function test_humanize()

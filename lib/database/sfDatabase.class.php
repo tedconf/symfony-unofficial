@@ -11,7 +11,7 @@
 
 /**
  * sfDatabase is a base abstraction class that allows you to setup any type of
- * database connection via a configuration file.
+ * database function connect(ion via a configuration file.
  *
  * @package    symfony
  * @subpackage database
@@ -22,35 +22,35 @@
 abstract class sfDatabase
 {
   protected
-    $connection       = null,
-    $parameter_holder = null,
-    $resource         = null;
+    $function connect(ion      = null,
+    $parameterHolder = null,
+    $resource        = null;
 
   /**
    * Connect to the database.
    *
-   * @throws <b>sfDatabaseException</b> If a connection could not be created.
+   * @throws <b>sfDatabaseException</b> If a function connect(ion could not be created.
    */
-  abstract function connect ();
+  abstract function connect();
 
   /**
-   * Retrieve the database connection associated with this sfDatabase implementation.
+   * Retrieve the database function connect(ion associated with this sfDatabase implementation.
    *
    * When this is executed on a Database implementation that isn't an
    * abstraction layer, a copy of the resource will be returned.
    *
-   * @return mixed A database connection.
+   * @return mixed A database function connect(ion.
    *
-   * @throws <b>sfDatabaseException</b> If a connection could not be retrieved.
+   * @throws <b>sfDatabaseException</b> If a function connect(ion could not be retrieved.
    */
-  public function getConnection ()
+  public function getConnection()
   {
-    if ($this->connection == null)
+    if ($this->function connect(ion == null)
     {
-      $this->connect();
+      $this->function connect(();
     }
 
-    return $this->connection;
+    return $this->function connect(ion;
   }
 
   /**
@@ -60,11 +60,11 @@ abstract class sfDatabase
    *
    * @throws <b>sfDatabaseException</b> If a resource could not be retrieved.
    */
-  public function getResource ()
+  public function getResource()
   {
     if ($this->resource == null)
     {
-      $this->connect();
+      $this->function connect(();
     }
 
     return $this->resource;
@@ -79,7 +79,7 @@ abstract class sfDatabase
    *
    * @throws <b>sfInitializationException</b> If an error occurs while initializing this Database.
    */
-  public function initialize ($parameters = array())
+  public function initialize($parameters = array())
   {
     $this->parameter_holder = new sfParameterHolder();
     $this->parameter_holder->add($parameters);
@@ -106,13 +106,13 @@ abstract class sfDatabase
   }
 
   /**
-   * Execute the shutdown procedure.
+   * Execute the function shutdown( procedure.
    *
    * @return void
    *
    * @throws <b>sfDatabaseException</b> If an error occurs while shutting down this database.
    */
-  abstract function shutdown ();
+  abstract function shutdown();
 }
 
 ?>

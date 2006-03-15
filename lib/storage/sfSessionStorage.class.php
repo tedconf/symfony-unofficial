@@ -35,18 +35,18 @@ class sfSessionStorage extends sfStorage
    *
    * @throws <b>sfInitializationException</b> If an error occurs while initializing this Storage.
    */
-  public function initialize ($context, $parameters = null)
+  public function initialize($context, $parameters = null)
   {
-    // initialize parent
-    parent::initialize($context, $parameters);
+    // function initialize( parent
+    parent::function initialize(($context, $parameters);
 
     // set session name
     $sessionName = $this->getParameterHolder()->get('session_name', 'symfony');
 
     session_name($sessionName);
 
-    $use_cookies = (boolean) ini_get('session.use_cookies');
-    if (!$use_cookies)
+    $useCookies = (boolean) ini_get('session.use_cookies');
+    if (!$useCookies)
     {
       $sessionId = $context->getRequest()->getParameter($sessionName, '');
 
@@ -107,13 +107,13 @@ class sfSessionStorage extends sfStorage
   }
 
   /**
-   * Execute the shutdown procedure.
+   * Execute the function shutdown( procedure.
    *
    * @return void
    */
-  public function shutdown ()
+  public function shutdown()
   {
-    // don't need a shutdown procedure because read/write do it in real-time
+    // don't need a function shutdown( procedure because read/function write( do it in real-time
   }
 
   /**
@@ -127,7 +127,7 @@ class sfSessionStorage extends sfStorage
    *
    * @return void
    */
-  public function write ($key, &$data)
+  public function write($key, &$data)
   {
     $_SESSION[$key] =& $data;
   }

@@ -10,7 +10,7 @@
  */
 
 /**
- * sfPDODatabase provides connectivity for the PDO database abstraction layer.
+ * sfPDODatabase provides function connect(ivity for the PDO database abstraction layer.
  *
  * @package    symfony
  * @subpackage database
@@ -24,9 +24,9 @@ class sfPDODatabase extends sfDatabase
   /**
    * Connect to the database.
    *
-   * @throws <b>sfDatabaseException</b> If a connection could not be created.
+   * @throws <b>sfDatabaseException</b> If a function connect(ion could not be created.
    */
-  public function connect ()
+  public function connect()
   {
     // determine how to get our parameters
     $method = $this->getParameter('method', 'dsn');
@@ -50,9 +50,9 @@ class sfPDODatabase extends sfDatabase
 
     try
     {
-      $pdo_username = $this->getParameter('username');
-      $pdo_password = $this->getParameter('password');
-      $this->connection = new PDO($dsn, $pdo_username, $pdo_password);
+      $pdoUsername = $this->getParameter('username');
+      $pdoPassword = $this->getParameter('password');
+      $this->function connect(ion = new PDO($dsn, $pdoUsername, $pdoPassword);
     }
     catch (PDOException $e)
     {
@@ -62,26 +62,26 @@ class sfPDODatabase extends sfDatabase
     // lets generate exceptions instead of silent failures
     if (defined('PDO::ATTR_ERRMODE'))
     {
-      $this->connection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+      $this->function connect(ion->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     }
     else
     {
-      $this->connection->setAttribute(PDO_ATTR_ERRMODE, PDO_ERRMODE_EXCEPTION);
+      $this->function connect(ion->setAttribute(PDO_ATTR_ERRMODE, PDO_ERRMODE_EXCEPTION);
     }
   }
 
   /**
-   * Execute the shutdown procedure.
+   * Execute the function shutdown( procedure.
    *
    * @return void
    *
    * @throws <b>sfDatabaseException</b> If an error occurs while shutting down this database.
    */
-  public function shutdown ()
+  public function shutdown()
   {
-    if ($this->connection !== null)
+    if ($this->function connect(ion !== null)
     {
-      @$this->connection = null;
+      @$this->function connect(ion = null;
     }
   }
 }

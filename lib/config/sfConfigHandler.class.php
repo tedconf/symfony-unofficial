@@ -23,7 +23,7 @@
 abstract class sfConfigHandler
 {
   protected
-    $parameter_holder = null;
+    $parameterHolder = null;
 
   /**
    * Add a set of replacement values.
@@ -100,12 +100,12 @@ abstract class sfConfigHandler
       // replace values 'on' and 'yes' with a boolean true value
       return 'true';
     }
-    else if ($lvalue == 'off' || $lvalue == 'no' || $lvalue == 'false')
+    elseif ($lvalue == 'off' || $lvalue == 'no' || $lvalue == 'false')
     {
       // replace values 'off' and 'no' with a boolean false value
       return 'false';
     }
-    else if (!is_numeric($value))
+    elseif (!is_numeric($value))
     {
       $value = str_replace($keys, $reps, $value);
 

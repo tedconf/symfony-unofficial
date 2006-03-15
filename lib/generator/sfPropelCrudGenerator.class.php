@@ -38,8 +38,8 @@ class sfPropelCrudGenerator extends sfGenerator
 
   public function generate($params = array())
   {
-    $required_parameters = array('model_class', 'moduleName');
-    foreach ($required_parameters as $entry)
+    $requiredParameters = array('model_class', 'moduleName');
+    foreach ($requiredParameters as $entry)
     {
       if (!isset($params[$entry]))
       {
@@ -107,17 +107,17 @@ class sfPropelCrudGenerator extends sfGenerator
     $classes = sfFinder::type('file')->name('*MapBuilder.php')->relative()->in(sfConfig::get('sf_lib_dir') ? sfConfig::get('sf_lib_dir').'/model' : 'lib/model');
     foreach ($classes as $class)
     {
-      $class_map_builder = basename($class, '.php');
-      require_once(sfConfig::get('sf_model_lib_dir').'/map/'.$class_map_builder.'.php');
-      $maps[$class_map_builder] = new $class_map_builder();
-      if (!$maps[$class_map_builder]->isBuilt())
+      $classMapBuilder = basename($class, '.php');
+      require_once(sfConfig::get('sf_model_lib_dir').'/map/'.$classMapBuilder.'.php');
+      $maps[$classMapBuilder] = new $classMapBuilder();
+      if (!$maps[$classMapBuilder]->isBuilt())
       {
-        $maps[$class_map_builder]->doBuild();
+        $maps[$classMapBuilder]->doBuild();
       }
 
-      if ($this->className == str_replace('MapBuilder', '', $class_map_builder))
+      if ($this->className == str_replace('MapBuilder', '', $classMapBuilder))
       {
-        $this->map = $maps[$class_map_builder];
+        $this->map = $maps[$classMapBuilder];
       }
     }
     if (!$this->map)
@@ -141,38 +141,38 @@ class sfPropelCrudGenerator extends sfGenerator
 
   public function getMethodParamsForGetOrCreate()
   {
-    $method_params = array();
+    $methodParams = array();
     foreach ($this->getPrimaryKey() as $pk)
     {
       $fieldName       = sfInflector::underscore($pk->getPhpName());
-      $method_params[] = "\$$fieldName = '$fieldName'";
+      $methodParams[] = "\$$fieldName = '$fieldName'";
     }
 
-    return implode(', ', $method_params);
+    return implode(', ', $methodParams);
   }
 
   public function getTestPksForGetOrCreate()
   {
-    $test_pks = array();
+    $testPks = array();
     foreach ($this->getPrimaryKey() as $pk)
     {
       $fieldName  = sfInflector::underscore($pk->getPhpName());
-      $test_pks[] = "!\$this->getRequestParameter(\$$fieldName, 0)";
+      $testPks[] = "!\$this->getRequestParameter(\$$fieldName, 0)";
     }
 
-    return implode("\n     || ", $test_pks);
+    return implode("\n     || ", $testPks);
   }
 
   public function getRetrieveByPkParamsForGetOrCreate()
   {
-    $retrieve_params = array();
+    $retrieveParams = array();
     foreach ($this->getPrimaryKey() as $pk)
     {
       $fieldName         = sfInflector::underscore($pk->getPhpName());
-      $retrieve_params[] = "\$this->getRequestParameter(\$$fieldName)";
+      $retrieveParams[] = "\$this->getRequestParameter(\$$fieldName)";
     }
 
-    return implode(",\n".str_repeat(' ', max(0, 45 - strlen($this->singularName.$this->className))), $retrieve_params);
+    return implode(",\n".str_repeat(' ', max(0, 45 - strlen($this->singularName.$this->className))), $retrieveParams);
   }
 
   public function getRetrieveByPkParamsForDelete()
@@ -276,9 +276,9 @@ class sfPropelCrudGenerator extends sfGenerator
     return implode(' && ', $params);
   }
 
-  protected function getObjectTagParams($params, $default_params = array())
+  protected function getObjectTagParams($params, $defaultParams = array())
   {
-    return var_export(array_merge($default_params, $params), true);
+    return var_export(array_merge($defaultParams, $params), true);
   }
 
   public function getColumnListTag($column, $params = array())
@@ -305,40 +305,40 @@ class sfPropelCrudGenerator extends sfGenerator
       $params = $this->getObjectTagParams($params, array('related_class' => $relatedTable->getPhpName()));
       return "object_select_tag(\${$this->getSingularName()}, 'get{$column->getPhpName()}', $params)";
     }
-    else if ($type == CreoleTypes::DATE)
+    elseif ($type == CreoleTypes::DATE)
     {
       // rich=false not yet implemented
       $params = $this->getObjectTagParams($params, array('rich' => true));
       return "object_input_date_tag(\${$this->getSingularName()}, 'get{$column->getPhpName()}', $params)";
     }
-    else if ($type == CreoleTypes::TIMESTAMP)
+    elseif ($type == CreoleTypes::TIMESTAMP)
     {
       // rich=false not yet implemented
       $params = $this->getObjectTagParams($params, array('rich' => true, 'withtime' => true));
       return "object_input_date_tag(\${$this->getSingularName()}, 'get{$column->getPhpName()}', $params)";
     }
-    else if ($type == CreoleTypes::BOOLEAN)
+    elseif ($type == CreoleTypes::BOOLEAN)
     {
       $params = $this->getObjectTagParams($params);
       return "object_checkbox_tag(\${$this->getSingularName()}, 'get{$column->getPhpName()}', $params)";
     }
-    else if ($type == CreoleTypes::CHAR || $type == CreoleTypes::VARCHAR)
+    elseif ($type == CreoleTypes::CHAR || $type == CreoleTypes::VARCHAR)
     {
       $size = ($column->getSize() > 20 ? ($column->getSize() < 80 ? $column->getSize() : 80) : 20);
       $params = $this->getObjectTagParams($params, array('size' => $size));
       return "object_input_tag(\${$this->getSingularName()}, 'get{$column->getPhpName()}', $params)";
     }
-    else if ($type == CreoleTypes::INTEGER || $type == CreoleTypes::TINYINT || $type == CreoleTypes::SMALLINT || $type == CreoleTypes::BIGINT)
+    elseif ($type == CreoleTypes::INTEGER || $type == CreoleTypes::TINYINT || $type == CreoleTypes::SMALLINT || $type == CreoleTypes::BIGINT)
     {
       $params = $this->getObjectTagParams($params, array('size' => 7));
       return "object_input_tag(\${$this->getSingularName()}, 'get{$column->getPhpName()}', $params)";
     }
-    else if ($type == CreoleTypes::FLOAT || $type == CreoleTypes::DOUBLE || $type == CreoleTypes::DECIMAL || $type == CreoleTypes::NUMERIC || $type == CreoleTypes::REAL)
+    elseif ($type == CreoleTypes::FLOAT || $type == CreoleTypes::DOUBLE || $type == CreoleTypes::DECIMAL || $type == CreoleTypes::NUMERIC || $type == CreoleTypes::REAL)
     {
       $params = $this->getObjectTagParams($params, array('size' => 7));
       return "object_input_tag(\${$this->getSingularName()}, 'get{$column->getPhpName()}', $params)";
     }
-    else if ($type == CreoleTypes::TEXT || $type == CreoleTypes::LONGVARCHAR)
+    elseif ($type == CreoleTypes::TEXT || $type == CreoleTypes::LONGVARCHAR)
     {
       $params = $this->getObjectTagParams($params, array('size' => '30x3'));
       return "object_textarea_tag(\${$this->getSingularName()}, 'get{$column->getPhpName()}', $params)";

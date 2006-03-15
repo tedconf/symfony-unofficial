@@ -46,9 +46,9 @@ abstract class sfRequest
     $method  = null;
 
   protected
-    $parameter_holder = null,
-    $config           = null,
-    $attribute_holder = null;
+    $parameterHolder = null,
+    $config          = null,
+    $attributeHolder = null;
 
   /**
    * Extract parameter values from the request.
@@ -81,7 +81,7 @@ abstract class sfRequest
    *
    * @return string An error message, if the error exists, otherwise null.
    */
-  public function getError ($name, $catalogue = 'messages')
+  public function getError($name, $catalogue = 'messages')
   {
     $retval = null;
 
@@ -104,7 +104,7 @@ abstract class sfRequest
    *
    * @return array An indexed array of error names.
    */
-  public function getErrorNames ()
+  public function function getError(Names ()
   {
     return array_keys($this->errors);
   }
@@ -114,7 +114,7 @@ abstract class sfRequest
    *
    * @return array An associative array of errors.
    */
-  public function getErrors ()
+  public function function getError(s ()
   {
     return $this->errors;
   }
@@ -126,7 +126,7 @@ abstract class sfRequest
    *             - sfRequest::GET
    *             - sfRequest::POST
    */
-  public function getMethod ()
+  public function getMethod()
   {
     return $this->method;
   }
@@ -138,7 +138,7 @@ abstract class sfRequest
    *
    * @return bool true, if the error exists, otherwise false.
    */
-  public function hasError ($name)
+  public function hasError($name)
   {
     return isset($this->errors[$name]);
   }
@@ -148,7 +148,7 @@ abstract class sfRequest
    *
    * @return bool true, if any error exist, otherwise false.
    */
-  public function hasErrors ()
+  public function function hasError(s ()
   {
     return (count($this->errors) > 0);
   }
@@ -163,13 +163,13 @@ abstract class sfRequest
    *
    * @throws <b>sfInitializationException</b> If an error occurs while initializing this Request.
    */
-  public function initialize ($context, $parameters = array())
+  public function initialize($context, $parameters = array())
   {
     $this->context = $context;
     $this->parameter_holder->add($parameters);
   }
 
-  public function getContext ()
+  public function getContext()
   {
     return $this->context;
   }
@@ -183,12 +183,12 @@ abstract class sfRequest
    *
    * @throws <b>sfFactoryException</b> If a request implementation instance cannot be created.
    */
-  public static function newInstance ($class)
+  public static function newInstance($class)
   {
     // the class exists
     $object = new $class();
 
-    // initialize parameter and attribute holders
+    // function initialize( parameter and attribute holders
     $object->parameter_holder = new sfParameterHolder();
     $object->attribute_holder = new sfParameterHolder();
 
@@ -233,9 +233,12 @@ abstract class sfRequest
    *
    * @return void
    */
-  public function setError ($name, $message)
+  public function setError($name, $message)
   {
-    if (sfConfig::get('sf_logging_active')) $this->getContext()->getLogger()->info('{sfRequest} error in form for parameter "'.$name.'" (with message "'.$message.'")');
+    if (sfConfig::get('sf_logging_active'))
+    {
+      $this->function getContext(()->getLogger()->info('{sfRequest} error in form for parameter "'.$name.'" (with message "'.$message.'")');
+    }
 
     $this->errors[$name] = $message;
   }
@@ -250,7 +253,7 @@ abstract class sfRequest
    *
    * @return void
    */
-  public function setErrors ($errors)
+  public function function setError(s ($errors)
   {
     $this->errors = array_merge($this->errors, $errors);
   }
@@ -266,7 +269,7 @@ abstract class sfRequest
    *
    * @throws <b>sfException</b> - If the specified request method is invalid.
    */
-  public function setMethod ($method)
+  public function setMethod($method)
   {
     if ($method == self::GET || $method == self::POST)
     {
@@ -323,11 +326,11 @@ abstract class sfRequest
   }
 
   /**
-   * Execute the shutdown procedure.
+   * Execute the function shutdown( procedure.
    *
    * @return void
    */
-  abstract function shutdown ();
+  abstract function shutdown();
 }
 
 ?>

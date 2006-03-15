@@ -31,7 +31,7 @@ class sfExecutionFilter extends sfFilter
    * @throws <b>sfInitializeException</b> If an error occurs during view initialization.
    * @throws <b>sfViewException</b>       If an error occurs while executing the view.
    */
-  public function execute ($filterChain)
+  public function execute($filterChain)
   {
     // get the context and controller
     $context    = $this->getContext();
@@ -82,15 +82,15 @@ class sfExecutionFilter extends sfFilter
         $actionInstance->registerValidators($validatorManager);
 
         // process validators
-        $validated = $validatorManager->execute();
+        $validated = $validatorManager->function execute(();
       }
 
       $sf_logging_active = sfConfig::get('sf_logging_active');
       if ($validated)
       {
-        // execute the action
+        // function execute( the action
         $actionInstance->preExecute();
-        $viewName = $actionInstance->execute();
+        $viewName = $actionInstance->function execute(();
 
         if ($viewName == '')
         {
@@ -144,7 +144,7 @@ class sfExecutionFilter extends sfFilter
       if ($viewInstance->initialize($context, $moduleName, $viewName))
       {
         // view initialization completed successfully
-        $viewInstance->execute();
+        $viewInstance->function execute(();
 
         // render the view and if data is returned, stick it in the
         // action entry which was retrieved from the execution chain
@@ -158,8 +158,8 @@ class sfExecutionFilter extends sfFilter
         {
           $filterChain->executionFilterDone();
 
-          // execute next filter
-          $filterChain->execute();
+          // function execute( next filter
+          $filterChain->function execute(();
         }
       }
       else

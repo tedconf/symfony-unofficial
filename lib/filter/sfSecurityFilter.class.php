@@ -34,7 +34,7 @@ abstract class sfSecurityFilter extends sfFilter
    * @author Sean Kerr (skerr@mojavi.org)
    * @since  3.0.0
    */
-  public static function newInstance ($class)
+  public static function newInstance($class)
   {
     // the class exists
     $object = new $class();

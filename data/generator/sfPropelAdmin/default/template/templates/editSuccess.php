@@ -33,17 +33,17 @@
 <?php
   if ($category[0] == '-')
   {
-    $category_name = substr($category, 1);
+    $categoryName = substr($category, 1);
     $collapse = true;
   }
   else
   {
-    $category_name = $category;
+    $categoryName = $category;
     $collapse = false;
   }
 ?>
 <fieldset class="<?php if ($collapse): ?> collapse<?php endif ?>">
-<?php if ($category != 'NONE'): ?><h2>[?php echo __('<?php echo $category_name ?>') ?]</h2>
+<?php if ($category != 'NONE'): ?><h2>[?php echo __('<?php echo $categoryName ?>') ?]</h2>
 
 <?php endif ?>
 <?php foreach ($this->getColumns('edit.display', $category) as $name => $column): ?>

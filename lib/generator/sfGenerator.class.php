@@ -35,18 +35,18 @@ abstract class sfGenerator
   protected function generatePhpFiles($generatedModuleName, $templateFiles = array())
   {
     // template directory
-    $template_dir = sfConfig::get('sf_symfony_data_dir').'/generator/'.$this->getGeneratorClass().'/'.$this->getTheme().'/template';
+    $templateDir = sfConfig::get('sf_symfony_data_dir').'/generator/'.$this->getGeneratorClass().'/'.$this->getTheme().'/template';
 
     // default template directory
-    $default_template_dir = sfConfig::get('sf_symfony_data_dir').'/generator/'.$this->getGeneratorClass().'/default/template';
+    $defaultTemplateDir = sfConfig::get('sf_symfony_data_dir').'/generator/'.$this->getGeneratorClass().'/default/template';
 
     // eval actions file
-    $action_template = $template_dir.'/actions/actions.class.php';
-    if (!is_readable($action_template))
+    $actionTemplate = $templateDir.'/actions/actions.class.php';
+    if (!is_readable($actionTemplate))
     {
-      $action_template = $default_template_dir.'/actions/actions.class.php';
+      $actionTemplate = $defaultTemplateDir.'/actions/actions.class.php';
     }
-    $retval = $this->evalTemplate($action_template);
+    $retval = $this->evalTemplate($actionTemplate);
 
     // save actions class
     $this->getGeneratorManager()->getCache()->set('actions.class.php', $generatedModuleName.DIRECTORY_SEPARATOR.'actions', $retval);
@@ -55,28 +55,28 @@ abstract class sfGenerator
     foreach ($templateFiles as $template)
     {
       // eval template file
-      $template_template = $template_dir.'/templates/'.$template.'.php';
-      if (!is_readable($template_template))
+      $templateTemplate = $templateDir.'/templates/'.$template.'.php';
+      if (!is_readable($templateTemplate))
       {
-        $template_template = $default_template_dir.'/templates/'.$template.'.php';
-        if (!is_readable($template_template))
+        $templateTemplate = $defaultTemplateDir.'/templates/'.$template.'.php';
+        if (!is_readable($templateTemplate))
         {
           // this template does not exist for this generator
           continue;
         }
       }
-      $retval = $this->evalTemplate($template_template);
+      $retval = $this->evalTemplate($templateTemplate);
 
       // save actions class
       $this->getGeneratorManager()->getCache()->set($template.'.php', $generatedModuleName.DIRECTORY_SEPARATOR.'templates', $retval);
     }
   }
 
-  protected function evalTemplate($template_file)
+  protected function evalTemplate($templateFile)
   {
     // eval template template file
     ob_start();
-    require($template_file);
+    require($templateFile);
     $content = ob_get_clean();
 
     // replace [?php and ?]
@@ -105,9 +105,9 @@ abstract class sfGenerator
     return $this->generatorClass;
   }
 
-  public function setGeneratorClass($generator_class)
+  public function setGeneratorClass($generatorClass)
   {
-    $this->generatorClass = $generator_class;
+    $this->generatorClass = $generatorClass;
   }
 
   protected function getGeneratorManager()
@@ -120,9 +120,9 @@ abstract class sfGenerator
     return $this->generatedModuleName;
   }
 
-  public function setGeneratedModuleName($module_name)
+  public function setGeneratedModuleName($moduleName)
   {
-    $this->generatedModuleName = $module_name;
+    $this->generatedModuleName = $moduleName;
   }
 
   public function getModuleName()
@@ -130,9 +130,9 @@ abstract class sfGenerator
     return $this->moduleName;
   }
 
-  public function setModuleName($module_name)
+  public function setModuleName($moduleName)
   {
-    $this->moduleName = $module_name;
+    $this->moduleName = $moduleName;
   }
 
   public function getTheme()

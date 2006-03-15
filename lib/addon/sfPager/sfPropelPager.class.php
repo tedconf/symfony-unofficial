@@ -3,7 +3,7 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- * 
+ *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -25,20 +25,20 @@
 class sfPropelPager
 {
   private
-    $page                   = 1,
-    $maxPerPage             = 0,
-    $lastPage               = 1,
-    $nbResults              = 0,
-    $class                  = '',
-    $tableName              = '',
-    $criteria               = null,
-    $objects                = null,
-    $cursor                 = 1,
-    $parameters             = array(),
-    $currentMaxLink         = 1,
-    $parameter_holder       = null,
-    $peer_method_name       = 'doSelect',
-    $peer_count_method_name = 'doCount';
+    $page                = 1,
+    $maxPerPage          = 0,
+    $lastPage            = 1,
+    $nbResults           = 0,
+    $class               = '',
+    $tableName           = '',
+    $criteria            = null,
+    $objects             = null,
+    $cursor              = 1,
+    $parameters          = array(),
+    $currentMaxLink      = 1,
+    $parameterHolder     = null,
+    $peerMethodName      = 'doSelect',
+    $peerCountMethodName = 'doCount';
 
   public function __construct($class, $defaultMaxPerPage = 10)
   {
@@ -82,9 +82,9 @@ class sfPropelPager
     return $this->peer_method_name;
   }
 
-  public function setPeerMethod($peer_method_name)
+  public function setPeerMethod($peerMethodName)
   {
-    $this->peer_method_name = $peer_method_name;
+    $this->peer_method_name = $peerMethodName;
   }
 
   public function getPeerCountMethod()
@@ -92,9 +92,9 @@ class sfPropelPager
     return $this->peer_count_method_name;
   }
 
-  public function setPeerCountMethod($peer_count_method_name)
+  public function setPeerCountMethod($peerCountMethodName)
   {
-    $this->peer_count_method_name = $peer_count_method_name;
+    $this->peer_count_method_name = $peerCountMethodName;
   }
 
   public function getCurrentMaxLink()
@@ -102,14 +102,14 @@ class sfPropelPager
     return $this->currentMaxLink;
   }
 
-  public function getLinks($nb_links = 5)
+  public function getLinks($nbLinks = 5)
   {
     $links = array();
-    $tmp = $this->page - floor($nb_links / 2);
-    $begin = ($tmp > 0) ? (($tmp > $this->lastPage - $nb_links + 1) ? $this->lastPage - $nb_links + 1 : $tmp) : 1;
+    $tmp = $this->page - floor($nbLinks / 2);
+    $begin = ($tmp > 0) ? (($tmp > $this->lastPage - $nbLinks + 1) ? $this->lastPage - $nbLinks + 1 : $tmp) : 1;
 
     $i = $begin;
-    while (($i < $begin + $nb_links) && ($i <= $this->lastPage))
+    while (($i < $begin + $nbLinks) && ($i <= $this->lastPage))
     {
       $links[] = $i++;
     }
@@ -117,7 +117,7 @@ class sfPropelPager
     $this->currentMaxLink = $links[count($links) - 1];
 
     return $links;
-  }    
+  }
 
   public function haveToPaginate()
   {
@@ -135,7 +135,7 @@ class sfPropelPager
     {
       $this->cursor = 1;
     }
-    else if ($pos > $this->nbResults)
+    elseif ($pos > $this->nbResults)
     {
       $this->cursor = $this->nbResults;
     }
@@ -319,7 +319,7 @@ class sfPropelPager
         $this->page = 1;
       }
     }
-    else if ($max == 0)
+    elseif ($max == 0)
     {
       $this->maxPerPage = 0;
       $this->page = 0;

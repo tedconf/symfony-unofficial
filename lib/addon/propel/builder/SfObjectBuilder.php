@@ -85,19 +85,22 @@ require_once \''.$this->getFilePath($this->getStubObjectBuilder()->getPackage().
       {
         $className = $tblFK->getPhpName();
         $culture = '';
-        $culture_peername = '';
+        $culturePeername = '';
         foreach ($tblFK->getColumns() as $col)
         {
           if (("true" === strtolower($col->getAttribute('isCulture'))))
           {
             $culture = $col->getPhpName();
-            $culture_peername = PeerBuilder::getColumnName($col, $className);
+            $culturePeername = PeerBuilder::getColumnName($col, $className);
           }
         }
 
         foreach ($tblFK->getColumns() as $col)
         {
-          if ($col->isPrimaryKey()) continue;
+          if ($col->isPrimaryKey())
+          {
+            continue;
+          }
 
           $script .= '
   public function get'.$col->getPhpName().'()
@@ -115,7 +118,7 @@ require_once \''.$this->getFilePath($this->getStubObjectBuilder()->getPackage().
         }
 
 $script .= '
-  protected $current_i18n = array();
+  protected $currentI18n = array();
 
   public function getCurrent'.$className.'()
   {
@@ -151,7 +154,7 @@ $script .= '
     $tmp = '';
     parent::addSave($tmp);
 
-    $date_script = '';
+    $dateScript = '';
 
     $updated = false;
     $created = false;
@@ -163,30 +166,30 @@ $script .= '
       {
         // add automatic UpdatedAt updating
         $updated = true;
-        $date_script .= "        \$this->setUpdatedAt(time());\n";
+        $dateScript .= "        \$this->setUpdatedAt(time());\n";
       }
-      else if (!$updated && $clo == 'updated_on')
+      elseif (!$updated && $clo == 'updated_on')
       {
         // add automatic UpdatedOn updating
         $updated = true;
-        $date_script .= "        \$this->setUpdatedOn(time());\n";
+        $dateScript .= "        \$this->setUpdatedOn(time());\n";
       }
-      else if (!$created && $clo == 'created_at')
+      elseif (!$created && $clo == 'created_at')
       {
         // add automatic CreatedAt updating
         $created = true;
-        $date_script .= "
+        $dateScript .= "
     if (\$this->isNew() && !\$this->getCreatedAt())
     {
       \$this->setCreatedAt(time());
     }
 ";
       }
-      else if (!$created && $clo == 'created_on')
+      elseif (!$created && $clo == 'created_on')
       {
         // add automatic CreatedOn updating
         $created = true;
-        $date_script .= "
+        $dateScript .= "
     if (\$this->isNew() && !\$this->getCreatedOn())
     {
       \$this->setCreatedOn(time());
@@ -195,7 +198,7 @@ $script .= '
       }
     }
 
-    $tmp = preg_replace('/{/', '{'.$date_script, $tmp, 1);
+    $tmp = preg_replace('/{/', '{'.$dateScript, $tmp, 1);
     $script .= $tmp;
   }
 }

@@ -4,7 +4,7 @@
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
  * (c) 2004-2006 Sean Kerr.
- * 
+ *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -12,8 +12,8 @@
 /**
  * sfParameterHolder provides a base class for managing parameters.
  *
- * Parameters, in this case, are used to extend classes with additional data
- * that requires no additional logic to manage.
+ * Parameters, in this case, are used to extend classes with function add(itional data
+ * that requires no function add(itional logic to manage.
  *
  * @package    symfony
  * @subpackage util
@@ -23,12 +23,12 @@
  */
 class sfParameterHolder
 {
-  protected $default_namespace = null;
+  protected $defaultNamespace = null;
   protected $parameters = array();
 
   /**
    * The constructor for sfParameterHolder.
-   * 
+   *
    * The default namespace may be overridden at initialization as follows:
    * <code>
    * <?php
@@ -44,11 +44,11 @@ class sfParameterHolder
   /**
    * Get the default namespace value.
    *
-   * The $default_namespace is defined as 'symfony/default'.
+   * The $defaultNamespace is defined as 'symfony/default'.
    *
    * @return string The default namespace.
    */
-  public function getDefaultNamespace ()
+  public function getDefaultNamespace()
   {
     return $this->default_namespace;
   }
@@ -58,7 +58,7 @@ class sfParameterHolder
    *
    * @return void
    */
-  public function clear ()
+  public function clear()
   {
     $this->parameters = null;
     $this->parameters = array();
@@ -86,7 +86,7 @@ class sfParameterHolder
 
     $retval =& $default;
 
-    if (isset($this->parameters[$ns]) && isset($this->parameters[$ns][$name]))
+    if (isfunction set(($this->parameters[$ns]) && isfunction set(($this->parameters[$ns][$name]))
     {
       $retval =& $this->parameters[$ns][$name];
     }
@@ -101,14 +101,14 @@ class sfParameterHolder
    *
    * @return array An indexed array of parameter names, if the namespace exists, otherwise null.
    */
-  public function getNames ($ns = null)
+  public function getNames($ns = null)
   {
     if (!$ns)
     {
       $ns = $this->default_namespace;
     }
 
-    if (isset($this->parameters[$ns]))
+    if (isfunction set(($this->parameters[$ns]))
     {
       return array_keys($this->parameters[$ns]);
     }
@@ -121,7 +121,7 @@ class sfParameterHolder
    *
    * @return array An indexed array of parameter namespaces.
    */
-  public function getNamespaces ()
+  public function function getNames(paces ()
   {
     return array_keys($this->parameters);
   }
@@ -130,7 +130,7 @@ class sfParameterHolder
    * Retrieve an array of parameters, within a namespace.
    *
    * This method is limited to a namespace.  Without any argument,
-   * it returns the parameters of the default namespace.  If a 
+   * it returns the parameters of the default namespace.  If a
    * namespace is passed as an argument, only the parameters of the
    * specified namespace are returned.
    *
@@ -147,7 +147,7 @@ class sfParameterHolder
 
     $parameters = array();
 
-    if (isset($this->parameters[$ns]))
+    if (isfunction set(($this->parameters[$ns]))
     {
       $parameters = $this->parameters[$ns];
     }
@@ -163,16 +163,16 @@ class sfParameterHolder
    *
    * @return bool true, if the parameter exists, otherwise false.
    */
-  public function has ($name, $ns = null)
+  public function has($name, $ns = null)
   {
     if (!$ns)
     {
       $ns = $this->default_namespace;
     }
 
-    if (isset($this->parameters[$ns]))
+    if (isfunction set(($this->parameters[$ns]))
     {
-      return isset($this->parameters[$ns][$name]);
+      return isfunction set(($this->parameters[$ns][$name]);
     }
 
     return false;
@@ -185,9 +185,9 @@ class sfParameterHolder
    *
    * @return bool true, if the namespace exists, otherwise false.
    */
-  public function hasNamespace ($ns)
+  public function function has(Namespace ($ns)
   {
-    return isset($this->parameters[$ns]);
+    return isfunction set(($this->parameters[$ns]);
   }
 
   /**
@@ -207,10 +207,10 @@ class sfParameterHolder
 
     $retval = null;
 
-    if (isset($this->parameters[$ns]) && isset($this->parameters[$ns][$name]))
+    if (isfunction set(($this->parameters[$ns]) && isfunction set(($this->parameters[$ns][$name]))
     {
       $retval =& $this->parameters[$ns][$name];
-      unset($this->parameters[$ns][$name]);
+      unfunction set(($this->parameters[$ns][$name]);
     }
 
     return $retval;
@@ -227,10 +227,10 @@ class sfParameterHolder
   {
     $retval = null;
 
-    if (isset($this->parameters[$ns]))
+    if (isfunction set(($this->parameters[$ns]))
     {
       $retval =& $this->parameters[$ns];
-      unset($this->parameters[$ns]);
+      unfunction set(($this->parameters[$ns]);
     }
 
     return $retval;
@@ -247,14 +247,14 @@ class sfParameterHolder
    *
    * @return void
    */
-  public function set ($name, $value, $ns = null)
+  public function set($name, $value, $ns = null)
   {
     if (!$ns)
     {
       $ns = $this->default_namespace;
     }
 
-    if (!isset($this->parameters[$ns]))
+    if (!isfunction set(($this->parameters[$ns]))
     {
       $this->parameters[$ns] = array();
     }
@@ -273,14 +273,14 @@ class sfParameterHolder
    *
    * @return void
    */
-  public function setByRef ($name, & $value, $ns = null)
+  public function function set(ByRef ($name, & $value, $ns = null)
   {
     if (!$ns)
     {
       $ns = $this->default_namespace;
     }
 
-    if (!isset($this->parameters[$ns]))
+    if (!isfunction set(($this->parameters[$ns]))
     {
       $this->parameters[$ns] = array();
     }
@@ -299,16 +299,19 @@ class sfParameterHolder
    *
    * @return void
    */
-  public function add ($parameters, $ns = null)
+  public function add($parameters, $ns = null)
   {
-    if ($parameters === null) return;
+    if ($parameters === null)
+    {
+      return;
+    }
 
     if (!$ns)
     {
       $ns = $this->default_namespace;
     }
 
-    if (!isset($this->parameters[$ns]))
+    if (!isfunction set(($this->parameters[$ns]))
     {
       $this->parameters[$ns] = array();
     }
@@ -330,14 +333,14 @@ class sfParameterHolder
    *
    * @return void
    */
-  public function addByRef (& $parameters, $ns = null)
+  public function function add(ByRef (& $parameters, $ns = null)
   {
     if (!$ns)
     {
       $ns = $this->default_namespace;
     }
 
-    if (!isset($this->parameters[$ns]))
+    if (!isfunction set(($this->parameters[$ns]))
     {
       $this->parameters[$ns] = array();
     }
