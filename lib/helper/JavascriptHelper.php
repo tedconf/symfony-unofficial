@@ -694,7 +694,7 @@
     $response->addJavascript('/sf/js/prototype/effects');
 
     $compOptions = _convert_options($completionOptions);
-    if (isset($compOptions['use_style']) && $compOptions['use_style'] == 'true')
+    if (isset($compOptions['use_style']) && $compOptions['use_style'] == true)
     {
       $response->addStylesheet('/sf/css/sf_helpers/input_auto_complete_tag');
     }
@@ -909,7 +909,7 @@
     {
       $jsOptions['insertion'] = "Insertion.".sfInflector::camelize($options['position']);
     }
-    $jsOptions['evalScripts'] = (!isset($options['script']) || $options['script'] == '0' || $options['script'] == 'false') ? 'false' : 'true';
+    $jsOptions['evalScripts'] = (!isset($options['script']) || $options['script'] == '0' || $options['script'] == false) ? 'false' : 'true';
 
     if (isset($options['form']))
     {
