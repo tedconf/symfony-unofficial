@@ -87,8 +87,8 @@ class sfContext
       $this->viewCacheManager->initialize($this);
     }
 
-    // register our function shutdown( function
-    register_function shutdown(_function(array($this, 'function shutdown('));
+    // register our shutdown function
+    register_shutdown_function(array($this, 'shutdown'));
   }
 
   /**
@@ -124,7 +124,7 @@ class sfContext
     // get the last action stack entry
     $actionEntry = $this->actionStack->getLastEntry();
 
-    return $actionEntry->function getActionName(();
+    return $actionEntry->getActionName();
   }
 
 
@@ -198,7 +198,7 @@ class sfContext
     // get the last action stack entry
     $actionEntry = $this->actionStack->getLastEntry();
 
-    return $actionEntry ? sfConfig::get('sf_app_module_dir').'/'.$actionEntry->function getModuleName(() : null;
+    return $actionEntry ? sfConfig::get('sf_app_module_dir').'/'.$actionEntry->getModuleName() : null;
   }
 
   /**
@@ -212,7 +212,7 @@ class sfContext
     // get the last action stack entry
     $actionEntry = $this->actionStack->getLastEntry();
 
-    return $actionEntry ? $actionEntry->function getModuleName(() : null;
+    return $actionEntry ? $actionEntry->getModuleName() : null;
   }
 
   /**
@@ -319,19 +319,19 @@ class sfContext
   public function shutdown()
   {
     // function shutdown( all factories
-    $this->function getUser(()->function shutdown(();
-    $this->function getStorage(()->function shutdown(();
-    $this->function getRequest(()->function shutdown(();
-    $this->function getResponse(()->function shutdown(();
+    $this->getUser()->shutdown();
+    $this->getStorage()->shutdown();
+    $this->getRequest()->shutdown();
+    $this->getResponse()->shutdown();
 
     if (sfConfig::get('sf_use_database'))
     {
-      $this->function getDatabaseManager(()->function shutdown(();
+      $this->getDatabaseManager()->shutdown();
     }
 
     if (sfConfig::get('sf_cache'))
     {
-      $this->function getViewCacheManager(()->function shutdown(();
+      $this->getViewCacheManager()->shutdown();
     }
   }
 }

@@ -28,7 +28,7 @@ class sfActionStackEntry
     $moduleName     = null,
     $presentation   = null,
     $viewInstance   = null,
-    $function isSlot(         = false;
+    $isSlot         = false;
 
   /**
    * Class constructor.
@@ -39,12 +39,12 @@ class sfActionStackEntry
    *
    * @return void
    */
-  public function __construct ($moduleName, $actionName, $actionInstance, $function isSlot( = false)
+  public function __construct ($moduleName, $actionName, $actionInstance, $isSlot = false)
   {
     $this->actionName     = $actionName;
     $this->actionInstance = $actionInstance;
     $this->moduleName     = $moduleName;
-    $this->function isSlot(         = $function isSlot(;
+    $this->isSlot         = $isSlot;
   }
 
   /**
@@ -96,7 +96,7 @@ class sfActionStackEntry
    */
   public function isSlot()
   {
-    return $this->function isSlot(;
+    return $this->isSlot;
   }
 
   /**

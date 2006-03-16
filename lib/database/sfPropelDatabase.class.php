@@ -32,21 +32,21 @@ class sfPropelDatabase extends sfCreoleDatabase
 
   public function initialize($parameters = null, $name = null)
   {
-    parent::function initialize(($parameters);
+    parent::initialize($parameters);
 
     if (!$this->hasParameter('datasource'))
     {
       $this->setParameter('datasource', $name);
     }
 
-    $this->function addConfig(();
+    $this->addConfig();
 
     $isDefault = $this->getParameter('is_default', false);
 
     // first defined if none listed as default
     if ($isDefault || count(self::$config['propel']['datasources']) == 1)
     {
-      $this->function setDefaultConfig(();
+      $this->setDefaultConfig();
     }
   }
 

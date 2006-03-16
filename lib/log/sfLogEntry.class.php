@@ -49,22 +49,22 @@ class sfLogEntry
 
   public function getPriorityString()
   {
-    return $this->priority_string;
+    return $this->priorityString;
   }
 
   public function setPriorityString($priority_string)
   {
-    $this->priority_string = $priority_string;
+    $this->priorityString = $priority_string;
   }
 
   public function getElapsedTime()
   {
-    return $this->elapsed_time;
+    return $this->elapsedTime;
   }
 
   public function setElapsedTime($elapsed_time)
   {
-    $this->elapsed_time = $elapsed_time;
+    $this->elapsedTime = $elapsed_time;
   }
 
   public function getTime()
@@ -89,12 +89,12 @@ class sfLogEntry
 
   public function getDebugStack()
   {
-    return $this->debug_stack;
+    return $this->debugStack;
   }
 
   public function setDebugStack($debug_stack)
   {
-    $this->debug_stack = $debug_stack;
+    $this->debugStack = $debug_stack;
   }
 }
 

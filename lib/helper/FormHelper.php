@@ -973,11 +973,11 @@ function _get_I18n_date_locales($culture = '')
 }
 
 /**
-* _parse_value_for_date function can parse any date field from $value given as:
-*  - an array('year'=>2000, 'month'=> 1, ..
-*  - a timestamp
-*  - english text presentation of date (i.e '14:23', '03:30 AM', '2005-12-25' Refer to strtotime function in PHP manual)
-*/
+ * _parse_value_for_date function can parse any date field from $value given as:
+ *  - an array('year'=>2000, 'month'=> 1, ..
+ *  - a timestamp
+ *  - english text presentation of date (i.e '14:23', '03:30 AM', '2005-12-25' Refer to strtotime function in PHP manual)
+ */
 function _parse_value_for_date($value, $name, $formatChar)
 {
   if (is_array($value))

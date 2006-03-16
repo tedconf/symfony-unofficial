@@ -63,7 +63,7 @@ class sfPDOSessionStorage extends sfSessionStorage
     $parameters['auto_start'] = false;
 
     // function initialize( the parent
-    parent::function initialize(($context, $parameters);
+    parent::initialize($context, $parameters);
 
     if (!$this->getParameterHolder()->has('db_table'))
     {
@@ -74,12 +74,12 @@ class sfPDOSessionStorage extends sfSessionStorage
     }
 
     // use this object as the session handler
-    session_set_save_handler(array($this, 'function sessionOpen('),
-                             array($this, 'function sessionClose('),
-                             array($this, 'function sessionRead('),
-                             array($this, 'function sessionWrite('),
-                             array($this, 'function sessionDestroy('),
-                             array($this, 'function sessionGC('));
+    session_set_save_handler(array($this, 'sessionOpen'),
+                             array($this, 'sessionClose'),
+                             array($this, 'sessionRead'),
+                             array($this, 'sessionWrite'),
+                             array($this, 'sessionDestroy'),
+                             array($this, 'sessionGC'));
 
     // start our session
     session_start();

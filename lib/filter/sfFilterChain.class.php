@@ -36,17 +36,17 @@ class sfFilterChain
   public function execute()
   {
 /*
-> 0: Filter0->function execute(BeforeExecution()
-> 1: Filter1->function execute(BeforeExecution()
-> 2: Filter2->function execute(BeforeExecution()
+> 0: Filter0->executeBeforeExecution()
+> 1: Filter1->executeBeforeExecution()
+> 2: Filter2->executeBeforeExecution()
 
-> 3: ExecutionFilter->function execute(()
+> 3: ExecutionFilter->execute()
 
-> 2: Filter2->function execute(BeforeRendering()
-> 1: Filter1->function execute(BeforeRendering()
-> 0: Filter0->function execute(BeforeRendering()
+> 2: Filter2->executeBeforeRendering()
+> 1: Filter1->executeBeforeRendering()
+> 0: Filter0->executeBeforeRendering()
 
-> 4: RenderingFilter->function execute(()
+> 4: RenderingFilter->execute()
 */
     $execIndex   = count($this->chain) - 2;
     $renderIndex = $execIndex + 1;
@@ -63,7 +63,7 @@ class sfFilterChain
         sfContext::getInstance()->getLogger()->info('{sfFilterChain} executing filter "'.get_class($this->chain[$renderIndex]).'" ['.$renderIndex.']');
       }
 
-      $this->chain[$renderIndex]->function execute(($this);
+      $this->chain[$renderIndex]->execute($this);
     }
     elseif ($this->index + 1 == $execIndex && !$this->execution)
     {
@@ -75,7 +75,7 @@ class sfFilterChain
         sfContext::getInstance()->getLogger()->info('{sfFilterChain} executing filter "'.get_class($this->chain[$execIndex]).'" ['.$execIndex.']');
       }
 
-      $this->chain[$execIndex]->function execute(($this);
+      $this->chain[$execIndex]->execute($this);
     }
     else
     {
@@ -98,45 +98,45 @@ class sfFilterChain
 
         if (!$this->execution)
         {
-          if (method_exists($filter, 'function execute(BeforeExecution'))
+          if (method_exists($filter, 'executeBeforeExecution'))
           {
             if ($sf_logging_active)
             {
               sfContext::getInstance()->getLogger()->info('{sfFilterChain} executing filter (before execution) "'.get_class($filter).'" ['.$this->index.']');
             }
 
-            $filter->function execute(BeforeExecution($this);
+            $filter->executeBeforeExecution($this);
           }
-          elseif (method_exists($filter, 'function execute('))
+          elseif (method_exists($filter, 'execute'))
           {
             if ($sf_logging_active)
             {
               sfContext::getInstance()->getLogger()->info('{sfFilterChain} executing filter "'.get_class($filter).'" ['.$this->index.'] (before execution)');
             }
 
-            $filter->function execute(($this);
+            $filter->execute($this);
           }
           else
           {
             // function execute( next filter
-            $this->function execute(();
+            $this->execute();
           }
         }
         else
         {
-          if (method_exists($filter, 'function execute(BeforeRendering'))
+          if (method_exists($filter, 'executeBeforeRendering'))
           {
             if ($sf_logging_active)
             {
               sfContext::getInstance()->getLogger()->info('{sfFilterChain} executing filter "'.get_class($filter).'" ['.$this->index.'] (before rendering)');
             }
 
-            $filter->function execute(BeforeRendering($this);
+            $filter->executeBeforeRendering($this);
           }
           else
           {
             // function execute( next filter
-            $this->function execute(();
+            $this->execute();
           }
         }
       }

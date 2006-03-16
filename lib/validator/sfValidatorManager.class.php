@@ -67,7 +67,7 @@ class sfValidatorManager
               continue;
             }
 
-            if ($subdata['validation_status'] == true && !$this->function validate(($subname, $subdata, $name))
+            if ($subdata['validation_status'] == true && !$this->validate($subname, $subdata, $name))
             {
               // validation failed
               $retval = false;
@@ -77,7 +77,7 @@ class sfValidatorManager
         else
         {
           // single parameter
-          if ($data['validation_status'] == true && !$this->function validate(($name, $data, null))
+          if ($data['validation_status'] == true && !$this->validate($name, $data, null))
           {
             // validation failed
             $retval = false;
@@ -289,7 +289,7 @@ class sfValidatorManager
         // loop through our validators
         foreach ($data['validators'] as $validator)
         {
-          if (!$validator->function execute(($value, $error))
+          if (!$validator->execute($value, $error))
           {
             $retval = false;
 

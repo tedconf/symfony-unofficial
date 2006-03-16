@@ -355,7 +355,7 @@ class PHPMailer
         if(!empty($this->AltBody))
             $this->ContentType = "multipart/alternative";
 
-        $this->error_count = 0; // reset errors
+        $this->errorCount = 0; // reset errors
         $this->SetMessageType();
         $header .= $this->CreateHeader();
         $body = $this->CreateBody();
@@ -431,11 +431,11 @@ class PHPMailer
             $old_from = ini_get("sendmail_from");
             ini_set("sendmail_from", $this->Sender);
             $params = sprintf("-oi -f %s", $this->Sender);
-            $rt = @mail($to, $this->function EncodeHeader(($this->Subject), $body, 
+            $rt = @mail($to, $this->EncodeHeader($this->Subject), $body, 
                         $header, $params);
         }
         else
-            $rt = @mail($to, $this->function EncodeHeader(($this->Subject), $body, $header);
+            $rt = @mail($to, $this->EncodeHeader($this->Subject), $body, $header);
 
         if (isset($old_from))
             ini_set("sendmail_from", $old_from);
@@ -640,7 +640,7 @@ class PHPMailer
             $formatted = $addr[0];
         else
         {
-            $formatted = $this->function EncodeHeader(($addr[1], 'phrase') . " <" . 
+            $formatted = $this->EncodeHeader($addr[1], 'phrase') . " <" . 
                          $addr[0] . ">";
         }
 
@@ -736,7 +736,7 @@ class PHPMailer
         if($this->WordWrap < 1)
             return;
             
-        switch($this->message_type)
+        switch($this->messageType)
         {
            case "alt":
               // fall through
@@ -793,7 +793,7 @@ class PHPMailer
 
         // mail() sets the subject itself
         if($this->Mailer != "mail")
-            $result .= $this->HeaderLine("Subject", $this->function EncodeHeader((trim($this->Subject)));
+            $result .= $this->HeaderLine("Subject", $this->EncodeHeader(trim($this->Subject)));
 
         $result .= sprintf("Message-ID: <%s@%s>%s", $uniq_id, $this->ServerHostname(), $this->LE);
         $result .= $this->HeaderLine("X-Priority", $this->Priority);
@@ -809,11 +809,11 @@ class PHPMailer
         for($index = 0; $index < count($this->CustomHeader); $index++)
         {
             $result .= $this->HeaderLine(trim($this->CustomHeader[$index][0]), 
-                       $this->function EncodeHeader((trim($this->CustomHeader[$index][1])));
+                       $this->EncodeHeader(trim($this->CustomHeader[$index][1])));
         }
         $result .= $this->HeaderLine("MIME-Version", "1.0");
 
-        switch($this->message_type)
+        switch($this->messageType)
         {
             case "plain":
                 $result .= $this->HeaderLine("Content-Transfer-Encoding", $this->Encoding);
@@ -857,27 +857,27 @@ class PHPMailer
 
         $this->SetWordWrap();
 
-        switch($this->message_type)
+        switch($this->messageType)
         {
             case "alt":
                 $result .= $this->GetBoundary($this->boundary[1], "", 
                                               "text/plain", "");
-                $result .= $this->function EncodeString(($this->AltBody, $this->Encoding);
+                $result .= $this->EncodeString($this->AltBody, $this->Encoding);
                 $result .= $this->LE.$this->LE;
                 $result .= $this->GetBoundary($this->boundary[1], "", 
                                               "text/html", "");
                 
-                $result .= $this->function EncodeString(($this->Body, $this->Encoding);
+                $result .= $this->EncodeString($this->Body, $this->Encoding);
                 $result .= $this->LE.$this->LE;
     
                 $result .= $this->EndBoundary($this->boundary[1]);
                 break;
             case "plain":
-                $result .= $this->function EncodeString(($this->Body, $this->Encoding);
+                $result .= $this->EncodeString($this->Body, $this->Encoding);
                 break;
             case "attachments":
                 $result .= $this->GetBoundary($this->boundary[1], "", "", "");
-                $result .= $this->function EncodeString(($this->Body, $this->Encoding);
+                $result .= $this->EncodeString($this->Body, $this->Encoding);
                 $result .= $this->LE;
      
                 $result .= $this->AttachAll();
@@ -893,14 +893,14 @@ class PHPMailer
                 $result .= $this->GetBoundary($this->boundary[2], "", 
                                               "text/plain", "") . $this->LE;
 
-                $result .= $this->function EncodeString(($this->AltBody, $this->Encoding);
+                $result .= $this->EncodeString($this->AltBody, $this->Encoding);
                 $result .= $this->LE.$this->LE;
     
                 // Create the HTML body
                 $result .= $this->GetBoundary($this->boundary[2], "", 
                                               "text/html", "") . $this->LE;
     
-                $result .= $this->function EncodeString(($this->Body, $this->Encoding);
+                $result .= $this->EncodeString($this->Body, $this->Encoding);
                 $result .= $this->LE.$this->LE;
 
                 $result .= $this->EndBoundary($this->boundary[2]);
@@ -949,15 +949,15 @@ class PHPMailer
      */
     function SetMessageType() {
         if(count($this->attachment) < 1 && strlen($this->AltBody) < 1)
-            $this->message_type = "plain";
+            $this->messageType = "plain";
         else
         {
             if(count($this->attachment) > 0)
-                $this->message_type = "attachments";
+                $this->messageType = "attachments";
             if(strlen($this->AltBody) > 0 && count($this->attachment) < 1)
-                $this->message_type = "alt";
+                $this->messageType = "alt";
             if(strlen($this->AltBody) > 0 && count($this->attachment) > 0)
-                $this->message_type = "alt_attachments";
+                $this->messageType = "alt_attachments";
         }
     }
 
@@ -1058,13 +1058,13 @@ class PHPMailer
             // Encode as string attachment
             if($bString)
             {
-                $mime[] = $this->function EncodeString(($string, $encoding);
+                $mime[] = $this->EncodeString($string, $encoding);
                 if($this->IsError()) { return ""; }
                 $mime[] = $this->LE.$this->LE;
             }
             else
             {
-                $mime[] = $this->function EncodeFile(($path, $encoding);                
+                $mime[] = $this->EncodeFile($path, $encoding);                
                 if($this->IsError()) { return ""; }
                 $mime[] = $this->LE.$this->LE;
             }
@@ -1081,7 +1081,7 @@ class PHPMailer
      * @access private
      * @return string
      */
-    function EncodeFile($path, $encoding = "base64") {
+    function EncodeFile ($path, $encoding = "base64") {
         if(!@$fd = fopen($path, "rb"))
         {
             $this->SetError($this->Lang("file_open") . $path);
@@ -1090,7 +1090,7 @@ class PHPMailer
         $magic_quotes = get_magic_quotes_runtime();
         set_magic_quotes_runtime(0);
         $file_buffer = fread($fd, filesize($path));
-        $file_buffer = $this->function EncodeString(($file_buffer, $encoding);
+        $file_buffer = $this->EncodeString($file_buffer, $encoding);
         fclose($fd);
         set_magic_quotes_runtime($magic_quotes);
 
@@ -1103,7 +1103,7 @@ class PHPMailer
      * @access private
      * @return string
      */
-    function EncodeString($str, $encoding = "base64") {
+    function EncodeString ($str, $encoding = "base64") {
         $encoded = "";
         switch(strtolower($encoding)) {
           case "base64":
@@ -1120,7 +1120,7 @@ class PHPMailer
               $encoded = $str;
               break;
           case "quoted-printable":
-              $encoded = $this->function function EncodeQ(P(($str);
+              $encoded = $this->EncodeQP($str);
               break;
           default:
               $this->SetError($this->Lang("encoding") . $encoding);
@@ -1134,7 +1134,7 @@ class PHPMailer
      * @access private
      * @return string
      */
-    function EncodeHeader($str, $position = 'text') {
+    function EncodeHeader ($str, $position = 'text') {
       $x = 0;
       
       switch (strtolower($position)) {
@@ -1171,7 +1171,7 @@ class PHPMailer
         $encoded = trim(chunk_split($encoded, $maxlen, "\n"));
       } else {
         $encoding = 'Q';
-        $encoded = $this->function EncodeQ(($str, $position);
+        $encoded = $this->EncodeQ($str, $position);
         $encoded = $this->WrapText($encoded, $maxlen, true);
         $encoded = str_replace("=".$this->LE, "\n", trim($encoded));
       }
@@ -1187,7 +1187,7 @@ class PHPMailer
      * @access private
      * @return string
      */
-    function function function EncodeQ(P( ($str) {
+    function EncodeQP ($str) {
         $encoded = $this->FixEOL($str);
         if (substr($encoded, -(strlen($this->LE))) != $this->LE)
             $encoded .= $this->LE;
@@ -1210,7 +1210,7 @@ class PHPMailer
      * @access private
      * @return string
      */
-    function EncodeQ($str, $position = "text") {
+    function EncodeQ ($str, $position = "text") {
         // There should not be any EOL in the string
         $encoded = preg_replace("[\r\n]", "", $str);
 
@@ -1393,7 +1393,7 @@ class PHPMailer
      * @return void
      */
     function SetError($msg) {
-        $this->error_count++;
+        $this->errorCount++;
         $this->ErrorInfo = $msg;
     }
 
@@ -1472,7 +1472,7 @@ class PHPMailer
      * @return bool
      */
     function IsError() {
-        return ($this->error_count > 0);
+        return ($this->errorCount > 0);
     }
 
     /**

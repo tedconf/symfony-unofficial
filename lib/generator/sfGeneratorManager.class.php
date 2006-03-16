@@ -35,8 +35,8 @@ class sfGeneratorManager
   public function generate($generatorClass, $param)
   {
     $generator = new $generatorClass();
-    $generator->function initialize(($this);
-    $data = $generator->function generate(($param);
+    $generator->initialize($this);
+    $data = $generator->generate($param);
 
     return $data;
   }

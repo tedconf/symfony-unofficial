@@ -28,7 +28,7 @@ abstract class sfComponent
   /**
    * Execute any application/business logic for this action.
    *
-   * In a typical database-driven application, function execute(() handles application
+   * In a typical database-driven application, execute() handles application
    * logic itself and then proceeds to create a model instance. Once the model
    * instance is initialized it handles all business logic for the action.
    *
@@ -55,10 +55,10 @@ abstract class sfComponent
   public function initialize($context)
   {
     $this->context                  = $context;
-    $this->var_holder               = new sfParameterHolder();
+    $this->varHolder               = new sfParameterHolder();
     $this->request                  = $context->getRequest();
     $this->response                 = $context->getResponse();
-    $this->request_parameter_holder = $this->request->getParameterHolder();
+    $this->requestParameterHolder = $this->request->getParameterHolder();
 
     return true;
   }
@@ -80,7 +80,7 @@ abstract class sfComponent
    */
   public final function getLogger()
   {
-    return $this->context->function getLogger(();
+    return $this->context->getLogger();
   }
 
   /**
@@ -92,7 +92,7 @@ abstract class sfComponent
    */
   public function logMessage($message, $priority = 'info')
   {
-    return $this->context->function getLogger(()->log($message, constant('SF_PEAR_LOG_'.strtoupper($priority)));
+    return $this->context->getLogger()->log($message, constant('SF_PEAR_LOG_'.strtoupper($priority)));
   }
 
   public function debugMessage($message)
@@ -115,7 +115,7 @@ abstract class sfComponent
    */
   public function getRequestParameter($name, $default = null)
   {
-    return $this->request_parameter_holder->get($name, $default);
+    return $this->requestParameterHolder->get($name, $default);
   }
 
   /**
@@ -130,7 +130,7 @@ abstract class sfComponent
    */
   public function hasRequestParameter($name)
   {
-    return $this->request_parameter_holder->has($name);
+    return $this->requestParameterHolder->has($name);
   }
 
   /**
@@ -138,7 +138,7 @@ abstract class sfComponent
    *
    * This is a proxy method equivalent to:
    *
-   * <code>$this->function getContext(()->getRequest()</code>
+   * <code>$this->getContext()->getRequest()</code>
    *
    * @return object current request object
    */
@@ -154,27 +154,27 @@ abstract class sfComponent
 
   public function getController()
   {
-    return $this->function getContext(()->getController();
+    return $this->getContext()->getController();
   }
 
   public function getUser()
   {
-    return $this->function getContext(()->getUser();
+    return $this->getContext()->getUser();
   }
 
   public function setVar($name, $value)
   {
-    $this->var_holder->set($name, $value);
+    $this->varHolder->set($name, $value);
   }
 
   public function getVar($name)
   {
-    return $this->var_holder->get($name);
+    return $this->varHolder->get($name);
   }
 
   public function getVarHolder()
   {
-    return $this->var_holder;
+    return $this->varHolder;
   }
 
   /**
@@ -189,7 +189,7 @@ abstract class sfComponent
    */
   public function __set($key, $value)
   {
-    return $this->var_holder->setByRef($key, $value);
+    return $this->varHolder->setByRef($key, $value);
   }
 
   /**
@@ -203,7 +203,7 @@ abstract class sfComponent
    */
   public function __get($key)
   {
-    return $this->var_holder->get($key);
+    return $this->varHolder->get($key);
   }
 
   public function setFlash($name, $value, $persist = true)

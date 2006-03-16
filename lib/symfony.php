@@ -74,7 +74,8 @@ if (!function_exists('__autoload'))
 
       $classes = sfConfig::get('sf_class_autoload', array());
     }
-    elseif (!isset($classes[$class]))
+
+    if (!isset($classes[$class]))
     {
       if (sfContext::hasInstance())
       {

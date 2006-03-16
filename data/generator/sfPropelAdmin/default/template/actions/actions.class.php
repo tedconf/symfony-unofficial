@@ -23,15 +23,15 @@ class <?php echo $this->getGeneratedModuleName() ?>Actions extends sfActions
 
   public function executeList()
   {
-    $this->function processSort(();
+    $this->processSort();
 
-    $this->function processFilters(();
+    $this->processFilters();
 
     // pager
     $this->pager = new sfPropelPager('<?php echo $this->getClassName() ?>', <?php echo $this->getParameterValue('list.max_per_page', 20) ?>);
     $c = new Criteria();
-    $this->function addSortCriteria(($c);
-    $this->function addFiltersCriteria(($c);
+    $this->addSortCriteria($c);
+    $this->addFiltersCriteria($c);
     $this->pager->setCriteria($c);
     $this->pager->setPage($this->getRequestParameter('page', 1));
     $this->pager->init();
@@ -100,7 +100,7 @@ class <?php echo $this->getGeneratedModuleName() ?>Actions extends sfActions
 
   public function handleErrorEdit()
   {
-    $this->function preExecute(();
+    $this->preExecute();
     $this-><?php echo $this->getSingularName() ?> = $this->get<?php echo $this->getClassName() ?>OrCreate();
     $this->update<?php echo $this->getClassName() ?>FromRequest();
 

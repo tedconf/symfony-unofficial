@@ -45,7 +45,7 @@ class sfCacheFilter extends sfFilter
       // no cache if GET or POST parameters
       if (count($_GET) || count($_POST))
       {
-        $filterChain->function execute(();
+        $filterChain->execute();
 
         return;
       }
@@ -87,7 +87,7 @@ class sfCacheFilter extends sfFilter
     }
 
     // function execute( next filter
-    $filterChain->function execute(();
+    $filterChain->execute();
   }
 
   /**
@@ -97,14 +97,14 @@ class sfCacheFilter extends sfFilter
    *
    * @return void
    */
-  public function function execute(BeforeRendering ($filterChain)
+  public function executeBeforeRendering($filterChain)
   {
     if (sfConfig::get('sf_cache'))
     {
       // no cache if GET or POST parameters
       if (count($_GET) || count($_POST))
       {
-        $filterChain->function execute(();
+        $filterChain->execute();
 
         return;
       }
@@ -141,7 +141,7 @@ class sfCacheFilter extends sfFilter
     }
 
     // function execute( next filter
-    $filterChain->function execute(();
+    $filterChain->execute();
   }
 
   private function setPageCache($uri, $suffix)

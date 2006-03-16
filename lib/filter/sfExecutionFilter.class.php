@@ -82,7 +82,7 @@ class sfExecutionFilter extends sfFilter
         $actionInstance->registerValidators($validatorManager);
 
         // process validators
-        $validated = $validatorManager->function execute(();
+        $validated = $validatorManager->execute();
       }
 
       $sf_logging_active = sfConfig::get('sf_logging_active');
@@ -90,7 +90,7 @@ class sfExecutionFilter extends sfFilter
       {
         // function execute( the action
         $actionInstance->preExecute();
-        $viewName = $actionInstance->function execute(();
+        $viewName = $actionInstance->execute();
 
         if ($viewName == '')
         {
@@ -144,7 +144,7 @@ class sfExecutionFilter extends sfFilter
       if ($viewInstance->initialize($context, $moduleName, $viewName))
       {
         // view initialization completed successfully
-        $viewInstance->function execute(();
+        $viewInstance->execute();
 
         // render the view and if data is returned, stick it in the
         // action entry which was retrieved from the execution chain
@@ -159,7 +159,7 @@ class sfExecutionFilter extends sfFilter
           $filterChain->executionFilterDone();
 
           // function execute( next filter
-          $filterChain->function execute(();
+          $filterChain->execute();
         }
       }
       else

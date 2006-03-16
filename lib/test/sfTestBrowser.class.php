@@ -73,7 +73,7 @@ class sfTestBrowser
     $request    = $context->getRequest();
 
     $request->getParameterHolder()->clear();
-    $request->function initialize(($context);
+    $request->initialize($context);
 
     ob_start();
     $controller->dispatch();

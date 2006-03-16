@@ -107,10 +107,10 @@ class sfPHPView extends sfView
 
   protected function renderFile($file)
   {
-    $this->attribute_holder->add($this->getGlobalVars());
-    $this->attribute_holder->add($this->getModuleVars());
+    $this->attributeHolder->add($this->getGlobalVars());
+    $this->attributeHolder->add($this->getModuleVars());
 
-    extract($this->attribute_holder->getAll());
+    extract($this->attributeHolder->getAll());
 
     $this->loadCoreAndStandardHelpers();
 

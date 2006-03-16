@@ -38,7 +38,7 @@ class sfWebResponse extends sfResponse
    */
   public function initialize($context, $parameters = array())
   {
-    parent::function initialize(($context, $parameters);
+    parent::initialize($context, $parameters);
 
     $this->statusTexts = array(
       '100' => 'Continue',
@@ -192,7 +192,7 @@ class sfWebResponse extends sfResponse
    */
   public function setContentType($value)
   {
-    $this->function setHttpHeader(('Content-Type', $value, true);
+    $this->setHttpHeader('Content-Type', $value, true);
   }
 
   /**
@@ -202,7 +202,7 @@ class sfWebResponse extends sfResponse
    */
   public function getContentType()
   {
-    $ct = $this->function getHttpHeader(('Content-Type', 'text/html');
+    $ct = $this->getHttpHeader('Content-Type', 'text/html');
 
     return $ct[0];
   }
@@ -236,7 +236,7 @@ class sfWebResponse extends sfResponse
     // set headers from HTTP meta
     foreach ($this->getHttpMetas() as $name => $value)
     {
-      $this->function setHttpHeader(($name, $value, false);
+      $this->setHttpHeader($name, $value, false);
     }
 
     // headers
@@ -301,7 +301,7 @@ class sfWebResponse extends sfResponse
 
   public function addVaryHttpHeader($header)
   {
-    $vary = $this->function getHttpHeader(('Vary');
+    $vary = $this->getHttpHeader('Vary');
     $currentHeaders = array();
     if ($vary[0])
     {
@@ -312,13 +312,13 @@ class sfWebResponse extends sfResponse
     if (!in_array($header, $currentHeaders))
     {
       $currentHeaders[] = $header;
-      $this->function setHttpHeader(('Vary', implode(', ', $currentHeaders));
+      $this->setHttpHeader('Vary', implode(', ', $currentHeaders));
     }
   }
 
   public function addCacheControlHttpHeader($name, $value = null)
   {
-    $cacheControl = $this->function getHttpHeader(('Cache-Control');
+    $cacheControl = $this->getHttpHeader('Cache-Control');
     $currentHeaders = array();
     if ($cacheControl[0])
     {
@@ -329,13 +329,13 @@ class sfWebResponse extends sfResponse
     if (!in_array($name, $currentHeaders))
     {
       $currentHeaders[] = $name.($value !== null ? '='.$value : '');
-      $this->function setHttpHeader(('Cache-Control', implode(', ', $currentHeaders));
+      $this->setHttpHeader('Cache-Control', implode(', ', $currentHeaders));
     }
   }
 
   public function getHttpMetas()
   {
-    return $this->parameter_holder->getAll('helper/asset/auto/httpmeta');
+    return $this->parameterHolder->getAll('helper/asset/auto/httpmeta');
   }
 
   public function addHttpMeta($key, $value, $override = true)
@@ -348,7 +348,7 @@ class sfWebResponse extends sfResponse
 
   public function getMetas()
   {
-    return $this->parameter_holder->getAll('helper/asset/auto/meta');
+    return $this->parameterHolder->getAll('helper/asset/auto/meta');
   }
 
   public function addMeta($key, $value, $override = true)
@@ -361,7 +361,7 @@ class sfWebResponse extends sfResponse
 
   public function getTitle()
   {
-    $metas = $this->parameter_holder->getAll('helper/asset/auto/meta');
+    $metas = $this->parameterHolder->getAll('helper/asset/auto/meta');
 
     return $metas['title'];
   }
@@ -378,7 +378,7 @@ class sfWebResponse extends sfResponse
       $position = '/'.$position;
     }
 
-    return $this->parameter_holder->getAll('helper/asset/auto/stylesheet'.$position);
+    return $this->parameterHolder->getAll('helper/asset/auto/stylesheet'.$position);
   }
 
   public function addStylesheet($css, $position = '', $options = array())
@@ -399,7 +399,7 @@ class sfWebResponse extends sfResponse
 
   public function getJavascripts()
   {
-    return $this->parameter_holder->getAll('helper/asset/auto/javascript');
+    return $this->parameterHolder->getAll('helper/asset/auto/javascript');
   }
 
   public function addJavascript($js)

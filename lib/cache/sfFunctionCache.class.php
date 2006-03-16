@@ -28,7 +28,7 @@ class sfFunctionCache extends sfFileCache
    *
    * Arguments of this method are read with func_get_args. So it doesn't appear
    * in the function definition. Synopsis :
-   * function call(('functionName', $arg1, $arg2, ...)
+   * call('functionName', $arg1, $arg2, ...)
    * (arg1, arg2... are arguments of 'functionName')
    *
    * @return mixed result of the function/method

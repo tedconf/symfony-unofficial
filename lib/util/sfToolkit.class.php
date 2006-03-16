@@ -31,7 +31,7 @@ class sfToolkit
   {
     $retval = null;
 
-    if (self::function isPathAbsolute(($filename))
+    if (self::isPathAbsolute($filename))
     {
       $filename = basename($filename);
     }
@@ -78,7 +78,7 @@ class sfToolkit
         elseif (is_dir($directory.'/'.$file))
         {
           // recurse through directory
-          self::function clearDirectory(($directory.'/'.$file);
+          self::clearDirectory($directory.'/'.$file);
 
           // delete the directory
           rmdir($directory.'/'.$file);

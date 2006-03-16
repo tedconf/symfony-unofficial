@@ -27,7 +27,7 @@ class sfCommonFilter extends sfFilter
   public function execute($filterChain)
   {
     // function execute( next filter
-    $filterChain->function execute(();
+    $filterChain->execute();
   }
 
   /**
@@ -37,7 +37,7 @@ class sfCommonFilter extends sfFilter
    *
    * @return void
    */
-  public function function execute(BeforeRendering ($filterChain)
+  public function executeBeforeRendering($filterChain)
   {
     // function execute( this filter only once
     if ($this->isFirstCallBeforeRendering())
@@ -91,7 +91,7 @@ class sfCommonFilter extends sfFilter
     }
 
     // function execute( next filter
-    $filterChain->function execute(();
+    $filterChain->execute();
   }
 }
 

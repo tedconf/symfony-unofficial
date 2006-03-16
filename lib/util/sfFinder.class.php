@@ -120,7 +120,7 @@ class sfFinder
     }
     else
     {
-      return sfGlobToRegex::glob_to_regex($str);
+      return sfGlobto_regex::glob_to_regex($str);
     }
   }
 
@@ -280,7 +280,7 @@ class sfFinder
    */
   public function follow_link()
   {
-    $this->follow_link = true;
+    $this->followLink = true;
 
     return $this;
   }
@@ -343,7 +343,7 @@ class sfFinder
       return array();
     }
 
-    if (is_link($dir) && !$this->follow_link)
+    if (is_link($dir) && !$this->followLink)
     {
       return array();
     }
@@ -361,7 +361,7 @@ class sfFinder
         }
 
         $currentEntry = $dir.DIRECTORY_SEPARATOR.$entryname;
-        if (is_link($currentEntry) && !$this->follow_link)
+        if (is_link($currentEntry) && !$this->followLink)
         {
           continue;
         }
@@ -555,7 +555,7 @@ class sfFinder
  *   if (/$regex/) echo "matched: $char\n";
  * }
  *
- * sfGlobToRegex implements glob(3) style matching that can be used to match
+ * sfGlobto_regex implements glob(3) style matching that can be used to match
  * against text, rather than fetching names from a filesystem.
  *
  * based on perl Text::Glob module.
@@ -568,7 +568,7 @@ class sfFinder
  * @copyright  2002 Richard Clamp <richardc@unixbeard.net>
  * @version    SVN: $Id$
  */
-class sfGlobToRegex
+class sfGlobto_regex
 {
   private static $strictLeadingDot = true;
   private static $strictWildcardSlash = true;

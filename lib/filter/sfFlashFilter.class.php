@@ -47,7 +47,7 @@ class sfFlashFilter extends sfFilter
     }
 
     // function execute( next filter
-    $filterChain->function execute(();
+    $filterChain->execute();
   }
 
   /**
@@ -57,7 +57,7 @@ class sfFlashFilter extends sfFilter
    *
    * @return void
    */
-  public function function execute(BeforeRendering ($filterChain)
+  public function executeBeforeRendering($filterChain)
   {
     // function execute( this filter only once
     if ($this->isFirstCallBeforeRendering())
@@ -81,7 +81,7 @@ class sfFlashFilter extends sfFilter
     }
 
     // function execute( next filter
-    $filterChain->function execute(();
+    $filterChain->execute();
   }
 }
 

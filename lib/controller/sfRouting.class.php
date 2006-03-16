@@ -48,25 +48,25 @@ class sfRouting
 
   private function setCurrentRouteName($name)
   {
-    $this->current_route_name = $name;
+    $this->currentRouteName = $name;
   }
 
   public function getCurrentRouteName()
   {
-    return $this->current_route_name;
+    return $this->currentRouteName;
   }
 
   public function getCurrentInternalUri($withRouteName = false)
   {
-    if ($this->current_route_name)
+    if ($this->currentRouteName)
     {
-      list($url, $regexp, $names, $namesHash, $defaults, $requirements, $suffix) = $this->routes[$this->current_route_name];
+      list($url, $regexp, $names, $namesHash, $defaults, $requirements, $suffix) = $this->routes[$this->currentRouteName];
 
       $request = sfContext::getInstance()->getRequest();
 
       if ($withRouteName)
       {
-        $internalUri = '@'.$this->current_route_name;
+        $internalUri = '@'.$this->currentRouteName;
       }
       else
       {

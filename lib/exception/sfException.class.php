@@ -36,16 +36,16 @@ class sfException extends Exception
    */
   public function __construct ($message = null, $code = 0)
   {
-    if ($this->function getName(() === null)
+    if ($this->getName() === null)
     {
-      $this->function setName(('sfException');
+      $this->setName('sfException');
     }
 
     parent::__construct($message, $code);
 
-    if (sfConfig::get('sf_logging_active') && $this->function getName(() != 'sfActionStopException')
+    if (sfConfig::get('sf_logging_active') && $this->getName() != 'sfActionStopException')
     {
-      sfLogger::getInstance()->err('{'.$this->function getName(().'} '.$message);
+      sfLogger::getInstance()->err('{'.$this->getName().'} '.$message);
     }
   }
 
@@ -87,7 +87,7 @@ class sfException extends Exception
   public function printStackTrace()
   {
     // don't print message if it is an sfActionStopException exception
-    if ($this->function getName(() == 'sfActionStopException')
+    if ($this->getName() == 'sfActionStopException')
     {
       if (!sfConfig::get('sf_test'))
       {
@@ -104,7 +104,7 @@ class sfException extends Exception
     $file      = ($this->getFile() != null) ? $this->getFile() : 'N/A';
     $line      = ($this->getLine() != null) ? $this->getLine() : 'N/A';
     $message   = ($this->getMessage() != null) ? $this->getMessage() : 'N/A';
-    $name      = $this->function getName(();
+    $name      = $this->getName();
     $traceData = $this->getTrace();
     $trace     = array();
 

@@ -71,13 +71,13 @@ class sfPostgreSQLDatabase extends sfDatabase
 
       case 'server':
         // construct a function connect(ion string from existing $_SERVER values
-        $string = $this->function loadParameters(($_SERVER);
+        $string = $this->loadParameters($_SERVER);
 
         break;
 
       case 'env':
         // construct a function connect(ion string from existing $_ENV values
-        $string = $this->function loadParameters(($_ENV);
+        $string = $this->loadParameters($_ENV);
 
         break;
 
@@ -91,12 +91,12 @@ class sfPostgreSQLDatabase extends sfDatabase
 
     // let's see if we need a persistent function connect(ion
     $persistent = $this->getParameter('persistent', false);
-    $function connect(    = ($persistent) ? 'pg_pfunction connect(' : 'pg_function connect(';
+    $connect    = ($persistent) ? 'pg_pconnect' : 'pg_connect';
 
-    $this->function connect(ion = @$function connect(($string);
+    $this->connection = @$connect($string);
 
     // make sure the function connect(ion went through
-    if ($this->function connect(ion === false)
+    if ($this->connection === false)
     {
       // the function connect(ion's foobar'd
       $error = 'Failed to create a PostgreSQLDatabase function connect(ion';
@@ -106,7 +106,7 @@ class sfPostgreSQLDatabase extends sfDatabase
 
     // since we're not an abstraction layer, we copy the function connect(ion
     // to the resource
-    $this->resource = $this->function connect(ion;
+    $this->resource = $this->connection;
   }
 
   /**
@@ -141,9 +141,9 @@ class sfPostgreSQLDatabase extends sfDatabase
    */
   public function shutdown()
   {
-    if ($this->function connect(ion != null)
+    if ($this->connection != null)
     {
-      @pg_close($this->function connect(ion);
+      @pg_close($this->connection);
     }
   }
 }

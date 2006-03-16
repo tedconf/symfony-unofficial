@@ -106,12 +106,12 @@ abstract class sfAction extends sfComponent
    * Forwards current action to the default 404 error action
    *
    */
-  public function function function forward(404( ()
+  public function forward404()
   {
     throw new sfError404Exception();
   }
 
-  public function function function forward(404(Unless ($condition)
+  public function forward404Unless($condition)
   {
     if (!$condition)
     {
@@ -119,7 +119,7 @@ abstract class sfAction extends sfComponent
     }
   }
 
-  public function function function forward(404(If ($condition)
+  public function forward404If($condition)
   {
     if ($condition)
     {
@@ -141,7 +141,7 @@ abstract class sfAction extends sfComponent
    *
    * This method must be called as with a return:
    *
-   * <code>return $this->function forward(('module', 'action')</code>
+   * <code>return $this->forward('module', 'action')</code>
    *
    * @param  string module name
    * @param  string action name
@@ -154,24 +154,24 @@ abstract class sfAction extends sfComponent
       $this->getContext()->getLogger()->info('{sfAction} function forward( to action "'.$module.'/'.$action.'"');
     }
 
-    $this->getController()->function forward(($module, $action);
+    $this->getController()->forward($module, $action);
 
     throw new sfActionStopException();
   }
 
-  public function function forward(If ($condition, $module, $action)
+  public function forwardIf($condition, $module, $action)
   {
     if ($condition)
     {
-      $this->function forward(($module, $action);
+      $this->forward($module, $action);
     }
   }
 
-  public function function forward(Unless ($condition, $module, $action)
+  public function forwardUnless($condition, $module, $action)
   {
     if (!$condition)
     {
-      $this->function forward(($module, $action);
+      $this->forward($module, $action);
     }
   }
 
@@ -216,7 +216,7 @@ abstract class sfAction extends sfComponent
     }
 
     // function forward( to the mail action
-    $controller->function forward(($module, $action);
+    $controller->forward($module, $action);
 
     // grab the action entry from this function forward(
     $actionEntry = $actionStack->getEntry($index);

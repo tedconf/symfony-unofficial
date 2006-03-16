@@ -139,15 +139,15 @@ class sfCreoleDatabase extends sfDatabase
       // do the duuuurtay work, right thurr
       if ($flags > 0)
       {
-        $this->function connect(ion = Creole::getConnection($dsn, $flags);
+        $this->connection = Creole::getConnection($dsn, $flags);
       }
       else
       {
-        $this->function connect(ion = Creole::getConnection($dsn);
+        $this->connection = Creole::getConnection($dsn);
       }
 
       // get our resource
-      $this->resource = $this->function connect(ion->getResource();
+      $this->resource = $this->connection->getResource();
     }
     catch (SQLException $e)
     {
@@ -199,9 +199,9 @@ class sfCreoleDatabase extends sfDatabase
    */
   public function shutdown()
   {
-    if ($this->function connect(ion !== null)
+    if ($this->connection !== null)
     {
-      @$this->function connect(ion->close();
+      @$this->connection->close();
     }
   }
 }

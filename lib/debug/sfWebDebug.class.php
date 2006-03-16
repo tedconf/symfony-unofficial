@@ -77,24 +77,24 @@ class sfWebDebug
 
   public function logShortMessage($message)
   {
-    $this->short_log[] = $message;
+    $this->shortLog[] = $message;
   }
 
   public function log($logEntry)
   {
     // elapsed time
-    if ($this->last_time_log == -1)
+    if ($this->lastTimeLog == -1)
     {
-      $this->last_time_log = sfConfig::get('sf_timer_start');
+      $this->lastTimeLog = sfConfig::get('sf_timer_start');
     }
 
-    $logEntry->setElapsedTime(sprintf('%.0f', (microtime(true) - $this->last_time_log) * 1000));
-    $this->last_time_log = microtime(true);
+    $logEntry->setElapsedTime(sprintf('%.0f', (microtime(true) - $this->lastTimeLog) * 1000));
+    $this->lastTimeLog = microtime(true);
 
     // update max priority
-    if ($logEntry->getPriority() < $this->max_priority)
+    if ($logEntry->getPriority() < $this->maxPriority)
     {
-      $this->max_priority = $logEntry->getPriority();
+      $this->maxPriority = $logEntry->getPriority();
     }
 
     // update types
@@ -179,11 +179,11 @@ class sfWebDebug
     $logImage = '';
     if ($sf_logging_active = sfConfig::get('sf_logging_active'))
     {
-      if ($this->max_priority >= 6)
+      if ($this->maxPriority >= 6)
       {
         $logImage = 'info';
       }
-      elseif ($this->max_priority >= 4)
+      elseif ($this->maxPriority >= 4)
       {
         $logImage = 'warning';
       }
@@ -195,9 +195,9 @@ class sfWebDebug
 
     // short messages
     $shortMessages = '';
-    if ($this->short_log)
+    if ($this->shortLog)
     {
-      $shortMessages = '<div id="sfStatsShortMessages">&raquo;&nbsp;'.implode('<br />&raquo;&nbsp;', $this->short_log).'</div>';
+      $shortMessages = '<div id="sfStatsShortMessages">&raquo;&nbsp;'.implode('<br />&raquo;&nbsp;', $this->shortLog).'</div>';
     }
 
     $result .= '
@@ -250,7 +250,7 @@ class sfWebDebug
         $debugInfo = '';
         if ($logEntry->getDebugStack())
         {
-          $debugInfo .= '&nbsp;<a href="#" onclick="Element.toggle(\'debug_'.$lineNb.'\'); return false;">'.image_tag($this->base_image_path.'/toggle.gif').'</a><div class="sfStatsDebugInfo" id="debug_'.$lineNb.'" style="display:none">';
+          $debugInfo .= '&nbsp;<a href="#" onclick="Element.toggle(\'debug_'.$lineNb.'\'); return false;">'.image_tag($this->baseImagePath.'/toggle.gif').'</a><div class="sfStatsDebugInfo" id="debug_'.$lineNb.'" style="display:none">';
           foreach ($logEntry->getDebugStack() as $i => $logLine)
           {
             $debugInfo .= '#'.$i.' &raquo; '.$this->formatLogLine($type, $logLine).'<br/>';
@@ -262,7 +262,7 @@ class sfWebDebug
         $log = $this->formatLogLine($type, $log);
 
         ++$lineNb;
-        $logs .= sprintf("<tr class='sfStats%s %s'><td>%s</td><td>%s</td><td>+%s&nbsp;</td><td><span class=\"sfStatsLogType\">%s</span></td><td>%s%s</td></tr>\n", $class, $logEntry->getType(), $lineNb, image_tag($this->base_image_path.'/'.$priority.'.png', 'align=middle'), $logEntry->getElapsedTime(), $type, $log, $debugInfo);
+        $logs .= sprintf("<tr class='sfStats%s %s'><td>%s</td><td>%s</td><td>+%s&nbsp;</td><td><span class=\"sfStatsLogType\">%s</span></td><td>%s%s</td></tr>\n", $class, $logEntry->getType(), $lineNb, image_tag($this->baseImagePath.'/'.$priority.'.png', 'align=middle'), $logEntry->getElapsedTime(), $type, $log, $debugInfo);
       }
       $logs .= '</table>';
 
@@ -289,8 +289,8 @@ class sfWebDebug
         <div id="sfStatsLogMenu">
           <div class="float">'.
           implode('&nbsp;-&nbsp;', $types).'&nbsp;&nbsp;
-          <a href="#" onclick="toggleMessages(\'sfStatsGreen\')">'.image_tag($this->base_image_path.'/info.png', 'align=middle').'</a>&nbsp;
-          <a href="#" onclick="Element.hide(\'sfStatsLogMain\')">'.image_tag($this->base_image_path.'/close.png', 'align=middle').'</a>
+          <a href="#" onclick="toggleMessages(\'sfStatsGreen\')">'.image_tag($this->baseImagePath.'/info.png', 'align=middle').'</a>&nbsp;
+          <a href="#" onclick="Element.hide(\'sfStatsLogMain\')">'.image_tag($this->baseImagePath.'/close.png', 'align=middle').'</a>
           </div>
           <strong>Log messages</strong>
         </div>
@@ -308,17 +308,17 @@ class sfWebDebug
 
     if (sfConfig::get('sf_logging_active'))
     {
-      $result .= '<a href="#" onclick="Element.show(\'sfStatsLogMain\'); return false;">'.image_tag($this->base_image_path.'/'.$logImage.'.png', 'align=middle').'</a>&nbsp;';
+      $result .= '<a href="#" onclick="Element.show(\'sfStatsLogMain\'); return false;">'.image_tag($this->baseImagePath.'/'.$logImage.'.png', 'align=middle').'</a>&nbsp;';
     }
 
     if (sfConfig::get('sf_debug') && sfConfig::get('sf_cache'))
     {
       $selfUrl = $_SERVER['PHP_SELF'].((strpos($_SERVER['PHP_SELF'], 'ignore_cache') !== false) ? '?ignore_cache=1' : '');
-      $result .= '<a href="'.$selfUrl.'" title="reload and ignore cache">'.image_tag($this->base_image_path.'/reload.png', 'align=middle').'</a>';
+      $result .= '<a href="'.$selfUrl.'" title="reload and ignore cache">'.image_tag($this->baseImagePath.'/reload.png', 'align=middle').'</a>';
     }
 
     $result .= '
-    <a href="#" onclick="Element.hide(\'sfStats'.ucfirst($logImage).'\'); return false;">'.image_tag($this->base_image_path.'/close.png', 'align=middle').'</a>
+    <a href="#" onclick="Element.hide(\'sfStats'.ucfirst($logImage).'\'); return false;">'.image_tag($this->baseImagePath.'/close.png', 'align=middle').'</a>
     </div>
     <div id="sfStatsLeftMenu"><a href="#" class="bold" onclick="Element.toggle(\'sfStatsDetails\', \'sfStatsTime\'); return false;">symfony</a></div>
     ';
@@ -385,7 +385,7 @@ class sfWebDebug
     $retval = '
       <div id="main_'.$id.'" class="sfWebDebugActionCache" style="border: 1px solid '.$borderColor.'">
       <div id="sub_main_'.$id.'" class="sfStatsCache" style="background-color: '.$bgColor.'; border-right: 1px solid '.$borderColor.'; border-bottom: 1px solid '.$borderColor.';">
-      <div style="height: 16px; padding: 2px"><a href="#" onclick="Element.toggle(\''.$id.'\'); return false;"><strong>cache information</strong></a>&nbsp;<a href="#" onclick="Element.hide(\'sub_main_'.$id.'\'); document.getElementById(\'main_'.$id.'\').style.border = \'none\'; return false;">'.image_tag($this->base_image_path.'/close.png', 'align=middle').'</a>&nbsp;</div>
+      <div style="height: 16px; padding: 2px"><a href="#" onclick="Element.toggle(\''.$id.'\'); return false;"><strong>cache information</strong></a>&nbsp;<a href="#" onclick="Element.hide(\'sub_main_'.$id.'\'); document.getElementById(\'main_'.$id.'\').style.border = \'none\'; return false;">'.image_tag($this->baseImagePath.'/close.png', 'align=middle').'</a>&nbsp;</div>
         <div style="padding: 2px; display: none" id="'.$id.'">
         [uri]&nbsp;'.$internalUri.'<br />
         [life&nbsp;time]&nbsp;'.$cache->getLifeTime($internalUri, $suffix).'&nbsp;seconds<br />

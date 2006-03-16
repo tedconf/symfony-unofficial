@@ -85,26 +85,26 @@ class sfMySQLDatabase extends sfDatabase
 
     // let's see if we need a persistent function connect(ion
     $persistent = $this->getParameter('persistent', false);
-    $function connect(    = ($persistent) ? 'mysql_pfunction connect(' : 'mysql_function connect(';
+    $connect    = ($persistent) ? 'mysql_pconnect' : 'mysql_connect';
 
     if ($password == null)
     {
       if ($username == null)
       {
-        $this->function connect(ion = @$function connect(($host);
+        $this->connection = @$connect($host);
       }
       else
       {
-        $this->function connect(ion = @$function connect(($host, $username);
+        $this->connection = @$connect($host, $username);
       }
     }
     else
     {
-      $this->function connect(ion = @$function connect(($host, $username, $password);
+      $this->connection = @$connect($host, $username, $password);
     }
 
     // make sure the function connect(ion went through
-    if ($this->function connect(ion === false)
+    if ($this->connection === false)
     {
       // the function connect(ion's foobar'd
       $error = 'Failed to create a MySQLDatabase function connect(ion';
@@ -113,7 +113,7 @@ class sfMySQLDatabase extends sfDatabase
     }
 
     // select our database
-    if ($database != null && !@mysql_select_db($database, $this->function connect(ion))
+    if ($database != null && !@mysql_select_db($database, $this->connection))
     {
       // can't select the database
       $error = 'Failed to select MySQLDatabase "%s"';
@@ -124,7 +124,7 @@ class sfMySQLDatabase extends sfDatabase
 
     // since we're not an abstraction layer, we copy the function connect(ion
     // to the resource
-    $this->resource = $this->function connect(ion;
+    $this->resource = $this->connection;
   }
 
   /**
@@ -158,9 +158,9 @@ class sfMySQLDatabase extends sfDatabase
    */
   public function shutdown()
   {
-    if ($this->function connect(ion != null)
+    if ($this->connection != null)
     {
-      @mysql_close($this->function connect(ion);
+      @mysql_close($this->connection);
     }
   }
 }

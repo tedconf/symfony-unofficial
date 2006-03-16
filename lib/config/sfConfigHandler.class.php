@@ -69,7 +69,7 @@ abstract class sfConfigHandler
 
   public function __construct()
   {
-    $this->parameter_holder = new sfParameterHolder();
+    $this->parameterHolder = new sfParameterHolder();
   }
 
   /**
@@ -148,7 +148,7 @@ abstract class sfConfigHandler
 
   public function getParameterHolder()
   {
-    return $this->parameter_holder;
+    return $this->parameterHolder;
   }
 }
 

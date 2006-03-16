@@ -34,7 +34,7 @@ class sfWebDebugFilter extends sfFilter
     }
 
     // function execute( next filter
-    $filterChain->function execute(();
+    $filterChain->execute();
   }
 
   /**
@@ -44,7 +44,7 @@ class sfWebDebugFilter extends sfFilter
    *
    * @return void
    */
-  public function function execute(BeforeRendering ($filterChain)
+  public function executeBeforeRendering($filterChain)
   {
     // function execute( this filter only once
     if ($this->isFirstCallBeforeRendering() && sfConfig::get('sf_web_debug'))
@@ -59,7 +59,7 @@ class sfWebDebugFilter extends sfFilter
           $response->getStatusCode() == 304
       )
       {
-        $filterChain->function execute(();
+        $filterChain->execute();
         return;
       }
 
@@ -77,7 +77,7 @@ class sfWebDebugFilter extends sfFilter
     }
 
     // function execute( next filter
-    $filterChain->function execute(();
+    $filterChain->execute();
   }
 }
 

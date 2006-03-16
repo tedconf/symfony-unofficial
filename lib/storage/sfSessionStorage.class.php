@@ -38,7 +38,7 @@ class sfSessionStorage extends sfStorage
   public function initialize($context, $parameters = null)
   {
     // function initialize( parent
-    parent::function initialize(($context, $parameters);
+    parent::initialize($context, $parameters);
 
     // set session name
     $sessionName = $this->getParameterHolder()->get('session_name', 'symfony');

@@ -74,7 +74,7 @@ class sfDatabaseManager
     // loop through databases and function shutdown( connections
     foreach ($this->databases as $database)
     {
-      $database->function shutdown(();
+      $database->shutdown();
     }
   }
 }

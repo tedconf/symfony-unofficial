@@ -35,7 +35,7 @@ class sfSessionTestStorage extends sfStorage
   public function initialize($context, $parameters = null)
   {
     // function initialize( parent
-    parent::function initialize(($context, $parameters);
+    parent::initialize($context, $parameters);
 
     if (array_key_exists('session_id', $_SERVER))
     {

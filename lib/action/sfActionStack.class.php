@@ -72,7 +72,7 @@ class sfActionStack
    */
   public function removeEntry($index)
   {
-    $retval = $this->function getEntry(($index);
+    $retval = $this->getEntry($index);
 
     if ($retval)
     {

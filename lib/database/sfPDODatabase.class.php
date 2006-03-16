@@ -52,7 +52,7 @@ class sfPDODatabase extends sfDatabase
     {
       $pdoUsername = $this->getParameter('username');
       $pdoPassword = $this->getParameter('password');
-      $this->function connect(ion = new PDO($dsn, $pdoUsername, $pdoPassword);
+      $this->connection = new PDO($dsn, $pdoUsername, $pdoPassword);
     }
     catch (PDOException $e)
     {
@@ -62,11 +62,11 @@ class sfPDODatabase extends sfDatabase
     // lets generate exceptions instead of silent failures
     if (defined('PDO::ATTR_ERRMODE'))
     {
-      $this->function connect(ion->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+      $this->connection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     }
     else
     {
-      $this->function connect(ion->setAttribute(PDO_ATTR_ERRMODE, PDO_ERRMODE_EXCEPTION);
+      $this->connection->setAttribute(PDO_ATTR_ERRMODE, PDO_ERRMODE_EXCEPTION);
     }
   }
 
@@ -79,9 +79,9 @@ class sfPDODatabase extends sfDatabase
    */
   public function shutdown()
   {
-    if ($this->function connect(ion !== null)
+    if ($this->connection !== null)
     {
-      @$this->function connect(ion = null;
+      @$this->connection = null;
     }
   }
 }

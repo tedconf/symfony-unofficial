@@ -48,7 +48,7 @@ class sfWebRequest extends sfRequest
    */
   public function getFile($name)
   {
-    return ($this->function hasFile(($name) ? $this->function getFile(Values($name) : null);
+    return ($this->hasFile($name) ? $this->getFileValues($name) : null);
   }
 
   /**
@@ -69,9 +69,9 @@ class sfWebRequest extends sfRequest
    *                                           partially uploaded)
    *             - <b>UPLOAD_ERR_NO_FILE</b>   (no file was uploaded)
    */
-  public function function getFile(Error ($name)
+  public function getFileError($name)
   {
-    return ($this->function hasFile(($name) ? $this->function getFile(Value($name, 'error') : UPLOAD_ERR_NO_FILE);
+    return ($this->hasFile($name) ? $this->getFileValue($name, 'error') : UPLOAD_ERR_NO_FILE);
   }
 
   /**
@@ -81,9 +81,9 @@ class sfWebRequest extends sfRequest
    *
    * @return string A file name, if the file exists, otherwise null.
    */
-  public function function getFile(Name ($name)
+  public function getFileName($name)
   {
-    return ($this->function hasFile(($name) ? $this->function getFile(Value($name, 'name') : null);
+    return ($this->hasFile($name) ? $this->getFileValue($name, 'name') : null);
   }
 
   /**
@@ -91,7 +91,7 @@ class sfWebRequest extends sfRequest
    *
    * @return array An indexed array of file names.
    */
-  public function function getFile(Names ()
+  public function getFileNames()
   {
     return array_keys($_FILES);
   }
@@ -101,7 +101,7 @@ class sfWebRequest extends sfRequest
    *
    * @return array An associative array of files.
    */
-  public function function getFile(s ()
+  public function getFiles()
   {
     return $_FILES;
   }
@@ -113,9 +113,9 @@ class sfWebRequest extends sfRequest
    *
    * @return string A file path, if the file exists, otherwise null.
    */
-  public function function getFile(Path ($name)
+  public function getFilePath($name)
   {
-    return ($this->function hasFile(($name) ? $this->function getFile(Value($name, 'tmp_name') : null);
+    return ($this->hasFile($name) ? $this->getFileValue($name, 'tmp_name') : null);
   }
 
   /**
@@ -125,9 +125,9 @@ class sfWebRequest extends sfRequest
    *
    * @return int A file size, if the file exists, otherwise null.
    */
-  public function function getFile(Size ($name)
+  public function getFileSize($name)
   {
-    return ($this->function hasFile(($name) ? $this->function getFile(Value($name, 'size') : null);
+    return ($this->hasFile($name) ? $this->getFileValue($name, 'size') : null);
   }
 
   /**
@@ -140,9 +140,9 @@ class sfWebRequest extends sfRequest
    *
    * @return string A file type, if the file exists, otherwise null.
    */
-  public function function getFile(Type ($name)
+  public function getFileType($name)
   {
-    return ($this->function hasFile(($name) ? $this->function getFile(Value($name, 'type') : null);
+    return ($this->hasFile($name) ? $this->getFileValue($name, 'type') : null);
   }
 
   /**
@@ -171,9 +171,9 @@ class sfWebRequest extends sfRequest
    *
    * @return bool true, if the file error exists, otherwise false.
    */
-  public function function hasFile(Error ($name)
+  public function hasFileError($name)
   {
-    return ($this->function hasFile(($name) ? ($this->function getFile(Value($name, 'error') != UPLOAD_ERR_OK) : false);
+    return ($this->hasFile($name) ? ($this->getFileValue($name, 'error') != UPLOAD_ERR_OK) : false);
   }
 
   /**
@@ -181,9 +181,9 @@ class sfWebRequest extends sfRequest
    *
    * @return bool true, if any file errors occured, otherwise false.
    */
-  public function function hasFile(Errors ()
+  public function hasFileErrors()
   {
-    foreach ($this->function getFile(sValues() as $file)
+    foreach ($this->getFilesValues() as $file)
     {
       if ($file['error'] != UPLOAD_ERR_OK)
       {
@@ -199,12 +199,12 @@ class sfWebRequest extends sfRequest
    *
    * @return bool true, if any files exist, otherwise false.
    */
-  public function function hasFile(s ()
+  public function hasFiles()
   {
     return (count($_FILES) > 0);
   }
 
-  public function function getFile(Value ($name, $key)
+  public function getFileValue($name, $key)
   {
     if (preg_match('/^(.+?)\[(.+?)\]$/', $name, $match))
     {
@@ -216,7 +216,7 @@ class sfWebRequest extends sfRequest
     }
   }
 
-  public function function getFile(Values ($name)
+  public function getFileValues($name)
   {
     if (preg_match('/^(.+?)\[(.+?)\]$/', $name, $match))
     {
@@ -234,9 +234,9 @@ class sfWebRequest extends sfRequest
     }
   }
 
-  public function function getFile(Extension ($name)
+  public function getFileExtension($name)
   {
-    $fileType = $this->function getFile(Type($name);
+    $fileType = $this->getFileType($name);
 
     if (!$fileType)
     {
@@ -260,7 +260,7 @@ class sfWebRequest extends sfRequest
    */
   public function initialize($context, $parameters = null)
   {
-    parent::function initialize( ($context, $parameters);
+    parent::initialize($context, $parameters);
 
     if (isset($_SERVER['REQUEST_METHOD']))
     {
@@ -285,7 +285,7 @@ class sfWebRequest extends sfRequest
     }
 
     // load parameters from GET/PATH_INFO/POST
-    $this->function loadParameters(();
+    $this->loadParameters();
 
     // sfStats call
     if (sfConfig::get('sf_stats'))
@@ -301,7 +301,7 @@ class sfWebRequest extends sfRequest
    *
    * @return  array
    */
-  private function function getPathInfo(Array()
+  private function getPathInfoArray()
   {
     if (!$this->pathInfoArray)
     {
@@ -323,7 +323,7 @@ class sfWebRequest extends sfRequest
 
   public function getUri()
   {
-    $pathArray = $this->function getPathInfo(Array();
+    $pathArray = $this->getPathInfoArray();
 
     return 'http://'.$pathArray['HTTP_HOST'].$pathArray['REQUEST_URI'];
   }
@@ -332,7 +332,7 @@ class sfWebRequest extends sfRequest
   {
     $pathInfo = '';
 
-    $pathArray = $this->function getPathInfo(Array();
+    $pathArray = $this->getPathInfoArray();
 
     // simulate PATH_INFO if needed
     $sf_path_info_key = sfConfig::get('sf_path_info_key');
@@ -380,7 +380,7 @@ class sfWebRequest extends sfRequest
     // merge GET parameters
     $this->getParameterHolder()->addByRef($_GET);
 
-    $pathInfo = $this->function getPathInfo(();
+    $pathInfo = $this->getPathInfo();
     if ($pathInfo)
     {
       // routing map defined?
@@ -460,7 +460,7 @@ class sfWebRequest extends sfRequest
    */
   public function moveFile($name, $file, $fileMode = 0666, $create = true, $dirMode = 0777)
   {
-    if ($this->function hasFile(($name) && $this->function getFile(Value($name, 'error') == UPLOAD_ERR_OK && $this->function getFile(Value($name, 'size') > 0)
+    if ($this->hasFile($name) && $this->getFileValue($name, 'error') == UPLOAD_ERR_OK && $this->getFileValue($name, 'size') > 0)
     {
       // get our directory path from the destination filename
       $directory = dirname($file);
@@ -499,7 +499,7 @@ class sfWebRequest extends sfRequest
         throw new sfFileException($error);
       }
 
-      if (@move_uploaded_file($this->function getFile(Value($name, 'tmp_name'), $file))
+      if (@move_uploaded_file($this->getFileValue($name, 'tmp_name'), $file))
       {
         // chmod our file
         @chmod($file, $fileMode);
@@ -518,7 +518,7 @@ class sfWebRequest extends sfRequest
    */
   public function getReferer()
   {
-    $pathArray = $this->function getPathInfo(Array();
+    $pathArray = $this->getPathInfoArray();
 
     return isset($pathArray['HTTP_REFERER']) ? $pathArray['HTTP_REFERER'] : '';
   }
@@ -530,7 +530,7 @@ class sfWebRequest extends sfRequest
    */
   public function getHost()
   {
-    $pathArray = $this->function getPathInfo(Array();
+    $pathArray = $this->getPathInfoArray();
 
     return isset($pathArray['HTTP_HOST']) ? $pathArray['HTTP_HOST'] : '';
   }
@@ -542,7 +542,7 @@ class sfWebRequest extends sfRequest
    */
   public function getScriptName()
   {
-    $pathArray = $this->function getPathInfo(Array();
+    $pathArray = $this->getPathInfoArray();
 
     return isset($pathArray['SCRIPT_NAME']) ? $pathArray['SCRIPT_NAME'] : '';
   }
@@ -554,7 +554,7 @@ class sfWebRequest extends sfRequest
    */
   public function getRequestMethod()
   {
-    $pathArray = $this->function getPathInfo(Array();
+    $pathArray = $this->getPathInfoArray();
 
     return isset($pathArray['REQUEST_METHOD']) ? $pathArray['REQUEST_METHOD'] : 'GET';
   }
@@ -653,14 +653,14 @@ class sfWebRequest extends sfRequest
    */
   public function isXmlHttpRequest()
   {
-    return ($this->function getHttpHeader(('X_REQUESTED_WITH') == 'XMLHttpRequest');
+    return ($this->getHttpHeader('X_REQUESTED_WITH') == 'XMLHttpRequest');
   }
 
   public function getHttpHeader($name, $prefix = 'http')
   {
     $name = strtoupper($prefix).'_'.strtoupper(strtr($name, '-', '_'));
 
-    $pathArray = $this->function getPathInfo(Array();
+    $pathArray = $this->getPathInfoArray();
 
     return isset($pathArray[$name]) ? stripslashes($pathArray[$name]) : null;
   }
@@ -671,13 +671,13 @@ class sfWebRequest extends sfRequest
     {
       $header = sfInflector::underscore(substr($name, 7));
 
-      return $this->function getHttpHeader(($header);
+      return $this->getHttpHeader($header);
     }
     elseif (0 === stripos($name, 'getSsl'))
     {
       $header = sfInflector::underscore(substr($name, 6));
 
-      return $this->function getHttpHeader(($header, 'ssl');
+      return $this->getHttpHeader($header, 'ssl');
     }
 
     $error = sprintf('Call to undefined function: %s::%s().', get_class($this), $name);
@@ -708,7 +708,7 @@ class sfWebRequest extends sfRequest
    */
   public function isSecure()
   {
-    $pathArray = $this->function getPathInfo(Array();
+    $pathArray = $this->getPathInfoArray();
 
     return (
       (isset($pathArray['HTTPS']) && strtolower($pathArray['HTTPS']) == 'on')
@@ -721,7 +721,7 @@ class sfWebRequest extends sfRequest
   {
     if ($this->relativeUrlRoot === null)
     {
-      $pathArray = $this->function getPathInfo(Array();
+      $pathArray = $this->getPathInfoArray();
 
       $this->relativeUrlRoot = preg_replace('#/[^/]+\.php$#', '', $pathArray['SCRIPT_NAME']);
     }

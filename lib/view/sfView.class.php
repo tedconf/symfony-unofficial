@@ -90,7 +90,7 @@ abstract class sfView
   protected function & decorate (&$content)
   {
     // alias controller
-    $controller = $this->function getContext(()->getController();
+    $controller = $this->getContext()->getController();
 
     // get original render mode
     $renderMode = $controller->getRenderMode();
@@ -119,14 +119,14 @@ abstract class sfView
       // set the presentation data as a template attribute
       $presentation =& $actionEntry->getPresentation();
 
-      $this->attribute_holder->setByRef($name, $presentation);
+      $this->attributeHolder->setByRef($name, $presentation);
     }
 
     // put render mode back
     $controller->setRenderMode($renderMode);
 
     // set the decorator content as an attribute
-    $this->attribute_holder->setByRef('content', $content);
+    $this->attributeHolder->setByRef('content', $content);
 
     // return a null value to satisfy the requirement
     $retval = null;
@@ -334,10 +334,10 @@ abstract class sfView
     $this->viewName   = $viewName;
 
     $this->context = $context;
-    $this->attribute_holder = new sfParameterHolder();
-    $this->parameter_holder = new sfParameterHolder();
+    $this->attributeHolder = new sfParameterHolder();
+    $this->parameterHolder = new sfParameterHolder();
 
-    $this->parameter_holder->add(sfConfig::get('mod_'.strtolower($moduleName).'_view_param', array()));
+    $this->parameterHolder->add(sfConfig::get('mod_'.strtolower($moduleName).'_view_param', array()));
 
     // set the currently executing module's template directory as the default template directory
     $module = $context->getModuleName();
@@ -346,49 +346,49 @@ abstract class sfView
     $this->directory          = $this->decoratorDirectory;
 
     // include view configuration
-    $this->function configure(();
+    $this->configure();
 
     return true;
   }
 
   public function getAttributeHolder()
   {
-    return $this->attribute_holder;
+    return $this->attributeHolder;
   }
 
   public function getAttribute($name, $default = null, $ns = null)
   {
-    return $this->attribute_holder->get($name, $default, $ns);
+    return $this->attributeHolder->get($name, $default, $ns);
   }
 
   public function hasAttribute($name, $ns = null)
   {
-    return $this->attribute_holder->has($name, $ns);
+    return $this->attributeHolder->has($name, $ns);
   }
 
   public function setAttribute($name, $value, $ns = null)
   {
-    return $this->attribute_holder->set($name, $value, $ns);
+    return $this->attributeHolder->set($name, $value, $ns);
   }
 
   public function getParameterHolder()
   {
-    return $this->parameter_holder;
+    return $this->parameterHolder;
   }
 
   public function getParameter($name, $default = null, $ns = null)
   {
-    return $this->parameter_holder->get($name, $default, $ns);
+    return $this->parameterHolder->get($name, $default, $ns);
   }
 
   public function hasParameter($name, $ns = null)
   {
-    return $this->parameter_holder->has($name, $ns);
+    return $this->parameterHolder->has($name, $ns);
   }
 
   public function setParameter($name, $value, $ns = null)
   {
-    return $this->parameter_holder->set($name, $value, $ns);
+    return $this->parameterHolder->set($name, $value, $ns);
   }
 
   /**

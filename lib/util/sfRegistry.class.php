@@ -40,22 +40,22 @@ class sfRegistry
 
   public function getParameterHolder()
   {
-    return $this->parameter_holder;
+    return $this->parameterHolder;
   }
 
   public function getParameter($name, $default = null, $ns = null)
   {
-    return $this->parameter_holder->get($name, $default, $ns);
+    return $this->parameterHolder->get($name, $default, $ns);
   }
 
   public function hasParameter($name, $ns = null)
   {
-    return $this->parameter_holder->has($name, $ns);
+    return $this->parameterHolder->has($name, $ns);
   }
 
   public function setParameter($name, $value, $ns = null)
   {
-    return $this->parameter_holder->set($name, $value, $ns);
+    return $this->parameterHolder->set($name, $value, $ns);
   }
 }
 

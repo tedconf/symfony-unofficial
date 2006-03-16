@@ -122,7 +122,7 @@ $script .= '
 
   public function getCurrent'.$className.'()
   {
-    if (!isset($this->current_i18n[$this->culture]))
+    if (!isset($this->currentI18n[$this->culture]))
     {
       $obj = '.$className.'Peer::retrieveByPK($this->get'.$pk.'(), $this->culture);
       if ($obj)
@@ -132,16 +132,16 @@ $script .= '
       else
       {
         $this->set'.$className.'ForCulture(new '.$className.'(), $this->culture);
-        $this->current_i18n[$this->culture]->set'.$culture.'($this->culture);
+        $this->currentI18n[$this->culture]->set'.$culture.'($this->culture);
       }
     }
 
-    return $this->current_i18n[$this->culture];
+    return $this->currentI18n[$this->culture];
   }
 
   public function set'.$className.'ForCulture($object, $culture)
   {
-    $this->current_i18n[$culture] = $object;
+    $this->currentI18n[$culture] = $object;
     $this->add'.$className.'($object);
   }
 ';

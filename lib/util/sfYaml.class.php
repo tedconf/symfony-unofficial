@@ -38,9 +38,9 @@ class sfYaml
     $input = self::getIncludeContents($input);
 
     // syck is prefered over spyc
-    if (function_exists('syck_function load('))
+    if (extension_loaded('syck'))
     {
-      $retval = syck_function load(($input);
+      $retval = syck_load($input);
 
       return (is_array($retval)) ? $retval : array();
     }
@@ -50,7 +50,7 @@ class sfYaml
 
       try
       {
-        return $spyc->function load(($input);
+        return $spyc->load($input);
       }
       catch (Exception $e)
       {
@@ -74,7 +74,7 @@ class sfYaml
   {
     $spyc = new Spyc();
 
-    return $spyc->function dump(($array);
+    return $spyc->dump($array);
   }
 
   private static function getIncludeContents($input)

@@ -95,13 +95,13 @@ class sfPropelData
             if ($column->isForeignKey())
             {
               $relatedTable = $this->maps[$class]->getDatabaseMap()->getTable($column->getRelatedTableName());
-              if (!isset($this->object_references[$relatedTable->getPhpName().'_'.$value]))
+              if (!isset($this->objectReferences[$relatedTable->getPhpName().'_'.$value]))
               {
                 $error = 'The object "%s" from class "%s" is not defined in your data file.';
                 $error = sprintf($error, $value, $relatedTable->getPhpName());
                 throw new sfException($error);
               }
-              $value = $this->object_references[$relatedTable->getPhpName().'_'.$value];
+              $value = $this->objectReferences[$relatedTable->getPhpName().'_'.$value];
             }
           }
           catch (PropelException $e)
@@ -130,7 +130,7 @@ class sfPropelData
         // save the id for future reference
         if (method_exists($obj, 'getPrimaryKey'))
         {
-          $this->object_references[$class.'_'.$key] = $obj->getPrimaryKey();
+          $this->objectReferences[$class.'_'.$key] = $obj->getPrimaryKey();
         }
       }
     }
@@ -138,7 +138,7 @@ class sfPropelData
 
   protected function doLoadData($fixtureFiles)
   {
-    $this->object_references = array();
+    $this->objectReferences = array();
     $this->maps = array();
 
     sort($fixtureFiles);

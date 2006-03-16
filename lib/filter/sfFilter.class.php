@@ -4,7 +4,7 @@
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
  * (c) 2004-2006 Sean Kerr.
- * 
+ *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -28,14 +28,14 @@ abstract class sfFilter
   protected
     $context          = null;
 
-  protected function function function isFirstCall(BeforeExecution( ()
+  protected function isFirstCallBeforeExecution()
   {
-    return $this->function isFirstCall(('beforeExecution');
+    return $this->isFirstCall('beforeExecution');
   }
 
-  protected function function function isFirstCall(BeforeRendering( ()
+  protected function isFirstCallBeforeRendering()
   {
-    return $this->function isFirstCall(('beforeRendering');
+    return $this->isFirstCall('beforeRendering');
   }
 
   protected function isFirstCall($type = 'beforeExecution')
@@ -77,30 +77,30 @@ abstract class sfFilter
   {
     $this->context = $context;
 
-    $this->parameter_holder = new sfParameterHolder();
-    $this->parameter_holder->add($parameters);
+    $this->parameterHolder = new sfParameterHolder();
+    $this->parameterHolder->add($parameters);
 
     return true;
   }
 
   public function getParameterHolder()
   {
-    return $this->parameter_holder;
+    return $this->parameterHolder;
   }
 
   public function getParameter($name, $default = null, $ns = null)
   {
-    return $this->parameter_holder->get($name, $default, $ns);
+    return $this->parameterHolder->get($name, $default, $ns);
   }
 
   public function hasParameter($name, $ns = null)
   {
-    return $this->parameter_holder->has($name, $ns);
+    return $this->parameterHolder->has($name, $ns);
   }
 
   public function setParameter($name, $value, $ns = null)
   {
-    return $this->parameter_holder->set($name, $value, $ns);
+    return $this->parameterHolder->set($name, $value, $ns);
   }
 }
 

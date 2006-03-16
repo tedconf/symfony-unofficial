@@ -47,7 +47,7 @@ class sfPropelPager
     $this->setCriteria(new Criteria());
     $this->setMaxPerPage($defaultMaxPerPage);
     $this->setPage(1);
-    $this->parameter_holder = new sfParameterHolder();
+    $this->parameterHolder = new sfParameterHolder();
   }
 
   public function init()
@@ -79,22 +79,22 @@ class sfPropelPager
 
   public function getPeerMethod()
   {
-    return $this->peer_method_name;
+    return $this->peerMethodName;
   }
 
   public function setPeerMethod($peerMethodName)
   {
-    $this->peer_method_name = $peerMethodName;
+    $this->peerMethodName = $peerMethodName;
   }
 
   public function getPeerCountMethod()
   {
-    return $this->peer_count_method_name;
+    return $this->peerCountMethodName;
   }
 
   public function setPeerCountMethod($peerCountMethodName)
   {
-    $this->peer_count_method_name = $peerCountMethodName;
+    $this->peerCountMethodName = $peerCountMethodName;
   }
 
   public function getCurrentMaxLink()
@@ -336,7 +336,7 @@ class sfPropelPager
 
   public function getParameterHolder()
   {
-    return $this->parameter_holder;
+    return $this->parameterHolder;
   }
 }
 

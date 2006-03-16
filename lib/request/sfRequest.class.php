@@ -104,7 +104,7 @@ abstract class sfRequest
    *
    * @return array An indexed array of error names.
    */
-  public function function getError(Names ()
+  public function getErrorNames()
   {
     return array_keys($this->errors);
   }
@@ -114,7 +114,7 @@ abstract class sfRequest
    *
    * @return array An associative array of errors.
    */
-  public function function getError(s ()
+  public function getErrors()
   {
     return $this->errors;
   }
@@ -148,7 +148,7 @@ abstract class sfRequest
    *
    * @return bool true, if any error exist, otherwise false.
    */
-  public function function hasError(s ()
+  public function hasErrors()
   {
     return (count($this->errors) > 0);
   }
@@ -166,7 +166,7 @@ abstract class sfRequest
   public function initialize($context, $parameters = array())
   {
     $this->context = $context;
-    $this->parameter_holder->add($parameters);
+    $this->parameterHolder->add($parameters);
   }
 
   public function getContext()
@@ -189,8 +189,8 @@ abstract class sfRequest
     $object = new $class();
 
     // function initialize( parameter and attribute holders
-    $object->parameter_holder = new sfParameterHolder();
-    $object->attribute_holder = new sfParameterHolder();
+    $object->parameterHolder = new sfParameterHolder();
+    $object->attributeHolder = new sfParameterHolder();
 
     if (!($object instanceof sfRequest))
     {
@@ -237,7 +237,7 @@ abstract class sfRequest
   {
     if (sfConfig::get('sf_logging_active'))
     {
-      $this->function getContext(()->getLogger()->info('{sfRequest} error in form for parameter "'.$name.'" (with message "'.$message.'")');
+      $this->getContext()->getLogger()->info('{sfRequest} error in form for parameter "'.$name.'" (with message "'.$message.'")');
     }
 
     $this->errors[$name] = $message;
@@ -253,7 +253,7 @@ abstract class sfRequest
    *
    * @return void
    */
-  public function function setError(s ($errors)
+  public function setErrors($errors)
   {
     $this->errors = array_merge($this->errors, $errors);
   }
@@ -287,42 +287,42 @@ abstract class sfRequest
 
   public function getParameterHolder()
   {
-    return $this->parameter_holder;
+    return $this->parameterHolder;
   }
 
   public function getAttributeHolder()
   {
-    return $this->attribute_holder;
+    return $this->attributeHolder;
   }
 
   public function getAttribute($name, $default = null, $ns = null)
   {
-    return $this->attribute_holder->get($name, $default, $ns);
+    return $this->attributeHolder->get($name, $default, $ns);
   }
 
   public function hasAttribute($name, $ns = null)
   {
-    return $this->attribute_holder->has($name, $ns);
+    return $this->attributeHolder->has($name, $ns);
   }
 
   public function setAttribute($name, $value, $ns = null)
   {
-    return $this->attribute_holder->set($name, $value, $ns);
+    return $this->attributeHolder->set($name, $value, $ns);
   }
 
   public function getParameter($name, $default = null, $ns = null)
   {
-    return $this->parameter_holder->get($name, $default, $ns);
+    return $this->parameterHolder->get($name, $default, $ns);
   }
 
   public function hasParameter($name, $ns = null)
   {
-    return $this->parameter_holder->has($name, $ns);
+    return $this->parameterHolder->has($name, $ns);
   }
 
   public function setParameter($name, $value, $ns = null)
   {
-    return $this->parameter_holder->set($name, $value, $ns);
+    return $this->parameterHolder->set($name, $value, $ns);
   }
 
   /**

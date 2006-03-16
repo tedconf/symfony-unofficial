@@ -223,7 +223,7 @@ class sfBasicSecurityUser extends sfUser implements sfSecurityUser
     $storage->write(self::CREDENTIAL_NAMESPACE,   $this->credentials);
 
     // call the parent function shutdown( method
-    parent::function shutdown(();
+    parent::shutdown();
   }
 }
 
