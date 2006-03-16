@@ -8,8 +8,7 @@ sfConfig::add(array(
   'sf_i18n' => '1',
   'sf_activated_modules' => array (
   0 => 'default',
-  1 => 'default',
-  2 => 'user',
+  1 => 'user',
 ),
 ));
 ?>
