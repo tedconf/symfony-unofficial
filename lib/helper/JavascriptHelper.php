@@ -84,10 +84,30 @@
    */
   function link_to_function($name, $function, $html_options = array())
   {
+    $html_options = _parse_attributes($html_options);
+
     $html_options['href'] = '#';
     $html_options['onclick'] = $function.'; return false;';
 
     return content_tag('a', $name, $html_options);
+  }
+
+  /**
+   * Returns a button that'll trigger a javascript function using the
+   * onclick handler and return false after the fact.
+   *
+   * Examples:
+   *   <?php echo button_to_function('Greeting', "alert('Hello world!')") ?>
+   */
+  function button_to_function($name, $function, $html_options = array())
+  {
+    $html_options = _parse_attributes($html_options);
+
+    $html_options['onclick'] = $function.'; return false;';
+    $html_options['type']    = 'button';
+    $html_options['value']   = $name;
+
+    return content_tag('input', '', $html_options);
   }
 
   /**
@@ -409,6 +429,10 @@
     if (isset($options['confirm']))
     {
       $function = "if (confirm('".escape_javascript($options['confirm'])."')) { $function; }";
+      if (isset($options['cancel']))
+      {
+        $function = $function.' else { '.$options['cancel'].' }';
+      }
     }
 
     return $function;
@@ -509,7 +533,7 @@
 
     if (in_array($name, array('toggle_appear', 'toggle_blind', 'toggle_slide')))
     {
-      return "new Effect.toggle($element, ". substr($name, 7)  .", "._options_for_javascript($js_options).");";
+      return "new Effect.toggle($element, '".substr($name, 7)."', "._options_for_javascript($js_options).");";
     }
     else
     {
@@ -948,7 +972,7 @@
       {
         $name = 'on'.ucfirst($callback);
         $code = $options[$callback];
-        $callbacks[$name] = 'function(request){'.$code.'}';
+        $callbacks[$name] = 'function(request, json){'.$code.'}';
       }
     }
 

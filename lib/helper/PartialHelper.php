@@ -107,7 +107,7 @@ function include_partial($name, $vars = array())
   $sep = strpos($name, '/');
   if ($sep)
   {
-    $type = strtolower(substr($name, 0, $sep));
+    $type = substr($name, 0, $sep);
     $filename = '_'.substr($name, $sep + 1).'.php';
   }
   else
@@ -144,8 +144,6 @@ function include_partial($name, $vars = array())
   {
     $vars = array_merge($vars, $action->getVars());
   }
-
-  extract($vars);
 
   // render to client
   if ($sep && $type == 'global')
@@ -192,6 +190,7 @@ function include_partial($name, $vars = array())
     }
   }
 
+  extract($vars);
   require $partial;
 }
 

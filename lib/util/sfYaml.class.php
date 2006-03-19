@@ -40,7 +40,9 @@ class sfYaml
     // syck is prefered over spyc
     if (function_exists('syck_load'))
     {
-      return syck_load($input);
+      $retval = syck_load($input);
+
+      return (is_array($retval)) ? $retval : array();
     }
     else
     {

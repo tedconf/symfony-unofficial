@@ -24,7 +24,7 @@ class sfCompileConfigHandler extends sfYamlConfigHandler
   /**
    * Execute this configuration handler.
    *
-   * @param  string An absolute filesystem path to a configuration file.
+   * @param array An array of absolute filesystem path to a configuration file.
    *
    * @return string Data to be written to a cache file.
    *
@@ -54,8 +54,7 @@ class sfCompileConfigHandler extends sfYamlConfigHandler
         if (!is_readable($file))
         {
           // file doesn't exist
-          $error = sprintf('Configuration file "%s" specifies nonexistent or unreadable file "%s"',
-                           $configFile, $file);
+          $error = sprintf('Configuration file "%s" specifies nonexistent or unreadable file "%s"', $configFiles[0], $file);
           throw new sfParseException($error);
         }
 

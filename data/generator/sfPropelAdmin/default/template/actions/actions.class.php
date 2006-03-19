@@ -13,7 +13,7 @@ class <?php echo $this->getGeneratedModuleName() ?>Actions extends sfActions
 {
   public function preExecute ()
   {
-    $this->getResponse()->addStylesheet('/sf/css/sf_admin/main', 'first');
+    $this->getResponse()->addStylesheet('<?php echo $this->getParameterValue('css', '/sf/css/sf_admin/main') ?>', 'first');
   }
 
   public function executeIndex ()
@@ -62,8 +62,15 @@ class <?php echo $this->getGeneratedModuleName() ?>Actions extends sfActions
 
       $this->setFlash('notice', 'Your modifications have been saved');
 
-      return $this->redirect('<?php echo $this->getModuleName() ?>/edit?<?php echo $this->getPrimaryKeyUrlParams('this->') ?>);
+      if ($this->getRequestParameter('save_and_add'))
+      {
+        return $this->redirect('<?php echo $this->getModuleName() ?>/create');
+      }
+      else
+      {
+        return $this->redirect('<?php echo $this->getModuleName() ?>/edit?<?php echo $this->getPrimaryKeyUrlParams('this->') ?>);
 <?php //' ?>
+      }
     }
   }
 
@@ -74,6 +81,20 @@ class <?php echo $this->getGeneratedModuleName() ?>Actions extends sfActions
 
     $this-><?php echo $this->getSingularName() ?>->delete();
 
+<?php foreach ($this->getColumnCategories('edit.display') as $category): ?>
+<?php foreach ($this->getColumns('edit.display', $category) as $name => $column): ?>
+<?php $input_type = $this->getParameterValue('edit.fields.'.$column->getName().'.type') ?>
+<?php if ($input_type == 'admin_input_upload_tag'): ?>
+<?php $upload_dir = $this->getParameterValue('edit.fields.'.$column->getName().'.upload_dir') ?>
+      $currentFile = sfConfig::get('sf_upload_dir').'/<?php echo $upload_dir ?>/'.$this-><?php echo $this->getSingularName() ?>->get<?php echo $column->getPhpName() ?>();
+      if (is_file($currentFile))
+      {
+        unlink($currentFile);
+      }
+
+<?php endif ?>
+<?php endforeach ?>
+<?php endforeach ?>
     return $this->redirect('<?php echo $this->getModuleName() ?>/list');
   }
 
@@ -94,20 +115,57 @@ class <?php echo $this->getGeneratedModuleName() ?>Actions extends sfActions
 <?php foreach ($this->getColumns('edit.display', $category) as $name => $column): $type = $column->getCreoleType(); ?>
 <?php $name = $column->getName() ?>
 <?php if ($column->isPrimaryKey()) continue ?>
-<?php if ($type == CreoleTypes::DATE || $type == CreoleTypes::TIMESTAMP): ?>
-    if ($<?php echo $this->getSingularName() ?>['<?php echo $name ?>'])
+<?php $credentials = $this->getParameterValue('edit.fields.'.$column->getName().'.credentials') ?>
+<?php $input_type = $this->getParameterValue('edit.fields.'.$column->getName().'.type') ?>
+<?php if ($credentials): $credentials = str_replace("\n", ' ', var_export($credentials, true)) ?>
+    if ($this->getUser()->hasCredential(<?php echo $credentials ?>))
     {
-      list($d, $m, $y) = sfI18N::getDateForCulture($<?php echo $this->getSingularName() ?>['<?php echo $name ?>'], $this->getUser()->getCulture());
-      $this-><?php echo $this->getSingularName() ?>->set<?php echo $column->getPhpName() ?>("$y-$m-$d");
-    }
-    else
+<?php endif ?>
+<?php if ($input_type == 'admin_input_upload_tag'): ?>
+<?php $upload_dir = $this->getParameterValue('edit.fields.'.$column->getName().'.upload_dir') ?>
+    $currentFile = sfConfig::get('sf_upload_dir').'/<?php echo $upload_dir ?>/'.$this-><?php echo $this->getSingularName() ?>->get<?php echo $column->getPhpName() ?>();
+    if (!$this->getRequest()->hasErrors() && isset($<?php echo $this->getSingularName() ?>['<?php echo $name ?>_remove']))
     {
-      $this-><?php echo $this->getSingularName() ?>->set<?php echo $column->getPhpName() ?>(null);
+      $this-><?php echo $this->getSingularName() ?>->set<?php echo $column->getPhpName() ?>('');
+      if (is_file($currentFile))
+      {
+        unlink($currentFile);
+      }
     }
-<?php elseif ($type == CreoleTypes::BOOLEAN): ?>
-    $this-><?php echo $this->getSingularName() ?>->set<?php echo $column->getPhpName() ?>(isset($<?php echo $this->getSingularName() ?>['<?php echo $name ?>']) ? $<?php echo $this->getSingularName() ?>['<?php echo $name ?>'] : 0);
+
+    if (!$this->getRequest()->hasErrors() && $this->getRequest()->getFileSize('<?php echo $this->getSingularName() ?>[<?php echo $name ?>]'))
+    {
 <?php else: ?>
-    $this-><?php echo $this->getSingularName() ?>->set<?php echo $column->getPhpName() ?>($<?php echo $this->getSingularName() ?>['<?php echo $name ?>']);
+    if (isset($<?php echo $this->getSingularName() ?>['<?php echo $name ?>']))
+    {
+<?php endif ?>
+<?php if ($input_type == 'admin_input_upload_tag'): ?>
+      $fileName = md5($this->getRequest()->getFileName('<?php echo $this->getSingularName() ?>[<?php echo $name ?>]').time());
+      $ext = $this->getRequest()->getFileExtension('<?php echo $this->getSingularName() ?>[<?php echo $name ?>]');
+      if (is_file($currentFile))
+      {
+        unlink($currentFile);
+      }
+      $this->getRequest()->moveFile('<?php echo $this->getSingularName() ?>[<?php echo $name ?>]', sfConfig::get('sf_upload_dir').'/<?php echo $upload_dir ?>/'.$fileName.$ext);
+      $this-><?php echo $this->getSingularName() ?>->set<?php echo $column->getPhpName() ?>($fileName.$ext);
+<?php elseif ($type == CreoleTypes::DATE || $type == CreoleTypes::TIMESTAMP): ?>
+      if ($<?php echo $this->getSingularName() ?>['<?php echo $name ?>'])
+      {
+        list($d, $m, $y) = sfI18N::getDateForCulture($<?php echo $this->getSingularName() ?>['<?php echo $name ?>'], $this->getUser()->getCulture());
+        $this-><?php echo $this->getSingularName() ?>->set<?php echo $column->getPhpName() ?>("$y-$m-$d");
+      }
+      else
+      {
+        $this-><?php echo $this->getSingularName() ?>->set<?php echo $column->getPhpName() ?>(null);
+      }
+<?php elseif ($type == CreoleTypes::BOOLEAN): ?>
+      $this-><?php echo $this->getSingularName() ?>->set<?php echo $column->getPhpName() ?>(isset($<?php echo $this->getSingularName() ?>['<?php echo $name ?>']) ? $<?php echo $this->getSingularName() ?>['<?php echo $name ?>'] : 0);
+<?php else: ?>
+      $this-><?php echo $this->getSingularName() ?>->set<?php echo $column->getPhpName() ?>($<?php echo $this->getSingularName() ?>['<?php echo $name ?>']);
+<?php endif ?>
+    }
+<?php if ($credentials): ?>
+      }
 <?php endif ?>
 <?php endforeach ?>
 <?php endforeach ?>

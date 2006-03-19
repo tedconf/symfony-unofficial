@@ -105,7 +105,11 @@ class sfPropelPager
   public function getLinks($nb_links = 5)
   {
     $links = array();
-    $begin = ($this->page - floor($nb_links / 2) > 0) ? $this->page - floor($nb_links / 2) : 1;
+    $tmp   = $this->page - floor($nb_links / 2);
+    $check = $this->lastPage - $nb_links + 1;
+    $limit = ($check > 0) ? $check : 1;
+    $begin = ($tmp > 0) ? (($tmp > $limit) ? $limit : $tmp) : 1;
+
     $i = $begin;
     while (($i < $begin + $nb_links) && ($i <= $this->lastPage))
     {
@@ -181,11 +185,11 @@ class sfPropelPager
 
   private function retrieveObject($offset)
   {
-    $c = $this->getCriteria();
-    $c->setOffset($offset - 1);
-    $c->setLimit(1);
+    $cForRetrieve = clone $this->getCriteria();
+    $cForRetrieve->setOffset($offset - 1);
+    $cForRetrieve->setLimit(1);
 
-    $results = call_user_func(array($this->getClassPeer(), $this->getPeerMethod()), $c);
+    $results = call_user_func(array($this->getClassPeer(), $this->getPeerMethod()), $cForRetrieve);
 
     return $results[0];
   }
@@ -193,6 +197,7 @@ class sfPropelPager
   public function getResults()
   {
     $c = $this->getCriteria();
+
     return call_user_func(array($this->getClassPeer(), $this->getPeerMethod()), $c);
   }
 

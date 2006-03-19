@@ -24,7 +24,7 @@ class sfFactoryConfigHandler extends sfYamlConfigHandler
   /**
    * Execute this configuration handler.
    *
-   * @param string An absolute filesystem path to a configuration file.
+   * @param array An array of absolute filesystem path to a configuration file.
    *
    * @return string Data to be written to a cache file.
    *
@@ -59,7 +59,7 @@ class sfFactoryConfigHandler extends sfYamlConfigHandler
       if (!isset($keys['class']))
       {
         // missing class key
-        $error = sprintf('Configuration file "%s" specifies category "%s" with missing class key', $configFile, $factory);
+        $error = sprintf('Configuration file "%s" specifies category "%s" with missing class key', $configFiles[0], $factory);
         throw new sfParseException($error);
       }
 
@@ -74,7 +74,7 @@ class sfFactoryConfigHandler extends sfYamlConfigHandler
         if (!is_readable($file))
         {
             // factory file doesn't exist
-            $error = sprintf('Configuration file "%s" specifies class "%s" with nonexistent or unreadablefile "%s"', $configFile, $class, $file);
+            $error = sprintf('Configuration file "%s" specifies class "%s" with nonexistent or unreadablefile "%s"', $configFiles[0], $class, $file);
             throw new sfParseException($error);
         }
 

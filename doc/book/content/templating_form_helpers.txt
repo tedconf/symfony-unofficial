@@ -182,6 +182,11 @@ Now you can run the rich version of the textarea input tag:
     // will generate in HTML
     // a rich text edit zone powered by TinyMCE
 
+If you want to specify custom options for TinyMCE, use the `tinymce_options` option:
+
+    [php]
+    <?php echo textarea_tag('name', 'default content', 'rich=true size=10x20 tinymce_options=language:"fr",theme_advanced_buttons2:"separator"')) ?>
+
 You will probably need to display a **country selection field**. The `select_country_tag` helper can do it for you; it uses the default culture to choose in which language the countries will be displayed.
 
     [php]
@@ -236,8 +241,8 @@ A few other options can define the content of an object select tag. `include_tit
 
     [php]
     object_select_tag($article, 'getAuthorId', 'related_class=Author')
-    object_select_tag($article, 'getAuthorId', 'related_class=Author include_blank')
-    object_select_tag($article, 'getAuthorId', 'related_class=Author include_title')
+    object_select_tag($article, 'getAuthorId', 'related_class=Author include_blank=true')
+    object_select_tag($article, 'getAuthorId', 'related_class=Author include_title=true')
     //will display three selects with lists of values looking like:
     -------      -------      -------
     |Steve |     |      |     |Author|
