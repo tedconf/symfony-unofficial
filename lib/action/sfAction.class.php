@@ -96,10 +96,8 @@ abstract class sfAction extends sfComponent
     }
 
     $cache = $this->getContext()->getViewCacheManager();
-    $moduleName = $this->getModuleName();
-    $actionName = $this->getActionName();
 
-    return (!$cache->has($moduleName, $actionName, $suffix));
+    return (!$cache->has(sfRouting::getInstance()->getCurrentInternalUri(), $suffix));
   }
 
   /**
@@ -252,7 +250,7 @@ abstract class sfAction extends sfComponent
    */
   public function redirect($url)
   {
-    $url = $this->getController()->genUrl(null, $url);
+    $url = $this->getController()->genUrl($url);
 
     if (sfConfig::get('sf_logging_active')) $this->getContext()->getLogger()->info('{sfAction} redirect to "'.$url.'"');
 
