@@ -339,6 +339,15 @@ class sfRouting
           }
         }
 
+        // we must match all requirements for rule
+        foreach ($requirements as $reqParam => $req_Regexp)
+        {
+          if (!preg_match('/'.$reqRegexp.'/', $tparams[$reqParam]))
+          {
+            continue 2;
+          }
+        }
+
         // we must have consumed all $params keys if there is no * in route
         if (!strpos($url, '*'))
         {

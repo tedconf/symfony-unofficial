@@ -84,10 +84,30 @@
    */
   function link_to_function($name, $function, $htmlOptions = array())
   {
+    $html_options = _parse_attributes($html_options);
+
     $htmlOptions['href'] = '#';
     $htmlOptions['onclick'] = $function.'; return false;';
 
     return content_tag('a', $name, $htmlOptions);
+  }
+
+  /**
+   * Returns a button that'll trigger a javascript function using the
+   * onclick handler and return false after the fact.
+   *
+   * Examples:
+   *   <?php echo button_to_function('Greeting', "alert('Hello world!')") ?>
+   */
+  function button_to_function($name, $function, $htmlOptions = array())
+  {
+    $htmlOptions = _parse_attributes($htmlOptions);
+
+    $htmlOptions['onclick'] = $function.'; return false;';
+    $htmlOptions['type']    = 'button';
+    $htmlOptions['value']   = $name;
+
+    return content_tag('input', '', $htmlOptions);
   }
 
   /**
@@ -317,7 +337,7 @@
     switch ($value)
     {
       case 'update':
-        if ($options['position'])
+        if (isset($options['position']) && $options['position'])
         {
           $javascriptFunction = "new Insertion.".sfInflector::camelize($options['position'])."('$elementId','$content')";
         }
@@ -513,7 +533,7 @@
 
     if (in_array($name, array('toggle_appear', 'toggle_blind', 'toggle_slide')))
     {
-      return "new Effect.toggle($element, '". substr($name, 7)  ."', "._options_for_javascript($jsOptions).");";
+      return "new Effect.toggle($element, '".substr($name, 7)."', "._options_for_javascript($jsOptions).");";
     }
     else
     {

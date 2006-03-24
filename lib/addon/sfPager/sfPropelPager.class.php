@@ -106,7 +106,9 @@ class sfPropelPager
   {
     $links = array();
     $tmp = $this->page - floor($nbLinks / 2);
-    $begin = ($tmp > 0) ? (($tmp > $this->lastPage - $nbLinks + 1) ? $this->lastPage - $nbLinks + 1 : $tmp) : 1;
+    $check = $this->lastPage - $nb_links + 1;
+    $limit = ($check > 0) ? $check : 1;
+    $begin = ($tmp > 0) ? (($tmp > $limit) ? $limit : $tmp) : 1;
 
     $i = $begin;
     while (($i < $begin + $nbLinks) && ($i <= $this->lastPage))

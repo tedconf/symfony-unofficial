@@ -10,7 +10,7 @@
  */
 
 /**
- * sfWebController provides web specific methods to sfController such as, url function redirect(ion.
+ * sfWebController provides web specific methods to sfController such as, url redirection.
  *
  * @package    symfony
  * @subpackage controller
@@ -28,7 +28,7 @@ abstract class sfWebController extends sfController
    *
    * @return string A URL to a symfony resource.
    */
-  public function genURL($url = null, $parameters = array(), $absolute = false)
+  public function genUrl($parameters = array(), $absolute = false)
   {
     // absolute URL or symfony URL?
     if (!is_array($parameters) && preg_match('#^[a-z]+\://#', $parameters))
@@ -52,9 +52,17 @@ abstract class sfWebController extends sfController
     }
 
     $routeName = '';
+    $fragment = '';
 
     if (!is_array($parameters))
     {
+      // strip fragment
+      if (false !== ($pos = strpos($parameters, '#')))
+      {
+        $fragment = substr($parameters, $pos + 1);
+        $parameters = substr($parameters, 0, $pos);
+      }
+
       list($routeName, $parameters) = $this->convertUrlStringToParameters($parameters);
     }
 
@@ -106,6 +114,11 @@ abstract class sfWebController extends sfController
     if ($absolute)
     {
       $url = 'http://'.$this->getContext()->getRequest()->getHost().$url;
+    }
+
+    if ($fragment)
+    {
+      $url .= '#'.$fragment;
     }
 
     return $url;
@@ -182,7 +195,7 @@ abstract class sfWebController extends sfController
    * Redirect the request to another URL.
    *
    * @param string An existing URL.
-   * @param int    A delay in seconds before function redirect(ing. This only works on
+   * @param int    A delay in seconds before redirecting. This only works on
    *               browsers that do not support the PHP header.
    *
    * @return void
@@ -191,9 +204,9 @@ abstract class sfWebController extends sfController
   {
     $response = $this->getContext()->getResponse();
 
-    // function redirect(
+    // redirect
     $response->setHttpHeader('Location', $url);
-    $response->setContent(sprintf('<html><head><meta http-equiv="refresh" content="%d;url=%s"/></head></html>', $delay, $url));
+    $response->setContent(sprintf('<html><head><meta http-equiv="refresh" content="%d;url=%s"/></head></html>', $delay, htmlentities($url)));
 
     $response->sendHttpHeaders();
     $response->sendContent();

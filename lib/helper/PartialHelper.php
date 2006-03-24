@@ -33,9 +33,10 @@ function include_component_slot($name)
     throw new sfConfigurationException($error);
   }
 
-  $componentSlot = $viewInstance->getComponentSlot($name);
-
-  include_component($componentSlot[0], $componentSlot[1]);
+  if ($componentSlot = $viewInstance->getComponentSlot($name))
+  {
+    include_component($componentSlot[0], $componentSlot[1]);
+  }
 }
 
 function include_component($moduleName, $componentName, $vars = array())
@@ -148,8 +149,6 @@ function include_partial($name, $vars = array())
     $vars = array_merge($vars, $action->getVars());
   }
 
-  extract($vars);
-
   // render to client
   if ($sep && $type == 'global')
   {
@@ -195,6 +194,7 @@ function include_partial($name, $vars = array())
     }
   }
 
+  extract($vars);
   require $partial;
 }
 
