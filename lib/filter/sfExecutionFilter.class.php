@@ -75,11 +75,9 @@ class sfExecutionFilter extends sfFilter
         {
           // load validation configuration
           // do NOT use require_once
-          // absolute path is required to stop things like 'view.yml' being incorrectly found due to search paths
-          $filename = sfConfig::get('sf_app_dir').'/'.sfConfig::get('sf_app_module_dir_name').'/'.$validationConfig;
-          require(sfConfigCache::getInstance()->checkConfig($filename));
+          require(sfConfigCache::getInstance()->checkConfig(sfConfig::get('sf_app_module_dir_name').'/'.$validationConfig));
         }
-        
+
         // manually load validators
         $actionInstance->registerValidators($validatorManager);
 
