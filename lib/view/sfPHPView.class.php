@@ -261,7 +261,8 @@ class sfPHPView extends sfView
       {
         // execute pre-render check
         $this->preRenderCheck();
-
+        // the template might have been changed in the check
+        $template         = $this->getDirectory().'/'.$this->getTemplate();
         // render template file
         $retval = $this->renderFile($template);
 
