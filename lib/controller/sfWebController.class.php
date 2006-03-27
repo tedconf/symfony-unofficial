@@ -28,7 +28,7 @@ abstract class sfWebController extends sfController
    *
    * @return string A URL to a symfony resource.
    */
-  public function genURL($url = null, $parameters = array(), $absolute = false)
+  public function genUrl($parameters = array(), $absolute = false)
   {
     // absolute URL or symfony URL?
     if (!is_array($parameters) && preg_match('#^[a-z]+\://#', $parameters))
@@ -203,7 +203,7 @@ abstract class sfWebController extends sfController
 
     // redirect
     $response->setHttpHeader('Location', $url);
-    $response->setContent(sprintf('<html><head><meta http-equiv="refresh" content="%d;url=%s"/></head></html>', $delay, $url));
+    $response->setContent(sprintf('<html><head><meta http-equiv="refresh" content="%d;url=%s"/></head></html>', $delay, htmlentities($url)));
 
     $response->sendHttpHeaders();
     $response->sendContent();
