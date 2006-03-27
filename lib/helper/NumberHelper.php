@@ -27,6 +27,7 @@ function format_number($number, $culture = null)
 function format_currency($amount, $currency = null, $culture = null)
 {
   $numberFormat = new sfNumberFormat(_current_language($culture));
+  $amount = round($amount, 2);
 
   return $numberFormat->format($amount, 'c', $currency);
 }
