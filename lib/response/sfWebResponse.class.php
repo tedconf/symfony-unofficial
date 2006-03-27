@@ -397,14 +397,30 @@ class sfWebResponse extends sfResponse
     }
   }
 
-  public function getJavascripts()
+ public function getJavascripts($position = '')
   {
-    return $this->parameter_holder->getAll('helper/asset/auto/javascript');
+   if ($position)
+    {
+      $position = '/'.$position;
+    }
+
+    return $this->parameter_holder->getAll('helper/asset/auto/javascript'.$position);
   }
 
-  public function addJavascript($js)
+  public function addJavascript($js, $position = '')
   {
-    $this->setParameter($js, $js, 'helper/asset/auto/javascript');
+    if ($position == 'first')
+    {
+      $this->setParameter($js, $js, 'helper/asset/auto/javascript/first');
+    }
+    else if ($position == 'last')
+    {
+      $this->setParameter($js, $js, 'helper/asset/auto/javascript/last');
+    }
+    else
+    {
+      $this->setParameter($js, $js, 'helper/asset/auto/javascript');
+    }
   }
 
   /**
