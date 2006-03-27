@@ -355,7 +355,7 @@ class sfWebResponse extends sfResponse
   {
     if ($override || !$this->hasParameter($key, 'helper/asset/auto/meta'))
     {
-      $this->setParameter($key, $value, 'helper/asset/auto/meta');
+      $this->setParameter($key, sfConfig::get('sf_i18n_instance')->__($value), 'helper/asset/auto/meta');
     }
   }
 
