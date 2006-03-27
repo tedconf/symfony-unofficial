@@ -443,12 +443,9 @@ function input_date_tag($name, $value, $options = array())
       $value = 0;
 //      throw new Exception("Unable to parse value of date as date/time value");
     }
-    else
-    {
-      $dateFormat = new sfDateFormat($culture);
-      $value = $dateFormat->format($value, 'd');
-    }
   }
+  $dateFormat = new sfDateFormat($culture);
+  $value = $dateFormat->format($value, 'd');
 
   // register our javascripts and stylesheets
   $jss = array(
