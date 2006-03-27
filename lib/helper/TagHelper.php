@@ -58,7 +58,7 @@ function cdata_section($content)
 function escape_javascript($javascript = '')
 {
   $javascript = preg_replace('/\r\n|\n|\r/', "\\n", $javascript);
-  $javascript = preg_replace('/(["\'])/', '\\\\\1', $javascript);
+  $javascript = preg_replace('/(["\'])/', '\\\'', $javascript);
 
   return $javascript;
 }
