@@ -166,7 +166,7 @@ $script .= '
       {
         // add automatic UpdatedAt updating
         $updated = true;
-        $date_script .= "
+        $dateScript .= "
     if (\$this->isModified() && !\$this->isColumnModified('updated_at'))
     {
       \$this->setUpdatedAt(time());
@@ -177,7 +177,7 @@ $script .= '
       {
         // add automatic UpdatedOn updating
         $updated = true;
-        $date_script .= "
+        $dateScript .= "
     if (\$this->isModified() && !\$this->isColumnModified('updated_on'))
     {
       \$this->setUpdatedOn(time());

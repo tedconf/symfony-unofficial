@@ -233,24 +233,27 @@ function include_stylesheets()
 function include_javascripts()
 {
   $alreadySeen = array();
-  foreach (sfContext::getInstance()->getResponse()->getJavascripts() as $files)
+  foreach (array('first', '', 'last') as $position)
   {
-    if (!is_array($files))
+    foreach (sfContext::getInstance()->getResponse()->getJavascripts($position) as $files)
     {
-      $files = array($files);
-    }
-
-    foreach ($files as $file)
-    {
-      $file = javascript_path($file);
-
-      if (isset($alreadySeen[$file]))
+      if (!is_array($files))
       {
-        continue;
+        $files = array($files);
       }
 
-      $alreadySeen[$file] = 1;
-      echo javascript_include_tag($file);
+      foreach ($files as $file)
+      {
+        $file = javascript_path($file);
+
+        if (isset($alreadySeen[$file]))
+        {
+          continue;
+        }
+
+        $alreadySeen[$file] = 1;
+        echo javascript_include_tag($file);
+      }
     }
   }
 }

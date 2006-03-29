@@ -33,7 +33,7 @@ class sfPHPView extends sfView
   {
     $context = $this->getContext();
 
-    $lastActionEntry = $context->getActionStack()->getLastEntry();
+    $lastActionEntry  = $context->getActionStack()->getLastEntry();
     $firstActionEntry = $context->getActionStack()->getFirstEntry();
 
     $shortcuts = array(
@@ -56,16 +56,6 @@ class sfPHPView extends sfView
     }
 
     return $shortcuts;
-  }
-
-  /**
-   * Assigns some action variables to the template.
-   */
-  protected function getModuleVars()
-  {
-    $action = $this->getContext()->getActionStack()->getLastEntry()->getActionInstance();
-
-    return $action->getVarHolder()->getAll();
   }
 
   protected function loadCoreAndStandardHelpers()
@@ -107,8 +97,10 @@ class sfPHPView extends sfView
 
   protected function renderFile($_sfFile)
   {
-    $this->attributeHolder->add($this->getGlobalVars());
-    $this->attributeHolder->add($this->getModuleVars());
+    if ($sf_logging_active = sfConfig::get('sf_logging_active'))
+    {
+      $this->getContext()->getLogger()->info('{sfPHPView} render "'.$_sfFile.'"');
+    }
 
     extract($this->attributeHolder->getAll());
 
@@ -242,29 +234,35 @@ class sfPHPView extends sfView
 
     $retval = null;
 
-    // execute pre-render check
-    $this->preRenderCheck();
-
     // get the render mode
     $mode = $this->getContext()->getController()->getRenderMode();
 
     if ($mode != sfView::RENDER_NONE)
     {
-      if ($sf_logging_active = sfConfig::get('sf_logging_active'))
-      {
-        $this->getContext()->getLogger()->info('{sfPHPView} render "'.$template.'"');
-      }
-
       $retval = null;
       if (sfConfig::get('sf_cache'))
       {
         list($uri, $suffix) = $this->getContext()->getViewCacheManager()->getInternalUri('slot');
-        $retval = $this->getContext()->getResponse()->getParameter($uri.'_'.$suffix, null, 'symfony/cache');
+        $cache = $this->getContext()->getResponse()->getParameter($uri.'_'.$suffix, null, 'symfony/cache');
+        if ($cache !== null)
+        {
+          $cache  = unserialize($cache);
+          $retval = $cache['content'];
+          $vars   = $cache['vars'];
+        }
       }
+
+      // assigns some variables to the template
+      $this->attributeHolder->add($this->getGlobalVars());
+      $this->attributeHolder->add($retval !== null ? $vars : $actionInstance->getVarHolder()->getAll());
 
       // render template if no cache
       if ($retval === null)
       {
+        // execute pre-render check
+        $this->preRenderCheck();
+
+        // render template file
         $retval = $this->renderFile($template);
 
         // tidy our cache content
@@ -275,7 +273,12 @@ class sfPHPView extends sfView
 
         if (sfConfig::get('sf_cache'))
         {
-          $this->getContext()->getResponse()->setParameter($uri.'_'.$suffix, $retval, 'symfony/cache');
+          $cache = array(
+            'content'   => $retval,
+            'vars'      => $actionInstance->getVarHolder()->getAll(),
+            'view_name' => $this->viewName,
+          );
+          $this->getContext()->getResponse()->setParameter($uri.'_'.$suffix, serialize($cache), 'symfony/cache');
         }
       }
 
