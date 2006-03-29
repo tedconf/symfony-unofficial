@@ -33,7 +33,6 @@ class sfPropelData
   }
 
   // symfony load-data (file|dir)
-  // todo: symfony dump-data
   public function loadData($directory_or_file = null, $connectionName = 'propel')
   {
     $fixture_files = $this->getFiles($directory_or_file);
@@ -82,7 +81,9 @@ class sfPropelData
       $column_names = call_user_func_array(array($peer_class, 'getFieldNames'), array(BasePeer::TYPE_FIELDNAME));
 
       // iterate through datas for this class
-      if (is_array($datas)) { // might have been empty just for force a table to be emptied on import
+      // might have been empty just for force a table to be emptied on import
+      if (is_array($datas))
+      {
         foreach ($datas as $key => $data)
         {
           // create a new entry in the database
@@ -115,7 +116,7 @@ class sfPropelData
             {
               $obj->setByPosition($pos, $value);
             }
-            else if (is_callable(array($obj, $method)))
+            else if (is_callable($obj, $method))
             {
               $obj->$method($value);
             }
