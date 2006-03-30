@@ -146,9 +146,9 @@ class sfWebDebug
       $logLine = preg_replace('/\b(SELECT|FROM|AS|LIMIT|ASC|COUNT|DESC|WHERE|LEFT JOIN|INNER JOIN|RIGHT JOIN|ORDER BY|GROUP BY|IN|LIKE|DISTINCT)\b/', '<span class="sfStatsFileInfo">\\1</span>', $logLine);
 
       // remove username/password from DSN
-      if (strpos($log_line, 'DSN') !== false)
+      if (strpos($logLine, 'DSN') !== false)
       {
-        $log_line = preg_replace("/=&gt;\s+'?[^'\s,]+'?/", "=&gt; '****'", $log_line);
+        $logLine = preg_replace("/=&gt;\s+'?[^'\s,]+'?/", "=&gt; '****'", $logLine);
       }
     }
 
