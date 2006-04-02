@@ -312,7 +312,17 @@ abstract class sfRequest
 
   public function getParameter($name, $default = null, $ns = null)
   {
-    return $this->parameterHolder->get($name, $default, $ns);
+    if (false !== ($pos = strpos($name, '[')))
+    {
+      // array
+      $values = $this->parameterHolder->get(substr($name, 0, $pos), $default, $ns);
+
+      return $values[substr($name, $pos + 1, -1)];
+    }
+    else
+    {
+      return $this->parameterHolder->get($name, $default, $ns);
+    }
   }
 
   public function hasParameter($name, $ns = null)
