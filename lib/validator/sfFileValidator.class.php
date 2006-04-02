@@ -41,9 +41,6 @@ class sfFileValidator extends sfValidator
   {
     $request = $this->getContext()->getRequest();
     
-    var_dump($value);
-    die();
-
     // file too large?
     $max_size = $this->getParameter('max_size');
     if ($max_size !== null && $max_size < $value['size'])
