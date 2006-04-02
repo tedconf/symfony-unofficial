@@ -84,14 +84,34 @@ class sfParameterHolder
       $ns = $this->defaultNamespace;
     }
 
-    $retval =& $default;
+    if (false !== ($offset = strpos($name, '['))) {
+      if (isset($this->parameters[$ns][substr($name, 0, $offset)]))
+      {
+        $array = $this->parameters[$ns][substr($name, 0, $offset)];
 
-    if (isset($this->parameters[$ns]) && isset($this->parameters[$ns][$name]))
+        while ($pos = strpos($name, '[', $offset)) {
+          $end = strpos($name, ']', $pos);
+          if ($end == $pos+1) {
+            // reached a []
+            break;
+          }
+          elseif (!isset($array[substr($name, $pos+1, $end-$pos-1)]))
+          {
+            return $default;
+          }
+          $array = $array[substr($name, $pos+1, $end-$pos-1)];
+          $offset = $end;
+        }
+
+        return $array;
+      }
+    }
+    elseif (isset($this->parameters[$ns][$name]))
     {
-      $retval =& $this->parameters[$ns][$name];
+      return $this->parameters[$ns][$name];
     }
 
-    return $retval;
+    return $default;
   }
 
   /**
@@ -170,9 +190,31 @@ class sfParameterHolder
       $ns = $this->defaultNamespace;
     }
 
-    if (isset($this->parameters[$ns]))
+    if (false !== ($offset = strpos($name, '['))) {
+      if (isset($this->parameters[$ns][substr($name, 0, $offset)]))
+      {
+        $array = $this->parameters[$ns][substr($name, 0, $offset)];
+
+        while ($pos = strpos($name, '[', $offset)) {
+          $end = strpos($name, ']', $pos);
+          if ($end == $pos+1) {
+            // reached a []
+            return true;
+          }
+          elseif (!isset($array[substr($name, $pos+1, $end-$pos-1)]))
+          {
+            return false;
+          }
+          $array = $array[substr($name, $pos+1, $end-$pos-1)];
+          $offset = $end;
+        }
+
+        return true;
+      }
+    }
+    elseif (isset($this->parameters[$ns][$name]))
     {
-      return isset($this->parameters[$ns][$name]);
+      return true;
     }
 
     return false;
