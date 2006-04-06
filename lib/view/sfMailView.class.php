@@ -71,6 +71,10 @@ class sfMailView extends sfPHPView
       throw new sfActionException($error);
     }
 
+    // assigns some variables to the template
+    $this->attribute_holder->add($this->getGlobalVars());
+    $this->attribute_holder->add($actionInstance->getVarHolder()->getAll());
+
     // render main template
     $retval = $this->renderFile($template);
 
@@ -105,7 +109,7 @@ class sfMailView extends sfPHPView
     {
       $setter = 'set'.sfInflector::camelize($var);
       $getter = 'get'.sfInflector::camelize($var);
-      $value  = sfConfig::get($config_prefix.strtolower($var), $mail->$getter());
+      $value  = $mail->$getter() !== null ? $mail->$getter() : sfConfig::get($config_prefix.strtolower($var));
       $mail->$setter($value);
     }
 

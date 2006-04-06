@@ -40,13 +40,23 @@ abstract class sfActions extends sfAction
    */
   public function execute()
   {
-    // Dispatch action
-    $actionToRun = 'execute'.ucfirst($this->getActionName());
-    if (!method_exists($this, $actionToRun))
+    // dispatch action
+    $method = strtolower($this->getRequest()->getRequestMethod());
+    $action = ucfirst($this->getActionName());
+
+    if (method_exists($this, $method.$action))
+    {
+      $actionToRun = $method.$action;
+    }
+    else if (method_exists($this, 'execute'.$action))
+    {
+      $actionToRun = 'execute'.$action;
+    }
+    else
     {
       // action not found
-      $error = 'sfAction initialization failed for module "%s", action "%s"';
-      $error = sprintf($error, $this->getModuleName(), $this->getActionName());
+      $error = 'sfAction initialization failed for module "%s", action "%s". You must create a "%s" method.';
+      $error = sprintf($error, $this->getModuleName(), $this->getActionName(), $method.$action);
       throw new sfInitializationException($error);
     }
 
