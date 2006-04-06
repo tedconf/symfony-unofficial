@@ -45,6 +45,7 @@ class sfValidatorConfigHandler extends sfYamlConfigHandler
     $includes   = array();
     $methods    = array();
     $names      = array();
+    $dependancies = array();
     $validators = array();
 
     // get a list of methods and their registered files/parameters
@@ -95,7 +96,7 @@ class sfValidatorConfigHandler extends sfYamlConfigHandler
     $this->generateRegistration('POST', $data, $methods, $names, $validators);
 
     $data[] = "}";
-
+    
     $fillin = isset($config['fillin']) ? $config['fillin'] : array();
 
     // compile data
@@ -118,12 +119,52 @@ class sfValidatorConfigHandler extends sfYamlConfigHandler
    */
   private function generateRegistration($method, &$data, &$methods, &$names, &$validators)
   {
+    // setup dependancies array
+    $data[] = "\t\$dependancies = array();";
+
     // setup validator array
     $data[] = "\t\$validators = array();";
 
     if (!isset($methods[$method]))
     {
       $methods[$method] = array();
+    }
+
+    foreach ($methods[$method] as $name)
+    {
+      if (preg_match('/^([a-z0-9_-]+)\{([a-z0-9\s_-]+)\}$/i', $name, $match))
+      {
+        // this file/parameter has a parent
+        $subname = $match[2];
+        $parent  = $match[1];
+
+        $depsList = $names[$parent][$subname]['required_deps'];
+      }
+      else
+      {
+        // no parent
+        $depsList = $names[$name]['required_deps'];
+      }
+
+      if ($depsList == null)
+      {
+        // no dependancies for this file/parameter
+        continue;
+      }
+
+      foreach ($depsList as $depField => $params)
+      {
+        foreach ($params as $paramName => $paramValue)
+        {
+          if (!isset($dependancies[$depField][$paramName][$method]))
+          {
+            $data[] = sprintf("\t\$dependancies['%s']['%s'] = '%s';\r",
+                              $depField, $paramName, $paramValue);
+          }
+          // mark this validator as created for this request method
+          $dependancies[$depField][$paramName][$method] = true;
+        }
+      }
     }
 
     // determine which validators we need to create for this request method
@@ -189,6 +230,15 @@ class sfValidatorConfigHandler extends sfYamlConfigHandler
                         $attributes['required_msg'],
                         $attributes['parent'], $attributes['group'],
                         $attributes['file']);
+
+      // register dependencies
+      foreach ($attributes['required_deps'] as $otherField => &$dependancies)
+      {
+        $data[] = sprintf("\t\$validatorManager->registerDependancies('%s', '%s', %s, %s);", $name,
+                          $otherField,
+                          "\$dependancies['$otherField']",
+                          $attributes['parent']);
+      }
 
       // register validators for this file/parameter
       foreach ($attributes['validators'] as &$validator)
@@ -260,6 +310,10 @@ class sfValidatorConfigHandler extends sfYamlConfigHandler
           $lvalue = strtolower($value);
           $entry['file'] = ($lvalue == 'file' ? 'true' : 'false');
         }
+        else if ($attribute == 'required_deps')
+        {
+          $entry['required_deps'] = $value;
+        }
         else
         {
           // just a normal attribute
@@ -321,6 +375,7 @@ class sfValidatorConfigHandler extends sfYamlConfigHandler
           $entry['group']        = 'null';
           $entry['parent']       = "'$parent'";
           $entry['required']     = 'true';
+          $entry['required_deps']= array();
           $entry['required_msg'] = "'Required'";
           $entry['validators']   = array();
 
@@ -346,6 +401,7 @@ class sfValidatorConfigHandler extends sfYamlConfigHandler
           $entry['group']        = 'null';
           $entry['parent']       = 'null';
           $entry['required']     = 'true';
+          $entry['required_deps']= array();
           $entry['required_msg'] = "'Required'";
           $entry['type']         = 'parameter';
           $entry['validators']   = array();

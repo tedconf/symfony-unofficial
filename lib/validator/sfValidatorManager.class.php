@@ -4,7 +4,7 @@
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
  * (c) 2004-2006 Sean Kerr.
- * 
+ *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -123,6 +123,7 @@ class sfValidatorManager
     $entry['group']             = null;
     $entry['is_file']           = $isFile;
     $entry['required']          = $required;
+    $entry['required_deps']     = array();
     $entry['required_msg']      = $message;
     $entry['validation_status'] = true;
     $entry['validators']        = array();
@@ -161,6 +162,30 @@ class sfValidatorManager
 
       // add a reference back to the group array to the file/param array
       $entry['group'] =& $this->groups[$group];
+    }
+  }
+
+  /**
+   * Register dependancies for a file or parameter.
+   *
+   * @param string    A file or parameter name.
+   * @param string    A name for a form field
+   * @param array     Parameter hash, can contain 'value' and 'required_msg'
+   * @param string    A parent array name.
+   *
+   * @return void
+   */
+  public function registerDependancies ($name, $fieldName, $dependancies, $parent = null)
+  {
+    if ($parent != null)
+    {
+      // this parameter has a parent
+      $this->names[$parent][$name]['required_deps'][$fieldName] = $dependancies;
+    }
+    else
+    {
+      // no parent
+      $this->names[$name]['required_deps'][$fieldName] = $dependancies;
     }
   }
 
@@ -256,7 +281,39 @@ class sfValidatorManager
       (!$data['is_file'] && ($value == null || strlen($value) == 0))
     )
     {
-      if (!$data['required'] || !$force)
+      if (strtolower($data['required']) == 'depends')
+      {
+        $errorMessages = array();
+        foreach ($data['required_deps'] as $depField => $params)
+        {
+          $depFieldValue = $this->request->getParameterHolder()->get($depField);
+          $valueToMatch = (array_key_exists('value', $params))? $params['value'] : null;
+
+          if ($valueToMatch)
+          {
+            if ($depFieldValue == $valueToMatch)
+            {
+              $errorMessages[] = $params['required_msg'];
+              $retval = false;
+            }
+          }
+          else
+          {
+            // value param is not specified in the validator.yml file, so it can match any value bar null or empty.
+            if (!($depFieldValue == null || strlen($depField) == 0))
+            {
+              $errorMessages[] = $params['required_msg'];
+              $retval = false;
+            }
+          }
+
+          if ($retval == false)
+          {
+            $error = implode('<br />', $errorMessages);
+          }
+        }
+      }
+      else if (!$data['required'] || !$force)
       {
         // we don't have to validate it
         $retval = true;
