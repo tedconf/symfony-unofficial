@@ -126,9 +126,6 @@ All the templates can be included into a **global template**, or **layout**, loc
     
     <?php echo include_title() ?>
     
-    <?php echo include_stylesheets() ?>
-    <?php echo include_javascripts() ?>
-    
     <link rel="shortcut icon" href="/favicon.ico">
     
     </head>
@@ -165,7 +162,7 @@ The content of the `<head>` tag might be a little cryptic for now, but if will b
     </body>
     </html>
 
-This is an application of the [decorator design pattern][2]: the content of the template called by the action is integrated into the global template with the help of the `$content` variable.
+This is an application of the [decorator design pattern][2]: The content of the template called by the action is integrated into the global template with the help of the `$content` variable.
 
 The global template can be entirely customized for each application. 
 
@@ -415,7 +412,7 @@ Component slots can be used for breadcrumbs, contextual navigations, and dynamic
 >
 >     all:
 >       components:
->         sidebar:  []
+>         sidebar:  [ ]
 
 
 [1]: http://en.wikipedia.org/wiki/Model-view-controller "Model-View-Controller definition at Wikipedia"
