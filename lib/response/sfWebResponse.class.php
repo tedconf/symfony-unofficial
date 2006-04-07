@@ -355,9 +355,14 @@ class sfWebResponse extends sfResponse
   {
     if ($override || !$this->hasParameter($key, 'helper/asset/auto/meta'))
     {
-      if (! $doNotEscape)
+      if (sfConfig::get('sf_i18n'))
       {
-        $value = htmlentities($value, ENT_QUOTES);
+        $value = sfConfig::get('sf_i18n_instance')->__($value);
+      }
+
+      if (!$doNotEscape)
+      {
+        $value = htmlentities($value, ENT_QUOTES, 'UTF-8');
       }
 
       $this->setParameter($key, $value, 'helper/asset/auto/meta');
@@ -373,9 +378,14 @@ class sfWebResponse extends sfResponse
 
   public function setTitle($title, $doNotEscape = false)
   {
-    if (! $doNotEscape)
+    if (!$doNotEscape)
     {
-      $title = htmlentities($title, ENT_QUOTES);
+      if (sfConfig::get('sf_i18n'))
+      {
+        $title = sfConfig::get('sf_i18n_instance')->__($title);
+      }
+
+      $title = htmlentities($title, ENT_QUOTES, 'UTF-8');
     }
 
     $this->setParameter('title', $title, 'helper/asset/auto/meta');

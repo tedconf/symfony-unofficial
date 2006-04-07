@@ -27,15 +27,12 @@ class sfEmailValidator extends sfValidator
    * @param mixed A file or parameter value/array.
    * @param error An error message reference.
    *
-   * @return bool true, if this validator executes successfully, otherwise
-   *              false.
-   *
-   * @author Sean Kerr (skerr@mojavi.org)
-   * @since  3.0.0
+   * @return bool true, if this validator executes successfully, otherwise false.
    */
   public function execute (&$value, &$error)
   {
-    /* The long regular expression below is made by the following code
+    /* Cal Henderson: http://iamcal.com/publish/articles/php/parsing_email/pdf/
+     * The long regular expression below is made by the following code
      * fragment:
      *
      *   $qtext = '[^\\x0d\\x22\\x5c\\x80-\\xff]';
@@ -53,15 +50,15 @@ class sfEmailValidator extends sfValidator
      *   $addr_spec = "$local_part\\x40$domain";
      */
     $re = '/^([^\\x00-\\x20\\x22\\x28\\x29\\x2c\\x2e\\x3a-\\x3c\\x3e\\x40\\x5b-'
-        . '\\x5d\\x7f-\\xff]+|\\x22([^\\x0d\\x22\\x5c\\x80-\\xff]|\\x5c\\x00-'
-        . '\\x7f)*\\x22)(\\x2e([^\\x00-\\x20\\x22\\x28\\x29\\x2c\\x2e\\x3a-'
-        . '\\x3c\\x3e\\x40\\x5b-\\x5d\\x7f-\\xff]+|\\x22([^\\x0d\\x22\\x5c\\x80'
-        . '-\\xff]|\\x5c\\x00-\\x7f)*\\x22))*\\x40([^\\x00-\\x20\\x22\\x28\\x29'
-        . '\\x2c\\x2e\\x3a-\\x3c\\x3e\\x40\\x5b-\\x5d\\x7f-\\xff]+|\\x5b([^'
-        . '\\x0d\\x5b-\\x5d\\x80-\\xff]|\\x5c\\x00-\\x7f)*\\x5d)(\\x2e([^\\x00-'
-        . '\\x20\\x22\\x28\\x29\\x2c\\x2e\\x3a-\\x3c\\x3e\\x40\\x5b-\\x5d\\x7f-'
-        . '\\xff]+|\\x5b([^\\x0d\\x5b-\\x5d\\x80-\\xff]|\\x5c\\x00-\\x7f)*'
-        . '\\x5d))*$/'
+         .'\\x5d\\x7f-\\xff]+|\\x22([^\\x0d\\x22\\x5c\\x80-\\xff]|\\x5c\\x00-'
+         .'\\x7f)*\\x22)(\\x2e([^\\x00-\\x20\\x22\\x28\\x29\\x2c\\x2e\\x3a-'
+         .'\\x3c\\x3e\\x40\\x5b-\\x5d\\x7f-\\xff]+|\\x22([^\\x0d\\x22\\x5c\\x80'
+         .'-\\xff]|\\x5c\\x00-\\x7f)*\\x22))*\\x40([^\\x00-\\x20\\x22\\x28\\x29'
+         .'\\x2c\\x2e\\x3a-\\x3c\\x3e\\x40\\x5b-\\x5d\\x7f-\\xff]+|\\x5b([^'
+         .'\\x0d\\x5b-\\x5d\\x80-\\xff]|\\x5c\\x00-\\x7f)*\\x5d)(\\x2e([^\\x00-'
+         .'\\x20\\x22\\x28\\x29\\x2c\\x2e\\x3a-\\x3c\\x3e\\x40\\x5b-\\x5d\\x7f-'
+         .'\\xff]+|\\x5b([^\\x0d\\x5b-\\x5d\\x80-\\xff]|\\x5c\\x00-\\x7f)*'
+         .'\\x5d))*$/'
     ;
 
     if (!preg_match($re, $value))
