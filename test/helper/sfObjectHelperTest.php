@@ -21,18 +21,16 @@ class sfObjectHelperTest extends UnitTestCase
     $obj2->setText('text2');
     $obj2->setValue('value2');
 
-    $actual = objects_for_select(Array($obj1, $obj2), 'getValue', 'getText', 'value');
-    $expected = "<option value=\"value\" selected=\"selected\">text</option>\n<option value=\"value2\">text2</option>\n";
-    $this->assertEqual($expected, $actual);
+    $this->assertEqual("<option value=\"value\" selected=\"selected\">text</option>\n<option value=\"value2\">text2</option>\n",
+      objects_for_select(Array($obj1, $obj2), 'getValue', 'getText', 'value'));
 
-    $actual = objects_for_select(Array($obj1, $obj2), 'getValue');
-    $expected = "<option value=\"value\">value</option>\n<option value=\"value2\">value2</option>\n";
-    $this->assertEqual($expected, $actual);
+    $this->assertEqual("<option value=\"value\">value</option>\n<option value=\"value2\">value2</option>\n",
+      objects_for_select(Array($obj1, $obj2), 'getValue'));
 
     try
     {
-      $actual = objects_for_select(Array($obj1, $obj2), 'getNonExistantMethod');
-      $this->assertEqual($expected, $actual);
+      $this->assertEqual("<option value=\"value\">value</option>\n<option value=\"value2\">value2</option>\n",
+        objects_for_select(Array($obj1, $obj2), 'getNonExistantMethod'));
 
       $this->assertTrue(0);
     }
@@ -43,8 +41,8 @@ class sfObjectHelperTest extends UnitTestCase
 
     try
     {
-      $actual = objects_for_select(Array($obj1, $obj2), 'getValue', 'getNonExistantMethod');
-      $this->assertEqual($expected, $actual);
+      $this->assertEqual("<option value=\"value\">value</option>\n<option value=\"value2\">value2</option>\n",
+        objects_for_select(Array($obj1, $obj2), 'getValue', 'getNonExistantMethod'));
 
       $this->assertTrue(0);
     }
@@ -58,23 +56,23 @@ class sfObjectHelperTest extends UnitTestCase
   {
     $obj1 = new TestObject();
 
-    $this->assertEqual(object_input_hidden_tag($obj1, 'getValue'),
-                       '<input type="hidden" name="value" id="value" value="value" />');
+    $this->assertEqual('<input type="hidden" name="value" id="value" value="value" />',
+      object_input_hidden_tag($obj1, 'getValue'));
   }
 
   public function test_object_input_tag()
   {
     $obj1 = new TestObject();
 
-    $this->assertEqual(object_input_tag($obj1, 'getValue'),
-                       '<input type="text" name="value" id="value" value="value" />');
+    $this->assertEqual('<input type="text" name="value" id="value" value="value" />',
+      object_input_tag($obj1, 'getValue'));
   }
 
   public function test_object_checkbox_tag()
   {
     $obj1 = new TestObject();
 
-    $this->assertEqual(object_checkbox_tag($obj1, 'getValue'),
-                       '<input type="checkbox" name="value" id="value" value="1" />');
+    $this->assertEqual('<input type="checkbox" name="value" id="value" value="1" />',
+      object_checkbox_tag($obj1, 'getValue'));
   }
 }

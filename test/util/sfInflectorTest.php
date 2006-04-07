@@ -2,96 +2,75 @@
 
 class sfInflectorTest extends UnitTestCase
 {
-  private static $CamelToUnderscore = array(
-    "Product"               => "product",
-    "SpecialGuest"          => "special_guest",
-    "ApplicationController" => "application_controller"
-  );
-
-  private static $CamelWithModuleToUnderscoreWithSlash = array(
-    "Admin::Product" => "admin/product",
-    "Users::Commission::Department" => "users/commission/department",
-    "UsersSection::CommissionDepartment" => "users_section/commission_department",
-  );
-
-  private static $ClassNameToForeignKeyWithUnderscore = array(
-    "Person" => "person_id",
-    "MyApplication::Billing::Account" => "account_id"
-  );
-
-  private static $ClassNameToForeignKeyWithoutUnderscore = array(
-    "Person" => "personid",
-    "MyApplication::Billing::Account" => "accountid"
-  );
-  
-  private static $ClassNameToTableName = array(
-    "PrimarySpokesman" => "primary_spokesman",
-    "NodeChild"        => "node_child"
-  );
-  
-  private static $UnderscoreToHuman = array(
-    "employee_salary" => "Employee salary",
-    "underground"     => "Underground"
-  );
-
   public function test_camelize()
   {
-    foreach (sfInflectorTest::$CamelToUnderscore as $camel => $underscore)
-      $this->assertEqual($camel, sfInflector::camelize($underscore));
+    $this->assertEqual('Product', sfInflector::camelize('product'));
+    $this->assertEqual('SpecialGuest', sfInflector::camelize('special_guest'));
+    $this->assertEqual('ApplicationController', sfInflector::camelize('application_controller'));
+
+    $this->assertEqual('HtmlTidyGenerator', sfInflector::camelize('html_tidy_generator'));
+    $this->assertEqual('Phone2Ext', sfInflector::camelize('phone2_ext'));
   }
 
   public function test_underscore()
   {
-    foreach (sfInflectorTest::$CamelToUnderscore as $camel => $underscore)
-      $this->assertEqual($underscore, sfInflector::underscore($camel));
+    $this->assertEqual('product', sfInflector::underscore('Product'));
+    $this->assertEqual( 'special_guest', sfInflector::underscore('SpecialGuest'));
+    $this->assertEqual('application_controller', sfInflector::underscore('ApplicationController'));
 
-    $this->assertEqual("html_tidy", sfInflector::underscore("HTMLTidy"));
-    $this->assertEqual("html_tidy_generator", sfInflector::underscore("HTMLTidyGenerator"));
-    $this->assertEqual("phone2_ext", sfInflector::underscore("Phone2Ext"));
+    $this->assertEqual('html_tidy', sfInflector::underscore('HTMLTidy'));
+    $this->assertEqual('html_tidy_generator', sfInflector::underscore('HTMLTidyGenerator'));
+    $this->assertEqual('phone2_ext', sfInflector::underscore('Phone2Ext'));
   }
 
   public function test_camelize_with_module()
   {
-    foreach (sfInflectorTest::$CamelWithModuleToUnderscoreWithSlash as $camel => $underscore)
-      $this->assertEqual($camel, sfInflector::camelize($underscore));
+    $this->assertEqual('Admin::Product', sfInflector::camelize('admin/product'));
+    $this->assertEqual('Users::Commission::Department',
+      sfInflector::camelize('users/commission/department'));
+    $this->assertEqual('UsersSection::CommissionDepartment',
+      sfInflector::camelize('users_section/commission_department'));
   }
-  
+
   public function test_underscore_with_slashes()
   {
-    foreach (sfInflectorTest::$CamelWithModuleToUnderscoreWithSlash as $camel => $underscore)
-      $this->assertEqual($underscore, sfInflector::underscore($camel));
+    $this->assertEqual('admin/product', sfInflector::underscore('Admin::Product'));
+    $this->assertEqual('users/commission/department',
+      sfInflector::underscore('Users::Commission::Department'));
+    $this->assertEqual('users_section/commission_department',
+      sfInflector::underscore('UsersSection::CommissionDepartment'));
   }
 
   public function test_demodulize()
   {
-    $this->assertEqual("Account", sfInflector::demodulize("MyApplication::Billing::Account"));
+    $this->assertEqual('Account', sfInflector::demodulize('MyApplication::Billing::Account'));
   }
 
   public function test_foreign_key()
   {
-    foreach (sfInflectorTest::$ClassNameToForeignKeyWithUnderscore as $klass => $foreignKey)
-      $this->assertEqual($foreignKey, sfInflector::foreign_key($klass));
+    $this->assertEqual('person_id', sfInflector::foreign_key('Person'));
+    $this->assertEqual('account_id', sfInflector::foreign_key('MyApplication::Billing::Account'));
 
-    foreach (sfInflectorTest::$ClassNameToForeignKeyWithoutUnderscore as $klass => $foreignKey)
-      $this->assertEqual($foreignKey, sfInflector::foreign_key($klass, false));
+    $this->assertEqual('personid', sfInflector::foreign_key('Person', false));
+    $this->assertEqual('accountid', sfInflector::foreign_key('MyApplication::Billing::Account', false));
   }
 
   public function test_tableize()
   {
-    foreach (sfInflectorTest::$ClassNameToTableName as $className => $tableName)
-      $this->assertEqual($tableName, sfInflector::tableize($className));
+    $this->assertEqual('primary_spokesman', sfInflector::tableize('PrimarySpokesman'));
+    $this->assertEqual('node_child', sfInflector::tableize('NodeChild'));
   }
 
   public function test_classify()
   {
-    foreach (sfInflectorTest::$ClassNameToTableName as $className => $tableName)
-      $this->assertEqual($className, sfInflector::classify($tableName));
+    $this->assertEqual('PrimarySpokesman', sfInflector::classify('primary_spokesman'));
+    $this->assertEqual('NodeChild', sfInflector::classify('node_child'));
   }
-  
+
   public function test_humanize()
   {
-    foreach (sfInflectorTest::$UnderscoreToHuman as $underscore => $human)
-      $this->assertEqual($human, sfInflector::humanize($underscore));
+    $this->assertEqual('Employee salary', sfInflector::humanize('employee_salary'));
+    $this->assertEqual('Underground', sfInflector::humanize('underground'));
   }
 }
 

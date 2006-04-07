@@ -27,94 +27,86 @@ class sfAssetTagHelperTest extends UnitTestCase
 
   public function test_image_tag()
   {
-    $this->assertEqual(image_tag(''),
-      '');
-    $this->assertEqual(image_tag('test'),
-      '<img src="/images/test.png" alt="Test" />');
+    $this->assertEqual('', image_tag(''));
+    $this->assertEqual('<img src="/images/test.png" alt="Test" />', image_tag('test'));
+    $this->assertEqual('<img src="/images/test.png" alt="Test" />', image_tag('test.png'));
+    $this->assertEqual('<img src="/images/test.png" alt="Test" />', image_tag('/images/test.png'));
+    $this->assertEqual('<img src="/images/test.png" alt="Test" />', image_tag('/images/test'));
+    $this->assertEqual('<img src="/images/test.jpg" alt="Test" />', image_tag('test.jpg'));
 
-    $this->assertEqual(image_tag('test.png'),
-      '<img src="/images/test.png" alt="Test" />');
+    $this->assertEqual('<img src="/anotherpath/path/test.jpg" alt="Test" />',
+      image_tag('/anotherpath/path/test.jpg'));
 
-    $this->assertEqual(image_tag('/images/test.png'),
-      '<img src="/images/test.png" alt="Test" />');
+    $this->assertEqual('<img alt="Foo" src="/images/test.png" />',
+      image_tag('test', array('alt' => 'Foo')));
 
-    $this->assertEqual(image_tag('/images/test'),
-      '<img src="/images/test.png" alt="Test" />');
+    $this->assertEqual('<img src="/images/test.png" alt="Test" height="10" width="10" />',
+      image_tag('test', array('size' => '10x10')));
 
-    $this->assertEqual(image_tag('test.jpg'),
-      '<img src="/images/test.jpg" alt="Test" />');
-
-    $this->assertEqual(image_tag('/anotherpath/path/test.jpg'),
-      '<img src="/anotherpath/path/test.jpg" alt="Test" />');
-
-    $this->assertEqual(image_tag('test', array('alt' => 'Foo')),
-      '<img alt="Foo" src="/images/test.png" />');
-
-    $this->assertEqual(image_tag('test', array('size' => '10x10')),
-      '<img src="/images/test.png" alt="Test" height="10" width="10" />');
-
-    $this->assertEqual(image_tag('test', array('class' => 'bar')),
-      '<img class="bar" src="/images/test.png" alt="Test" />');
+    $this->assertEqual('<img class="bar" src="/images/test.png" alt="Test" />',
+      image_tag('test', array('class' => 'bar')));
   }
 
   public function test_stylesheet_tag()
   {
-    $this->assertEqual(stylesheet_tag('style'),
-      '<link rel="stylesheet" type="text/css" media="screen" href="/css/style.css" />'."\n");
+    $this->assertEqual('<link rel="stylesheet" type="text/css" media="screen" href="/css/style.css" />'."\n",
+      stylesheet_tag('style'));
 
-    $this->assertEqual(stylesheet_tag('random.styles', '/css/stylish'),
+    $this->assertEqual(
       '<link rel="stylesheet" type="text/css" media="screen" href="/css/random.styles" />'."\n".
-      '<link rel="stylesheet" type="text/css" media="screen" href="/css/stylish.css" />'."\n");
+      '<link rel="stylesheet" type="text/css" media="screen" href="/css/stylish.css" />'."\n",
+      stylesheet_tag('random.styles', '/css/stylish')
+    );
   }
 
   public function test_javascript_include_tag()
   {
-    $this->assertEqual(javascript_include_tag('xmlhr'),
-      '<script type="text/javascript" src="/js/xmlhr.js"></script>'."\n");
+    $this->assertEqual('<script type="text/javascript" src="/js/xmlhr.js"></script>'."\n",
+      javascript_include_tag('xmlhr'));
 
-    $this->assertEqual(javascript_include_tag('common.javascript', '/elsewhere/cools'),
+    $this->assertEqual(
       '<script type="text/javascript" src="/js/common.javascript"></script>'."\n".
-      '<script type="text/javascript" src="/elsewhere/cools.js"></script>'."\n");
+      '<script type="text/javascript" src="/elsewhere/cools.js"></script>'."\n",
+      javascript_include_tag('common.javascript', '/elsewhere/cools')
+    );
   }
 
   public function test_asset_javascript_path()
   {
-    $this->assertEqual(javascript_path('xmlhr'),
-      '/js/xmlhr.js');
+    $this->assertEqual('/js/xmlhr.js', javascript_path('xmlhr'));
   }
 
   public function test_asset_style_path()
   {
-    $this->assertEqual(stylesheet_path('style'),
-      '/css/style.css');
+    $this->assertEqual('/css/style.css', stylesheet_path('style'));
   }
 
   public function test_asset_style_link()
   {
-    $this->assertEqual(stylesheet_tag('style'),
-      "<link rel=\"stylesheet\" type=\"text/css\" media=\"screen\" href=\"/css/style.css\" />\n");
+    $this->assertEqual("<link rel=\"stylesheet\" type=\"text/css\" media=\"screen\" href=\"/css/style.css\" />\n",
+      stylesheet_tag('style'));
 
-    $this->assertEqual(stylesheet_tag('random.styles', '/css/stylish'),
+    $this->assertEqual(
       "<link rel=\"stylesheet\" type=\"text/css\" media=\"screen\" href=\"/css/random.styles\" />\n".
-      "<link rel=\"stylesheet\" type=\"text/css\" media=\"screen\" href=\"/css/stylish.css\" />\n");
+      "<link rel=\"stylesheet\" type=\"text/css\" media=\"screen\" href=\"/css/stylish.css\" />\n",
+      stylesheet_tag('random.styles', '/css/stylish')
+    );
   }
 
   public function test_asset_image_path()
   {
-    $this->assertEqual(image_path('xml'),
-      '/images/xml.png');
+    $this->assertEqual('/images/xml.png', image_path('xml'));
   }
 
   public function test_asset_image_tag()
   {
-    $this->assertEqual(image_tag('xml'),
-      '<img src="/images/xml.png" alt="Xml" />');
+    $this->assertEqual('<img src="/images/xml.png" alt="Xml" />', image_tag('xml'));
 
-    $this->assertEqual(image_tag('rss', array('alt' => 'rss syndication')),
-      '<img alt="rss syndication" src="/images/rss.png" />');
+    $this->assertEqual('<img alt="rss syndication" src="/images/rss.png" />',
+      image_tag('rss', array('alt' => 'rss syndication')));
 
-    $this->assertEqual(image_tag('gold', array('size' => '45x70')),
-      '<img src="/images/gold.png" alt="Gold" height="70" width="45" />');
+    $this->assertEqual('<img src="/images/gold.png" alt="Gold" height="70" width="45" />',
+      image_tag('gold', array('size' => '45x70')));
   }
 
 /*
@@ -160,61 +152,61 @@ class sfAssetTagHelperNonVhostTest extends UnitTestCase
 */
   public function test_javascript_path()
   {
-    $this->assertEqual(javascript_path('xmlhr'),
-      '/mypath/js/xmlhr.js');
+    $this->assertEqual('/mypath/js/xmlhr.js', javascript_path('xmlhr'));
   }
 
   public function test_javascript_include()
   {
-    $this->assertEqual(javascript_include_tag('xmlhr'),
-      '<script type="text/javascript" src="/mypath/js/xmlhr.js"></script>'."\n");
+    $this->assertEqual('<script type="text/javascript" src="/mypath/js/xmlhr.js"></script>'."\n",
+      javascript_include_tag('xmlhr'));
 
-    $this->assertEqual(javascript_include_tag('common.javascript', '/elsewhere/cools'),
+    $this->assertEqual(
       '<script type="text/javascript" src="/mypath/js/common.javascript"></script>'."\n".
-      '<script type="text/javascript" src="/mypath/elsewhere/cools.js"></script>'."\n");
+      '<script type="text/javascript" src="/mypath/elsewhere/cools.js"></script>'."\n",
+      javascript_include_tag('common.javascript', '/elsewhere/cools')
+    );
   }
 
   public function test_style_path()
   {
-    $this->assertEqual(stylesheet_path('style'),
-      '/mypath/css/style.css');
+    $this->assertEqual('/mypath/css/style.css', stylesheet_path('style'));
   }
 
   public function test_style_link()
   {
-    $this->assertEqual(stylesheet_tag('style'),
-      '<link rel="stylesheet" type="text/css" media="screen" href="/mypath/css/style.css" />'."\n");
+    $this->assertEqual('<link rel="stylesheet" type="text/css" media="screen" href="/mypath/css/style.css" />'."\n",
+      stylesheet_tag('style'));
 
-    $this->assertEqual(stylesheet_tag('random.styles', '/css/stylish'),
+    $this->assertEqual(
       '<link rel="stylesheet" type="text/css" media="screen" href="/mypath/css/random.styles" />'."\n".
-      '<link rel="stylesheet" type="text/css" media="screen" href="/mypath/css/stylish.css" />'."\n");
+      '<link rel="stylesheet" type="text/css" media="screen" href="/mypath/css/stylish.css" />'."\n",
+      stylesheet_tag('random.styles', '/css/stylish')
+    );
   }
 
   public function test_image_path()
   {
-    $this->assertEqual(image_path('xml'),
-      '/mypath/images/xml.png');
+    $this->assertEqual('/mypath/images/xml.png', image_path('xml'));
   }
 
   public function test_image_tag()
   {
-    $this->assertEqual(image_tag('xml'),
-      '<img src="/mypath/images/xml.png" alt="Xml" />');
+    $this->assertEqual('<img src="/mypath/images/xml.png" alt="Xml" />', image_tag('xml'));
 
-    $this->assertEqual(image_tag('rss', array('alt' => 'rss syndication')),
-      '<img alt="rss syndication" src="/mypath/images/rss.png" />');
+    $this->assertEqual('<img alt="rss syndication" src="/mypath/images/rss.png" />',
+      image_tag('rss', array('alt' => 'rss syndication')));
 
-    $this->assertEqual(image_tag('gold', array('size' => '45x70')),
-      '<img src="/mypath/images/gold.png" alt="Gold" height="70" width="45" />');
+    $this->assertEqual('<img src="/mypath/images/gold.png" alt="Gold" height="70" width="45" />',
+      image_tag('gold', array('size' => '45x70')));
 
-    $this->assertEqual(image_tag('http://www.example.com/images/icon.gif'),
-      '<img src="http://www.example.com/images/icon.gif" alt="Icon" />');
+    $this->assertEqual('<img src="http://www.example.com/images/icon.gif" alt="Icon" />',
+      image_tag('http://www.example.com/images/icon.gif'));
   }
 
   public function test_stylesheet_with_asset_host_already_encoded()
   {
-    $this->assertEqual(stylesheet_tag("http://bar.example.com/css/style.css"),
-      '<link rel="stylesheet" type="text/css" media="screen" href="http://bar.example.com/css/style.css" />'."\n");
+    $this->assertEqual('<link rel="stylesheet" type="text/css" media="screen" href="http://bar.example.com/css/style.css" />'."\n",
+      stylesheet_tag("http://bar.example.com/css/style.css"));
   }
 
 }

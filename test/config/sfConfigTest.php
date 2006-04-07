@@ -39,7 +39,7 @@ class sfConfigTest extends UnitTestCase
     $this->assertEqual('foo1', sfConfig::get('foo1'));
 
     sfConfig::clear();
-    $this->assertEqual(null, sfConfig::get('foo1'));
+    $this->assertNull(sfConfig::get('foo1'));
   }
 }
 

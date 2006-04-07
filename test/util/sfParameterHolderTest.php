@@ -6,11 +6,11 @@ class sfParameterHolderTest extends UnitTestCase
   {
     $ph = new sfParameterHolder();
     $ph->clear();
-    $this->assertEqual(null, $ph->getAll());
+    $this->assertEqual(array(), $ph->getAll());
 
     $ph->set('foo', 'bar');
     $ph->clear();
-    $this->assertEqual(null, $ph->getAll());
+    $this->assertEqual(array(), $ph->getAll());
   }
 
   public function test_get()
@@ -25,7 +25,7 @@ class sfParameterHolderTest extends UnitTestCase
     $ph = new sfParameterHolder();
     $ph->set('myfoo', 'bar', 'symfony/mynamespace');
     $this->assertEqual('bar', $ph->get('myfoo', null, 'symfony/mynamespace'));
-    $this->assertEqual(null, $ph->get('myfoo'));
+    $this->assertNull($ph->get('myfoo'));
 
     // test multi-delemsional get
     $ph = new sfParameterHolder();
@@ -37,7 +37,7 @@ class sfParameterHolderTest extends UnitTestCase
     )));
     $this->assertEqual('foo bar', $ph->get('foo[bar][baz]'));
     $this->assertEqual('bar', $ph->get('foo[bars][1]'));
-    $this->assertEqual(null, $ph->get('foo[bars][2]'));
+    $this->assertNull($ph->get('foo[bars][2]'));
     $this->assertEqual(array('foo', 'bar'), $ph->get('foo[bars][]'));
     $this->assertEqual($ph->get('foo[bars][]'), $ph->get('foo[bars]')); // these should be equal
   }
@@ -93,10 +93,10 @@ class sfParameterHolderTest extends UnitTestCase
       ),
       'bars' => array('foo', 'bar'),
     )));
-    $this->assertEqual(true, $ph->has('foo[bar][baz]'));
-    $this->assertEqual(true, $ph->get('foo[bars][1]'));
-    $this->assertEqual(false, $ph->get('foo[bars][2]'));
-    $this->assertEqual(true, $ph->has('foo[bars][]'));
+    $this->assertTrue($ph->has('foo[bar][baz]'));
+    $this->assertTrue($ph->get('foo[bars][1]'));
+    $this->assertFalse($ph->get('foo[bars][2]'));
+    $this->assertTrue($ph->has('foo[bars][]'));
     $this->assertEqual($ph->get('foo[bars][]'), $ph->has('foo[bars]')); // these should be equal
   }
 
@@ -127,7 +127,7 @@ class sfParameterHolderTest extends UnitTestCase
     $ph->remove('myfoo', 'symfony/mynamespace');
     $this->assertFalse($ph->has('myfoo', 'symfony/mynamespace'));
 
-    $this->assertEqual(null, $ph->getAll());
+    $this->assertEqual(array(), $ph->getAll());
   }
 
   public function test_removeNamespace()
@@ -145,7 +145,7 @@ class sfParameterHolderTest extends UnitTestCase
     $ph->removeNamespace('symfony/mynamespace');
     $this->assertFalse($ph->has('myfoo', 'symfony/mynamespace'));
 
-    $this->assertEqual(null, $ph->getAll());
+    $this->assertEqual(array(), $ph->getAll());
   }
 
   public function test_set()

@@ -26,8 +26,8 @@ class sfWebRequestTest extends UnitTestCase
 
   public function test_pathinfo()
   {
-//    $this->populateVariables('http://domain.com/index.php/test/value', true);
-//    $this->assertEqual($this->request->getPathInfo(), '/test/value');
+    $this->populateVariables('http://domain.com/index.php/test/value', true);
+    $this->assertEqual('/test/value', $this->request->getPathInfo());
   }
 
   protected function populateVariables($requestUri, $withLayout)

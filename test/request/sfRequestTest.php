@@ -33,14 +33,15 @@ class sfRequestTest extends UnitTestCase
     $value = "error";
 
     $this->request->setError($key, $value);
-    $this->assertEqual($this->request->hasError($key), true);
-    $this->assertEqual($this->request->hasErrors(), true);
-    $this->assertEqual($this->request->getError($key), $value);
-    $this->assertEqual($this->request->removeError($key), $value);
-    $this->assertEqual($this->request->hasError($key), false);
-    $this->assertEqual($this->request->hasErrors(), false);
+
+    $this->assertTrue($this->request->hasError($key));
+    $this->assertTrue($this->request->hasErrors());
+    $this->assertEqual($value, $this->request->getError($key));
+    $this->assertEqual($value, $this->request->removeError($key));
+    $this->assertFalse($this->request->hasError($key));
+    $this->assertFalse($this->request->hasErrors());
   }
-  
+
   public function test_multiple_errors()
   {
     $key1 = "test1";
@@ -53,21 +54,22 @@ class sfRequestTest extends UnitTestCase
 
     $this->request->setError($key1, $valueKey1_1);
     $this->request->setErrors($arrayErrors);
-    $this->assertEqual($this->request->hasError($key1), true);
-    $this->assertEqual($this->request->hasErrors(), true);
-    $this->assertEqual($this->request->getErrorNames(), $errorNames);
-    $this->assertEqual($this->request->getErrors(), $arrayErrors);
-    $this->assertEqual($this->request->getError($key1), $valueKey1_2);
-    $this->assertEqual($this->request->removeError($key1), $valueKey1_2);
-    $this->assertEqual($this->request->hasErrors(), true);
-    $this->assertEqual($this->request->removeError($key2), $valueKey2_1);
-    $this->assertEqual($this->request->hasErrors(), false);
+
+    $this->assertTrue($this->request->hasError($key1));
+    $this->assertTrue($this->request->hasErrors());
+    $this->assertEqual($errorNames, $this->request->getErrorNames());
+    $this->assertEqual($arrayErrors, $this->request->getErrors());
+    $this->assertEqual($valueKey1_2, $this->request->getError($key1));
+    $this->assertEqual($valueKey1_2, $this->request->removeError($key1));
+    $this->assertTrue($this->request->hasErrors());
+    $this->assertEqual($valueKey2_1, $this->request->removeError($key2));
+    $this->assertFalse($this->request->hasErrors());
   }
-  
+
   public function test_method()
   {
     $this->request->setMethod(sfRequest::GET);
-    $this->assertEqual($this->request->getMethod(), sfRequest::GET);
+    $this->assertEqual(sfRequest::GET, $this->request->getMethod());
   }
 
   public function test_parameter()
@@ -77,15 +79,18 @@ class sfRequestTest extends UnitTestCase
     $name2 = 'test_name2';
     $value2 = 'test_value2';
     $ns = 'test_ns';
-    $this->assertEqual($this->request->hasParameter($name1), false);
-    $this->assertEqual($this->request->getParameter($name1, $value1), $value1);
+
+    $this->assertFalse($this->request->hasParameter($name1));
+    $this->assertEqual($value1, $this->request->getParameter($name1, $value1));
+
     $this->request->setParameter($name1, $value1);
-    $this->assertEqual($this->request->hasParameter($name1), true);
-    $this->assertEqual($this->request->getParameter($name1), $value1);
+    $this->assertTrue($this->request->hasParameter($name1));
+    $this->assertEqual($value1, $this->request->getParameter($name1));
+
     $this->request->setParameter($name2, $value2, $ns);
-    $this->assertEqual($this->request->hasParameter($name2), false);
-    $this->assertEqual($this->request->hasParameter($name2, $ns), true);
-    $this->assertEqual($this->request->getParameter($name2, '', $ns), $value2);
+    $this->assertFalse($this->request->hasParameter($name2));
+    $this->assertTrue($this->request->hasParameter($name2, $ns));
+    $this->assertEqual($value2, $this->request->getParameter($name2, '', $ns));
   }
 
   public function test_attribute()
@@ -95,15 +100,18 @@ class sfRequestTest extends UnitTestCase
     $name2 = 'test_name2';
     $value2 = 'test_value2';
     $ns = 'test_ns';
-    $this->assertEqual($this->request->hasAttribute($name1), false);
-    $this->assertEqual($this->request->getAttribute($name1, $value1), $value1);
+
+    $this->assertFAlse($this->request->hasAttribute($name1));
+    $this->assertEqual($value1, $this->request->getAttribute($name1, $value1));
+
     $this->request->setAttribute($name1, $value1);
-    $this->assertEqual($this->request->hasAttribute($name1), true);
-    $this->assertEqual($this->request->getAttribute($name1), $value1);
+    $this->assertTrue($this->request->hasAttribute($name1));
+    $this->assertEqual($value1, $this->request->getAttribute($name1));
+
     $this->request->setAttribute($name2, $value2, $ns);
-    $this->assertEqual($this->request->hasAttribute($name2), false);
-    $this->assertEqual($this->request->hasAttribute($name2, $ns), true);
-    $this->assertEqual($this->request->getAttribute($name2, '', $ns), $value2);
+    $this->assertFalse($this->request->hasAttribute($name2));
+    $this->assertTrue($this->request->hasAttribute($name2, $ns));
+    $this->assertEqual($value2, $this->request->getAttribute($name2, '', $ns));
   }
 
   protected function populateVariables($requestUri, $withLayout)

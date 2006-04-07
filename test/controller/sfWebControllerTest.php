@@ -7,52 +7,6 @@ class sfWebControllerTest extends UnitTestCase
   private $context;
   private $controller;
 
-  private static $tests = array(
-    'module/action' => array(
-      '',
-      array(
-        'module' => 'module',
-        'action' => 'action',
-      ),
-      ),
-    'module/action?id=12' => array(
-      '',
-      array(
-        'module' => 'module',
-        'action' => 'action',
-        'id'     => 12,
-      ),
-      ),
-    'module/action?id=12&test=4&toto=9' => array(
-      '',
-      array(
-        'module' => 'module',
-        'action' => 'action',
-        'id'     => 12,
-        'test'   => 4,
-        'toto'   => 9,
-      ),
-      ),
-    '@test?test=4' => array(
-      'test',
-      array(
-        'test' => 4
-      ),
-      ),
-    '@test' => array(
-      'test',
-      array(
-      ),
-      ),
-    '@test?id=12&foo=bar' => array(
-      'test',
-      array(
-        'id' => 12,
-        'foo' => 'bar',
-      ),
-      ),
-  );
-
   public function SetUp()
   {
     sfConfig::set('sf_max_forwards', 10);
@@ -65,10 +19,46 @@ class sfWebControllerTest extends UnitTestCase
   {
     $c = $this->controller;
 
-    foreach (self::$tests as $url => $result)
-    {
-      $this->assertEqual($result, $c->convertUrlStringToParameters($url));
-    }
+    $this->assertEqual(array('',
+        array(
+          'module' => 'module',
+          'action' => 'action'
+        )
+      ),
+      $c->convertUrlStringToParameters('module/action'));
+
+    $this->assertEqual(array('',
+        array(
+          'module' => 'module',
+          'action' => 'action',
+          'id'     => 12
+        )
+      ),
+      $c->convertUrlStringToParameters('module/action?id=12'));
+
+    $this->assertEqual(array('',
+        array(
+          'module' => 'module',
+          'action' => 'action',
+          'id'     => 12,
+          'test'   => 4,
+          'toto'   => 9
+        )
+      ),
+      $c->convertUrlStringToParameters('module/action?id=12&test=4&toto=9'));
+
+    $this->assertEqual(array('test', array('test' => 4)),
+      $c->convertUrlStringToParameters('@test?test=4'));
+
+    $this->assertEqual(array('test', array()), $c->convertUrlStringToParameters('@test'));
+
+    $this->assertEqual(array('test',
+        array(
+          'id' => 12,
+          'foo' => 'bar'
+        )
+      ),
+      $c->convertUrlStringToParameters('@test?id=12&foo=bar'));
   }
 }
 

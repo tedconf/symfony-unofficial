@@ -8,35 +8,18 @@ class sfTextHelperTest extends UnitTestCase
 {
   private $context;
 
-  private static $TruncateTexts = array(
-    'Test' => 'Test'
-  );
-
   public function SetUp()
   {
     $this->context = new MockSfContext($this);
   }
 
-    public function test_text_truncate()
-    {
+  public function test_text_truncate()
+  {
     $this->assertEqual('Test', truncate_text('Test'));
-    foreach (sfTextHelperTest::$TruncateTexts as $text => $truncated)
-    {
-      $this->assertEqual($truncated, truncate_text($text));
-    }
-
-    $text = str_repeat('A', 35);
-    $truncated = str_repeat('A', 27).'...';
-    $this->assertEqual($truncated, truncate_text($text));
-
-    $text = str_repeat('A', 35);
-    $truncated = str_repeat('A', 22).'...';
-    $this->assertEqual($truncated, truncate_text($text, 25));
-
-    $text = str_repeat('A', 35);
-    $truncated = str_repeat('A', 21).'BBBB';
-    $this->assertEqual($truncated, truncate_text($text, 25, 'BBBB'));
-    }
+    $this->assertEqual(str_repeat('A', 27).'...', truncate_text(str_repeat('A', 35)));
+    $this->assertEqual(str_repeat('A', 22).'...', truncate_text(str_repeat('A', 35), 25));
+    $this->assertEqual(str_repeat('A', 21).'BBBB', truncate_text(str_repeat('A', 35), 25, 'BBBB'));
+  }
 
   public function test_text_highlighter()
   {
@@ -57,14 +40,20 @@ class sfTextHelperTest extends UnitTestCase
 
   public function test_text_highlighter_with_regexp()
   {
-    $this->assertEqual("This is a <strong class=\"highlight\">beautiful!</strong> morning", highlight_text("This is a beautiful! morning", "beautiful!"));
-    $this->assertEqual("This is a <strong class=\"highlight\">beautiful! morning</strong>", highlight_text("This is a beautiful! morning", "beautiful! morning"));
-    $this->assertEqual("This is a <strong class=\"highlight\">beautiful? morning</strong>", highlight_text("This is a beautiful? morning", "beautiful? morning"));
+    $this->assertEqual("This is a <strong class=\"highlight\">beautiful!</strong> morning",
+      highlight_text("This is a beautiful! morning", "beautiful!"));
+
+    $this->assertEqual("This is a <strong class=\"highlight\">beautiful! morning</strong>",
+      highlight_text("This is a beautiful! morning", "beautiful! morning"));
+
+    $this->assertEqual("This is a <strong class=\"highlight\">beautiful? morning</strong>",
+      highlight_text("This is a beautiful? morning", "beautiful? morning"));
   }
 
   public function test_text_excerpt()
   {
-    $this->assertEqual("...is a beautiful morn...", excerpt_text("This is a beautiful morning", "beautiful", 5));
+    $this->assertEqual("...is a beautiful morn...",
+      excerpt_text("This is a beautiful morning", "beautiful", 5));
     $this->assertEqual("This is a...", excerpt_text("This is a beautiful morning", "this", 5));
     $this->assertEqual("...iful morning", excerpt_text("This is a beautiful morning", "morning", 5));
     $this->assertEqual("...iful morning", excerpt_text("This is a beautiful morning", "morning", 5));
@@ -73,9 +62,14 @@ class sfTextHelperTest extends UnitTestCase
 
   public function test_text_simple_format()
   {
-    $this->assertEqual("<p>crazy\n<br /> cross\n<br /> platform linebreaks</p>", simple_format_text("crazy\r\n cross\r platform linebreaks"));
-    $this->assertEqual("<p>A paragraph</p>\n\n<p>and another one!</p>", simple_format_text("A paragraph\n\nand another one!"));
-    $this->assertEqual("<p>A paragraph\n<br /> With a newline</p>", simple_format_text("A paragraph\n With a newline"));
+    $this->assertEqual("<p>crazy\n<br /> cross\n<br /> platform linebreaks</p>",
+      simple_format_text("crazy\r\n cross\r platform linebreaks"));
+
+    $this->assertEqual("<p>A paragraph</p>\n\n<p>and another one!</p>",
+      simple_format_text("A paragraph\n\nand another one!"));
+
+    $this->assertEqual("<p>A paragraph\n<br /> With a newline</p>",
+      simple_format_text("A paragraph\n With a newline"));
   }
 
   public function test_text_strip_links()
@@ -95,7 +89,8 @@ class sfTextHelperTest extends UnitTestCase
     $this->assertEqual('hello '.$emailResult, auto_link_text('hello '.$emailRaw, 'email_addresses'));
     $this->assertEqual('Go to '.$linkResult, auto_link_text('Go to '.$linkRaw, 'urls'));
     $this->assertEqual('Go to '.$linkRaw, auto_link_text('Go to '.$linkRaw, 'email_addresses'));
-    $this->assertEqual('Go to '.$linkResult.' and say hello to '.$emailResult, auto_link_text('Go to '.$linkRaw.' and say hello to '.$emailRaw));
+    $this->assertEqual('Go to '.$linkResult.' and say hello to '.$emailResult,
+      auto_link_text('Go to '.$linkRaw.' and say hello to '.$emailRaw));
     $this->assertEqual('<p>Link '.$linkResult.'</p>', auto_link_text('<p>Link '.$linkRaw.'</p>'));
     $this->assertEqual('<p>'.$linkResult.' Link</p>', auto_link_text('<p>'.$linkRaw.' Link</p>'));
     $this->assertEqual('Go to '.$link2Result, auto_link_text('Go to '.$link2Raw, 'urls'));
