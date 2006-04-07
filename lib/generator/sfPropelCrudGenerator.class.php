@@ -157,7 +157,7 @@ class sfPropelCrudGenerator extends sfGenerator
     foreach ($this->getPrimaryKey() as $pk)
     {
       $fieldName  = sfInflector::underscore($pk->getPhpName());
-      $testPks[] = "!\$this->getRequestParameter(\$$fieldName, 0)";
+      $testPks[] = "!\$this->getRequestParameter('$fieldName', 0)";
     }
 
     return implode("\n     || ", $testPks);
@@ -292,40 +292,40 @@ class sfPropelCrudGenerator extends sfGenerator
       $params = $this->getObjectTagParams($params, array('related_class' => $relatedTable->getPhpName()));
       return "object_select_tag(\${$this->getSingularName()}, 'get{$column->getPhpName()}', $params)";
     }
-    elseif ($type == CreoleTypes::DATE)
+    else if ($type == CreoleTypes::DATE)
     {
       // rich=false not yet implemented
       $params = $this->getObjectTagParams($params, array('rich' => true));
       return "object_input_date_tag(\${$this->getSingularName()}, 'get{$column->getPhpName()}', $params)";
     }
-    elseif ($type == CreoleTypes::TIMESTAMP)
+    else if ($type == CreoleTypes::TIMESTAMP)
     {
       // rich=false not yet implemented
       $params = $this->getObjectTagParams($params, array('rich' => true, 'withtime' => true));
       return "object_input_date_tag(\${$this->getSingularName()}, 'get{$column->getPhpName()}', $params)";
     }
-    elseif ($type == CreoleTypes::BOOLEAN)
+    else if ($type == CreoleTypes::BOOLEAN)
     {
       $params = $this->getObjectTagParams($params);
       return "object_checkbox_tag(\${$this->getSingularName()}, 'get{$column->getPhpName()}', $params)";
     }
-    elseif ($type == CreoleTypes::CHAR || $type == CreoleTypes::VARCHAR)
+    else if ($type == CreoleTypes::CHAR || $type == CreoleTypes::VARCHAR)
     {
       $size = ($column->getSize() > 20 ? ($column->getSize() < 80 ? $column->getSize() : 80) : 20);
       $params = $this->getObjectTagParams($params, array('size' => $size));
       return "object_input_tag(\${$this->getSingularName()}, 'get{$column->getPhpName()}', $params)";
     }
-    elseif ($type == CreoleTypes::INTEGER || $type == CreoleTypes::TINYINT || $type == CreoleTypes::SMALLINT || $type == CreoleTypes::BIGINT)
+    else if ($type == CreoleTypes::INTEGER || $type == CreoleTypes::TINYINT || $type == CreoleTypes::SMALLINT || $type == CreoleTypes::BIGINT)
     {
       $params = $this->getObjectTagParams($params, array('size' => 7));
       return "object_input_tag(\${$this->getSingularName()}, 'get{$column->getPhpName()}', $params)";
     }
-    elseif ($type == CreoleTypes::FLOAT || $type == CreoleTypes::DOUBLE || $type == CreoleTypes::DECIMAL || $type == CreoleTypes::NUMERIC || $type == CreoleTypes::REAL)
+    else if ($type == CreoleTypes::FLOAT || $type == CreoleTypes::DOUBLE || $type == CreoleTypes::DECIMAL || $type == CreoleTypes::NUMERIC || $type == CreoleTypes::REAL)
     {
       $params = $this->getObjectTagParams($params, array('size' => 7));
       return "object_input_tag(\${$this->getSingularName()}, 'get{$column->getPhpName()}', $params)";
     }
-    elseif ($type == CreoleTypes::TEXT || $type == CreoleTypes::LONGVARCHAR)
+    else if ($type == CreoleTypes::TEXT || $type == CreoleTypes::LONGVARCHAR)
     {
       $params = $this->getObjectTagParams($params, array('size' => '30x3'));
       return "object_textarea_tag(\${$this->getSingularName()}, 'get{$column->getPhpName()}', $params)";

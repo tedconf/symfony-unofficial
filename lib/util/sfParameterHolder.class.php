@@ -84,18 +84,21 @@ class sfParameterHolder
       $ns = $this->defaultNamespace;
     }
 
-    if (false !== ($offset = strpos($name, '['))) {
+    if (false !== ($offset = strpos($name, '[')))
+    {
       if (isset($this->parameters[$ns][substr($name, 0, $offset)]))
       {
         $array = $this->parameters[$ns][substr($name, 0, $offset)];
 
-        while ($pos = strpos($name, '[', $offset)) {
+        while ($pos = strpos($name, '[', $offset))
+        {
           $end = strpos($name, ']', $pos);
-          if ($end == $pos+1) {
+          if ($end == $pos+1)
+          {
             // reached a []
             break;
           }
-          elseif (!isset($array[substr($name, $pos+1, $end-$pos-1)]))
+          else if (!isset($array[substr($name, $pos+1, $end-$pos-1)]))
           {
             return $default;
           }

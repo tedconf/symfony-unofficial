@@ -201,63 +201,6 @@ function _compute_public_path($source, $dir, $ext)
   return $source;
 }
 
-function include_stylesheets()
-{
-  $alreadySeen = array();
-
-  foreach (array('first', '', 'last') as $position)
-  {
-    foreach (sfContext::getInstance()->getResponse()->getStylesheets($position) as $files => $options)
-    {
-      if (!is_array($files))
-      {
-        $files = array($files);
-      }
-
-      foreach ($files as $file)
-      {
-        $file = stylesheet_path($file);
-
-        if (isset($alreadySeen[$file]))
-        {
-          continue;
-        }
-
-        $alreadySeen[$file] = 1;
-        echo stylesheet_tag($file, $options);
-      }
-    }
-  }
-}
-
-function include_javascripts()
-{
-  $alreadySeen = array();
-  foreach (array('first', '', 'last') as $position)
-  {
-    foreach (sfContext::getInstance()->getResponse()->getJavascripts($position) as $files)
-    {
-      if (!is_array($files))
-      {
-        $files = array($files);
-      }
-
-      foreach ($files as $file)
-      {
-        $file = javascript_path($file);
-
-        if (isset($alreadySeen[$file]))
-        {
-          continue;
-        }
-
-        $alreadySeen[$file] = 1;
-        echo javascript_include_tag($file);
-      }
-    }
-  }
-}
-
 function include_metas()
 {
   foreach (sfContext::getInstance()->getResponse()->getMetas() as $name => $content)
@@ -277,12 +220,18 @@ function include_http_metas()
 function include_title()
 {
   $title = sfContext::getInstance()->getResponse()->getTitle();
-  if (sfConfig::get('sf_i18n'))
-  {
-    $title = sfConfig::get('sf_i18n_instance')->__($title);
-  }
 
   echo content_tag('title', $title)."\n";
+}
+
+function include_javascripts()
+{
+  if (sfConfig::get('sf_logging_active')) sfContext::getInstance()->getLogger()->err('The function "include_javascripts()" is deprecated and not needed anymore.');
+}
+
+function include_stylesheets()
+{
+  if (sfConfig::get('sf_logging_active')) sfContext::getInstance()->getLogger()->err('The function "include_stylesheets()" is deprecated and not needed anymore.');
 }
 
 ?>

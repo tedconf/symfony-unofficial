@@ -31,8 +31,9 @@ class sfParameterHolderTest extends UnitTestCase
     $ph = new sfParameterHolder();
     $ph->add(array('foo' => array(
       'bar' => array(
-        'baz' => 'foo bar'),
-        'bars' => array('foo', 'bar')
+        'baz' => 'foo bar',
+      ),
+      'bars' => array('foo', 'bar'),
     )));
     $this->assertEqual('foo bar', $ph->get('foo[bar][baz]'));
     $this->assertEqual('bar', $ph->get('foo[bars][1]'));
@@ -88,8 +89,9 @@ class sfParameterHolderTest extends UnitTestCase
     $ph = new sfParameterHolder();
     $ph->add(array('foo' => array(
       'bar' => array(
-        'baz' => 'foo bar'),
-        'bars' => array('foo', 'bar')
+        'baz' => 'foo bar',
+      ),
+      'bars' => array('foo', 'bar'),
     )));
     $this->assertEqual(true, $ph->has('foo[bar][baz]'));
     $this->assertEqual(true, $ph->get('foo[bars][1]'));

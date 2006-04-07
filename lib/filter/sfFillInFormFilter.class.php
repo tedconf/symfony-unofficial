@@ -53,18 +53,18 @@ class sfFillInFormFilter extends sfFilter
     {
       foreach($xpath->query('descendant::input[@name and (not(@type) or @type="text" or @type="checkbox" or @type="radio")] | descendant::textarea[@name] | descendant::select[@name]', $form) as $element)
       {
-        if($element->nodeName == 'input')
+        if ($element->nodeName == 'input')
         {
-          if(!$element->hasAttribute('type') || $element->getAttribute('type') == 'text')
+          if (!$element->hasAttribute('type') || $element->getAttribute('type') == 'text')
           {
             // text input
             $element->removeAttribute('value');
-            if($request->hasParameter($element->getAttribute('name')))
+            if ($request->hasParameter($element->getAttribute('name')))
             {
               $element->setAttribute('value', $this->espaceRequestParameter($request, $element->getAttribute('name')));
             }
           }
-          elseif ($element->getAttribute('type') == 'checkbox' || $element->getAttribute('type') == 'radio')
+          else if ($element->getAttribute('type') == 'checkbox' || $element->getAttribute('type') == 'radio')
           {
             // checkbox and radio
             $name = $element->getAttribute('name');
@@ -75,7 +75,7 @@ class sfFillInFormFilter extends sfFilter
             }
           }
         }
-        elseif($element->nodeName == 'textarea')
+        else if ($element->nodeName == 'textarea')
         {
           foreach ($element->childNodes as $child_node)
           {
@@ -83,22 +83,23 @@ class sfFillInFormFilter extends sfFilter
           }
           $element->appendChild($doc->createTextNode($this->espaceRequestParameter($request, $element->getAttribute('name'))));
         }
-        elseif ($element->nodeName == 'select')
+        else if ($element->nodeName == 'select')
         {
           // select
-          $name = $element->getAttribute('name');
-          $mutiple = $element->hasAttribute('multipule');
+          $name     = $element->getAttribute('name');
+          $value    = $request->getParameter($name);
+          $multiple = $element->hasAttribute('multiple');
           foreach ($xpath->query('descendant::option', $element) as $option)
           {
             $option->removeAttribute('selected');
-            if ($mutiple && is_array($request->getParameter($name)))
+            if ($multiple && is_array($value))
             {
-              if (in_array($option->getAttribute('value'), $request->getParameter($name)))
+              if (in_array($option->getAttribute('value'), $value))
               {
                 $option->setAttribute('selected', 'selected');
               }
             }
-            elseif ($request->getParameter($name) == $option->getAttribute('value'))
+            else if ($value == $option->getAttribute('value'))
             {
               $option->setAttribute('selected', 'selected');
             }

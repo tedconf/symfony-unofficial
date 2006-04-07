@@ -79,15 +79,15 @@ class sfMailView extends sfPHPView
     $retval = $this->renderFile($template);
 
     // render main and alternate templates
-    $allTemplateDir  = dirname($template);
-    $allTemplateRegex = preg_replace('/\\.php$/', '\..+\.php', basename($template));
-    $allTemplates = sfFinder::type('file')->name('/^'.$allTemplateRegex.'$/')->in($allTemplateDir);
-    $allRetvals = array();
-    foreach ($allTemplates as $templateFile)
+    $all_template_dir  = dirname($template);
+    $all_template_regex = preg_replace('/\\.php$/', '\..+\.php', basename($template));
+    $all_templates = sfFinder::type('file')->name('/^'.$all_template_regex.'$/')->in($all_template_dir);
+    $all_retvals = array();
+    foreach ($all_templates as $templateFile)
     {
       if (preg_match('/\.(.+?)\.php$/', $templateFile, $matches))
       {
-        $allRetvals[$matches[1]] = $this->renderFile($templateFile);
+        $all_retvals[$matches[1]] = $this->renderFile($templateFile);
       }
     }
 
@@ -98,7 +98,7 @@ class sfMailView extends sfPHPView
     }
 
     // configuration prefix
-    $configPrefix = 'sf_mailer_'.strtolower($this->moduleName).'_';
+    $config_prefix = 'sf_mailer_'.strtolower($this->moduleName).'_';
 
     $vars = array(
       'mailer',
@@ -109,7 +109,7 @@ class sfMailView extends sfPHPView
     {
       $setter = 'set'.sfInflector::camelize($var);
       $getter = 'get'.sfInflector::camelize($var);
-      $value  = sfConfig::get($configPrefix.strtolower($var), $mail->$getter());
+      $value  = $mail->$getter() !== null ? $mail->$getter() : sfConfig::get($config_prefix.strtolower($var));
       $mail->$setter($value);
     }
 
@@ -117,7 +117,7 @@ class sfMailView extends sfPHPView
 
     // alternate bodies
     $i = 0;
-    foreach ($allRetvals as $type => $retval)
+    foreach ($all_retvals as $type => $retval)
     {
       if ($type == 'altbody' && !$mail->getAltBody())
       {
@@ -134,7 +134,7 @@ class sfMailView extends sfPHPView
     $mail->prepare();
 
     // send e-mail
-    if (sfConfig::get($configPrefix.'deliver'))
+    if (sfConfig::get($config_prefix.'deliver'))
     {
       $mail->send();
     }

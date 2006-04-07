@@ -884,7 +884,19 @@
     }
     if (isset($options['min_chars']))
     {
-      $jsOptions['min_chars'] = $options['min_chars'];
+      $jsOptions['minChars'] = $options['min_chars'];
+    }
+    if (isset($options['frequency']))
+    {
+      $jsOptions['frequency'] = $options['frequency'];
+    }
+    if (isset($options['update_element']))
+    {
+      $jsOptions['updateElement'] = $options['update_element'];
+    }
+    if (isset($options['after_update_element']))
+    {
+      $jsOptions['afterUpdateElement'] = $options['after_update_element'];
     }
 
     $javascript .= ', '._options_for_javascript($jsOptions).');';
