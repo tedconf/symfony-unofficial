@@ -334,11 +334,7 @@ class sfToolkit
     {
       $value = (float)$value;
     }
-    else
-    {
-      // Just a string
-      $value = strtr($value, array("\\" => "\\\\", "%'" => "\"", "'" => "\\'"));
-    }
+    // else it's Just a string
 
     return $value;
   }
