@@ -535,8 +535,8 @@ function submit_image_tag($source, $options = array())
 
 function select_day_tag($name, $value, $options = array(), $html_options = array())
 {
+  $options = _parse_attributes($options);
   $select_options = array();
-
   if (_get_option($options, 'include_blank'))
   {
     $select_options[''] = '';
@@ -551,20 +551,17 @@ function select_day_tag($name, $value, $options = array(), $html_options = array
     $select_options[$x] = _add_zeros($x, 2);
   }
 
-  $option_tags = options_for_select($select_options, $value);
-
-  return select_tag($name, $option_tags, $html_options);
+  return select_tag($name, options_for_select($select_options, $value), $html_options);
 }
 
 function select_month_tag($name, $value, $options = array(), $html_options = array())
 {
+  $options = _parse_attributes($options);
 
   $culture = _get_option($options, 'culture', sfContext::getInstance()->getUser()->getCulture());
-
   $I18n_arr = _get_I18n_date_locales($culture);
 
   $select_options = array();
-
   if (_get_option($options, 'include_blank'))
   {
     $select_options[''] = '';
@@ -599,15 +596,13 @@ function select_month_tag($name, $value, $options = array(), $html_options = arr
     }
   }
 
-  $option_tags = options_for_select($select_options, $value);
-
-  return select_tag($name, $option_tags, $html_options);
+  return select_tag($name, options_for_select($select_options, $value), $html_options);
 }
 
 function select_year_tag($name, $value, $options = array(), $html_options = array())
 {
+  $options = _parse_attributes($options);
   $select_options = array();
-
   if (_get_option($options, 'include_blank'))
   {
     $select_options[''] = '';
@@ -637,9 +632,7 @@ function select_year_tag($name, $value, $options = array(), $html_options = arra
     $select_options[$x] = $x;
   }
 
-  $option_tags = options_for_select($select_options, $value);
-
-  return select_tag($name, $option_tags, $html_options);
+  return select_tag($name, options_for_select($select_options, $value), $html_options);
 }
 
 /**
@@ -648,11 +641,11 @@ function select_year_tag($name, $value, $options = array(), $html_options = arra
  * @param string $name
  * @param string $value (proper date format: array('year'=>2005, 'month'=>1, 'day'=1) or timestamp or english date text)
  * @param array $options
+ * @param array $html_options
  * @return string
  */
 function select_date_tag($name, $value, $options = array(), $html_options = array())
 {
-  $html_options = _parse_attributes($html_options);
   $options = _parse_attributes($options);
 
   $culture = _get_option($options, 'culture', sfContext::getInstance()->getUser()->getCulture());
@@ -668,18 +661,19 @@ function select_date_tag($name, $value, $options = array(), $html_options = arra
   $discard_year = _get_option($options, 'discard_year');
 
   //discarding month automatically discards day
-  if ($discard_month) 
+  if ($discard_month)
+  {
     $discard_day = true;
+  }
 
   $order = _get_option($options, 'order');
-
   $tags = array();
 
   if (is_array($order) && count($order) == 3)
   {
-    foreach ($order as $k => $v)
+    foreach ($order as $v)
     {
-      $tags[] = $v[0]; //'day' => 'd' | 'month' => 'm'
+      $tags[] = $v[0];
     }
   }
   else
@@ -709,17 +703,18 @@ function select_date_tag($name, $value, $options = array(), $html_options = arra
   }
 
   $html_options['id'] = $name . '_month';
-  $m = ($discard_month != true) ? select_month_tag($name . '[month]', _parse_value_for_date($value, 'month', 'm'), $options + $include_custom_month, $html_options) : '';
+  $m = (!$discard_month) ? select_month_tag($name . '[month]', _parse_value_for_date($value, 'month', 'm'), $options + $include_custom_month, $html_options) : '';
 
   $html_options['id'] = $name . '_day';
-  $d = ($discard_day != true) ? select_day_tag($name . '[day]', _parse_value_for_date($value, 'day', 'd'), $options + $include_custom_day, $html_options) : '';
+  $d = (!$discard_day) ? select_day_tag($name . '[day]', _parse_value_for_date($value, 'day', 'd'), $options + $include_custom_day, $html_options) : '';
 
   $html_options['id'] = $name . '_year';
-  $y = ($discard_year != true) ? select_year_tag($name . '[year]', _parse_value_for_date($value, 'year', 'Y'), $options + $include_custom_year, $html_options) : '';
+  $y = (!$discard_year) ? select_year_tag($name . '[year]', _parse_value_for_date($value, 'year', 'Y'), $options + $include_custom_year, $html_options) : '';
 
-  //we have $tags = array ('m','d','y')
+  // we have $tags = array ('m','d','y')
   foreach ($tags as $k => $v)
   {
+    // $tags['m|d|y'] = $m|$d|$y
     $tags[$k] = $$v;
   }
 
@@ -728,6 +723,7 @@ function select_date_tag($name, $value, $options = array(), $html_options = arra
 
 function select_second_tag($name, $value, $options = array(), $html_options = array())
 {
+  $options = _parse_attributes($options);
   $select_options = array();
 
   if (_get_option($options, 'include_blank'))
@@ -745,13 +741,12 @@ function select_second_tag($name, $value, $options = array(), $html_options = ar
     $select_options[$x] = _add_zeros($x, 2);
   }
 
-  $option_tags = options_for_select($select_options, $value);
-
-  return select_tag($name, $option_tags, $html_options);
+  return select_tag($name, options_for_select($select_options, $value), $html_options);
 }
 
 function select_minute_tag($name, $value, $options = array(), $html_options = array())
 {
+  $options = _parse_attributes($options);
   $select_options = array();
 
   if (_get_option($options, 'include_blank'))
@@ -769,13 +764,12 @@ function select_minute_tag($name, $value, $options = array(), $html_options = ar
     $select_options[$x] = _add_zeros($x, 2);
   }
 
-  $option_tags = options_for_select($select_options, $value);
-
-  return select_tag($name, $option_tags, $html_options);
+  return select_tag($name, options_for_select($select_options, $value), $html_options);
 }
 
 function select_hour_tag($name, $value, $options = array(), $html_options = array())
 {
+  $options = _parse_attributes($options);
   $select_options = array();
 
   if (_get_option($options, 'include_blank'))
@@ -797,13 +791,12 @@ function select_hour_tag($name, $value, $options = array(), $html_options = arra
     $select_options[$x] = _add_zeros($x, 2);
   }
 
-  $option_tags = options_for_select($select_options, $value);
-
-  return select_tag($name, $option_tags, $html_options);
+  return select_tag($name, options_for_select($select_options, $value), $html_options);
 }
 
 function select_ampm_tag($name, $value, $options = array(), $html_options = array())
 {
+  $options = _parse_attributes($options);
   $select_options = array();
 
   if (_get_option($options, 'include_blank'))
@@ -818,9 +811,7 @@ function select_ampm_tag($name, $value, $options = array(), $html_options = arra
   $select_options['AM'] = 'AM';
   $select_options['PM'] = 'PM';
 
-  $option_tags = options_for_select($select_options, $value);
-
-  return select_tag($name, $option_tags, $html_options);
+  return select_tag($name, options_for_select($select_options, $value), $html_options);
 }
 
 /**
@@ -829,11 +820,11 @@ function select_ampm_tag($name, $value, $options = array(), $html_options = arra
  * @param string $name
  * @param string $value (proper time format: array('hour'=>0, 'minute'=>0, 'second'=0) or timestamp or english date text)
  * @param array $options
+ * @param array $html_options
  * @return string
  */
 function select_time_tag($name, $value, $options = array(), $html_options = array())
 {
-  $html_options = _parse_attributes($html_options);
   $options = _parse_attributes($options);
 
   $time_seperator = _get_option($options, 'time_seperator', ':');
@@ -926,20 +917,19 @@ function _add_zeros($string, $strlen)
   return $string;
 }
 
-function _get_I18n_date_locales($culture = '')
+function _get_I18n_date_locales($culture = null)
 {
-  if (empty($culture))
+  if (!$culture)
   {
     $culture = sfContext::getInstance()->getUser()->getCulture();
   }
 
-  $ret_val = array();
-  $ret_val['culture'] = $culture;
+  $retval = array('culture'=>$culture);
 
   $dateFormatInfo = sfDateTimeFormatInfo::getInstance($culture);
   $date_format = strtolower($dateFormatInfo->getShortDatePattern());
 
-  $ret_val['dateFormatInfo'] = $dateFormatInfo;
+  $retval['dateFormatInfo'] = $dateFormatInfo;
     
   $match_pattern = "/([dmy]+)(.*?)([dmy]+)(.*?)([dmy]+)/";
   if (!preg_match($match_pattern, $date_format, $match_arr))
@@ -948,31 +938,32 @@ function _get_I18n_date_locales($culture = '')
     preg_match($match_pattern, 'm/d/yy', $match_arr);
   }
 
-  $ret_val['date_seperator'] = $match_arr[2];
+  $retval['date_seperator'] = $match_arr[2];
 
   //unset all but [dmy]+
   unset($match_arr[0], $match_arr[2], $match_arr[4]);
   
-  $cnt = 0;
-  foreach ($match_arr as $k => $v)
+  $retval['date_order'] = array();
+  foreach ($match_arr as $v)
   {
-    $ret_val['date_order'][$cnt++] = $v[0]; //$arr[date_order][0] = 'm'; [1] = 'd'; [2] = 'y';
+    // 'm/d/yy' => $retval[date_order] = array ('m', 'd', 'y');
+    $retval['date_order'][] = $v[0];
   }
   
-  return $ret_val;
+  return $retval;
 }
 
-/**
-* _parse_value_for_date function can parse any date field from $value given as:
-*  - an array('year'=>2000, 'month'=> 1, ..
-*  - a timestamp
-*  - english text presentation of date (i.e '14:23', '03:30 AM', '2005-12-25' Refer to strtotime function in PHP manual)
+/*
+      # _parse_value_for_date can parse any date field from $value given as:
+      # 1. $value = array('year'=>2000, 'month'=>1, 'day'=>1) and $key = 'year|month|day'
+      # 2. $value = timestamp and $format_char = 'h|H|i|s|A|d|m|Y'
+      # 3. english text presentation of date (i.e '14:23', '03:30 AM', '2005-12-25' Refer to strtotime function in PHP manual)
 */
-function _parse_value_for_date($value, $name, $format_char)
+function _parse_value_for_date($value, $key, $format_char)
 {
   if (is_array($value))
   {
-    return (isset($value[$name])) ? $value[$name] : '';
+    return (isset($value[$key])) ? $value[$key] : '';
   }
   else if (is_numeric($value))
   {
@@ -983,6 +974,7 @@ function _parse_value_for_date($value, $name, $format_char)
     return $value;
   }
 
+  // english text presentation
   return date($format_char, strtotime($value));
 }
 
