@@ -421,12 +421,8 @@ abstract class sfView
       // the template isn't readable
       $error = 'The template "%s" does not exist or is unreadable';
       $error = sprintf($error, $template);
-      if (is_readable($this->decoratorDirectory.'/defaultError.php')) {
-        $this->template = 'defaultError.php';
-        $this->directory = $this->decoratorDirectory;
-      } else {
-        throw new sfRenderException($error);
-      }
+
+      throw new sfRenderException($error);
     }
 
     // check to see if this is a decorator template
