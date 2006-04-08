@@ -23,8 +23,8 @@ class propelCrudGeneratorTest extends sfLiveProjectUnitTestCase
     file_put_contents(sfConfig::get('sf_config_dir').'/propel.ini', $propelConfig);
 
     // build Propel object classes
-    $this->runSymfony('build-model');
-    $this->runSymfony('build-sql');
+    $this->runSymfony('propel-build-model');
+    $this->runSymfony('propel-build-sql');
 
     // force autoload classes regeneration
     $autoloadConfigFile = sfConfig::get('sf_app_config_dir_name').'/autoload.yml';
@@ -35,17 +35,17 @@ class propelCrudGeneratorTest extends sfLiveProjectUnitTestCase
     require(sfConfigCache::getInstance()->checkConfig($autoloadConfigFile));
 
     // create database
-    $this->runSymfony('insert-sql');
+    $this->runSymfony('propel-insert-sql');
 
     // populate with some fixture data
     $data = new sfPropelData();
     $data->loadData(sfConfig::get('sf_data_dir').DIRECTORY_SEPARATOR.'fixtures.yml', 'propel');
 
     // initialize scaffolding
-    $this->runSymfony('init-propelcrud app posti Post');
+    $this->runSymfony('propel-init-crud app posti Post');
 
     // generate scaffolding
-    $this->runSymfony('generate-propelcrud app postg Post');
+    $this->runSymfony('propel-generate-crud app postg Post');
 
     // tests
 
