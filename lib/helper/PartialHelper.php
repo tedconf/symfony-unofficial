@@ -59,6 +59,33 @@ function include_component($moduleName, $componentName, $vars = array())
   // initialize the action
   if ($componentInstance->initialize($context))
   {
+    if (sfConfig::get('sf_cache'))
+    {
+
+      // register our cache configuration
+      $cacheConfigFile = $moduleName.'/'.sfConfig::get('sf_app_module_config_dir_name').'/cache.yml';
+      if (is_readable(sfConfig::get('sf_app_module_dir').'/'.$cacheConfigFile))
+      {
+        $actionName = $componentName;
+        require(sfConfigCache::getInstance()->checkConfig(sfConfig::get('sf_app_module_dir_name').'/'.$cacheConfigFile));
+      }
+      $active = (isset($active))? $active : null;
+
+      if ($active)
+      {
+        // start caching
+        $c = $componentInstance->getContext()->getViewCacheManager();
+        $data = $c->start($moduleName.'_'.$componentName, $lifetime);
+
+        if ($data)
+        {
+          echo $data;
+          return;
+        }
+      }
+    }
+
+
     $componentInstance->getVarHolder()->add($vars);
 
     // dispatch component
@@ -67,7 +94,7 @@ function include_component($moduleName, $componentName, $vars = array())
     {
       if (method_exists($componentInstance, 'execute'))
       {
-        $componentToRun = 'execute';
+        $componentToTun = 'execute';
       }
       else
       {
@@ -90,6 +117,12 @@ function include_component($moduleName, $componentName, $vars = array())
 
       // include partial
       include_partial($moduleName.'/'.$componentName, $componentVars);
+    }
+
+    if (sfConfig::get('sf_cache') && $active)
+    {
+      $data = $c->stop($moduleName.'_'.$componentName);
+      echo $data;
     }
   }
   else

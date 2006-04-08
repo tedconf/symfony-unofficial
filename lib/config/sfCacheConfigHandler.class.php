@@ -65,7 +65,15 @@ class sfCacheConfigHandler extends sfYamlConfigHandler
 
       if ($this->getConfigValue('activate', $actionName))
       {
-        $data[] = $this->addCache($actionName);
+        if ($this->getConfigValue('type', $actionName) == 'component')
+        {
+          $data[] = '$active = true;' . "\n";
+          $data[] = '$lifetime = ' . $this->getConfigValue('lifetime', $actionName) . ";\n";
+        }
+        else
+        {
+          $data[] = $this->addCache($actionName);
+        }
       }
 
       $data[] = "}\n";
