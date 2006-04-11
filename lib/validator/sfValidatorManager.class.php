@@ -289,28 +289,31 @@ class sfValidatorManager
           $depFieldValue = $this->request->getParameterHolder()->get($depField);
           $valueToMatch = (array_key_exists('value', $params))? $params['value'] : null;
 
-          if ($valueToMatch)
+          if (($valueToMatch && $depFieldValue == $valueToMatch)
+             ||
+             (!$valueToMatch && !($depFieldValue == null || strlen($depField) == 0))
+          )
           {
-            if ($depFieldValue == $valueToMatch)
+            if (!in_array($params['required_msg'], $errorMessages))
             {
               $errorMessages[] = $params['required_msg'];
-              $retval = false;
             }
+            $retval = false;
           }
-          else
-          {
-            // value param is not specified in the validator.yml file, so it can match any value bar null or empty.
-            if (!($depFieldValue == null || strlen($depField) == 0))
-            {
-              $errorMessages[] = $params['required_msg'];
-              $retval = false;
-            }
-          }
+        }
 
-          if ($retval == false)
+        if ($retval == false)
+        {
+          if (sfConfig::get('sf_i18n') && count($errorMessages) > 1)
           {
-            $error = implode('<br />', $errorMessages);
+            // translate the individual error messages here, otherwise the error message will get translated as a whole.
+            // this does not allow the user to set a catalogue other than the default though.
+            foreach ($errorMessages as &$errorMessage)
+            {
+              $errorMessage = sfConfig::get('sf_i18n_instance')->__($errorMessage);
+            }
           }
+          $error = implode('<br />', $errorMessages);
         }
       }
       else if (!$data['required'] || !$force)
