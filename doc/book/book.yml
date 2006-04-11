@@ -16,6 +16,7 @@ parts:
     - templating_configuration
     - templating_link_helpers
     - templating_form_helpers
+    - javascript
     - templating_i18n_helpers
     - templating_other_helpers
     - parameter_holder
@@ -38,7 +39,9 @@ parts:
     - finder
     - plugin
     - batch
+    - cli
     - shopping_cart
+    - sortable
     - custom_helper
     - validate_form
     - email

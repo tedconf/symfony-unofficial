@@ -23,26 +23,44 @@ class <?php echo $this->getGeneratedModuleName() ?>Actions extends sfActions
 
   public function executeShow ()
   {
-    $this-><?php echo $this->getSingularName() ?> = <?php echo $this->getClassName() ?>Peer::retrieveByPk(<?php echo $this->getRetrieveByPkParamsForShow() ?>);
+    $this-><?php echo $this->getSingularName() ?> = <?php echo $this->getClassName() ?>Peer::retrieveByPk(<?php echo $this->getRetrieveByPkParamsForAction(49) ?>);
+    $this->forward404Unless($this-><?php echo $this->getSingularName() ?>);
+  }
 
-    $this->forward404Unless($this-><?php echo $this->getSingularName() ?> instanceof <?php echo $this->getClassName() ?>);
+  public function executeCreate ()
+  {
+    $this-><?php echo $this->getSingularName() ?> = new <?php echo $this->getClassName() ?>();
+
+    $this->setTemplate('edit');
   }
 
   public function executeEdit ()
   {
-    $this-><?php echo $this->getSingularName() ?> = $this->get<?php echo $this->getClassName() ?>OrCreate();
+    $this-><?php echo $this->getSingularName() ?> = <?php echo $this->getClassName() ?>Peer::retrieveByPk(<?php echo $this->getRetrieveByPkParamsForAction(49) ?>);
+    $this->forward404Unless($this-><?php echo $this->getSingularName() ?>);
   }
 
   public function executeUpdate ()
   {
-    $<?php echo $this->getSingularName() ?> = $this->get<?php echo $this->getClassName() ?>OrCreate();
+    if (<?php echo $this->getTestPksForGetOrCreate() ?>)
+    {
+      $<?php echo $this->getSingularName() ?> = new <?php echo $this->getClassName() ?>();
+    }
+    else
+    {
+      $<?php echo $this->getSingularName() ?> = <?php echo $this->getClassName() ?>Peer::retrieveByPk(<?php echo $this->getRetrieveByPkParamsForAction(45) ?>);
+      $this->forward404Unless($<?php echo $this->getSingularName() ?>);
+    }
 
 <?php foreach ($this->getTableMap()->getColumns() as $name => $column): $type = $column->getCreoleType(); ?>
 <?php if ($name == 'CREATED_AT' || $name == 'UPDATED_AT') continue ?>
 <?php $name = sfInflector::underscore($column->getPhpName()) ?>
-<?php if ($type == CreoleTypes::DATE): ?>
-    list($d, $m, $y) = sfI18N::getDateForCulture($this->getRequestParameter('<?php echo $name ?>'), $this->getUser()->getCulture());
-    $<?php echo $this->getSingularName() ?>->set<?php echo $column->getPhpName() ?>("$y-$m-$d");
+<?php if ($type == CreoleTypes::DATE || $type == CreoleTypes::TIMESTAMP): ?>
+    if ($this->getRequestParameter('<?php echo $name ?>'))
+    {
+      list($d, $m, $y) = sfI18N::getDateForCulture($this->getRequestParameter('<?php echo $name ?>'), $this->getUser()->getCulture());
+      $<?php echo $this->getSingularName() ?>->set<?php echo $column->getPhpName() ?>("$y-$m-$d");
+    }
 <?php elseif ($type == CreoleTypes::BOOLEAN): ?>
     $<?php echo $this->getSingularName() ?>->set<?php echo $column->getPhpName() ?>($this->getRequestParameter('<?php echo $name ?>', 0));
 <?php else: ?>
@@ -58,31 +76,14 @@ class <?php echo $this->getGeneratedModuleName() ?>Actions extends sfActions
 
   public function executeDelete ()
   {
-    $<?php echo $this->getSingularName() ?> = <?php echo $this->getClassName() ?>Peer::retrieveByPk(<?php echo $this->getRetrieveByPkParamsForDelete() ?>);
+    $<?php echo $this->getSingularName() ?> = <?php echo $this->getClassName() ?>Peer::retrieveByPk(<?php echo $this->getRetrieveByPkParamsForAction(43) ?>);
 
-    $this->forward404Unless($<?php echo $this->getSingularName() ?> instanceof <?php echo $this->getClassName() ?>);
+    $this->forward404Unless($<?php echo $this->getSingularName() ?>);
 
     $<?php echo $this->getSingularName() ?>->delete();
 
     return $this->redirect('<?php echo $this->getModuleName() ?>/list');
   }
-
-  private function get<?php echo $this->getClassName() ?>OrCreate (<?php echo $this->getMethodParamsForGetOrCreate() ?>)
-  {
-    if (<?php echo $this->getTestPksForGetOrCreate() ?>)
-    {
-      $<?php echo $this->getSingularName() ?> = new <?php echo $this->getClassName() ?>();
-    }
-    else
-    {
-      $<?php echo $this->getSingularName() ?> = <?php echo $this->getClassName() ?>Peer::retrieveByPk(<?php echo $this->getRetrieveByPkParamsForGetOrCreate() ?>);
-
-      $this->forward404Unless($<?php echo $this->getSingularName() ?> instanceof <?php echo $this->getClassName() ?>);
-    }
-
-    return $<?php echo $this->getSingularName() ?>;
-  }
-
 }
 
 ?]

@@ -143,6 +143,12 @@ class sfWebDebug
     if (strtolower($type) == 'creole')
     {
       $log_line = preg_replace('/\b(SELECT|FROM|AS|LIMIT|ASC|COUNT|DESC|WHERE|LEFT JOIN|INNER JOIN|RIGHT JOIN|ORDER BY|GROUP BY|IN|LIKE|DISTINCT)\b/', '<span class="sfStatsFileInfo">\\1</span>', $log_line);
+
+      // remove username/password from DSN
+      if (strpos($log_line, 'DSN') !== false)
+      {
+        $log_line = preg_replace("/=&gt;\s+'?[^'\s,]+'?/", "=&gt; '****'", $log_line);
+      }
     }
 
     return $log_line;
@@ -327,14 +333,15 @@ class sfWebDebug
   private function displayCurrentConfig()
   {
     $config = array(
-      'debug'        => sfConfig::get('sf_debug')          ? 'on' : 'off',
-      'xdebug'       => (function_exists('xdebug_get_function_stack')) ? 'on' : 'off',
-      'logging'      => sfConfig::get('sf_logging_active') ? 'on' : 'off',
-      'cache'        => sfConfig::get('sf_cache')          ? 'on' : 'off',
-      'eaccelerator' => (function_exists('eaccelerator') && ini_get('eaccelerator.enable')) ? 'on' : 'off',
-      'compression'  => sfConfig::get('sf_compressed')     ? 'on' : 'off',
-      'tidy'         => (function_exists('tidy_parse_string')) ? 'on' : 'off',
-      'syck'         => (function_exists('syck_load')) ? 'on' : 'off',
+      'debug'        => sfConfig::get('sf_debug')             ? 'on' : 'off',
+      'xdebug'       => (extension_loaded('xdebug'))          ? 'on' : 'off',
+      'logging'      => sfConfig::get('sf_logging_active')    ? 'on' : 'off',
+      'cache'        => sfConfig::get('sf_cache')             ? 'on' : 'off',
+      'eaccelerator' => (extension_loaded('eaccelerator') && ini_get('eaccelerator.enable')) ? 'on' : 'off',
+      'apc'          => (extension_loaded('apc') && ini_get('apc.enabled')) ? 'on' : 'off',
+      'compression'  => sfConfig::get('sf_compressed')        ? 'on' : 'off',
+      'tidy'         => (extension_loaded('tidy'))            ? 'on' : 'off',
+      'syck'         => (extension_loaded('syck'))            ? 'on' : 'off',
       'memusage'     => (function_exists('memory_get_usage')) ? 'on' : 'off'
     );
 

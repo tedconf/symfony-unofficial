@@ -49,14 +49,12 @@ class <?php echo $this->getGeneratedModuleName() ?>Actions extends sfActions
 
   public function executeEdit ()
   {
-    // add javascript
-    $this->getResponse()->addJavascript('/sf/js/prototype/prototype');
-    $this->getResponse()->addJavascript('/sf/js/sf_admin/collapse');
-
     $this-><?php echo $this->getSingularName() ?> = $this->get<?php echo $this->getClassName() ?>OrCreate();
 
     if ($this->getRequest()->getMethod() == sfRequest::POST)
     {
+      $this-><?php echo $this->getSingularName() ?> = $this->get<?php echo $this->getClassName() ?>OrCreate();
+
       $this->update<?php echo $this->getClassName() ?>FromRequest();
       $this-><?php echo $this->getSingularName() ?>->save();
 
@@ -72,11 +70,17 @@ class <?php echo $this->getGeneratedModuleName() ?>Actions extends sfActions
 <?php //' ?>
       }
     }
+    else
+    {
+      // add javascripts
+      $this->getResponse()->addJavascript('/sf/js/prototype/prototype');
+      $this->getResponse()->addJavascript('/sf/js/sf_admin/collapse');
+    }
   }
 
   public function executeDelete ()
   {
-    $this-><?php echo $this->getSingularName() ?> = <?php echo $this->getClassName() ?>Peer::retrieveByPk(<?php echo $this->getRetrieveByPkParamsForDelete() ?>);
+    $this-><?php echo $this->getSingularName() ?> = <?php echo $this->getClassName() ?>Peer::retrieveByPk(<?php echo $this->getRetrieveByPkParamsForAction(40) ?>);
     $this->forward404Unless($this-><?php echo $this->getSingularName() ?>);
 
     $this-><?php echo $this->getSingularName() ?>->delete();

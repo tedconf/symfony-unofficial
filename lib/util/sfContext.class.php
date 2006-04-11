@@ -80,7 +80,7 @@ class sfContext
     }
 
     // include the factories configuration
-    require(sfConfigCache::getInstance()->checkConfig(sfConfig::get('sf_app_config_dir_name').'/factories.yml'));
+     require(sfConfigCache::getInstance()->checkConfig(sfConfig::get('sf_app_config_dir_name').'/factories.yml'));
 
     if ($sf_cache)
     {

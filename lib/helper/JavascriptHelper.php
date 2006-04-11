@@ -84,10 +84,30 @@
    */
   function link_to_function($name, $function, $html_options = array())
   {
+    $html_options = _parse_attributes($html_options);
+
     $html_options['href'] = '#';
     $html_options['onclick'] = $function.'; return false;';
 
     return content_tag('a', $name, $html_options);
+  }
+
+  /**
+   * Returns a button that'll trigger a javascript function using the
+   * onclick handler and return false after the fact.
+   *
+   * Examples:
+   *   <?php echo button_to_function('Greeting', "alert('Hello world!')") ?>
+   */
+  function button_to_function($name, $function, $html_options = array())
+  {
+    $html_options = _parse_attributes($html_options);
+
+    $html_options['onclick'] = $function.'; return false;';
+    $html_options['type']    = 'button';
+    $html_options['value']   = $name;
+
+    return content_tag('input', '', $html_options);
   }
 
   /**
@@ -317,7 +337,7 @@
     switch ($value)
     {
       case 'update':
-        if ($options['position'])
+        if (isset($options['position']) && $options['position'])
         {
           $javascript_function = "new Insertion.".sfInflector::camelize($options['position'])."('$element_id','$content')";
         }
@@ -513,7 +533,7 @@
 
     if (in_array($name, array('toggle_appear', 'toggle_blind', 'toggle_slide')))
     {
-      return "new Effect.toggle($element, ". substr($name, 7)  .", "._options_for_javascript($js_options).");";
+      return "new Effect.toggle($element, '".substr($name, 7)."', "._options_for_javascript($js_options).");";
     }
     else
     {
@@ -694,7 +714,7 @@
     $response->addJavascript('/sf/js/prototype/effects');
 
     $comp_options = _convert_options($completion_options);
-    if (isset($comp_options['use_style']) && $comp_options['use_style'] == 'true')
+    if (isset($comp_options['use_style']) && $comp_options['use_style'] == true)
     {
       $response->addStylesheet('/sf/css/sf_helpers/input_auto_complete_tag');
     }
@@ -861,7 +881,19 @@
     }
     if (isset($options['min_chars']))
     {
-      $js_options['min_chars'] = $options['min_chars'];
+      $js_options['minChars'] = $options['min_chars'];
+    }
+    if (isset($options['frequency']))
+    {
+      $js_options['frequency'] = $options['frequency'];
+    }
+    if (isset($options['update_element']))
+    {
+      $js_options['updateElement'] = $options['update_element'];
+    }
+    if (isset($options['after_update_element']))
+    {
+      $js_options['afterUpdateElement'] = $options['after_update_element'];
     }
 
     $javascript .= ', '._options_for_javascript($js_options).');';
@@ -900,7 +932,7 @@
     $js_options['asynchronous'] = (isset($options['type'])) ? ($options['type'] != 'synchronous') : 'true';
     if (isset($options['method'])) $js_options['method'] = _method_option_to_s($options['method']);
     if (isset($options['position'])) $js_options['insertion'] = "Insertion.".sfInflector::camelize($options['position']);
-    $js_options['evalScripts'] = (!isset($options['script']) || $options['script'] == '0' || $options['script'] == 'false') ? 'false' : 'true';
+    $js_options['evalScripts'] = (!isset($options['script']) || $options['script'] == '0' || $options['script'] == false) ? 'false' : 'true';
 
     if (isset($options['form']))
     {

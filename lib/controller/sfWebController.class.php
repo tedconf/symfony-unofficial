@@ -30,7 +30,7 @@ abstract class sfWebController extends sfController
    *
    * @return string A URL to a symfony resource.
    */
-  public function genURL($url = null, $parameters = array(), $absolute = false)
+  public function genUrl($parameters = array(), $absolute = false)
   {
     // absolute URL or symfony URL?
     if (!is_array($parameters) && preg_match('#^[a-z]+\://#', $parameters))
@@ -62,9 +62,17 @@ abstract class sfWebController extends sfController
     }
 
     $route_name = '';
+    $fragment = '';
 
     if (!is_array($parameters))
     {
+      // strip fragment
+      if (false !== ($pos = strpos($parameters, '#')))
+      {
+        $fragment = substr($parameters, $pos + 1);
+        $parameters = substr($parameters, 0, $pos);
+      }
+
       list($route_name, $parameters) = $this->convertUrlStringToParameters($parameters);
     }
 
@@ -118,6 +126,11 @@ abstract class sfWebController extends sfController
     if ($absolute)
     {
       $url = 'http://'.$this->getContext()->getRequest()->getHost().$url;
+    }
+
+    if ($fragment)
+    {
+      $url .= '#'.$fragment;
     }
 
     return $url;
@@ -204,7 +217,7 @@ abstract class sfWebController extends sfController
 
     // redirect
     $response->setHttpHeader('Location', $url);
-    $response->setContent(sprintf('<html><head><meta http-equiv="refresh" content="%d;url=%s"/></head></html>', $delay, $url));
+    $response->setContent(sprintf('<html><head><meta http-equiv="refresh" content="%d;url=%s"/></head></html>', $delay, htmlentities($url)));
 
     $response->sendHttpHeaders();
     $response->sendContent();

@@ -36,7 +36,7 @@ To get the full list of the available administration operations, simply type fro
 
     $ symfony -T
 
-The description of the most common administration operations follows.
+The description of the CLI tasks used during the early stage of a project follows. A full reference of the CLI tasks is available in the [CLI chapter](cli.txt).
 
 Project setup
 -------------
@@ -99,6 +99,10 @@ Web server setup
 
 To be able to access and test the new application, the web server has to be configured. Here is an example for Apache, where a new VirtualHost is added in the `httpd.conf` file:
 
+    <Directory "/$data_dir/symfony/web/sf">
+     AllowOverride All
+     Allow from All
+    </Directory>
     <VirtualHost *:80>
       ServerName myapp.example.com
       DocumentRoot "/home/steve/myproject/web"
@@ -107,10 +111,11 @@ To be able to access and test the new application, the web server has to be conf
 
       <Directory "/home/steve/myproject/web">
        AllowOverride All
+       Allow from All
       </Directory>
     </VirtualHost>
 
->**Note**: In the above configuration, the `$data_dir` in the `Alias` line has to be replaced by your PEAR data directory. For example, for *nix, you should type:
+>**Note**: In the above configuration, the `$data_dir` placeholders has to be replaced by your PEAR data directory. For example, for *nix, you should type:
 >
 >         Alias /sf /usr/local/lib/php/data/symfony/web/sf
 >

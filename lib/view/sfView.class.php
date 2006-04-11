@@ -63,6 +63,11 @@ abstract class sfView
    */
   const RENDER_VAR = 4;
 
+  /**
+   * Render the presentation from cache.
+   */
+  const RENDER_CACHE = 8;
+
   private
     $context            = null,
     $decorator          = false,
@@ -567,7 +572,7 @@ abstract class sfView
    */
   public function getComponentSlot($name)
   {
-    if (isset($this->componentSlots[$name]))
+    if (isset($this->componentSlots[$name]) && $this->componentSlots[$name]['module_name'] && $this->componentSlots[$name]['component_name'])
     {
       return array($this->componentSlots[$name]['module_name'], $this->componentSlots[$name]['component_name']);
     }

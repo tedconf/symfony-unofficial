@@ -55,9 +55,9 @@ class sfYaml
       }
       catch (Exception $e)
       {
-          $error = str_replace(': Line', ': File '.$input.' line', $e->getMessage());
-          $e = new sfConfigurationException($error);
-          $e->printStackTrace();
+        $error = str_replace(': Line', ': File '.$input.' line', $e->getMessage());
+        $e = new sfConfigurationException($error);
+        $e->printStackTrace();
       }
     }
   }
