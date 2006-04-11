@@ -76,7 +76,9 @@ abstract class sfView
     $directory          = null,
     $slots              = array(),
     $componentSlots     = array(),
-    $template           = null;
+    $template           = null,
+    $escaping           = null,
+    $escapingMethod     = null;
 
   protected
     $attribute_holder   = null,
@@ -220,6 +222,43 @@ abstract class sfView
   public function getTemplate ()
   {
     return $this->template;
+  }
+
+  /**
+   * Gets the default escaping strategy associated with this view.
+   *
+   * The escaping strategy specifies how the variables get passed to the view.
+   *
+   * @return string the escaping strategy.
+   */
+  public function getEscaping()
+  {
+    return $this->escaping;
+  }
+
+  /**
+   * Returns the name of the function that is to be used as the escaping method.
+   *
+   * If the escaping method is empty, then that is returned. The default value
+   * specified by the sub-class will be used. If the method does not exist (in
+   * the sense there is no define associated with the method) and exception is
+   * thrown.
+   *
+   * @return string the escaping method as the name of the function to use
+   */
+  public function getEscapingMethod()
+  {
+    if (empty($this->escapingMethod))
+    {
+      return $this->escapingMethod;
+    }
+
+    if (! defined($this->escapingMethod))
+    {
+      throw new sfException('escaping method \'' . $this->escapingMethod . '\' is not available; perhaps another helper needs to be loaded in?');
+    }
+
+    return constant($this->escapingMethod);
   }
 
   /**
@@ -463,6 +502,16 @@ abstract class sfView
   public function setDecoratorDirectory ($directory)
   {
     $this->decoratorDirectory = $directory;
+  }
+
+  public function setEscaping($escaping)
+  {
+    $this->escaping = $escaping;
+  }
+
+  public function setEscapingMethod($method)
+  {
+    $this->escapingMethod = $method;
   }
 
   /**

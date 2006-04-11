@@ -67,7 +67,7 @@ class sfPHPView extends sfView
 
     self::$coreHelpersLoaded = 1;
 
-    $core_helpers = array('Helper', 'Url', 'Asset', 'Tag');
+    $core_helpers = array('Helper', 'Url', 'Asset', 'Tag', 'Escaping');
     $standard_helpers = sfConfig::get('sf_standard_helpers');
 
     $helpers = array_unique(array_merge($core_helpers, $standard_helpers));
@@ -95,16 +95,45 @@ class sfPHPView extends sfView
     }
   }
 
-  protected function renderFile($_sfFile)
+  protected function renderFile($_sfFile, $_doEscape = true)
   {
     if ($sf_logging_active = sfConfig::get('sf_logging_active'))
     {
       $this->getContext()->getLogger()->info('{sfPHPView} render "'.$_sfFile.'"');
     }
 
-    extract($this->attribute_holder->getAll());
-
     $this->loadCoreAndStandardHelpers();
+
+    $_escaping       = $this->getEscaping();
+    $_escapingMethod = $this->getEscapingMethod();
+
+    if (is_null($_escaping))
+    {
+      $_escaping = 'both';
+    }
+
+    if (is_null($_escapingMethod))
+    {
+      $_escapingMethod = ESC_ENTITIES;
+    }
+
+    if (! $_doEscape || ($_escaping === false) || ($_escaping === 'bc'))
+    {
+      extract($this->attribute_holder->getAll());
+    }
+
+    if ($_doEscape && ($_escaping !== false))
+    {
+      $data = sfOutputEscaper::escape($_escapingMethod, $this->attribute_holder->getAll());
+
+      if ($_escaping === 'both')
+      {
+        foreach ($data as $_key => $_value)
+        {
+          ${$_key} = $_value;
+        }
+      }
+    }
 
     // render to variable
     ob_start();
@@ -209,7 +238,7 @@ class sfPHPView extends sfView
     parent::decorate($content);
 
     // render the decorator template and return the result
-    $retval = $this->renderFile($template);
+    $retval = $this->renderFile($template, false);
 
     return $retval;
   }
