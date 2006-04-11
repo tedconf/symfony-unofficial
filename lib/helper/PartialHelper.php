@@ -61,7 +61,6 @@ function include_component($moduleName, $componentName, $vars = array())
   {
     if (sfConfig::get('sf_cache'))
     {
-
       // register our cache configuration
       $cacheConfigFile = $moduleName.'/'.sfConfig::get('sf_app_module_config_dir_name').'/cache.yml';
       if (is_readable(sfConfig::get('sf_app_module_dir').'/'.$cacheConfigFile))
@@ -74,8 +73,10 @@ function include_component($moduleName, $componentName, $vars = array())
       if ($active)
       {
         // start caching
-        $c = $componentInstance->getContext()->getViewCacheManager();
-        $data = $c->start($moduleName.'_'.$componentName, $lifetime);
+        $culture = $context->getUser()->getCulture();
+        $global = ($global)? 'global_' : '';
+        $cache = $componentInstance->getContext()->getViewCacheManager();
+        $data = $cache->start($global.$moduleName.'_'.$componentName.'_'.$culture, $lifetime);
 
         if ($data)
         {
@@ -121,7 +122,7 @@ function include_component($moduleName, $componentName, $vars = array())
 
     if (sfConfig::get('sf_cache') && $active)
     {
-      $data = $c->stop($moduleName.'_'.$componentName);
+      $data = $cache->stop($global.$moduleName.'_'.$componentName.'_'.$culture);
       echo $data;
     }
   }

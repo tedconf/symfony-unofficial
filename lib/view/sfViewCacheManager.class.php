@@ -320,13 +320,22 @@ class sfViewCacheManager
   */
   public function start($suffix, $lifeTime, $clientLifeTime = null, $vary = array())
   {
-    $suffix = 'fragment_'.$suffix;
+    $suffixParts = explode('_', $suffix, 2);
 
-    $internalUri = sfRouting::getInstance()->getCurrentInternalUri();
+    if ($suffixParts[0] == 'global')
+    {
+      $suffix = $suffixParts[1];
+      $internalUri = 'global/components';
+    }
+    else
+    {
+      $suffix = 'fragment_'.$suffix;
+      $internalUri = sfRouting::getInstance()->getCurrentInternalUri();
+    }
 
     if (!$clientLifeTime)
     {
-      $clientLifeTime = $lifetime;
+      $clientLifeTime = $lifeTime;
     }
 
     // add cache config to cache manager
@@ -349,16 +358,26 @@ class sfViewCacheManager
   }
 
   /**
-  * Stop the cache
+  * Stop the cache for a global static partial
   */
   public function stop($suffix)
   {
-    $suffix = 'fragment_'.$suffix;
+    $suffixParts = explode('_', $suffix, 2);
+
+    if ($suffixParts[0] == 'global')
+    {
+      $suffix = $suffixParts[1];
+      $internalUri = 'global/components';
+    }
+    else
+    {
+      $suffix = 'fragment_'.$suffix;
+      $internalUri = sfRouting::getInstance()->getCurrentInternalUri();
+    }
 
     $data = ob_get_clean();
 
     // save content to cache
-    $internalUri = sfRouting::getInstance()->getCurrentInternalUri();
     $this->set($data, $internalUri, $suffix);
 
     return $data;
