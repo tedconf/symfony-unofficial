@@ -124,11 +124,11 @@ class sfPHPView extends sfView
 
     if ($_doEscape && ($_escaping !== false))
     {
-      $data = sfOutputEscaper::escape($_escapingMethod, $this->attribute_holder->getAll());
+      $sf_data = sfOutputEscaper::escape($_escapingMethod, $this->attribute_holder->getAll());
 
       if ($_escaping === 'both')
       {
-        foreach ($data as $_key => $_value)
+        foreach ($sf_data as $_key => $_value)
         {
           ${$_key} = $_value;
         }
