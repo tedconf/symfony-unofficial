@@ -67,7 +67,7 @@ class sfPHPView extends sfView
 
     self::$coreHelpersLoaded = 1;
 
-    $coreHelpers = array('Helper', 'Url', 'Asset', 'Tag');
+    $coreHelpers = array('Helper', 'Url', 'Asset', 'Tag', 'Escaping');
     $standardHelpers = sfConfig::get('sf_standard_helpers');
 
     $helpers = array_unique(array_merge($coreHelpers, $standardHelpers));
@@ -102,9 +102,28 @@ class sfPHPView extends sfView
       $this->getContext()->getLogger()->info('{sfPHPView} render "'.$_sfFile.'"');
     }
 
-    extract($this->attributeHolder->getAll());
-
     $this->loadCoreAndStandardHelpers();
+
+    $_escaping       = $this->getEscaping();
+    $_escapingMethod = $this->getEscapingMethod();
+
+    if (($_escaping === false) || ($_escaping === 'bc'))
+    {
+      extract($this->attribute_holder->getAll());
+    }
+
+    if ($_escaping !== false)
+    {
+      $sf_Data = sfOutputEscaper::escape($_escapingMethod, $this->attributeHolder->getAll());
+
+      if ($_escaping === 'both')
+      {
+        foreach ($sf_data as $_key => $_value)
+        {
+          ${$_key} = $_value;
+        }
+      }
+    }
 
     // render to variable
     ob_start();
