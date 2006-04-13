@@ -67,7 +67,7 @@ class sfOutputEscaperArrayDecorator extends sfOutputEscaperGetterDecorator imple
   }
 
   /**
-   * Returns true if the supplied offset is set in the arrray (as required by
+   * Returns true if the supplied offset is set in the array (as required by
    * the ArrayAccess interface).
    *
    * @param string $offset the offset of the value to check existance of
@@ -79,14 +79,15 @@ class sfOutputEscaperArrayDecorator extends sfOutputEscaperGetterDecorator imple
   }
 
   /**
-   * Returns the element associated with the offset supplied.
+   * Returns the element associated with the offset supplied (as required by
+   * the ArrayAccess interface).
    *
    * @param string $offset the offset of the value to get
-   * @return mixed the value
+   * @return mixed the escaped value
    */
   public function offsetGet($offset)
   {
-    return @ $this->value[$offset];
+    return sfOutputEscaper::escape($this->escapingMethod, $this->value[$offset]);
   }
 
   /**
@@ -139,7 +140,7 @@ class sfOutputEscaperArrayDecorator extends sfOutputEscaperGetterDecorator imple
    */
   public function getRaw($key)
   {
-    return @ $this->value[$key];
+    return $this->value[$key];
   }
 
   /**
