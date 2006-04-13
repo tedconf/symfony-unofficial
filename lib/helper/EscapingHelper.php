@@ -41,11 +41,11 @@ define('ESC_ENTITIES', 'esc_entities');
  * @param string $value the value to escape
  * @return string the escaped value
  */
-function esc_dirty($value) {
+function esc_raw($value) {
   return $value;
 }
 
-define('ESC_DIRTY', 'esc_dirty');
+define('ESC_RAW', 'esc_raw');
 
 /**
  * A function that c-escapes a string after applying {@link esc_entities()}. The

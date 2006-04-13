@@ -3,8 +3,9 @@
 /**
  * Abstract output escaping decorator class for "getter" objects.
  *
- * @package symfony
- * @subpackage view
+ * @see sfOutputEscaper
+ * @package symfony.view
+ * @subpackage escaper
  * @author Mike Squire <mike@somosis.co.uk>
  */
 abstract class sfOutputEscaperGetterDecorator extends sfOutputEscaper
@@ -19,13 +20,13 @@ abstract class sfOutputEscaperGetterDecorator extends sfOutputEscaper
    * @param string $key the key to retrieve
    * @return mixed the value
    */
-  public abstract function getDirty($key);
+  public abstract function getRaw($key);
 
   /**
    * Returns the escaped value associated with the key supplied.
    *
    * Typically (using this implementation) the raw value is obtained using the
-   * {@link getDirty()} method, escaped and the result returned.
+   * {@link getRaw()} method, escaped and the result returned.
    *
    * @param string $key the key to retieve
    * @param string $escapingMethod the escaping method (a PHP function) to use
@@ -38,7 +39,7 @@ abstract class sfOutputEscaperGetterDecorator extends sfOutputEscaper
       $escapingMethod = $this->escapingMethod;
     }
 
-    return sfOutputEscaper::escape($escapingMethod, $this->getDirty($key));
+    return sfOutputEscaper::escape($escapingMethod, $this->getRaw($key));
   }
 
 }

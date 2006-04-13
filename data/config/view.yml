@@ -1,4 +1,4 @@
-all:
+default:
   escaping:
-    strategy: off
+    strategy: bc
     method:   ESC_ENTITIES

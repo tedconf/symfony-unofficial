@@ -12,8 +12,9 @@
  * implement the Traversable interface will cause the constructor to throw an
  * exception.
  *
- * @package symfony
- * @package view
+ * @see sfOutputEscaper
+ * @package symfony.view
+ * @subpackage escaper
  * @author Mike Squire <mike@somosis.co.uk>
  */
 class sfOutputEscaperIteratorDecorator extends sfOutputEscaperObjectDecorator implements Iterator
@@ -83,6 +84,11 @@ class sfOutputEscaperIteratorDecorator extends sfOutputEscaperObjectDecorator im
     return $this->iterator->valid();
   }
 
+  /**
+   * The iterator to be used.
+   *
+   * @var IteratorIterator
+   */
   private $iterator;
 
 }

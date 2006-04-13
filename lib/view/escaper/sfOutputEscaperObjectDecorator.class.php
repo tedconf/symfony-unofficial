@@ -4,8 +4,9 @@
  * Output escaping object decorator that intercepts all method calls and escapes
  * their return values.
  *
- * @package symfony
- * @subpackage view
+ * @see sfOutputEscaper
+ * @package symfony.view
+ * @subpackage escaper
  * @author Mike Squire <mike@somosis.co.uk>
  */
 class sfOutputEscaperObjectDecorator extends sfOutputEscaperGetterDecorator{
@@ -23,9 +24,9 @@ class sfOutputEscaperObjectDecorator extends sfOutputEscaperGetterDecorator{
    * For example if an object, $o, implements methods a() and b($arg):
    *
    *   $o->a()                // Escapes the return value of a()
-   *   $o->a(ESC_DIRTY)       // Uses the escaping method ESC_DIRTY with a()
+   *   $o->a(ESC_RAW)         // Uses the escaping method ESC_RAW with a()
    *   $o->b('a')             // Escapes the return value of b('a')
-   *   $o->b('a', ESC_DIRTY); // Uses the escaping method ESC_DIRTY with b('a')
+   *   $o->b('a', ESC_RAW);   // Uses the escaping method ESC_RAW with b('a')
    *
    * @param string $method the method on the object to be called
    * @param array $args an array of arguments to be passed to the method
@@ -39,7 +40,7 @@ class sfOutputEscaperObjectDecorator extends sfOutputEscaperGetterDecorator{
 
       if (substr($escapingMethod, 0, 4) === 'esc_')
       {
-        array_shift($args);
+        array_pop($args);
       }
       else
       {
@@ -60,17 +61,17 @@ class sfOutputEscaperObjectDecorator extends sfOutputEscaperGetterDecorator{
    * Returns the result of calling the get() method on the object, bypassing
    * any escaping, if that method exists.
    *
-   * If the get() method does not exist this will throw an exception.
+   * If there is not a callable get() method this will throw an exception.
    *
-   * @throws sfException if the object does not have a get() method
+   * @throws sfException if the object does not have a callable get() method
    * @param string $key the parameter to be passed to the get() get method
    * @return mixed the unescaped value returned
    */
-  public function getDirty($key)
+  public function getRaw($key)
   {
     if (! is_callable(array($this->value, 'get')))
     {
-      throw new sfException('object does not support have a get() method');
+      throw new sfException('object does not have a callable get() method');
     }
 
     return $this->value->get($key);

@@ -3,8 +3,8 @@
 /**
  * Abstract class that provides an interface for escaping of output.
  *
- * @package symfony
- * @subpackage view
+ * @package symfony.view
+ * @subpackage escaper
  * @author Mike Squire <mike@somosis.co.uk>
  */
 abstract class sfOutputEscaper
@@ -39,7 +39,8 @@ abstract class sfOutputEscaper
    */
   public static function escape($escapingMethod, $value)
   {
-    if (is_null($value) || ($value === false)) {
+    if (is_null($value) || ($value === false))
+    {
       return $value;
     }
 

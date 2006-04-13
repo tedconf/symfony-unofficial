@@ -4,8 +4,8 @@
  * Output escaping decorator class for arrays.
  *
  * @see sfOutputEscaper
- * @package symfony
- * @subpackage view
+ * @package symfony.view
+ * @subpackage escaper
  * @author Mike Squire <mike@somosis.co.uk>
  */
 class sfOutputEscaperArrayDecorator extends sfOutputEscaperGetterDecorator implements Iterator, ArrayAccess, Countable {
@@ -117,7 +117,7 @@ class sfOutputEscaperArrayDecorator extends sfOutputEscaperGetterDecorator imple
    */
   public function offsetUnset($offset)
   {
-    throw new sfExecption('cannot unset values');
+    throw new sfException('cannot unset values');
   }
 
   /**
@@ -137,7 +137,7 @@ class sfOutputEscaperArrayDecorator extends sfOutputEscaperGetterDecorator imple
    * @param string $key the key into the array to use
    * @return mixed the value
    */
-  public function getDirty($key)
+  public function getRaw($key)
   {
     return @ $this->value[$key];
   }
