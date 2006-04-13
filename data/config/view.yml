@@ -1,0 +1,4 @@
+all:
+  escaping:
+    strategy: off
+    method:   ESC_ENTITIES

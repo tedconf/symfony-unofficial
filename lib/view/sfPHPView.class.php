@@ -107,16 +107,6 @@ class sfPHPView extends sfView
     $_escaping       = $this->getEscaping();
     $_escapingMethod = $this->getEscapingMethod();
 
-    if (is_null($_escaping))
-    {
-      $_escaping = 'both';
-    }
-
-    if (is_null($_escapingMethod))
-    {
-      $_escapingMethod = ESC_ENTITIES;
-    }
-
     if (! $_doEscape || ($_escaping === false) || ($_escaping === 'bc'))
     {
       extract($this->attribute_holder->getAll());
