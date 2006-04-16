@@ -63,6 +63,11 @@ abstract class sfView
    */
   const RENDER_VAR = 4;
 
+  /**
+   * Render the presentation from cache.
+   */
+  const RENDER_CACHE = 8;
+
   private
     $context            = null,
     $decorator          = false,
@@ -71,7 +76,9 @@ abstract class sfView
     $directory          = null,
     $slots              = array(),
     $componentSlots     = array(),
-    $template           = null;
+    $template           = null,
+    $escaping           = null,
+    $escapingMethod     = null;
 
   protected
     $attribute_holder   = null,
@@ -126,6 +133,9 @@ abstract class sfView
     $controller->setRenderMode($renderMode);
 
     // set the decorator content as an attribute
+    $this->attribute_holder->setByRef('sf_content', $content);
+
+    // for backwards compatibility with old layouts; remove at 0.8.0?
     $this->attribute_holder->setByRef('content', $content);
 
     // return a null value to satisfy the requirement
@@ -215,6 +225,43 @@ abstract class sfView
   public function getTemplate ()
   {
     return $this->template;
+  }
+
+  /**
+   * Gets the default escaping strategy associated with this view.
+   *
+   * The escaping strategy specifies how the variables get passed to the view.
+   *
+   * @return string the escaping strategy.
+   */
+  public function getEscaping()
+  {
+    return $this->escaping;
+  }
+
+  /**
+   * Returns the name of the function that is to be used as the escaping method.
+   *
+   * If the escaping method is empty, then that is returned. The default value
+   * specified by the sub-class will be used. If the method does not exist (in
+   * the sense there is no define associated with the method) and exception is
+   * thrown.
+   *
+   * @return string the escaping method as the name of the function to use
+   */
+  public function getEscapingMethod()
+  {
+    if (empty($this->escapingMethod))
+    {
+      return $this->escapingMethod;
+    }
+
+    if (!defined($this->escapingMethod))
+    {
+      throw new sfException(sprintf('Escaping method "%s" is not available; perhaps another helper needs to be loaded in?', $this->escapingMethod));
+    }
+
+    return constant($this->escapingMethod);
   }
 
   /**
@@ -460,6 +507,16 @@ abstract class sfView
     $this->decoratorDirectory = $directory;
   }
 
+  public function setEscaping($escaping)
+  {
+    $this->escaping = $escaping;
+  }
+
+  public function setEscapingMethod($method)
+  {
+    $this->escapingMethod = $method;
+  }
+
   /**
    * Set the decorator template for this view.
    *
@@ -567,7 +624,7 @@ abstract class sfView
    */
   public function getComponentSlot($name)
   {
-    if (isset($this->componentSlots[$name]))
+    if (isset($this->componentSlots[$name]) && $this->componentSlots[$name]['module_name'] && $this->componentSlots[$name]['component_name'])
     {
       return array($this->componentSlots[$name]['module_name'], $this->componentSlots[$name]['component_name']);
     }

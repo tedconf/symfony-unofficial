@@ -69,6 +69,7 @@ class sfPropelDatabase extends sfCreoleDatabase
       $this->setParameter('database', $params['database']);
       $this->setParameter('username', $params['username']);
       $this->setParameter('password', $params['password']);
+      $this->setParameter('port',     $params['port']);
     }
 
     self::$config['propel']['datasources'][$this->getParameter('datasource')] =
@@ -77,10 +78,11 @@ class sfPropelDatabase extends sfCreoleDatabase
         'connection' =>
         array(
           'phptype'  => $this->getParameter('phptype'),
-          'hostspec' => $this->getParameter('hostspec'),
+          'hostspec' => $this->getParameter('hostspec') ? $this->getParameter('hostspec') : ($this->getParameter('host') ? $this->getParameter('hostspec') : null),
           'database' => $this->getParameter('database'),
           'username' => $this->getParameter('username'),
           'password' => $this->getParameter('password'),
+          'port'     => $this->getParameter('port'),
         ),
       );
   }
@@ -92,6 +94,11 @@ class sfPropelDatabase extends sfCreoleDatabase
 
   public function setConnectionParameter ($key, $value)
   {
+    if ($key == 'host')
+    {
+      $key = 'hostspec';
+    }
+
     self::$config['propel']['datasources'][$this->getParameter('datasource')]['connection'][$key] = $value;
     $this->setParameter($key, $value);
   }

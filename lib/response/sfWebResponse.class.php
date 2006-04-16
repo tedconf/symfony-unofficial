@@ -351,10 +351,20 @@ class sfWebResponse extends sfResponse
     return $this->parameter_holder->getAll('helper/asset/auto/meta');
   }
 
-  public function addMeta($key, $value, $override = true)
+  public function addMeta($key, $value, $override = true, $doNotEscape = false)
   {
     if ($override || !$this->hasParameter($key, 'helper/asset/auto/meta'))
     {
+      if (sfConfig::get('sf_i18n'))
+      {
+        $value = sfConfig::get('sf_i18n_instance')->__($value);
+      }
+
+      if (!$doNotEscape)
+      {
+        $value = htmlentities($value, ENT_QUOTES, 'UTF-8');
+      }
+
       $this->setParameter($key, $value, 'helper/asset/auto/meta');
     }
   }
@@ -366,8 +376,18 @@ class sfWebResponse extends sfResponse
     return $metas['title'];
   }
 
-  public function setTitle($title)
+  public function setTitle($title, $doNotEscape = false)
   {
+    if (!$doNotEscape)
+    {
+      if (sfConfig::get('sf_i18n'))
+      {
+        $title = sfConfig::get('sf_i18n_instance')->__($title);
+      }
+
+      $title = htmlentities($title, ENT_QUOTES, 'UTF-8');
+    }
+
     $this->setParameter('title', $title, 'helper/asset/auto/meta');
   }
 
@@ -383,28 +403,32 @@ class sfWebResponse extends sfResponse
 
   public function addStylesheet($css, $position = '', $options = array())
   {
-    if ($position == 'first')
+    if ($position)
     {
-      $this->setParameter($css, $options, 'helper/asset/auto/stylesheet/first');
+      $position = '/'.$position;
     }
-    else if ($position == 'last')
-    {
-      $this->setParameter($css, $options, 'helper/asset/auto/stylesheet/last');
-    }
-    else
-    {
-      $this->setParameter($css, $options, 'helper/asset/auto/stylesheet');
-    }
+
+    $this->setParameter($css, $options, 'helper/asset/auto/stylesheet'.$position);
   }
 
-  public function getJavascripts()
+  public function getJavascripts($position = '')
   {
-    return $this->parameter_holder->getAll('helper/asset/auto/javascript');
+    if ($position)
+    {
+      $position = '/'.$position;
+    }
+
+    return $this->parameter_holder->getAll('helper/asset/auto/javascript'.$position);
   }
 
-  public function addJavascript($js)
+  public function addJavascript($js, $position = '')
   {
-    $this->setParameter($js, $js, 'helper/asset/auto/javascript');
+    if ($position)
+    {
+      $position = '/'.$position;
+    }
+
+    $this->setParameter($js, $js, 'helper/asset/auto/javascript'.$position);
   }
 
   /**

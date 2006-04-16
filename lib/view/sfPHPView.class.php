@@ -33,7 +33,7 @@ class sfPHPView extends sfView
   {
     $context = $this->getContext();
 
-    $lastActionEntry = $context->getActionStack()->getLastEntry();
+    $lastActionEntry  = $context->getActionStack()->getLastEntry();
     $firstActionEntry = $context->getActionStack()->getFirstEntry();
 
     $shortcuts = array(
@@ -58,16 +58,6 @@ class sfPHPView extends sfView
     return $shortcuts;
   }
 
-  /**
-   * Assigns some action variables to the template.
-   */
-  protected function getModuleVars()
-  {
-    $action = $this->getContext()->getActionStack()->getLastEntry()->getActionInstance();
-
-    return $action->getVarHolder()->getAll();
-  }
-
   protected function loadCoreAndStandardHelpers()
   {
     if (self::$coreHelpersLoaded)
@@ -77,7 +67,7 @@ class sfPHPView extends sfView
 
     self::$coreHelpersLoaded = 1;
 
-    $core_helpers = array('Helper', 'Url', 'Asset', 'Tag');
+    $core_helpers = array('Helper', 'Url', 'Asset', 'Tag', 'Escaping');
     $standard_helpers = sfConfig::get('sf_standard_helpers');
 
     $helpers = array_unique(array_merge($core_helpers, $standard_helpers));
@@ -105,19 +95,40 @@ class sfPHPView extends sfView
     }
   }
 
-  protected function renderFile($file)
+  protected function renderFile($_sfFile)
   {
-    $this->attribute_holder->add($this->getGlobalVars());
-    $this->attribute_holder->add($this->getModuleVars());
-
-    extract($this->attribute_holder->getAll());
+    if ($sf_logging_active = sfConfig::get('sf_logging_active'))
+    {
+      $this->getContext()->getLogger()->info('{sfPHPView} render "'.$_sfFile.'"');
+    }
 
     $this->loadCoreAndStandardHelpers();
+
+    $_escaping       = $this->getEscaping();
+    $_escapingMethod = $this->getEscapingMethod();
+
+    if (($_escaping === false) || ($_escaping === 'bc'))
+    {
+      extract($this->attribute_holder->getAll());
+    }
+
+    if ($_escaping !== false)
+    {
+      $sf_data = sfOutputEscaper::escape($_escapingMethod, $this->attribute_holder->getAll());
+
+      if ($_escaping === 'both')
+      {
+        foreach ($sf_data as $_key => $_value)
+        {
+          ${$_key} = $_value;
+        }
+      }
+    }
 
     // render to variable
     ob_start();
     ob_implicit_flush(0);
-    require($file);
+    require($_sfFile);
     $retval = ob_get_clean();
 
     return $retval;
@@ -242,29 +253,35 @@ class sfPHPView extends sfView
 
     $retval = null;
 
-    // execute pre-render check
-    $this->preRenderCheck();
-
     // get the render mode
     $mode = $this->getContext()->getController()->getRenderMode();
 
     if ($mode != sfView::RENDER_NONE)
     {
-      if ($sf_logging_active = sfConfig::get('sf_logging_active'))
-      {
-        $this->getContext()->getLogger()->info('{sfPHPView} render "'.$template.'"');
-      }
-
       $retval = null;
       if (sfConfig::get('sf_cache'))
       {
         list($uri, $suffix) = $this->getContext()->getViewCacheManager()->getInternalUri('slot');
-        $retval = $this->getContext()->getResponse()->getParameter($uri.'_'.$suffix, null, 'symfony/cache');
+        $cache = $this->getContext()->getResponse()->getParameter($uri.'_'.$suffix, null, 'symfony/cache');
+        if ($cache !== null)
+        {
+          $cache  = unserialize($cache);
+          $retval = $cache['content'];
+          $vars   = $cache['vars'];
+        }
       }
+
+      // assigns some variables to the template
+      $this->attribute_holder->add($this->getGlobalVars());
+      $this->attribute_holder->add($retval !== null ? $vars : $actionInstance->getVarHolder()->getAll());
 
       // render template if no cache
       if ($retval === null)
       {
+        // execute pre-render check
+        $this->preRenderCheck();
+
+        // render template file
         $retval = $this->renderFile($template);
 
         // tidy our cache content
@@ -275,7 +292,12 @@ class sfPHPView extends sfView
 
         if (sfConfig::get('sf_cache'))
         {
-          $this->getContext()->getResponse()->setParameter($uri.'_'.$suffix, $retval, 'symfony/cache');
+          $cache = array(
+            'content'   => $retval,
+            'vars'      => $actionInstance->getVarHolder()->getAll(),
+            'view_name' => $this->viewName,
+          );
+          $this->getContext()->getResponse()->setParameter($uri.'_'.$suffix, serialize($cache), 'symfony/cache');
         }
       }
 

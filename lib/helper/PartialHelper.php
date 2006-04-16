@@ -33,9 +33,10 @@ function include_component_slot($name)
     throw new sfConfigurationException($error);
   }
 
-  $componentSlot = $viewInstance->getComponentSlot($name);
-
-  include_component($componentSlot[0], $componentSlot[1]);
+  if ($componentSlot = $viewInstance->getComponentSlot($name))
+  {
+    include_component($componentSlot[0], $componentSlot[1]);
+  }
 }
 
 function include_component($moduleName, $componentName, $vars = array())
@@ -66,7 +67,7 @@ function include_component($moduleName, $componentName, $vars = array())
     {
       if (method_exists($componentInstance, 'execute'))
       {
-        $componentToTun = 'execute';
+        $componentToRun = 'execute';
       }
       else
       {

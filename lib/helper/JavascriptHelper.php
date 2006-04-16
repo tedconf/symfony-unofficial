@@ -337,7 +337,7 @@
     switch ($value)
     {
       case 'update':
-        if ($options['position'])
+        if (isset($options['position']) && $options['position'])
         {
           $javascript_function = "new Insertion.".sfInflector::camelize($options['position'])."('$element_id','$content')";
         }
@@ -714,7 +714,7 @@
     $response->addJavascript('/sf/js/prototype/effects');
 
     $comp_options = _convert_options($completion_options);
-    if (isset($comp_options['use_style']) && $comp_options['use_style'] == 'true')
+    if (isset($comp_options['use_style']) && $comp_options['use_style'] == true)
     {
       $response->addStylesheet('/sf/css/sf_helpers/input_auto_complete_tag');
     }
@@ -881,7 +881,19 @@
     }
     if (isset($options['min_chars']))
     {
-      $js_options['min_chars'] = $options['min_chars'];
+      $js_options['minChars'] = $options['min_chars'];
+    }
+    if (isset($options['frequency']))
+    {
+      $js_options['frequency'] = $options['frequency'];
+    }
+    if (isset($options['update_element']))
+    {
+      $js_options['updateElement'] = $options['update_element'];
+    }
+    if (isset($options['after_update_element']))
+    {
+      $js_options['afterUpdateElement'] = $options['after_update_element'];
     }
 
     $javascript .= ', '._options_for_javascript($js_options).');';
@@ -920,7 +932,7 @@
     $js_options['asynchronous'] = (isset($options['type'])) ? ($options['type'] != 'synchronous') : 'true';
     if (isset($options['method'])) $js_options['method'] = _method_option_to_s($options['method']);
     if (isset($options['position'])) $js_options['insertion'] = "Insertion.".sfInflector::camelize($options['position']);
-    $js_options['evalScripts'] = (!isset($options['script']) || $options['script'] == '0' || $options['script'] == 'false') ? 'false' : 'true';
+    $js_options['evalScripts'] = (!isset($options['script']) || $options['script'] == '0' || $options['script'] == false) ? 'false' : 'true';
 
     if (isset($options['form']))
     {
@@ -940,7 +952,7 @@
 
   function _method_option_to_s($method)
   {
-    return (is_string($method) && $method[0] != "'") ? $method : "'$method'";
+    return (is_string($method) && $method[0] != "'") ? "'$method'" : $method;
   }
 
   function _build_observer($klass, $name, $options = array())

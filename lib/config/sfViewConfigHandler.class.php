@@ -43,6 +43,10 @@ class sfViewConfigHandler extends sfYamlConfigHandler
       isset($myConfig['all']) && is_array($myConfig['all']) ? $myConfig['all'] : array()
     );
 
+    // merge javascripts and stylesheets
+    $myConfig['all']['stylesheets'] = array_merge(isset($myConfig['default']['stylesheets']) && is_array($myConfig['default']['stylesheets']) ? $myConfig['default']['stylesheets'] : array(), isset($myConfig['all']['stylesheets']) && is_array($myConfig['all']['stylesheets']) ? $myConfig['all']['stylesheets'] : array());
+    $myConfig['all']['javascripts'] = array_merge(isset($myConfig['default']['javascripts']) && is_array($myConfig['default']['javascripts']) ? $myConfig['default']['javascripts'] : array(), isset($myConfig['all']['javascripts']) && is_array($myConfig['all']['javascripts']) ? $myConfig['all']['javascripts'] : array());
+
     unset($myConfig['default']);
 
     $this->yamlConfig = $myConfig;
@@ -51,6 +55,7 @@ class sfViewConfigHandler extends sfYamlConfigHandler
     $data = array();
 
     $data[] = "\$sf_safe_slot = sfConfig::get('sf_safe_slot');\n";
+    $data[] = "\$response = \$action->getResponse();\n";
 
     // iterate through all view names
     $first = true;
@@ -82,6 +87,7 @@ class sfViewConfigHandler extends sfYamlConfigHandler
       $data[] = $this->addSlots($viewName);
       $data[] = $this->addComponentSlots($viewName);
       $data[] = $this->addHtmlHead($viewName);
+      $data[] = $this->addEscaping($viewName);
 
       $data[] = "  }\n";
 
@@ -111,6 +117,7 @@ class sfViewConfigHandler extends sfYamlConfigHandler
     $data[] = $this->addSlots();
     $data[] = $this->addComponentSlots();
     $data[] = $this->addHtmlHead();
+    $data[] = $this->addEscaping();
 
     $data[] = "  }\n";
 
@@ -133,11 +140,13 @@ class sfViewConfigHandler extends sfYamlConfigHandler
     $components = $this->mergeConfigValue('components', $viewName);
     foreach ($components as $name => $component)
     {
-      if (count($component) > 1)
+      if (!is_array($component) || count($component) < 1)
       {
-        $data .= "    \$this->setComponentSlot('$name', '{$component[0]}', '{$component[1]}');\n";
-        $data .= "    if (sfConfig::get('sf_logging_active')) \$context->getLogger()->info('{sfViewConfig} set component \"$name\" ({$component[0]}/{$component[1]})');\n";
+        $component = array(null, null);
       }
+
+      $data .= "    \$this->setComponentSlot('$name', '{$component[0]}', '{$component[1]}');\n";
+      $data .= "    if (sfConfig::get('sf_logging_active')) \$context->getLogger()->info('{sfViewConfig} set component \"$name\" ({$component[0]}/{$component[1]})');\n";
     }
 
     return $data;
@@ -216,12 +225,12 @@ class sfViewConfigHandler extends sfYamlConfigHandler
 
     foreach ($this->mergeConfigValue('http_metas', $viewName) as $httpequiv => $content)
     {
-      $data[] = sprintf("    \$action->getResponse()->addHttpMeta('%s', '%s', false);", $httpequiv, $content);
+      $data[] = sprintf("    \$response->addHttpMeta('%s', '%s', false);", $httpequiv, $content);
     }
 
     foreach ($this->mergeConfigValue('metas', $viewName) as $name => $content)
     {
-      $data[] = sprintf("    \$action->getResponse()->addMeta('%s', '%s', false);", $name, $content);
+      $data[] = sprintf("    \$response->addMeta('%s', '%s', false);", $name, $content);
     }
 
     return implode("\n", $data)."\n";
@@ -234,17 +243,35 @@ class sfViewConfigHandler extends sfYamlConfigHandler
     $stylesheets = $this->mergeConfigValue('stylesheets', $viewName);
     if (is_array($stylesheets))
     {
+      // remove javascripts marked with a beginning '-'
+      $delete = array();
+      foreach ($stylesheets as $stylesheet)
+      {
+        $key = is_array($stylesheet) ? key($stylesheet) : $stylesheet;
+        if (substr($key, 0, 1) == '-')
+        {
+          $delete[] = $key;
+          $delete[] = substr($key, 1);
+        }
+      }
+      $stylesheets = array_diff($stylesheets, $delete);
+
       foreach ($stylesheets as $css)
       {
         if (is_array($css))
         {
           $key = key($css);
           $options = $css[$key];
-          $data[] = sprintf("  \$action->getResponse()->addStylesheet('%s', '', %s);", $key, var_export($options, true));
         }
         else
         {
-          $data[] = sprintf("  \$action->getResponse()->addStylesheet('%s');", $css);
+          $key = $css;
+          $options = array();
+        }
+
+        if ($key)
+        {
+          $data[] = sprintf("  \$response->addStylesheet('%s', '', %s);", $key, var_export($options, true));
         }
       }
     }
@@ -252,10 +279,44 @@ class sfViewConfigHandler extends sfYamlConfigHandler
     $javascripts = $this->mergeConfigValue('javascripts', $viewName);
     if (is_array($javascripts))
     {
+      // remove javascripts marked with a beginning '-'
+      $delete = array();
+      foreach ($javascripts as $javascript)
+      {
+        if (substr($javascript, 0, 1) == '-')
+        {
+          $delete[] = $javascript;
+          $delete[] = substr($javascript, 1);
+        }
+      }
+      $javascripts = array_diff($javascripts, $delete);
+
       foreach ($javascripts as $js)
       {
-        $data[] = sprintf("  \$action->getResponse()->addJavascript('%s');", $js);
+        if ($js)
+        {
+          $data[] = sprintf("  \$response->addJavascript('%s');", $js);
+        }
       }
+    }
+
+    return implode("\n", $data)."\n";
+  }
+
+  private function addEscaping($viewName = '')
+  {
+    $data = array();
+
+    $escaping = $this->getConfigValue('escaping', $viewName);
+
+    if(isset($escaping['strategy']))
+    {
+      $data[] = sprintf("  \$this->setEscaping(%s);", var_export($escaping['strategy'], true));
+    }
+
+    if(isset($escaping['method']))
+    {
+      $data[] = sprintf("  \$this->setEscapingMethod(%s);", var_export($escaping['method'], true));
     }
 
     return implode("\n", $data)."\n";

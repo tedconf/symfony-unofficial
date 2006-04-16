@@ -76,9 +76,6 @@ The default global template, created when you initialize an application, is call
     
     <?php echo include_title() ?>
     
-    <?php echo include_stylesheets() ?>
-    <?php echo include_javascripts() ?>
-    
     <link rel="shortcut icon" href="/favicon.ico">
     
     </head>
@@ -88,7 +85,6 @@ The default global template, created when you initialize an application, is call
     
     </body>
     </html>
-
 
 The default settings of the view, set in the application view configuration file `myproject/apps/myapp/config/view.yml`, are:
 
@@ -104,12 +100,12 @@ The default settings of the view, set in the application view configuration file
         
       stylesheets:    [main]
       
-      javascripts:    []
+      javascripts:    [ ]
 
       has_layout:     on
       layout:         layout
 
-      slots:          {}
+      components:     {}
 
 When applied to the layout, these settings produce the following `<head>` section:
 
@@ -223,6 +219,8 @@ On the other hand, if an action can give pages with various titles, you should u
 File inclusion configuration
 ----------------------------
 
+### Basic syntax
+
 To include a specific stylesheet or a specific javascript file in the view configuration file, use:
 
     stylesheets: [$css]
@@ -259,14 +257,55 @@ The `<head>` of the resulting view would then show:
     <script language="javascript" type="text/javascript" src="/js/calendar/lang/calendar-en.js"></script>
     <script language="javascript" type="text/javascript" src="/js/calendar/calendar-setup_stripped.js"></script>
 
-You can also change default stylesheet tag options:
+>**Note**: In previous versions of symfony, this type of inclusion was only possible if you included calls to the `include_stylesheets()` and `include_javascripts()` helpers in the `<head>` section of the layout. This is not necessary anymore, and the use of these helpers is deprecated.
+
+### Addition, removal, ordering
+
+When you mention a stylesheet or a JavaScript in a `view.yml`, it appears in the response `<head>` *in addition to the ones already defined* and after them. The addition of these files follows the usual cascade definition, and the order of inclusion is from the most general to the most particular.
+
+For instance, if your application `view.yml` stipulates:
+
+    default:
+      stylesheets: [main]
+      
+And if you have, in your module `config/view.yml`:
+
+    indexSuccess:
+      stylesheets: [special]
+    
+    all:
+      stylesheets: [additional]
+
+Then the `<head>` of the resulting `indexSuccess` view will show:
+
+    [php]
+    <link rel="stylesheet" type="text/css" media="screen" href="/css/main.css" />
+    <link rel="stylesheet" type="text/css" media="screen" href="/css/additional.css" />
+    <link rel="stylesheet" type="text/css" media="screen" href="/css/special.css" />
+    
+The same applies for the JavaScript inclusions. This allows you to override global settings at the module and view level.
+
+To give you more control over this cascade, you can remove an already included stylesheet or JavaScript by prefixing its name with a minus sign ('-') in the `view.yml`
+
+    # adds a new stylesheet and removes the default one (as defined in the global view.yml)
+    indexSuccess:
+      stylesheets: [special, -main]
+
+You can be more accurate from within an action and define an additional parameter to force the position where to include the file (`first` or `last` position):
+
+    [php]
+    $this->getResponse()->addStylesheet('special', 'first');
+
+### Media specific stylesheet
+
+To specify a media for a stylesheet inclusion, you can change the default stylesheet tag options:
 
     stylesheets: [main, main_for_print: { media: print }]
 
 or
 
     [php]
-    $this->getResponse()->addStylesheet($css, array('media' => 'print'));
+    $this->getResponse()->addStylesheet('main_for_print', array('media' => 'print'));
 
 Layout configuration
 --------------------
@@ -318,36 +357,31 @@ Or, in the action:
     [php]
     $this->hasLayout(false);
 
-Slots configuration
--------------------
+Component slots configuration
+-----------------------------
 
-Common interface components with dynamic content (breadcrumbs, navigation bars, etc.) that require the execution of an action are published in slots in symfony. As a slot is a variable name in which is stored the result of an action, the definition in the `view.yml` looks like:
+Common interface components with dynamic content (breadcrumbs, navigation bars, etc.) that require the execution of a component (the "light" version of an action) are published in *component slots* in symfony. The definition in the `view.yml` looks like:
 
-    slots:
-      $slotname: [$module, $action]
-
-Alternatively, in an action:
-
-    [php]
-    $slotname = $this->setSlot($module, $action);
+    components:
+      $componentname: [$module, $action]
     
 Imagine that you have a layout with a zone for contextual advices:
 
     [php]
     ...
     <div id="adviceBlock">
-      <?php echo $advices ?>
+      <?php echo include_component_slot('advices') ?>
     </div>
     ...
 
-You also have a module `advice` with contextual actions `forIndex` and `forList`. Now, if you want to associate a contextual action with the views of a module `article` with actions `view` and `list`, you could write the following `myproject/apps/myapp/modules/article/config/view.yml`:
+You also have a module `advice` with contextual components `forIndex` and `forList`. Now, if you want to associate a contextual component with the views of a module `article` with actions `index` and `list`, you could write the following `myproject/apps/myapp/modules/article/config/view.yml`:
 
     indexSuccess:
-      slots:
+      components:
         advices: [advice, forIndex]
 
     listSuccess:
-      slots:
+      components:
         advices: [advice, forList]
 
 How about template configuration?

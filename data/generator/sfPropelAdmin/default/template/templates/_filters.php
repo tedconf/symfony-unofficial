@@ -2,7 +2,7 @@
 
 <?php if ($this->getParameterValue('list.filters')): ?>
 <div class="sf_admin_filters">
-[?php echo form_tag('<?php echo $this->getModuleName() ?>/list') ?]
+[?php echo form_tag('<?php echo $this->getModuleName() ?>/list', array('method' => 'get')) ?]
 
   <fieldset>
     <h2>[?php echo __('filters') ?]</h2>
@@ -10,16 +10,16 @@
 <?php $credentials = $this->getParameterValue('list.fields.'.$column->getName().'.credentials') ?>
 <?php if ($credentials): $credentials = str_replace("\n", ' ', var_export($credentials, true)) ?>
     [?php if ($sf_user->hasCredential(<?php echo $credentials ?>)): ?]
-<?php endif ?>
+<?php endif; ?>
     <div class="form-row">
     <label for="<?php echo $column->getName() ?>">[?php echo __('<?php echo $this->getParameterValue('list.fields.'.$column->getName().'.name') ?>:') ?]<?php echo $this->getHelp($column, 'edit') ?></label>
     [?php echo <?php echo $this->getColumnFilterTag($column) ?> ?]
     </div>
 <?php if ($credentials): ?>
-    [?php endif ?]
-<?php endif ?>
+    [?php endif; ?]
+<?php endif; ?>
 
-    <?php endforeach ?>
+    <?php endforeach; ?>
   </fieldset>
 
   <ul class="sf_admin_actions">
@@ -29,4 +29,4 @@
 
 </form>
 </div>
-<?php endif ?>
+<?php endif; ?>

@@ -225,7 +225,7 @@ Guess how to repeat statements *after* every action is executed ? Wrap them in a
 Redirect or Forward
 -------------------
 
-The choice between a `redirect` or a `forward` is sometimes tricky. To choose the best solution, keep in mind that a `forward` is internal to the application and transparent for the user: as far as he is concerned, the displayed URL is the same as the one requested. On the contrary, a `redirect` is a message to the user's browser, involving a new request from it and a change in the final resulting URL.
+The choice between a `redirect` or a `forward` is sometimes tricky. To choose the best solution, keep in mind that a `forward` is internal to the application and transparent for the user. As far as the user is concerned, the displayed URL is the same as the one requested. On the contrary, a `redirect` is a message to the user's browser, involving a new request from it and a change in the final resulting URL.
 
 If the action was called from a submitted form with `action="post"`, you should always do a `redirect`. The main advantage is that if the user refreshes the resulting page, the form will not be submitted again; in addition, the 'back' button works as expected.
 
