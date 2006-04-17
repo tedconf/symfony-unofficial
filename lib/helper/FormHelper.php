@@ -303,55 +303,29 @@ tinyMCE.init({
       content_tag('script', javascript_cdata_section($tinymce_js), array('type' => 'text/javascript')).
       content_tag('textarea', $content, array_merge(array('name' => $name, 'id' => $id), _convert_options($options)));
   }
-  elseif ($rich === 'fck')
+  elseif (in_array($rich, array('fck', 'htmlarea')))
   {
-    $php_file = sfConfig::get('sf_rich_text_fck_js_dir').DIRECTORY_SEPARATOR.'fckeditor.php';
-
-    if (!is_readable(sfConfig::get('sf_web_dir').DIRECTORY_SEPARATOR.$php_file))
+    if ($rich == 'fck')
     {
-      throw new sfConfigurationException('You must install FCKEditor to use this helper (see rich_text_fck_js_dir settings).');
+      $plugin = 'sfFCKEditor';
+    }
+    elseif ($rich == 'htmlarea')
+    {
+      $plugin = 'sfHTMLArea';
     }
 
-    // FCKEditor.php class is written with backward compatibility of PHP4.
-    // This reportings are to turn off errors with public properties and already declared constructor
-    $error_reporting = ini_get('error_reporting');
-    error_reporting(E_ALL);
+    $plugin_path = sfConfig::get('sf_plugin_dir') . DIRECTORY_SEPARATOR . $plugin . DIRECTORY_SEPARATOR . 'lib' . DIRECTORY_SEPARATOR . $plugin . '.class.php';
 
-    require_once(sfConfig::get('sf_web_dir').DIRECTORY_SEPARATOR.$php_file);
-
-    // turn error reporting back to your settings
-    error_reporting($error_reporting);
-
-    $fckeditor           = new FCKeditor($name);
-    $fckeditor->BasePath = DIRECTORY_SEPARATOR.sfConfig::get('sf_rich_text_fck_js_dir').DIRECTORY_SEPARATOR;
-    $fckeditor->Value    = $content;
-
-    if (isset($options['width']))
+    if (!is_readable($plugin_path))
     {
-      $fckeditor->Width = $options['width'];
+     throw new sfConfigurationException('You must install the Symfony ' . $plugin . ' plugin to use this helper.');
     }
-    elseif (isset($options['cols']))
+    else
     {
-      $fckeditor->Width = (string)((int) $options['cols'] * 10).'px';
+      require_once($plugin_path);
+      $textarea = new $plugin();
+      return $textarea->newInstance($name, $options);
     }
-
-    if (isset($options['height']))
-    {
-      $fckeditor->Height = $options['height'];
-    }
-    elseif (isset($options['rows']))
-    {
-      $fckeditor->Height = (string)((int) $options['rows'] * 10).'px';
-    }
-
-    if (isset($options['tool']))
-    {
-      $fckeditor->ToolbarSet = $options['tool'];
-    }
-
-    $content = $fckeditor->CreateHtml();
-
-    return $content;
   }
   else
   {
