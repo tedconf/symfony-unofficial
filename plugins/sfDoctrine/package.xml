@@ -25,6 +25,7 @@
   <dir name="/">
     <file role="php" baseinstalldir="symfony/plugins/sfDoctrine" install-as="sfDoctrineAutoload.php" name="lib/sfDoctrineAutoload.php" />
     <file role="php" baseinstalldir="symfony/plugins/sfDoctrine" install-as="sfDoctrineDatabase.class.php" name="lib/sfDoctrineDatabase.class.php" />
+    <file role="php" baseinstalldir="symfony/plugins/sfDoctrine" install-as="sfDoctrinePager.class.php" name="lib/sfDoctrinePager.class.php" />
   </dir>
  </contents>
 
