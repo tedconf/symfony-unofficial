@@ -1,16 +1,25 @@
 <?php
 
+/*
+ * This file is part of the symfony package.
+ * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 /**
  * Output escaping object decorator that intercepts all method calls and escapes
  * their return values.
  *
- * @see sfOutputEscaper
- * @package symfony.view
+ * @see        sfOutputEscaper
+ * @package    symfony.view
  * @subpackage escaper
- * @author Mike Squire <mike@somosis.co.uk>
+ * @author     Mike Squire <mike@somosis.co.uk>
+ * @version    SVN: $Id$
  */
-class sfOutputEscaperObjectDecorator extends sfOutputEscaperGetterDecorator{
-
+class sfOutputEscaperObjectDecorator extends sfOutputEscaperGetterDecorator
+{
   /**
    * Magic PHP method that intercepts method calls, calls them on the objects
    * that is being escaped and escapes the result.
@@ -69,9 +78,9 @@ class sfOutputEscaperObjectDecorator extends sfOutputEscaperGetterDecorator{
    */
   public function getRaw($key)
   {
-    if (! is_callable(array($this->value, 'get')))
+    if (!is_callable(array($this->value, 'get')))
     {
-      throw new sfException('object does not have a callable get() method');
+      throw new sfException('Object does not have a callable get() method.');
     }
 
     return $this->value->get($key);

@@ -1,14 +1,39 @@
 <?php
 
+/*
+ * This file is part of the symfony package.
+ * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+// fix for PHP 5.0 (no Countable interface)
+if (!in_array('Countable', spl_classes()))
+{
+  interface Countable
+  {
+    public function count();
+  }
+}
+
 /**
  * Output escaping decorator class for arrays.
  *
- * @see sfOutputEscaper
- * @package symfony.view
+ * @see        sfOutputEscaper
+ * @package    symfony.view
  * @subpackage escaper
- * @author Mike Squire <mike@somosis.co.uk>
+ * @author     Mike Squire <mike@somosis.co.uk>
+ * @version    SVN: $Id$
  */
-class sfOutputEscaperArrayDecorator extends sfOutputEscaperGetterDecorator implements Iterator, ArrayAccess, Countable {
+class sfOutputEscaperArrayDecorator extends sfOutputEscaperGetterDecorator implements Iterator, ArrayAccess, Countable
+{
+  /**
+   * Used by the iterator to remember if the current element is valid.
+   *
+   * @var boolean
+   */
+  private $valid = false;
 
   /**
    * Reset the array to the beginning (as required for the Iterator interface).
@@ -103,7 +128,7 @@ class sfOutputEscaperArrayDecorator extends sfOutputEscaperGetterDecorator imple
    */
   public function offsetSet($offset, $value)
   {
-    throw new sfException('cannot set values');
+    throw new sfException('Cannot set values.');
   }
 
   /**
@@ -118,7 +143,7 @@ class sfOutputEscaperArrayDecorator extends sfOutputEscaperGetterDecorator imple
    */
   public function offsetUnset($offset)
   {
-    throw new sfException('cannot unset values');
+    throw new sfException('Cannot unset values.');
   }
 
   /**
@@ -142,14 +167,6 @@ class sfOutputEscaperArrayDecorator extends sfOutputEscaperGetterDecorator imple
   {
     return $this->value[$key];
   }
-
-  /**
-   * Used by the iterator to remember if the current element is valid.
-   *
-   * @var boolean
-   */
-  private $valid = false;
-
 }
 
 ?>

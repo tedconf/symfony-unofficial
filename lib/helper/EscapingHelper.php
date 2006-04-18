@@ -1,5 +1,13 @@
 <?php
 
+/*
+ * This file is part of the symfony package.
+ * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 /**
  * The functions are primarily used by the output escaping component.
  *
@@ -17,9 +25,10 @@
  * For each function there is a define to avoid problems with strings being
  * incorrectly specified.
  *
- * @package symfony
+ * @package    symfony
  * @subpackage helper
- * @author Mike Squire <mike@somosis.co.uk>
+ * @author     Mike Squire <mike@somosis.co.uk>
+ * @version    SVN: $Id$
  */
 
 /**
@@ -28,7 +37,8 @@
  * @param string $value the value to escape
  * @return string the escaped value
  */
-function esc_entities($value) {
+function esc_entities($value)
+{
   return htmlentities($value, ENT_QUOTES);
 }
 
@@ -41,7 +51,8 @@ define('ESC_ENTITIES', 'esc_entities');
  * @param string $value the value to escape
  * @return string the escaped value
  */
-function esc_raw($value) {
+function esc_raw($value)
+{
   return $value;
 }
 
@@ -59,7 +70,8 @@ define('ESC_RAW', 'esc_raw');
  * @param string $value the value to escape
  * @return string the escaped value
  */
-function esc_js($value) {
+function esc_js($value)
+{
   return esc_js_no_entities(esc_entities($value));
 }
 
@@ -72,7 +84,8 @@ define('ESC_JS', 'esc_js');
  * @param string $value the value to escape
  * @return string the escaped value
  */
-function esc_js_no_entities($value) {
+function esc_js_no_entities($value)
+{
   return addcslashes($value, "\0..\37\\'\"\177..\377");
 }
 

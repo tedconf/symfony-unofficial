@@ -1,14 +1,49 @@
 <?php
 
+/*
+ * This file is part of the symfony package.
+ * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 /**
  * Abstract class that provides an interface for escaping of output.
  *
- * @package symfony.view
+ * @package    symfony.view
  * @subpackage escaper
- * @author Mike Squire <mike@somosis.co.uk>
+ * @author     Mike Squire <mike@somosis.co.uk>
+ * @version    SVN: $Id$
  */
 abstract class sfOutputEscaper
 {
+  /**
+   * The value that is to be escaped.
+   *
+   * @var mixed
+   */
+  protected $value;
+
+  /**
+   * The escaping method that is going to be applied to the value and its
+   * children. This is actually the name of a PHP function.
+   *
+   * @var string
+   */
+  protected $escapingMethod;
+
+  /**
+   * Constructor stores the escaping method and value.
+   *
+   * Since sfOutputEscaper is an abstract class, instances cannot be created
+   * directly but the constructor will be inherited by sub-classes.
+   */
+  public function __construct($escapingMethod, $value)
+  {
+    $this->value          = $value;
+    $this->escapingMethod = $escapingMethod;
+  }
 
   /**
    * Decorates a PHP variable with something that will escape any data obtained
@@ -67,37 +102,9 @@ abstract class sfOutputEscaper
       }
     }
 
-    // It must be a resource; cannot escape that.
-    throw new sfException('unable to escape value \'' . print_r($value, true) . '\'');
+    // it must be a resource; cannot escape that.
+    throw new sfException(sprintf('Unable to escape value "%s"', print_r($value, true)));
   }
-
-  /**
-   * Constructor stores the escaping method and value.
-   *
-   * Since sfOutputEscaper is an abstract class, instances cannot be created
-   * directly but the constructor will be inherited by sub-classes.
-   */
-  public function __construct($escapingMethod, $value)
-  {
-    $this->value          = $value;
-    $this->escapingMethod = $escapingMethod;
-  }
-
-  /**
-   * The value that is to be escaped.
-   *
-   * @var mixed
-   */
-  protected $value;
-
-  /**
-   * The escaping method that is going to be applied to the value and its
-   * children. This is actually the name of a PHP function.
-   *
-   * @var string
-   */
-  protected $escapingMethod;
-
 }
 
 ?>

@@ -256,9 +256,9 @@ abstract class sfView
       return $this->escapingMethod;
     }
 
-    if (! defined($this->escapingMethod))
+    if (!defined($this->escapingMethod))
     {
-      throw new sfException('escaping method \'' . $this->escapingMethod . '\' is not available; perhaps another helper needs to be loaded in?');
+      throw new sfException(sprintf('Escaping method "%s" is not available; perhaps another helper needs to be loaded in?', $this->escapingMethod));
     }
 
     return constant($this->escapingMethod);

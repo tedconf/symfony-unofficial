@@ -1,5 +1,13 @@
 <?php
 
+/*
+ * This file is part of the symfony package.
+ * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 /**
  * Output escaping iterator decorator.
  *
@@ -12,13 +20,20 @@
  * implement the Traversable interface will cause the constructor to throw an
  * exception.
  *
- * @see sfOutputEscaper
- * @package symfony.view
+ * @see        sfOutputEscaper
+ * @package    symfony.view
  * @subpackage escaper
- * @author Mike Squire <mike@somosis.co.uk>
+ * @author     Mike Squire <mike@somosis.co.uk>
+ * @version    SVN: $Id$
  */
 class sfOutputEscaperIteratorDecorator extends sfOutputEscaperObjectDecorator implements Iterator
 {
+  /**
+   * The iterator to be used.
+   *
+   * @var IteratorIterator
+   */
+  private $iterator;
 
   /**
    * Construct a new escaping iteratoror using the escaping method and value
@@ -83,14 +98,6 @@ class sfOutputEscaperIteratorDecorator extends sfOutputEscaperObjectDecorator im
   {
     return $this->iterator->valid();
   }
-
-  /**
-   * The iterator to be used.
-   *
-   * @var IteratorIterator
-   */
-  private $iterator;
-
 }
 
 ?>

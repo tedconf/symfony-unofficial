@@ -1,16 +1,24 @@
 <?php
 
+/*
+ * This file is part of the symfony package.
+ * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 /**
  * Abstract output escaping decorator class for "getter" objects.
  *
- * @see sfOutputEscaper
- * @package symfony.view
+ * @see        sfOutputEscaper
+ * @package    symfony.view
  * @subpackage escaper
- * @author Mike Squire <mike@somosis.co.uk>
+ * @author     Mike Squire <mike@somosis.co.uk>
+ * @version    SVN: $Id$
  */
 abstract class sfOutputEscaperGetterDecorator extends sfOutputEscaper
 {
-
   /**
    * Returns the raw, unescaped value associated with the key supplied.
    *
@@ -34,7 +42,7 @@ abstract class sfOutputEscaperGetterDecorator extends sfOutputEscaper
    */
   public function get($key, $escapingMethod = null)
   {
-    if (! $escapingMethod)
+    if (!$escapingMethod)
     {
       $escapingMethod = $this->escapingMethod;
     }
