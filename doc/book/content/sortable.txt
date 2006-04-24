@@ -130,7 +130,7 @@ Make sure your web server configuration is OK by testing the access to this new 
 
     http://localhost/sf_sandbox/web/frontend_dev.php/item
 
-Finally, if you want to test the ordering of items, you will need... items. Create a bunch of test items, either via a [CRUD interface](generator.txt) or a [population file](populate.txt).
+Finally, if you want to test the ordering of items, you will need... items. Create a bunch of test items, either via a [CRUD interface](scaffolding.txt) or a [population file](populate.txt).
 
 Now that everything is ready, let's get started.
 
@@ -392,7 +392,7 @@ For all AJAX actions, it is good to have a **visual feedback** of background act
 
     [php]
     <div id="feedback"></div>
-    <div id="indicator"><img src="/images/activity_indicator.gif" style="display:none;"/></div>
+    <div id="indicator" style="display:none;"><img src="/images/activity_indicator.gif" style="display:none;"/></div>
     <?php echo sortable_element('order', array(
       'url'      => 'item/sort',
       'update'   => 'feedback',

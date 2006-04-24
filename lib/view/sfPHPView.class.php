@@ -95,7 +95,7 @@ class sfPHPView extends sfView
     }
   }
 
-  protected function renderFile($_sfFile, $_doEscape = true)
+  protected function renderFile($_sfFile)
   {
     if ($sf_logging_active = sfConfig::get('sf_logging_active'))
     {
@@ -107,28 +107,18 @@ class sfPHPView extends sfView
     $_escaping       = $this->getEscaping();
     $_escapingMethod = $this->getEscapingMethod();
 
-    if (is_null($_escaping))
-    {
-      $_escaping = 'both';
-    }
-
-    if (is_null($_escapingMethod))
-    {
-      $_escapingMethod = ESC_ENTITIES;
-    }
-
-    if (! $_doEscape || ($_escaping === false) || ($_escaping === 'bc'))
+    if (($_escaping === false) || ($_escaping === 'bc'))
     {
       extract($this->attribute_holder->getAll());
     }
 
-    if ($_doEscape && ($_escaping !== false))
+    if ($_escaping !== false)
     {
-      $data = sfOutputEscaper::escape($_escapingMethod, $this->attribute_holder->getAll());
+      $sf_data = sfOutputEscaper::escape($_escapingMethod, $this->attribute_holder->getAll());
 
       if ($_escaping === 'both')
       {
-        foreach ($data as $_key => $_value)
+        foreach ($sf_data as $_key => $_value)
         {
           ${$_key} = $_value;
         }
@@ -238,7 +228,7 @@ class sfPHPView extends sfView
     parent::decorate($content);
 
     // render the decorator template and return the result
-    $retval = $this->renderFile($template, false);
+    $retval = $this->renderFile($template);
 
     return $retval;
   }

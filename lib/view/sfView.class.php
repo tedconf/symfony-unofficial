@@ -133,6 +133,9 @@ abstract class sfView
     $controller->setRenderMode($renderMode);
 
     // set the decorator content as an attribute
+    $this->attribute_holder->setByRef('sf_content', $content);
+
+    // for backwards compatibility with old layouts; remove at 0.8.0?
     $this->attribute_holder->setByRef('content', $content);
 
     // return a null value to satisfy the requirement
@@ -253,9 +256,9 @@ abstract class sfView
       return $this->escapingMethod;
     }
 
-    if (! defined($this->escapingMethod))
+    if (!defined($this->escapingMethod))
     {
-      throw new sfException('escaping method \'' . $this->escapingMethod . '\' is not available; perhaps another helper needs to be loaded in?');
+      throw new sfException(sprintf('Escaping method "%s" is not available; perhaps another helper needs to be loaded in?', $this->escapingMethod));
     }
 
     return constant($this->escapingMethod);

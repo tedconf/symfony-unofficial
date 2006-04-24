@@ -44,8 +44,8 @@ class sfViewConfigHandler extends sfYamlConfigHandler
     );
 
     // merge javascripts and stylesheets
-    $myConfig['all']['stylesheets'] = array_merge(isset($myConfig['default']['stylesheets']) ? $myConfig['default']['stylesheets'] : array(), isset($myConfig['all']['stylesheets']) ? $myConfig['all']['stylesheets'] : array());
-    $myConfig['all']['javascripts'] = array_merge(isset($myConfig['default']['javascripts']) ? $myConfig['default']['javascripts'] : array(), isset($myConfig['all']['javascripts']) ? $myConfig['all']['javascripts'] : array());
+    $myConfig['all']['stylesheets'] = array_merge(isset($myConfig['default']['stylesheets']) && is_array($myConfig['default']['stylesheets']) ? $myConfig['default']['stylesheets'] : array(), isset($myConfig['all']['stylesheets']) && is_array($myConfig['all']['stylesheets']) ? $myConfig['all']['stylesheets'] : array());
+    $myConfig['all']['javascripts'] = array_merge(isset($myConfig['default']['javascripts']) && is_array($myConfig['default']['javascripts']) ? $myConfig['default']['javascripts'] : array(), isset($myConfig['all']['javascripts']) && is_array($myConfig['all']['javascripts']) ? $myConfig['all']['javascripts'] : array());
 
     unset($myConfig['default']);
 
@@ -55,6 +55,7 @@ class sfViewConfigHandler extends sfYamlConfigHandler
     $data = array();
 
     $data[] = "\$sf_safe_slot = sfConfig::get('sf_safe_slot');\n";
+    $data[] = "\$response = \$action->getResponse();\n";
 
     // iterate through all view names
     $first = true;
@@ -224,12 +225,12 @@ class sfViewConfigHandler extends sfYamlConfigHandler
 
     foreach ($this->mergeConfigValue('http_metas', $viewName) as $httpequiv => $content)
     {
-      $data[] = sprintf("    \$action->getResponse()->addHttpMeta('%s', '%s', false);", $httpequiv, $content);
+      $data[] = sprintf("    \$response->addHttpMeta('%s', '%s', false);", $httpequiv, $content);
     }
 
     foreach ($this->mergeConfigValue('metas', $viewName) as $name => $content)
     {
-      $data[] = sprintf("    \$action->getResponse()->addMeta('%s', '%s', false);", $name, $content);
+      $data[] = sprintf("    \$response->addMeta('%s', '%s', false);", $name, $content);
     }
 
     return implode("\n", $data)."\n";
@@ -261,11 +262,16 @@ class sfViewConfigHandler extends sfYamlConfigHandler
         {
           $key = key($css);
           $options = $css[$key];
-          $data[] = sprintf("  \$action->getResponse()->addStylesheet('%s', '', %s);", $key, var_export($options, true));
         }
         else
         {
-          $data[] = sprintf("  \$action->getResponse()->addStylesheet('%s');", $css);
+          $key = $css;
+          $options = array();
+        }
+
+        if ($key)
+        {
+          $data[] = sprintf("  \$response->addStylesheet('%s', '', %s);", $key, var_export($options, true));
         }
       }
     }
@@ -287,7 +293,10 @@ class sfViewConfigHandler extends sfYamlConfigHandler
 
       foreach ($javascripts as $js)
       {
-        $data[] = sprintf("  \$action->getResponse()->addJavascript('%s');", $js);
+        if ($js)
+        {
+          $data[] = sprintf("  \$response->addJavascript('%s');", $js);
+        }
       }
     }
 
