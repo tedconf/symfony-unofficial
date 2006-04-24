@@ -309,7 +309,30 @@ tinyMCE.init({
     {
       $plugin = 'sfFCKEditor';
     }
+<<<<<<< .working
     elseif ($rich == 'htmlarea')
+=======
+
+    // FCKEditor.php class is written with backward compatibility of PHP4.
+    // This reportings are to turn off errors with public properties and already declared constructor
+    $error_reporting = ini_get('error_reporting');
+    error_reporting(E_ALL);
+
+    require_once(sfConfig::get('sf_web_dir').DIRECTORY_SEPARATOR.$php_file);
+
+    // turn error reporting back to your settings
+    error_reporting($error_reporting);
+
+    $fckeditor           = new FCKeditor($name);
+    $fckeditor->BasePath = '/'.sfConfig::get('sf_rich_text_fck_js_dir').'/';
+    $fckeditor->Value    = $content;
+
+    if (isset($options['width']))
+    {
+      $fckeditor->Width = $options['width'];
+    }   
+    elseif (isset($options['cols']))
+>>>>>>> .merge-right.r1249
     {
       $plugin = 'sfHTMLArea';
     }
@@ -326,6 +349,23 @@ tinyMCE.init({
       $textarea = new $plugin();
       return $textarea->newInstance($name, $options);
     }
+<<<<<<< .working
+=======
+
+    if (isset($options['tool']))
+    {
+      $fckeditor->ToolbarSet = $options['tool'];
+    }
+
+    if (isset($options['config']))
+    {
+      $fckeditor->Config['CustomConfigurationsPath'] = javascript_path($options['config']);
+    }
+
+    $content = $fckeditor->CreateHtml();
+
+    return $content;
+>>>>>>> .merge-right.r1249
   }
   else
   {
@@ -356,6 +396,36 @@ function input_upload_tag($name, $options = array())
   $options['type'] = 'file';
 
   return input_tag($name, '', $options);
+}
+
+function input_date_range_tag($name, $value, $options = array())
+{
+  $before = '';
+  if (isset($options['before']))
+  {
+    $before = $options['before'];
+    unset($options['before']);
+  }
+
+  $middle = '';
+  if (isset($options['middle']))
+  {
+    $middle = $options['middle'];
+    unset($options['middle']);
+  }
+
+  $after = '';
+  if (isset($options['after']))
+  {
+    $after = $options['after'];
+    unset($options['after']);
+  }
+
+  return $before.
+         input_date_tag($name.'[from]', $value['from'], $options).
+         $middle.
+         input_date_tag($name.'[to]', $value['to'], $options).
+         $after;
 }
 
 function input_date_tag($name, $value, $options = array())
@@ -392,8 +462,7 @@ function input_date_tag($name, $value, $options = array())
     $value = strtotime($value);
     if ($value === -1)
     {
-      $value = 0;
-//      throw new Exception("Unable to parse value of date as date/time value");
+      $value = null;
     }
     else
     {
@@ -434,7 +503,11 @@ function input_date_tag($name, $value, $options = array())
   ';
 
   // construct html
-  $html = input_tag($name, $value);
+  if (!isset($options['size']))
+  {
+    $options['size'] = 9;
+  }
+  $html = input_tag($name, $value, $options);
 
   // calendar button
   $calendar_button = '...';

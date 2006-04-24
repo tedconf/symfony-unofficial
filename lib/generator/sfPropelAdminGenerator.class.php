@@ -193,7 +193,7 @@ class sfPropelAdminGenerator extends sfPropelCrudGenerator
 
     if ($only_if_id)
     {
-      $html .= '[?php endif ?]'."\n";
+      $html .= '[?php endif; ?]'."\n";
     }
 
     $html .= '</li>';
@@ -294,7 +294,7 @@ class sfPropelAdminGenerator extends sfPropelCrudGenerator
       return <<<EOF
 [?php if (\$sf_user->hasCredential($credentials)): ?]
 $content
-[?php endif ?]
+[?php endif; ?]
 EOF;
     }
     else
@@ -523,13 +523,13 @@ EOF;
     {
       // rich=false not yet implemented
       $params = $this->getObjectTagParams($params, array('rich' => true, 'calendar_button_img' => '/sf/images/sf_admin/date.png'));
-      return "input_date_tag($name, $default_value, $params)";
+      return "input_date_range_tag($name, $default_value, $params)";
     }
     else if ($type == CreoleTypes::TIMESTAMP)
     {
       // rich=false not yet implemented
       $params = $this->getObjectTagParams($params, array('rich' => true, 'withtime' => true, 'calendar_button_img' => '/sf/images/sf_admin/date.png'));
-      return "input_date_tag($name, $default_value, $params)";
+      return "input_date_range_tag($name, $default_value, $params)";
     }
     else if ($type == CreoleTypes::BOOLEAN)
     {
