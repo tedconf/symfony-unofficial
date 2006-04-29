@@ -518,7 +518,7 @@ function input_date_tag($name, $value, $options = array())
   }
   else
   {
-    $html .= content_tag('button', $calendar_button, array('disabled' => 'disabled', 'onclick' => 'return false', 'id' => 'trigger_'.$name));
+    $html .= content_tag('button', $calendar_button, array('type' => 'button', 'disabled' => 'disabled', 'onclick' => 'return false', 'id' => 'trigger_'.$name));
   }
 
   if (isset($options['with_format']))
@@ -986,7 +986,7 @@ function _parse_value_for_date($value, $key, $format_char)
   {
     return date($format_char, $value);
   }
-  else if ($value == '' || ($name == 'ampm' && ($value == 'AM' || $value == 'PM')))
+  else if ($value == '' || ($key == 'ampm' && ($value == 'AM' || $value == 'PM')))
   {
     return $value;
   }
