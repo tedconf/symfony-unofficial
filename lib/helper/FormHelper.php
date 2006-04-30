@@ -309,30 +309,7 @@ tinyMCE.init({
     {
       $plugin = 'sfFCKEditor';
     }
-<<<<<<< .working
     elseif ($rich == 'htmlarea')
-=======
-
-    // FCKEditor.php class is written with backward compatibility of PHP4.
-    // This reportings are to turn off errors with public properties and already declared constructor
-    $error_reporting = ini_get('error_reporting');
-    error_reporting(E_ALL);
-
-    require_once(sfConfig::get('sf_web_dir').DIRECTORY_SEPARATOR.$php_file);
-
-    // turn error reporting back to your settings
-    error_reporting($error_reporting);
-
-    $fckeditor           = new FCKeditor($name);
-    $fckeditor->BasePath = '/'.sfConfig::get('sf_rich_text_fck_js_dir').'/';
-    $fckeditor->Value    = $content;
-
-    if (isset($options['width']))
-    {
-      $fckeditor->Width = $options['width'];
-    }   
-    elseif (isset($options['cols']))
->>>>>>> .merge-right.r1249
     {
       $plugin = 'sfHTMLArea';
     }
@@ -349,23 +326,6 @@ tinyMCE.init({
       $textarea = new $plugin();
       return $textarea->newInstance($name, $options);
     }
-<<<<<<< .working
-=======
-
-    if (isset($options['tool']))
-    {
-      $fckeditor->ToolbarSet = $options['tool'];
-    }
-
-    if (isset($options['config']))
-    {
-      $fckeditor->Config['CustomConfigurationsPath'] = javascript_path($options['config']);
-    }
-
-    $content = $fckeditor->CreateHtml();
-
-    return $content;
->>>>>>> .merge-right.r1249
   }
   else
   {
