@@ -45,9 +45,9 @@ To handle the form submission, the `send` action must be created. For this examp
     [php]
     class contactActions extends sfActions
     {
-    
+
       ...
-    
+
       public function executeSend()
       {
         $this->email = $this->getRequestParameter('email');
@@ -57,7 +57,7 @@ To handle the form submission, the `send` action must be created. For this examp
 The `sendSuccess.php` template just contains:
 
     [php]
-    Your message was sent to our services. The answer will be sent at <?php echo $email ?> 
+    Your message was sent to our services. The answer will be sent at <?php echo $email ?>
 
 You can test the whole process of submitting the form and getting the confirmation, it already works fine. Except that if you try to enter invalid data in the fields, the action may very well crash. The fields do require validation.
 
@@ -81,13 +81,13 @@ By convention, if you want to validate the form data on the call to the `send` a
     methods:
       get:            [name]
       post:           [name]
-    
+
     names:
       name:
         required:     Yes
         required_msg: The name field cannot be left blank
         validators:   nameValidator
-    
+
     nameValidator:
       class:          sfStringValidator
       param:
@@ -114,12 +114,12 @@ But if you rather need the form to be displayed again with an error message, you
     [php]
     class ContactActions extends sfActions
     {
-    
+
       ...
-    
+
       public function handleError()
       {
-        $this->forward('contact', 'index');
+        return sfView::SUCCESS;
       }
     }
 
@@ -140,7 +140,7 @@ Since the *forward* method kept the original request, the template has access to
       <label for="message">Message</label> : <?php echo textarea_tag('message', $sf_params->get('message')) ?><br />
       <?php echo submit_tag() ?>
     </form>
-    
+
 >**Note**: You can avoid setting manually the value of the fields from the request by using a special filter. See the **Repopulation** section below.
 
 You can detect whether the form has errors by calling the `->hasErrors()` method of the `sfRequest` object. To get the list of the error messages, you need the method `->getErrors()`. So you should add the following lines at the top of the template:
@@ -169,7 +169,7 @@ You can add the other rules to the `send.yml` configuration file to force the va
     methods:
       get:      [name, email, age, message]
       post:     [name, email, age, message]
-    
+
     names:
       name:
         required:       Yes
@@ -185,7 +185,7 @@ You can add the other rules to the `send.yml` configuration file to force the va
       message:
         required:       Yes
         required_msg:   The message field cannot be left blank
-    
+
     nameValidator:
       class:          sfStringValidator
       param:
@@ -193,7 +193,7 @@ You can add the other rules to the `send.yml` configuration file to force the va
         min_error:    You didn't enter a valid name (at least 2 characters). Please try again.
         max:          100
         max_error:    You didn't enter a valid name (less than 100 characters). Please try again.
-    
+
     ageValidator:
       class:          sfNumberValidator
       param:
@@ -202,7 +202,7 @@ You can add the other rules to the `send.yml` configuration file to force the va
         min_error:    You're not even born. How do you want to send a message ?
         max:          120
         max_error:    Hey, grandma, aren't you too old to surf on the Internet ?
-    
+
     emailValidator:
       class:          sfRegexValidator
       param:
@@ -217,8 +217,8 @@ The available validators can be found in the symfony lib `validator` directory. 
 
 - `sfStringValidator`: allows you to apply string-related constraints to a parameter
 - `sfNumberValidator`: verifies if a parameter is a number and allows you to apply size constraints
-- `sfRegexValidator`: allows you to match a value against a regular expression pattern	
-- `sfEmailValidator`: verifies if a parameter contains a value that qualifies as an email address 	
+- `sfRegexValidator`: allows you to match a value against a regular expression pattern
+- `sfEmailValidator`: verifies if a parameter contains a value that qualifies as an email address
 - `sfCompareValidator`: checks the equality of two different request parameters; very useful for password check
 
 Let's illustrate this last validator. Imagine that you have a form with two password fields named `password1` and `password2`. The second field is there to check that the user enters the same password twice. The YAML validation file should then look like:
@@ -235,7 +235,7 @@ Let's illustrate this last validator. Imagine that you have a form with two pass
         required:       Yes
         required_msg:   Please retype the password
         validators:     passwordValidator
-        
+
     passwordValidator:
        class:            sfCompareValidator
        param:
@@ -261,11 +261,11 @@ Each `Validator` is a particular class that can have certain parameters. If the 
         }
         return true;
       }
-    
+
       public function initialize ($context, $parameters = null)
       {
         // set defaults
-        $this->setParameter('email_error', 'Invalid input');    
+        $this->setParameter('email_error', 'Invalid input');
         // initialize parent
         parent::initialize($context, $parameters);
         return true;
@@ -297,7 +297,7 @@ The trouble is that using the input `id` as is (with brackets) in a validation f
         - "story{title}"
       post:
         - "story{title}"
-        
+
     names:
       story{title}:
         required:     Yes
