@@ -261,7 +261,7 @@ class sfPropelAdminGenerator extends sfPropelCrudGenerator
 
     if ($column->isPartial())
     {
-      return "include_partial('".$column->getName()."', array('{$this->getSingularName()}' => \${$this->getSingularName()}))";
+      return "include_partial('".$column->getName()."', array('type' => 'edit', '{$this->getSingularName()}' => \${$this->getSingularName()}))";
     }
 
     // default control name
@@ -511,7 +511,7 @@ EOF;
 
     if ($column->isPartial())
     {
-      return "include_partial('".$column->getName()."', array('{$this->getSingularName()}' => \${$this->getSingularName()}))";
+      return "include_partial('".$column->getName()."', array('type' => 'list', '{$this->getSingularName()}' => \${$this->getSingularName()}))";
     }
     else if ($type == CreoleTypes::DATE || $type == CreoleTypes::TIMESTAMP)
     {
@@ -520,7 +520,7 @@ EOF;
     }
     elseif ($type == CreoleTypes::BOOLEAN)
     {
-      return "\${$this->getSingularName()}->get{$column->getPhpName()}() ? image_tag('/sf/images/sf_admin/ok.png') : '&nbsp;'";
+      return "\${$this->getSingularName()}->get{$column->getPhpName()}() ? image_tag('/sf/images/sf_admin/tick.png') : '&nbsp;'";
     }
     else
     {
@@ -536,7 +536,7 @@ EOF;
 
     if ($column->isPartial())
     {
-      return "include_partial('".$column->getName()."', array('filters' => \$filters))";
+      return "include_partial('type' => 'filter', '".$column->getName()."', array('filters' => \$filters))";
     }
 
     $type = $column->getCreoleType();
