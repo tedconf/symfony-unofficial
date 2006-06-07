@@ -9,7 +9,8 @@
  */
 
 /**
- * @package    symfony.runtime.addon
+ * @package    symfony
+ * @subpackage addon
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  * @version    SVN: $Id$
  */
@@ -18,7 +19,8 @@
  *
  * sfPropelPager class.
  *
- * @package    symfony.runtime.addon
+ * @package    symfony
+ * @subpackage addon
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  * @version    SVN: $Id$
  */
@@ -303,7 +305,9 @@ class sfPropelPager
 
   public function setPage($page)
   {
-    $this->page = ($page < 0) ? 1 : $page;
+    $page = intval($page);
+
+    $this->page = ($page <= 0) ? 1 : $page;
   }
 
   public function getMaxPerPage()
@@ -339,6 +343,21 @@ class sfPropelPager
   public function getParameterHolder()
   {
     return $this->parameter_holder;
+  }
+
+  public function getParameter($name, $default = null, $ns = null)
+  {
+    return $this->parameter_holder->get($name, $default, $ns);
+  }
+
+  public function hasParameter($name, $ns = null)
+  {
+    return $this->parameter_holder->has($name, $ns);
+  }
+
+  public function setParameter($name, $value, $ns = null)
+  {
+    return $this->parameter_holder->set($name, $value, $ns);
   }
 }
 

@@ -49,6 +49,21 @@ abstract class sfView
   const SUCCESS = 'Success';
 
   /**
+    * Skip view rendering but output http headers
+    */
+  const HEADER_ONLY = 'Headers';
+
+  /**
+   * Render a partial template.
+   */
+  const PARTIAL = 'Partial';
+
+  /**
+   * Render a global partial template.
+   */
+  const GLOBAL_PARTIAL = 'GlobalPartial';
+
+  /**
    * Render the presentation to the client.
    */
   const RENDER_CLIENT = 2;
@@ -76,7 +91,9 @@ abstract class sfView
     $directory          = null,
     $slots              = array(),
     $componentSlots     = array(),
-    $template           = null;
+    $template           = null,
+    $escaping           = null,
+    $escapingMethod     = null;
 
   protected
     $attribute_holder   = null,
@@ -131,6 +148,9 @@ abstract class sfView
     $controller->setRenderMode($renderMode);
 
     // set the decorator content as an attribute
+    $this->attribute_holder->setByRef('sf_content', $content);
+
+    // for backwards compatibility with old layouts; remove at 0.8.0?
     $this->attribute_holder->setByRef('content', $content);
 
     // return a null value to satisfy the requirement
@@ -223,6 +243,43 @@ abstract class sfView
   }
 
   /**
+   * Gets the default escaping strategy associated with this view.
+   *
+   * The escaping strategy specifies how the variables get passed to the view.
+   *
+   * @return string the escaping strategy.
+   */
+  public function getEscaping()
+  {
+    return $this->escaping;
+  }
+
+  /**
+   * Returns the name of the function that is to be used as the escaping method.
+   *
+   * If the escaping method is empty, then that is returned. The default value
+   * specified by the sub-class will be used. If the method does not exist (in
+   * the sense there is no define associated with the method) and exception is
+   * thrown.
+   *
+   * @return string the escaping method as the name of the function to use
+   */
+  public function getEscapingMethod()
+  {
+    if (empty($this->escapingMethod))
+    {
+      return $this->escapingMethod;
+    }
+
+    if (!defined($this->escapingMethod))
+    {
+      throw new sfException(sprintf('Escaping method "%s" is not available; perhaps another helper needs to be loaded in?', $this->escapingMethod));
+    }
+
+    return constant($this->escapingMethod);
+  }
+
+  /**
    * Import parameter values and error messages from the request directly as
    * view attributes.
    *
@@ -304,7 +361,9 @@ abstract class sfView
         if ($errors)
         {
           if ($request->hasError($name))
+          {
             $this->setAttribute($name.'_error', $request->getError($name));
+          }
           else
           {
             // set empty error
@@ -335,9 +394,7 @@ abstract class sfView
     $this->parameter_holder->add(sfConfig::get('mod_'.strtolower($moduleName).'_view_param', array()));
 
     // set the currently executing module's template directory as the default template directory
-    $module = $context->getModuleName();
-
-    $this->decoratorDirectory = sfConfig::get('sf_app_module_dir').'/'.$module.'/'.sfConfig::get('sf_app_module_template_dir_name');
+    $this->decoratorDirectory = sfConfig::get('sf_app_module_dir').'/'.$moduleName.'/'.sfConfig::get('sf_app_module_template_dir_name');
     $this->directory          = $this->decoratorDirectory;
 
     // include view configuration
@@ -396,6 +453,11 @@ abstract class sfView
     return $this->decorator;
   }
 
+  public function setDecorator ($boolean)
+  {
+    $this->decorator = (boolean) $boolean;
+  }
+
   /**
    * Execute a basic pre-render check to verify all required variables exist
    * and that the template is readable.
@@ -447,11 +509,12 @@ abstract class sfView
    * When the controller render mode is sfView::RENDER_CLIENT, this method will
    * render the presentation directly to the client and null will be returned.
    *
+   * @param  array  An array with variables that will be extracted for the template
+   *                If empty, the current actions var holder will be extracted.
    * @return string A string representing the rendered presentation, if
-   *                the controller render mode is sfView::RENDER_VAR, otherwise
-   *                null.
+   *                the controller render mode is sfView::RENDER_VAR, otherwise null.
    */
-  abstract function & render ();
+  abstract function & render ($templateVars = null);
 
   /**
    * Set the decorator template directory for this view.
@@ -463,6 +526,16 @@ abstract class sfView
   public function setDecoratorDirectory ($directory)
   {
     $this->decoratorDirectory = $directory;
+  }
+
+  public function setEscaping($escaping)
+  {
+    $this->escaping = $escaping;
+  }
+
+  public function setEscapingMethod($method)
+  {
+    $this->escapingMethod = $method;
   }
 
   /**

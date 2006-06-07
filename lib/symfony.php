@@ -54,16 +54,9 @@ else
   require_once($sf_symfony_lib_dir.'/config/sfConfigCache.class.php');
 }
 
-/**
- * Handles autoloading of classes that have been specified in autoload.yml.
- *
- * @param string A class name.
- *
- * @return void
- */
-if (!function_exists('__autoload'))
+class Symfony
 {
-  function __autoload($class)
+  public static function autoload($class)
   {
     static $loaded;
 
@@ -90,22 +83,56 @@ if (!function_exists('__autoload'))
           {
             require_once($module_lib);
 
-            return;
+            return true;
           }
         }
       }
 
-      // unspecified class
-      $error = sprintf('Autoloading of class "%s" failed. Try to clear the symfony cache and refresh. [err0003]', $class);
-      $e = new sfAutoloadException($error);
-
-      $e->printStackTrace();
+      return false;
     }
     else
     {
       // class exists, let's include it
       require_once($classes[$class]);
+
+      return true;
     }
+  }
+}
+
+/**
+ * Handles autoloading of classes that have been specified in autoload.yml.
+ *
+ * @param string A class name.
+ *
+ * @return void
+ */
+if (!function_exists('__autoload'))
+{
+  function __autoload($class)
+  {
+    static $functions;
+
+    if (!$functions)
+    {
+      // load functions and methods that can autoload classes
+      $functions = is_array(sfConfig::get('sf_autoloading_functions')) ? sfConfig::get('sf_autoloading_functions') : array();
+      array_unshift($functions, array('Symfony', 'autoload'));
+    }
+
+    foreach ($functions as $function)
+    {
+      if (call_user_func($function, $class))
+      {
+        return true;
+      }
+    }
+
+    // unspecified class
+    $error = sprintf('Autoloading of class "%s" failed. Try to clear the symfony cache and refresh. [err0003]', $class);
+    $e = new sfAutoloadException($error);
+
+    $e->printStackTrace();
   }
 }
 
@@ -133,6 +160,9 @@ try
 
   $sf_debug = sfConfig::get('sf_debug');
 
+  // set exception format
+  sfException::setFormat(isset($_SERVER['HTTP_HOST']) ? 'html' : 'plain');
+
   // load base settings
   include($configCache->checkConfig($sf_app_config_dir_name.'/logging.yml'));
   $configCache->import($sf_app_config_dir_name.'/php.yml');
@@ -144,9 +174,6 @@ try
   {
     $configCache->checkConfig($sf_app_config_dir_name.'/bootstrap_compile.yml');
   }
-
-  // set exception format
-  sfException::setFormat(isset($_SERVER['HTTP_HOST']) ? 'html' : 'plain');
 
   // error settings
   ini_set('display_errors', $sf_debug ? 'on' : 'off');

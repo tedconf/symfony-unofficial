@@ -929,7 +929,7 @@
   {
     $js_options = _build_callbacks($options);
 
-    $js_options['asynchronous'] = (isset($options['type'])) ? ($options['type'] != 'synchronous') : 'true';
+    $js_options['asynchronous'] = (isset($options['type']) && ($options['type'] == 'synchronous')) ? 'false' : 'true';
     if (isset($options['method'])) $js_options['method'] = _method_option_to_s($options['method']);
     if (isset($options['position'])) $js_options['insertion'] = "Insertion.".sfInflector::camelize($options['position']);
     $js_options['evalScripts'] = (!isset($options['script']) || $options['script'] == '0' || $options['script'] == false) ? 'false' : 'true';
@@ -952,7 +952,7 @@
 
   function _method_option_to_s($method)
   {
-    return (is_string($method) && $method[0] != "'") ? $method : "'$method'";
+    return (is_string($method) && $method[0] != "'") ? "'$method'" : $method;
   }
 
   function _build_observer($klass, $name, $options = array())

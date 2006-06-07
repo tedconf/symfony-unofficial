@@ -89,7 +89,7 @@ class sfValidatorManager
         break;
 
       // increase our pass indicator
-      $pass++;
+      ++$pass;
     }
 
     return $retval;
@@ -226,7 +226,7 @@ class sfValidatorManager
     // get defaults
     $error     = null;
     $errorName = null;
-    $force     = ($data['group'] != null) ? $data['group']['_force'] : true;
+    $force     = ($data['group'] != null) ? $data['group']['_force'] : false;
     $retval    = true;
     $value     = null;
 
@@ -281,51 +281,18 @@ class sfValidatorManager
       (!$data['is_file'] && ($value == null || strlen($value) == 0))
     )
     {
-      if (strtolower($data['required']) == 'depends')
+      if ($data['required'] || $force)
       {
-        $errorMessages = array();
-        foreach ($data['required_deps'] as $depField => $params)
-        {
-          $depFieldValue = $this->request->getParameterHolder()->get($depField);
-          $valueToMatch = (array_key_exists('value', $params))? $params['value'] : null;
-
-          if (($valueToMatch && $depFieldValue == $valueToMatch)
-             ||
-             (!$valueToMatch && !($depFieldValue == null || strlen($depField) == 0))
-          )
-          {
-            if (!in_array($params['required_msg'], $errorMessages))
-            {
-              $errorMessages[] = $params['required_msg'];
-            }
-            $retval = false;
-          }
-        }
-
-        if ($retval == false)
-        {
-          if (sfConfig::get('sf_i18n') && count($errorMessages) > 1)
-          {
-            // translate the individual error messages here, otherwise the error message will get translated as a whole.
-            // this does not allow the user to set a catalogue other than the default though.
-            foreach ($errorMessages as &$errorMessage)
-            {
-              $errorMessage = sfConfig::get('sf_i18n_instance')->__($errorMessage);
-            }
-          }
-          $error = implode('<br />', $errorMessages);
-        }
-      }
-      else if (!$data['required'] || !$force)
-      {
-        // we don't have to validate it
-        $retval = true;
-      }
-      else
-      {
+=======
+>>>>>>> .merge-right.r1340
         // it's empty!
         $error  = $data['required_msg'];
         $retval = false;
+      }
+      else
+      {
+        // we don't have to validate it
+        $retval = true;
       }
     }
     else
@@ -336,10 +303,8 @@ class sfValidatorManager
       // get group force status
       if ($data['group'] != null)
       {
-        // we set this because we do have a value for a parameter in
-        // this group
+        // we set this because we do have a value for a parameter in this group
         $data['group']['_force'] = true;
-        $force                   = true;
       }
 
       if (count($data['validators']) > 0)
