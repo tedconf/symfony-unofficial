@@ -62,7 +62,7 @@ class sfFillInFormFilter extends sfFilter
       foreach($xpath->query($query, $form) as $element)
       {
         // skip fields specified in the 'skip_fields' attribute
-        if (!($request->hasParameter($element->getAttribute('name'))) || in_array($element->getAttribute('name'), $skip_fields))
+        if ($request->hasParameter($element->getAttribute('name')) && in_array($element->getAttribute('name'), $skip_fields))
         {
           continue;
         }
@@ -144,5 +144,8 @@ class sfFillInFormFilter extends sfFilter
     return $value;
   }
 }
+<<<<<<< .mine
 
 ?>
+=======
+>>>>>>> .r1415
