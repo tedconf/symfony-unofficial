@@ -132,7 +132,7 @@ function select_tag($name, $option_tags = null, $options = array())
     $name .= '[]';
   }
 
-  return content_tag('select', $option_tags, array_merge(array('name' => $name, 'id' => $id), $options));
+  return content_tag('select', $option_tags, array_merge(array('name' => $name, 'id' => _parse_id($id)), $options));
 }
 
 function select_country_tag($name, $value, $options = array())
@@ -183,7 +183,7 @@ function select_language_tag($name, $value, $options = array())
 
 function input_tag($name, $value = null, $options = array())
 {
-  return tag('input', array_merge(array('type' => 'text', 'name' => $name, 'id' => $name, 'value' => $value), _convert_options($options)));
+  return tag('input', array_merge(array('type' => 'text', 'name' => $name, 'id' => _parse_id($name, $value), 'value' => $value), _convert_options($options)));
 }
 
 function input_hidden_tag($name, $value = null, $options = array())
@@ -312,7 +312,7 @@ tinyMCE.init({
 
     return
       content_tag('script', javascript_cdata_section($tinymce_js), array('type' => 'text/javascript')).
-      content_tag('textarea', $content, array_merge(array('name' => $name, 'id' => $id), _convert_options($options)));
+      content_tag('textarea', $content, array_merge(array('name' => $name, 'id' => _parse_id($id, $value)), _convert_options($options)));
   }
   elseif ($rich === 'fck')
   {
@@ -371,13 +371,13 @@ tinyMCE.init({
   }
   else
   {
-    return content_tag('textarea', (is_object($content)) ? $content->__toString() : $content, array_merge(array('name' => $name, 'id' => $id), _convert_options($options)));
+    return content_tag('textarea', (is_object($content)) ? $content->__toString() : $content, array_merge(array('name' => $name, 'id' => _parse_id($id, $value)), _convert_options($options)));
   }
 }
 
 function checkbox_tag($name, $value = '1', $checked = false, $options = array())
 {
-  $html_options = array_merge(array('type' => 'checkbox', 'name' => $name, 'id' => $name, 'value' => $value), _convert_options($options));
+  $html_options = array_merge(array('type' => 'checkbox', 'name' => $name, 'id' => _parse_id($name, $value), 'value' => $value), _convert_options($options));
   if ($checked) $html_options['checked'] = 'checked';
 
   return tag('input', $html_options);
@@ -385,7 +385,7 @@ function checkbox_tag($name, $value = '1', $checked = false, $options = array())
 
 function radiobutton_tag($name, $value, $checked = false, $options = array())
 {
-  $html_options = array_merge(array('type' => 'radio', 'name' => $name, 'value' => $value), _convert_options($options));
+  $html_options = array_merge(array('type' => 'radio', 'name' => $name, 'id' => _parse_id($name, $value), 'value' => $value), _convert_options($options));
   if ($checked) $html_options['checked'] = 'checked';
 
   return tag('input', $html_options);
@@ -1037,4 +1037,17 @@ function _boolean_attribute($options, $attribute)
   return $options;
 }
 
+function _parse_id ($name, $value = null)
+{
+  // Check to see if we have an array variable for a field name
+  if (strstr($name, '['))
+  {
+  	$name = str_replace('[]', (($value != null) ? '_' . $value : ''), $name);
+  	$name = str_replace('][', '_', $name);
+	$name = str_replace('[', '_', $name);
+	$name = str_replace(']', '', $name);
+  }
+  
+  return $name;
+}
 ?>
