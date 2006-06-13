@@ -60,6 +60,8 @@ class sfEmailValidator extends sfValidator
          .'\\xff]+|\\x5b([^\\x0d\\x5b-\\x5d\\x80-\\xff]|\\x5c\\x00-\\x7f)*'
          .'\\x5d))*$/'
     ;
+    
+    $re = '/^([^@\s]+)@((?:[-a-z0-9]+\.)+[a-z]{2,})$/i';
 
     if (!preg_match($re, $value))
     {
@@ -76,6 +78,7 @@ class sfEmailValidator extends sfValidator
     parent::initialize($context);
 
     // set defaults
+    $this->getParameterHolder()->set('strict',        true);
     $this->getParameterHolder()->set('email_error', 'Invalid input');
 
     $this->getParameterHolder()->add($parameters);
