@@ -26,7 +26,16 @@ class sfFillInFormFilter extends sfFilter
     $request  = $context->getRequest();
 
     $doc = new DomDocument('1.0', 'UTF-8');
-    @$doc->loadHTML($response->getContent());
+    $valid_xml = false;
+    if (@$doc->loadXML($response->getContent()))
+    {
+      $valid_xml = true;
+    }
+    else
+    {
+      @$doc->loadHTML($response->getContent());
+      $context->getLogger()->err('sfFillInFilter: Reverting to HTML mode - your page is invalid XML');
+    }
     $xpath = new DomXPath($doc);
 
     // load converters
@@ -122,7 +131,14 @@ class sfFillInFormFilter extends sfFilter
       } // foreach
     }
 
-    $response->setContent($doc->saveHTML());
+    if ($valid_xml)
+    {
+      $response->setContent($doc->saveXML());
+    }
+    else
+    {
+      $response->setContent($doc->saveHTML());
+    }
 
     unset($doc);
 
@@ -144,8 +160,3 @@ class sfFillInFormFilter extends sfFilter
     return $value;
   }
 }
-<<<<<<< .mine
-
-?>
-=======
->>>>>>> .r1415
