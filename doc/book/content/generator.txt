@@ -8,6 +8,8 @@ Backend administrations are often built according to the structure of the data u
 
 >**Note**: A [screencast](http://downloads.symfony-project.com/demo/admin/admin_generator_commented.mov) showing an administration being built is available for download (21min, QT7, 17 Mb).
 
+>**Note**: A [cheat sheet](http://www.symfony-project.com/uploads/assets/sfAdminGeneratorRefCard.pdf) with the admin generator parameters explained briefly in a single page is available for download (pdf, 28 Kb).
+
 >**Note**: If you need a basic CRUD interface to initiate the templates and actions of a module for your frontend application, you will probably prefer making a [scaffolding](scaffolding.txt) than a generated admin.
 
 Introduction
@@ -441,25 +443,21 @@ The `templates/newpassword.php` partial contain something like:
 
 Notice that this partial uses a simple form helper, not an object form helper, since it is not intended to get the value from the current object.
 
-Now, in order to use the value from this control to update the object in the action, you need to override the `updateUserFromRequest()` method. To do that, copy the code of the corresponding action in the cache into the module `actions.class.php` and add the custom behaviour for the partial field:
+Now, in order to use the value from this control to update the object in the action, you need to extend the `updateUserFromRequest()` method. To do that, create the following function in the module `actions.class.php` with the custom behaviour for the input of the partial field:
 
     [php]
     class autoUserActions extends sfActions
     {
       protected function updateUserFromRequest()
       {
-        $user = $this->getRequestParameter('user');
-
-        if (isset($user['nickname']))
+        $password = $this->getRequestParameter('newpassword');
+        
+        if ($password != '')
         {
-          $this->user->setNickname($user['nickname']);
+          $this->user->setPassword($password);
         }
         
-        // Custom code
-        if ($this->getRequestParameter('newpassword') != '')
-        {
-          $this->user->setPassword($user['newpassword']);
-        }
+        parent::updateUserFromRequest();
       }
     }
 

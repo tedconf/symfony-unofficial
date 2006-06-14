@@ -5,5 +5,3 @@ $sf_symfony_data_dir = '/usr/share/php/rcs/complete_tree/svn.symfony-project.com
 $sf_version          = '@SYMFONY-VERSION@';
 
 return 'OK';
-
-?>
