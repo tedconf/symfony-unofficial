@@ -253,12 +253,12 @@ class sfViewConfigHandler extends sfYamlConfigHandler
 	  $delete_all = true;
 	  foreach ($stylesheets as $stylesheet)
 	  {
-	  	$key = is_array($stylesheet) ? key($stylesheet) : $stylesheet;
+	    $key = is_array($stylesheet) ? key($stylesheet) : $stylesheet;
 	  	
 	  	if ($key != '-*')
 	  	{
 	      $omit[] = $key;
-	  	}
+	    }
 	  }
 	}
 	
@@ -269,13 +269,13 @@ class sfViewConfigHandler extends sfYamlConfigHandler
 	{
 	  foreach ($stylesheets as $stylesheet)
 	  {
-	  	if (!is_array($stylesheet))
-	  	{
+	    if (!is_array($stylesheet))
+	    {
 	  	  if (substr($stylesheet, 0, 1) == '-')
 	      {
 		    $delete[] = substr($stylesheet, 1);
 	  	  }
-	  	}
+	    }
 	  }
 	}
 
@@ -294,7 +294,7 @@ class sfViewConfigHandler extends sfYamlConfigHandler
         {
        	  if (!in_array($key, $omit))
        	  {
-       	  	unset($stylesheets[$index]);
+       	    unset($stylesheets[$index]);
        	  }
         }
         else
@@ -303,10 +303,10 @@ class sfViewConfigHandler extends sfYamlConfigHandler
           // We check for both the stylesheet and the -stylesheet. If found, we remove them.
           foreach ($delete as $value)
           {
-          	if ($key == $value OR substr($key, 1) == $value)
-          	{
+            if ($key == $value OR substr($key, 1) == $value)
+            {
           	  unset($stylesheets[$index]);
-          	}
+            }
           }
         }
       }
@@ -337,14 +337,37 @@ class sfViewConfigHandler extends sfYamlConfigHandler
       }
     }
 
+    
+    $omit = array();
+    $delete_all = false;
+    
+    // Populate $javascripts with the values from ONLY the current view
+    $javascripts = $this->getConfigValue('javascripts', $viewName);
+    
+    // If we find results from the view, check to see if there is a '-*'
+    // This indicates that we will remove ALL javascripts EXCEPT for those passed in the current view
+	if (is_array($javascripts) AND in_array('-*', $javascripts))
+	{
+	  $delete_all = true;
+	  foreach ($javascripts as $javascript)
+	  {	  	
+	  	if (substr($javascript, 0, 1) != '-')
+	    {
+	      $omit[] = $javascript;
+	    }
+	  }
+	}    
+    
     $javascripts = $this->mergeConfigValue('javascripts', $viewName);
     if (is_array($javascripts))
     {
       // remove javascripts marked with a beginning '-'
+      // We exclude any javascripts that were omitted above
       $delete = array();
+      
       foreach ($javascripts as $javascript)
       {
-        if (substr($javascript, 0, 1) == '-')
+        if (!in_array($javascript, $omit) && (substr($javascript, 0, 1) == '-' || $delete_all == true))
         {
           $delete[] = $javascript;
           $delete[] = substr($javascript, 1);
