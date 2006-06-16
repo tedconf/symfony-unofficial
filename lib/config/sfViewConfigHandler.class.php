@@ -225,12 +225,12 @@ class sfViewConfigHandler extends sfYamlConfigHandler
 
     foreach ($this->mergeConfigValue('http_metas', $viewName) as $httpequiv => $content)
     {
-      $data[] = sprintf("    \$response->addHttpMeta('%s', '%s', false);", $httpequiv, $content);
+      $data[] = sprintf("    \$response->addHttpMeta('%s', '%s', false);", $httpequiv, str_replace('\'', '\\\'', $content));
     }
 
     foreach ($this->mergeConfigValue('metas', $viewName) as $name => $content)
     {
-      $data[] = sprintf("    \$response->addMeta('%s', '%s', false);", $name, $content);
+      $data[] = sprintf("    \$response->addMeta('%s', '%s', false);", $name, str_replace('\'', '\\\'', $content));
     }
 
     return implode("\n", $data)."\n";
@@ -242,60 +242,59 @@ class sfViewConfigHandler extends sfYamlConfigHandler
     $omit = array();
     $delete = array();
     $delete_all = false;
-    
+
     // Populate $stylesheets with the values from ONLY the current view
     $stylesheets = $this->getConfigValue('stylesheets', $viewName);
-    
+
     // If we find results from the view, check to see if there is a '-*'
     // This indicates that we will remove ALL stylesheets EXCEPT for those passed in the current view
-	if (is_array($stylesheets) AND in_array('-*', $stylesheets))
-	{
-	  $delete_all = true;
-	  foreach ($stylesheets as $stylesheet)
-	  {
-	    $key = is_array($stylesheet) ? key($stylesheet) : $stylesheet;
-	  	
-	  	if ($key != '-*')
-	  	{
-	      $omit[] = $key;
-	    }
-	  }
-	}
-	
-	// If '-*' is not found and there are items in the current view's stylesheet array
-	// loop through each one and see if there are any values that start with '-'.
-	// If so, we add store the actual stylesheet name to the $delete array to be used below
-	else
-	{
-	  foreach ($stylesheets as $stylesheet)
-	  {
-	    if (!is_array($stylesheet))
-	    {
-	  	  if (substr($stylesheet, 0, 1) == '-')
-	      {
-		    $delete[] = substr($stylesheet, 1);
-	  	  }
-	    }
-	  }
-	}
+    if (is_array($stylesheets) AND in_array('-*', $stylesheets))
+    {
+      $delete_all = true;
+      foreach ($stylesheets as $stylesheet)
+      {
+        $key = is_array($stylesheet) ? key($stylesheet) : $stylesheet;
+
+        if ($key != '-*')
+        {
+          $omit[] = $key;
+        }
+      }
+    }
+    else
+    {
+      // If '-*' is not found and there are items in the current view's stylesheet array
+      // loop through each one and see if there are any values that start with '-'.
+      // If so, we add store the actual stylesheet name to the $delete array to be used below
+      foreach ($stylesheets as $stylesheet)
+      {
+        if (!is_array($stylesheet))
+        {
+          if (substr($stylesheet, 0, 1) == '-')
+          {
+          $delete[] = substr($stylesheet, 1);
+          }
+        }
+      }
+    }
 
     // Merge the current view's stylesheets with the app's default stylesheets
     $stylesheets = $this->mergeConfigValue('stylesheets', $viewName);
     if (is_array($stylesheets))
-    {      
-      // Loop through each stylesheet in the merged array     
+    {
+      // Loop through each stylesheet in the merged array
       foreach ($stylesheets as $index => $stylesheet)
       {
         $key = is_array($stylesheet) ? key($stylesheet) : $stylesheet;
-        
+
         // If $delete_all is true, a '-*' was found above.
         // We remove all stylesheets from the array EXCEPT those specified in the $omit array
         if ($delete_all == true)
         {
-       	  if (!in_array($key, $omit))
-       	  {
-       	    unset($stylesheets[$index]);
-       	  }
+          if (!in_array($key, $omit))
+          {
+            unset($stylesheets[$index]);
+          }
         }
         else
         {
@@ -305,7 +304,7 @@ class sfViewConfigHandler extends sfYamlConfigHandler
           {
             if ($key == $value OR substr($key, 1) == $value)
             {
-          	  unset($stylesheets[$index]);
+              unset($stylesheets[$index]);
             }
           }
         }
@@ -337,34 +336,33 @@ class sfViewConfigHandler extends sfYamlConfigHandler
       }
     }
 
-    
     $omit = array();
     $delete_all = false;
-    
+
     // Populate $javascripts with the values from ONLY the current view
     $javascripts = $this->getConfigValue('javascripts', $viewName);
-    
+
     // If we find results from the view, check to see if there is a '-*'
     // This indicates that we will remove ALL javascripts EXCEPT for those passed in the current view
-	if (is_array($javascripts) AND in_array('-*', $javascripts))
-	{
-	  $delete_all = true;
-	  foreach ($javascripts as $javascript)
-	  {	  	
-	  	if (substr($javascript, 0, 1) != '-')
-	    {
-	      $omit[] = $javascript;
-	    }
-	  }
-	}    
-    
+    if (is_array($javascripts) AND in_array('-*', $javascripts))
+    {
+      $delete_all = true;
+      foreach ($javascripts as $javascript)
+      {     
+        if (substr($javascript, 0, 1) != '-')
+        {
+          $omit[] = $javascript;
+        }
+      }
+    }
+
     $javascripts = $this->mergeConfigValue('javascripts', $viewName);
     if (is_array($javascripts))
     {
       // remove javascripts marked with a beginning '-'
       // We exclude any javascripts that were omitted above
       $delete = array();
-      
+
       foreach ($javascripts as $javascript)
       {
         if (!in_array($javascript, $omit) && (substr($javascript, 0, 1) == '-' || $delete_all == true))
