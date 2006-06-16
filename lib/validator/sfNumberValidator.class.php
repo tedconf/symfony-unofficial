@@ -66,30 +66,29 @@ class sfNumberValidator extends sfValidator
           $error = $this->getParameterHolder()->get('type_error');
           return false;
         }
-        
+
         // cast our value to a float
-        $value = (float) $value;        
-        
+        $value = (float) $value;
+
         break;
       }
-      
+
       case "int":
       case "integer":
       {
-      	// Note: (Both 3 AND 3.0 are BOTH considered integers and 3.1 is not)
-      	if ((float) $value != (int) $value)
-      	{
-      	  // is not an integer.
-      	  $error = $this->getParameterHolder()->get('type_error');
-      	  return false;
-      	}
-      	
+        // Note: (Both 3 AND 3.0 are BOTH considered integers and 3.1 is not)
+        if ((float) $value != (int) $value)
+        {
+          // is not an integer.
+          $error = $this->getParameterHolder()->get('type_error');
+          return false;
+        }
+
         // cast our value to an integer
         $value = (int) $value;
-        
-        break;  	
+
+        break;
       }
-      	
     }
 
     $min = $this->getParameterHolder()->get('min');
@@ -134,7 +133,7 @@ class sfNumberValidator extends sfValidator
     $this->getParameterHolder()->set('min',        null);
     $this->getParameterHolder()->set('min_error',  'Input is too small');
     $this->getParameterHolder()->set('nan_error',  'Input is not a number');
-    $this->getParameterHolder()->set('type',       'Any');
+    $this->getParameterHolder()->set('type',       'any');
     $this->getParameterHolder()->set('type_error', 'Input is not a number');
 
     $this->getParameterHolder()->add($parameters);
@@ -144,8 +143,8 @@ class sfNumberValidator extends sfValidator
 
     // array of allowed types
     $allowed_types = array('any', 'decimal', 'float', 'int', 'integer');
-    
-    if (!array_search($type, $allowed_types))
+
+    if (!in_array(strtolower($type), $allowed_types))
     {
       // unknown type
       $error = 'Unknown number type "%s" in NumberValidator';
@@ -157,5 +156,3 @@ class sfNumberValidator extends sfValidator
     return true;
   }
 }
-
-?>
