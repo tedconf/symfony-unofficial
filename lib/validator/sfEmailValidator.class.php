@@ -31,15 +31,14 @@ class sfEmailValidator extends sfValidator
    */
   public function execute (&$value, &$error)
   {
-  	$strict = $this->getParameterHolder()->get('strict');
-  	if ($strict == true)
-  	{
-  	  $re = '/^([^@\s]+)@((?:[-a-z0-9]+\.)+[a-z]{2,})$/i';
-  	}
-  	else 
-  	{
-
-  	  /* Cal Henderson: http://iamcal.com/publish/articles/php/parsing_email/pdf/
+    $strict = $this->getParameterHolder()->get('strict');
+    if ($strict == true)
+    {
+      $re = '/^([^@\s]+)@((?:[-a-z0-9]+\.)+[a-z]{2,})$/i';
+    }
+    else
+    {
+      /* Cal Henderson: http://iamcal.com/publish/articles/php/parsing_email/pdf/
        * The long regular expression below is made by the following code
        * fragment:
        *
@@ -57,7 +56,6 @@ class sfEmailValidator extends sfValidator
        *   $local_part = "$word(\\x2e$word)*";
        *   $addr_spec = "$local_part\\x40$domain";
        */
-  	  
       $re = '/^([^\\x00-\\x20\\x22\\x28\\x29\\x2c\\x2e\\x3a-\\x3c\\x3e\\x40\\x5b-'
            .'\\x5d\\x7f-\\xff]+|\\x22([^\\x0d\\x22\\x5c\\x80-\\xff]|\\x5c\\x00-'
            .'\\x7f)*\\x22)(\\x2e([^\\x00-\\x20\\x22\\x28\\x29\\x2c\\x2e\\x3a-'
@@ -69,8 +67,8 @@ class sfEmailValidator extends sfValidator
            .'\\xff]+|\\x5b([^\\x0d\\x5b-\\x5d\\x80-\\xff]|\\x5c\\x00-\\x7f)*'
            .'\\x5d))*$/'
       ;
-  	}
-    
+    }
+
     if (!preg_match($re, $value))
     {
       $error = $this->getParameterHolder()->get('email_error');
@@ -86,7 +84,7 @@ class sfEmailValidator extends sfValidator
     parent::initialize($context);
 
     // set defaults
-    $this->getParameterHolder()->set('strict',        true);
+    $this->getParameterHolder()->set('strict',      true);
     $this->getParameterHolder()->set('email_error', 'Invalid input');
 
     $this->getParameterHolder()->add($parameters);
@@ -94,5 +92,3 @@ class sfEmailValidator extends sfValidator
     return true;
   }
 }
-
-?>

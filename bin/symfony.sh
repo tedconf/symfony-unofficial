@@ -12,7 +12,7 @@
 #   - if not found set it using SYMFONY_HOME/lib
 
 if [ -z "$SYMFONY_HOME" ] ; then
-  SYMFONY_HOME="@PEAR-DIR@"
+  SYMFONY_HOME="/var/www/symfony-svn/symfony-ian"
 fi
 
 if (test -z "$PHP_COMMAND") ; then

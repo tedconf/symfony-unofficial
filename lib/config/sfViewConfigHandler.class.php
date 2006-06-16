@@ -406,5 +406,3 @@ class sfViewConfigHandler extends sfYamlConfigHandler
     return implode("\n", $data)."\n";
   }
 }
-
-?>
