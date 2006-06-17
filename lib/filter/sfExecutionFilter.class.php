@@ -89,15 +89,22 @@ class sfExecutionFilter extends sfFilter
         // manually load validators
         $actionInstance->registerValidators($validatorManager);
 
+        // lets see what errors are already in the request...
+        $origErrors = $context->getRequest()->getErrors();
+
         // process validators
         $validated = $validatorManager->execute();
-        
+
         // process manual validation
         $validateToRun = 'validate'.ucfirst($actionName);
+
         $manualValidated = method_exists($actionInstance, $validateToRun) ? $actionInstance->$validateToRun() : $actionInstance->validate();
 
-        // action is validated only if both validators returned true
-        $validated = !$context->getRequest()->hasErrors();
+        // what errors are there now?
+        $newErrors = array_diff($context->getRequest()->getErrors(), $origErrors);
+
+        // action is validated if there are no new errors
+        $validated = count($newErrors)?false:true;
 
         $sf_logging_active = sfConfig::get('sf_logging_active');
         if ($validated)
