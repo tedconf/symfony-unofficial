@@ -1826,7 +1826,7 @@ function _get_I18n_date_locales($culture = null)
 }
 
 /**
- * Converts date values (<i>$value</i> into its correct date format (<i>$format_char</i>)
+ * Converts date values (<i>$value</i>) into its correct date format (<i>$format_char</i>)
  *
  * This function is primarily used in select_date_tag, select_time_tag and select_datetime_tag.
  *
@@ -1861,11 +1861,7 @@ function _parse_value_for_date($value, $key, $format_char)
 }
 
 /**
- * Converts date values (<i>$value</i> into its correct date format (<i>$format_char</i>)
- *
- * This function is primarily used in select_date_tag, select_time_tag and select_datetime_tag.
- *
- * <b>Note:</b> If <i>$value</i> is empty, it will be populated with the current date and time.
+ * Converts specific <i>$options</i> to their correct HTML format
  *
  * @param  array options
  * @return array returns properly formatted options 
