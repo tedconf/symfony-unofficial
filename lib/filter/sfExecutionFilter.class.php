@@ -77,27 +77,29 @@ class sfExecutionFilter extends sfFilter
         // set default validated status
         $validated = true;
 
+        // get the current action validation configuration
+        $validationConfig = $moduleName.'/'.sfConfig::get('sf_app_module_validate_dir_name').'/'.$actionName.'.yml';
+        if (is_readable(sfConfig::get('sf_app_module_dir').'/'.$validationConfig))
+        {
+          // load validation configuration
+          // do NOT use require_once
+          require(sfConfigCache::getInstance()->checkConfig(sfConfig::get('sf_app_module_dir_name').'/'.$validationConfig));
+        }
+
+        // manually load validators
+        $actionInstance->registerValidators($validatorManager);
+
+        // process validators
+        $validated = $validatorManager->execute();
+
         // process manual validation
         $validateToRun = 'validate'.ucfirst($actionName);
-        $validated = method_exists($actionInstance, $validateToRun) ? $actionInstance->$validateToRun() : $actionInstance->validate();
+        $manualValidated = method_exists($actionInstance, $validateToRun) ? $actionInstance->$validateToRun() : $actionInstance->validate();
 
-        if ($validated)
-        {
-          // get the current action validation configuration
-          $validationConfig = $moduleName.'/'.sfConfig::get('sf_app_module_validate_dir_name').'/'.$actionName.'.yml';
-          if (is_readable(sfConfig::get('sf_app_module_dir').'/'.$validationConfig))
-          {
-            // load validation configuration
-            // do NOT use require_once
-            require(sfConfigCache::getInstance()->checkConfig(sfConfig::get('sf_app_module_dir_name').'/'.$validationConfig));
-          }
-
-          // manually load validators
-          $actionInstance->registerValidators($validatorManager);
-
-          // process validators
-          $validated = $validatorManager->execute();
-        }
+        // action is validated if:
+        // - all validation methods (manual and automatic) return true
+        // - or automatic validation returns false but errors have been 'removed' by manual validation
+        $validated = ($manualValidated && $validated) || ($manualValidated && !$validated && !$context->getRequest()->hasErrors());
 
         $sf_logging_active = sfConfig::get('sf_logging_active');
         if ($validated)
@@ -131,7 +133,14 @@ class sfExecutionFilter extends sfFilter
       }
     }
 
-    if ($viewName != sfView::NONE)
+    if ($viewName == sfView::HEADER_ONLY)
+    {
+      $filterChain->executionFilterDone();
+
+      // execute next filter
+      $filterChain->execute();
+    }
+    else if ($viewName != sfView::NONE)
     {
       if (is_array($viewName))
       {
@@ -205,5 +214,3 @@ class sfExecutionFilter extends sfFilter
     }
   }
 }
-
-?>

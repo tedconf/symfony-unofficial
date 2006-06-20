@@ -69,7 +69,7 @@ class sfConfig
    *
    * @return array An associative array of configuration parameters.
    */
-  public function getAll ()
+  public static function getAll ()
   {
     return self::$config;
   }
@@ -85,5 +85,3 @@ class sfConfig
     self::$config = array();
   }
 }
-
-?>

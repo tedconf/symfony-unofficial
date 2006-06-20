@@ -56,10 +56,7 @@ default:
     # E_COMPILE_ERROR | E_ERROR | E_CORE_ERROR | E_USER_ERROR = 337
     error_reporting:        337
 
-    rich_text_editor:                tinymce
-    rich_text_tinymce_js_dir:   js/tiny_mce
-    rich_text_fck_js_dir:          js/fck_editor
-    rich_text_htmlarea_js_dir:  js/htmlarea
+    rich_text_js_dir:       js/tiny_mce
 
     safe_slot:              on
 

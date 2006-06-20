@@ -21,27 +21,39 @@ require_once(sfConfig::get('sf_symfony_lib_dir').'/helper/ValidationHelper.php')
  * @version    SVN: $Id$
  */
 
-/*
-      # Accepts a container (hash, array, enumerable, your type) and returns a string of option tags. Given a container
-      # where the elements respond to first and last (such as a two-element array), the "lasts" serve as option values and
-      # the "firsts" as option text. Hashes are turned into this form automatically, so the keys become "firsts" and values
-      # become lasts. If +selected+ is specified, the matching "last" or element will get the selected option-tag.  +Selected+
-      # may also be an array of values to be selected when using a multiple select.
-      #
-      # Examples (call, result):
-      #   options_for_select([["Dollar", "$"], ["Kroner", "DKK"]])
-      #     <option value="$">Dollar</option>\n<option value="DKK">Kroner</option>
-      #
-      #   options_for_select([ "VISA", "MasterCard" ], "MasterCard")
-      #     <option>VISA</option>\n<option selected="selected">MasterCard</option>
-      #
-      #   options_for_select({ "Basic" => "$20", "Plus" => "$40" }, "$40")
-      #     <option value="$20">Basic</option>\n<option value="$40" selected="selected">Plus</option>
-      #
-      #   options_for_select([ "VISA", "MasterCard", "Discover" ], ["VISA", "Discover"])
-      #     <option selected="selected">VISA</option>\n<option>MasterCard</option>\n<option selected="selected">Discover</option>
-      #
-      # NOTE: Only the option tags are returned, you have to wrap this call in a regular HTML select tag.
+/**
+* Returns a formatted set of <option> tags based on optional <i>$options</i> array variable.
+*
+* The options_for_select helper is usually called in conjunction with the select_tag helper, as it is relatively
+* useless on its own. By passing an array of <i>$options</i>, the helper will automatically generate <option> tags
+* using the array key as the value and the array value as the display title. Additionally the options_for_select tag is
+* smart enough to detect nested arrays as <optgroup> tags.  If the helper detects that the array value is an array itself,
+* it creates an <optgroup> tag with the name of the group being the key and the contents of the <optgroup> being the array.
+*
+* <b>Options:</b>
+* - include_blank - Includes a blank <option> tag at the beginning of the string with an empty value
+* - include_custom - Includes an <option> tag with a custom display title at the beginning of the string with an empty value
+*
+* <b>Examples:</b>
+* <code>
+*  echo select_tag('person', options_for_select(array(1 => 'Larry', 2 => 'Moe', 3 => 'Curly')));
+* </code>
+*
+* <code>
+*  $card_list = array('VISA' => 'Visa', 'MAST' => 'MasterCard', 'AMEX' => 'American Express', 'DISC' => 'Discover');
+*  echo select_tag('cc_type', options_for_select($card_list), 'AMEX', array('include_custom' => '-- Select Credit Card Type --'));
+* </code>
+*
+* <code>
+*  $optgroup_array = array(1 => 'Joe', 2 => 'Sue', 'Group A' => array(3 => 'Mary', 4 => 'Tom'), 'Group B' => array(5 => 'Bill', 6 =>'Andy'));
+*  echo select_tag('employee', options_for_select($optgroup_array, null, array('include_blank' => true)), array('class' => 'mystyle'));
+* </code>
+*
+* @param  array dataset to create <option> tags and <optgroup> tags from
+* @param  string selected option value
+* @param  array  additional HTML compliant <option> tag parameters
+* @return string populated with <option> tags derived from the <i>$options</i> array variable
+* @see select_tag
 */
 function options_for_select($options = array(), $selected = '', $html_options = array())
 {
@@ -66,30 +78,52 @@ function options_for_select($options = array(), $selected = '', $html_options = 
 
   foreach ($options as $key => $value)
   {
-    $option_options = array('value' => $key);
-    if (
-        isset($selected)
-        &&
-        (is_array($selected) && in_array(strval($key), $valid, true))
-        ||
-        (strval($key) == strval($selected))
-       )
+    if (is_array($value))
     {
-      $option_options['selected'] = 'selected';
+      $optgroup_html_options = $html_options;
+      unset($optgroup_html_options['include_custom']);
+      unset($optgroup_html_options['include_blank']);
+      $html .= content_tag('optgroup', options_for_select($value, $selected, $optgroup_html_options), array('label' => $key));
     }
+    else 
+    {
+      $option_options = array('value' => $key);
+      
+      if (
+          isset($selected)
+          &&
+          (is_array($selected) && in_array(strval($key), $valid, true))
+          ||
+          (strval($key) == strval($selected))
+         )
+      {
+        $option_options['selected'] = 'selected';
+      }
 
-    $html .= content_tag('option', $value, $option_options)."\n";
+      $html .= content_tag('option', $value, $option_options)."\n";
+    }
   }
 
   return $html;
 }
 
-/*
-    # Starts a form tag that points the action to an url configured with <tt>url_for_options</tt> just like
-    # ActionController::Base#url_for. The method for the form defaults to POST.
-    #
-    # Options:
-    # * <tt>:multipart</tt> - If set to true, the enctype is set to "multipart/form-data".
+/**
+* Returns an HTML <form> tag that points to a valid action, route or URL as defined by <i>$url_for_options</i>.
+*
+* By default, the form tag is generated in POST format, but can easily be configured along with any additional
+* HTML parameters via the optional <i>$options</i> variable. If you are using file uploads, be sure to set the 
+* <i>multipart</i> option to true.
+*
+* <b>Options:</b>
+* - multipart - When set to true, enctype is set to "multipart/form-data".
+*
+* <b>Examples:</b>
+*   <code><?php echo form_tag('@myroute'); ?></code>
+*   <code><?php echo form_tag('/module/action', array('name' => 'myformname', 'multipart' => true)); ?></code>
+*
+* @param  string valid action, route or URL
+* @param  array optional HTML parameters for the <form> tag
+* @return string opening HTML <form> tag with options
 */
 function form_tag($url_for_options = '', $options = array())
 {
@@ -112,6 +146,38 @@ function form_tag($url_for_options = '', $options = array())
   return tag('form', $html_options, true);
 }
 
+/**
+* Returns a <select> tag, optionally comprised of <option> tags.
+*
+* The select tag does not generate <option> tags by default.  
+* To do so, you must populate the <i>$option_tags</i> variable with a string of valid HTML compliant <option> tags.
+* Fortunately, Symfony provides a handy helper function to convert an array of data into option tags (see options_for_select). 
+* If you need to create a "multiple" select tag (ability to select multiple options), set the <i>multiple</i> option to true.  
+* Doing so will automatically convert the name field to an array type variable (i.e. name="name" becomes name="name[]").
+* 
+* <b>Options:</b>
+* - multiple - If set to true, the select tag will allow multiple options to be selected at once.
+*
+* <b>Examples:</b>
+* <code>
+*  $person_list = array(1 => 'Larry', 2 => 'Moe', 3 => 'Curly');
+*  echo select_tag('person', options_for_select($person_list, $sf_params->get('person')), array('class' => 'full'));
+* </code>
+*
+* <code>
+*  echo select_tag('department', options_for_select($department_list), array('multiple' => true));
+* </code>
+*
+* <code>
+*  echo select_tag('url', options_for_select($url_list), array('onChange' => 'Javascript:this.form.submit();'));
+* </code>
+*
+* @param  string field name 
+* @param  string contains a string of valid <option></option> tags
+* @param  array  additional HTML compliant <select> tag parameters
+* @return string <select> tag optionally comprised of <option> tags.
+* @see options_for_select, content_tag
+*/
 function select_tag($name, $option_tags = null, $options = array())
 {
   $options = _convert_options($options);
@@ -121,9 +187,33 @@ function select_tag($name, $option_tags = null, $options = array())
     $name .= '[]';
   }
 
-  return content_tag('select', $option_tags, array_merge(array('name' => $name, 'id' => $id), $options));
+  return content_tag('select', $option_tags, array_merge(array('name' => $name, 'id' => get_name_from_id($id)), $options));
 }
 
+/**
+* Returns a <select> tag populated with all the countries in the world.
+*
+* The select_country_tag builds off the traditional select_tag function, and is conveniently populated with 
+* all the countries in the world (sorted alphabetically). Each option in the list has a two-character country 
+* code for its value and the country's name as its display title.  The country data is retrieved via the sfCultureInfo
+* class, which stores a wide variety of i18n and i10n settings for various countries and cultures throughout the world.
+* Here's an example of an <option> tag generated by the select_country_tag:
+*
+* <samp>
+*  <option value="US">United States</option>
+* </samp>
+*
+* <b>Examples:</b>
+* <code>
+*  echo select_country_tag('country', 'FR');
+* </code>
+*
+* @param  string field name 
+* @param  string selected field value (two-character country code)
+* @param  array  additional HTML compliant <select> tag parameters
+* @return string <select> tag populated with all the countries in the world.
+* @see select_tag, options_for_select, sfCultureInfo
+*/
 function select_country_tag($name, $value, $options = array())
 {
   $c = new sfCultureInfo(sfContext::getInstance()->getUser()->getCulture());
@@ -147,6 +237,30 @@ function select_country_tag($name, $value, $options = array())
   return select_tag($name, $option_tags, $options);
 }
 
+/**
+* Returns a <select> tag populated with all the languages in the world (or almost).
+*
+* The select_language_tag builds off the traditional select_tag function, and is conveniently populated with 
+* all the languages in the world (sorted alphabetically). Each option in the list has a two or three character 
+* language/culture code for its value and the language's name as its display title.  The country data is 
+* retrieved via the sfCultureInfo class, which stores a wide variety of i18n and i10n settings for various 
+* countries and cultures throughout the world. Here's an example of an <option> tag generated by the select_country_tag:
+*
+* <samp>
+*  <option value="en">English</option>
+* </samp>
+*
+* <b>Examples:</b>
+* <code>
+*  echo select_language_tag('language', 'de');
+* </code>
+*
+* @param  string field name 
+* @param  string selected field value (two or threecharacter language/culture code)
+* @param  array  additional HTML compliant <select> tag parameters
+* @return string <select> tag populated with all the languages in the world.
+* @see select_tag, options_for_select, sfCultureInfo
+*/
 function select_language_tag($name, $value, $options = array())
 {
   $c = new sfCultureInfo(sfContext::getInstance()->getUser()->getCulture());
@@ -170,11 +284,48 @@ function select_language_tag($name, $value, $options = array())
   return select_tag($name, $option_tags, $options);
 }
 
+/**
+* Returns an XHTML compliant <input> tag with type="text".
+*
+* The input_tag helper generates your basic XHTML <input> tag and can utilize any standard <input> tag parameters 
+* passed in the optional <i>$options</i> variable.
+*
+* <b>Examples:</b>
+* <code>
+*  echo input_tag('name');
+* </code>
+*
+* <code>
+*  echo input_tag('amount', $sf_params->get('amount'), array('size' => 8, 'maxlength' => 8));
+* </code>
+*
+* @param  string field name 
+* @param  string selected field value
+* @param  array  additional HTML compliant <input> tag parameters
+* @return string XHTML compliant <input> tag with type="text"
+*/
 function input_tag($name, $value = null, $options = array())
 {
-  return tag('input', array_merge(array('type' => 'text', 'name' => $name, 'id' => $name, 'value' => $value), _convert_options($options)));
+  return tag('input', array_merge(array('type' => 'text', 'name' => $name, 'id' => get_name_from_id($name, $value), 'value' => $value), _convert_options($options)));
 }
 
+/**
+* Returns an XHTML compliant <input> tag with type="hidden".
+*
+* Similar to the input_tag helper, the input_hidden_tag helper generates an XHTML <input> tag and can utilize 
+* any standard <input> tag parameters passed in the optional <i>$options</i> variable.  The only difference is 
+* that it creates the tag with type="hidden", meaning that is not visible on the page.
+*
+* <b>Examples:</b>
+* <code>
+*  echo input_hidden_tag('id', $id);
+* </code>
+*
+* @param  string field name 
+* @param  string populated field value
+* @param  array  additional HTML compliant <input> tag parameters
+* @return string XHTML compliant <input> tag with type="hidden"
+*/
 function input_hidden_tag($name, $value = null, $options = array())
 {
   $options = _parse_attributes($options);
@@ -183,6 +334,26 @@ function input_hidden_tag($name, $value = null, $options = array())
   return input_tag($name, $value, $options);
 }
 
+/**
+* Returns an XHTML compliant <input> tag with type="file".
+*
+* Similar to the input_tag helper, the input_hidden_tag helper generates your basic XHTML <input> tag and can utilize
+* any standard <input> tag parameters passed in the optional <i>$options</i> variable.  The only difference is that it 
+* creates the tag with type="file", meaning that next to the field will be a "browse" (or similar) button. 
+* This gives the user the ability to choose a file from there computer to upload to the web server.  Remember, if you 
+* plan to upload files to your website, be sure to set the <i>multipart</i> option form_tag helper function to true 
+* or your files will not be properly uploaded to the web server.
+*
+* <b>Examples:</b>
+* <code>
+*  echo input_file_tag('filename', array('size' => 30));
+* </code>
+*
+* @param  string field name 
+* @param  array  additional HTML compliant <input> tag parameters
+* @return string XHTML compliant <input> tag with type="file"
+* @see input_tag, form_tag
+*/
 function input_file_tag($name, $options = array())
 {
   $options = _parse_attributes($options);
@@ -191,6 +362,28 @@ function input_file_tag($name, $options = array())
   return input_tag($name, null, $options);
 }
 
+/**
+* Returns an XHTML compliant <input> tag with type="password".
+*
+* Similar to the input_tag helper, the input_hidden_tag helper generates your basic XHTML <input> tag and can utilize
+* any standard <input> tag parameters passed in the optional <i>$options</i> variable.  The only difference is that it 
+* creates the tag with type="password", meaning that the text entered into this field will not be visible to the end user.
+* In most cases it is replaced by ********.  Even though this text is not readable, it is recommended that you do not 
+* populate the optional <i>$value</i> option with a plain-text password or any other sensitive information, as this is a 
+* potential security risk.
+*
+* <b>Examples:</b>
+* <code>
+*  echo input_password_tag('password');
+*  echo input_password_tag('password_confirm');
+* </code>
+*
+* @param  string field name
+* @param  string populated field value
+* @param  array  additional HTML compliant <input> tag parameters
+* @return string XHTML compliant <input> tag with type="password"
+* @see input_tag
+*/
 function input_password_tag($name = 'password', $value = null, $options = array())
 {
   $options = _parse_attributes($options);
@@ -209,7 +402,7 @@ function input_password_tag($name = 'password', $value = null, $options = array(
 function textarea_tag($name, $content = null, $options = array())
 {
   $options = _parse_attributes($options);
-
+  
   if (array_key_exists('size', $options))
   {
     list($options['cols'], $options['rows']) = split('x', $options['size'], 2);
@@ -299,43 +492,79 @@ tinyMCE.init({
   '.(isset($options['tinymce_options']) ? ','.$options['tinymce_options'] : '').'
 });';
 
+    if (isset($options['tinymce_options']))
+    {
+      unset($options['tinymce_options']);
+    }
+
     return
       content_tag('script', javascript_cdata_section($tinymce_js), array('type' => 'text/javascript')).
-      content_tag('textarea', $content, array_merge(array('name' => $name, 'id' => $id), _convert_options($options)));
+      content_tag('textarea', $content, array_merge(array('name' => $name, 'id' => get_name_from_id($id, null)), _convert_options($options)));
   }
-  elseif (in_array($rich, array('fck', 'htmlarea')))
+  elseif ($rich === 'fck')
   {
-    if ($rich == 'fck')
+    $php_file = sfConfig::get('sf_rich_text_fck_js_dir').DIRECTORY_SEPARATOR.'fckeditor.php';
+
+    if (!is_readable(sfConfig::get('sf_web_dir').DIRECTORY_SEPARATOR.$php_file))
     {
-      $plugin = 'sfFCKEditor';
-    }
-    elseif ($rich == 'htmlarea')
-    {
-      $plugin = 'sfHTMLArea';
+      throw new sfConfigurationException('You must install FCKEditor to use this helper (see rich_text_fck_js_dir settings).');
     }
 
-    $plugin_path = sfConfig::get('sf_plugin_dir') . DIRECTORY_SEPARATOR . $plugin . DIRECTORY_SEPARATOR . 'lib' . DIRECTORY_SEPARATOR . $plugin . '.class.php';
+    // FCKEditor.php class is written with backward compatibility of PHP4.
+    // This reportings are to turn off errors with public properties and already declared constructor
+    $error_reporting = ini_get('error_reporting');
+    error_reporting(E_ALL);
 
-    if (!is_readable($plugin_path))
+    require_once(sfConfig::get('sf_web_dir').DIRECTORY_SEPARATOR.$php_file);
+
+    // turn error reporting back to your settings
+    error_reporting($error_reporting);
+
+    $fckeditor           = new FCKeditor($name);
+    $fckeditor->BasePath = '/'.sfConfig::get('sf_rich_text_fck_js_dir').'/';
+    $fckeditor->Value    = $content;
+
+    if (isset($options['width']))
     {
-     throw new sfConfigurationException('You must install the Symfony ' . $plugin . ' plugin to use this helper.');
-    }
-    else
+      $fckeditor->Width = $options['width'];
+    }   
+    elseif (isset($options['cols']))
     {
-      require_once($plugin_path);
-      $textarea = new $plugin();
-      return $textarea->newInstance($name, $options);
+      $fckeditor->Width = (string)((int) $options['cols'] * 10).'px';
     }
+
+    if (isset($options['height']))
+    {
+      $fckeditor->Height = $options['height'];
+    }
+    elseif (isset($options['rows']))
+    {
+      $fckeditor->Height = (string)((int) $options['rows'] * 10).'px';
+    }
+
+    if (isset($options['tool']))
+    {
+      $fckeditor->ToolbarSet = $options['tool'];
+    }
+
+    if (isset($options['config']))
+    {
+      $fckeditor->Config['CustomConfigurationsPath'] = javascript_path($options['config']);
+    }
+
+    $content = $fckeditor->CreateHtml();
+
+    return $content;
   }
   else
   {
-    return content_tag('textarea', (is_object($content)) ? $content->__toString() : $content, array_merge(array('name' => $name, 'id' => $id), _convert_options($options)));
+    return content_tag('textarea', (is_object($content)) ? $content->__toString() : $content, array_merge(array('name' => $name, 'id' => get_name_from_id($id, null)), _convert_options($options)));
   }
 }
 
 function checkbox_tag($name, $value = '1', $checked = false, $options = array())
 {
-  $html_options = array_merge(array('type' => 'checkbox', 'name' => $name, 'id' => $name, 'value' => $value), _convert_options($options));
+  $html_options = array_merge(array('type' => 'checkbox', 'name' => $name, 'id' => get_name_from_id($name, $value), 'value' => $value), _convert_options($options));
   if ($checked) $html_options['checked'] = 'checked';
 
   return tag('input', $html_options);
@@ -343,7 +572,7 @@ function checkbox_tag($name, $value = '1', $checked = false, $options = array())
 
 function radiobutton_tag($name, $value, $checked = false, $options = array())
 {
-  $html_options = array_merge(array('type' => 'radio', 'name' => $name, 'value' => $value), _convert_options($options));
+  $html_options = array_merge(array('type' => 'radio', 'name' => $name, 'id' => get_name_from_id($name, $value), 'value' => $value), _convert_options($options));
   if ($checked) $html_options['checked'] = 'checked';
 
   return tag('input', $html_options);
@@ -360,6 +589,8 @@ function input_upload_tag($name, $options = array())
 
 function input_date_range_tag($name, $value, $options = array())
 {
+  $options = _parse_attributes($options);
+
   $before = '';
   if (isset($options['before']))
   {
@@ -417,18 +648,14 @@ function input_date_tag($name, $value, $options = array())
   }
 
   // parse date
-  if (($value !== null) && ($value != '') && (!is_int($value)))
+  if (($value === null) || ($value === ''))
   {
-    $value = strtotime($value);
-    if ($value === -1)
-    {
-      $value = null;
-    }
-    else
-    {
-      $dateFormat = new sfDateFormat($culture);
-      $value = $dateFormat->format($value, 'd');
-    }
+    $value = '';
+  }
+  else
+  {
+    $dateFormat = new sfDateFormat($culture);
+    $value = $dateFormat->format($value, 'd');
   }
 
   // register our javascripts and stylesheets
@@ -476,22 +703,22 @@ function input_date_tag($name, $value, $options = array())
   {
     $calendar_button = $options['calendar_button_img'];
     $calendar_button_type = 'img';
-    unset($options['calendar_button']);
+    unset($options['calendar_button_img']);
   }
   else if (isset($options['calendar_button_txt']))
   {
     $calendar_button = $options['calendar_button_txt'];
     $calendar_button_type = 'txt';
-    unset($options['calendar_button']);
+    unset($options['calendar_button_txt']);
   }
 
   if ($calendar_button_type == 'img')
   {
-    $html .= image_tag($calendar_button, array('id' => 'trigger_'.$name, 'style' => 'cursor: pointer', 'align' => 'absmiddle'));
+    $html .= image_tag($calendar_button, array('id' => 'trigger_'.$name, 'style' => 'cursor: pointer; vertical-align: middle'));
   }
   else
   {
-    $html .= content_tag('button', $calendar_button, array('disabled' => 'disabled', 'onclick' => 'return false', 'id' => 'trigger_'.$name));
+    $html .= content_tag('button', $calendar_button, array('type' => 'button', 'disabled' => 'disabled', 'onclick' => 'return false', 'id' => 'trigger_'.$name));
   }
 
   if (isset($options['with_format']))
@@ -521,8 +748,13 @@ function submit_image_tag($source, $options = array())
   return tag('input', array_merge(array('type' => 'image', 'name' => 'commit', 'src' => image_path($source)), _convert_options($options)));
 }
 
-function select_day_tag($name, $value, $options = array(), $html_options = array())
+function select_day_tag($name, $value = null, $options = array(), $html_options = array())
 {
+  if ($value === null)
+  {
+    $value = date('j');
+  }
+    
   $options = _parse_attributes($options);
 
   $select_options = array();
@@ -537,14 +769,19 @@ function select_day_tag($name, $value, $options = array(), $html_options = array
 
   for ($x = 1; $x < 32; $x++)
   {
-    $select_options[$x] = _add_zeros($x, 2);
+    $select_options[$x] = _prepend_zeros($x, 2);
   }
 
   return select_tag($name, options_for_select($select_options, $value), $html_options);
 }
 
-function select_month_tag($name, $value, $options = array(), $html_options = array())
+function select_month_tag($name, $value = null, $options = array(), $html_options = array())
 {
+  if ($value === null)
+  {
+    $value = date('n');
+  }
+    
   $options = _parse_attributes($options);
 
   $culture = _get_option($options, 'culture', sfContext::getInstance()->getUser()->getCulture());
@@ -560,16 +797,16 @@ function select_month_tag($name, $value, $options = array(), $html_options = arr
     $select_options[''] = $include_custom;
   }
 
-  if (_get_option($options, 'use_month_numbers'))
+  if (_get_option($options, 'use_month_numbers')) 
   {
-    for ($k = 1; $k < 13; $k++)
+    for ($k = 1; $k < 13; $k++) 
     {
-      $select_options[$k] = _add_zeros($k, 2);
+      $select_options[$k] = _prepend_zeros($k, 2);
     }
   }
   else
-  {
-    if (_get_option($options, 'use_short_month'))
+  {  
+    if (_get_option($options, 'use_short_month')) 
     {
       $month_names = $I18n_arr['dateFormatInfo']->getAbbreviatedMonthNames();
     }
@@ -579,7 +816,7 @@ function select_month_tag($name, $value, $options = array(), $html_options = arr
     }
 
     $add_month_numbers = _get_option($options, 'add_month_numbers');
-    foreach ($month_names as $k => $v)
+    foreach ($month_names as $k => $v) 
     {
       $select_options[$k + 1] = ($add_month_numbers) ? ($k + 1 . ' - ' . $v) : $v;
     }
@@ -588,8 +825,13 @@ function select_month_tag($name, $value, $options = array(), $html_options = arr
   return select_tag($name, options_for_select($select_options, $value), $html_options);
 }
 
-function select_year_tag($name, $value, $options = array(), $html_options = array())
+function select_year_tag($name, $value = null, $options = array(), $html_options = array())
 {
+  if ($value === null)
+  {
+    $value = date('Y');
+  }
+    
   $options = _parse_attributes($options);
 
   $select_options = array();
@@ -634,7 +876,7 @@ function select_year_tag($name, $value, $options = array(), $html_options = arra
  * @param array $html_options
  * @return string
  */
-function select_date_tag($name, $value, $options = array(), $html_options = array())
+function select_date_tag($name, $value = null, $options = array(), $html_options = array())
 {
   $options = _parse_attributes($options);
 
@@ -674,15 +916,15 @@ function select_date_tag($name, $value, $options = array(), $html_options = arra
   if ($include_custom = _get_option($options, 'include_custom'))
   {
     $include_custom_month = (is_array($include_custom))
-        ? ((isset($include_custom['month'])) ? array('include_custom'=>$include_custom['month']) : array())
+        ? ((isset($include_custom['month'])) ? array('include_custom'=>$include_custom['month']) : array()) 
         : array('include_custom'=>$include_custom);
 
     $include_custom_day = (is_array($include_custom))
-        ? ((isset($include_custom['day'])) ? array('include_custom'=>$include_custom['day']) : array())
+        ? ((isset($include_custom['day'])) ? array('include_custom'=>$include_custom['day']) : array()) 
         : array('include_custom'=>$include_custom);
 
     $include_custom_year = (is_array($include_custom))
-        ? ((isset($include_custom['year'])) ? array('include_custom'=>$include_custom['year']) : array())
+        ? ((isset($include_custom['year'])) ? array('include_custom'=>$include_custom['year']) : array()) 
         : array('include_custom'=>$include_custom);
   }
   else
@@ -692,14 +934,15 @@ function select_date_tag($name, $value, $options = array(), $html_options = arra
     $include_custom_year = array();
   }
 
-  $html_options['id'] = $name . '_month';
-  $m = (!$discard_month) ? select_month_tag($name . '[month]', _parse_value_for_date($value, 'month', 'm'), $options + $include_custom_month, $html_options) : '';
+  $month_name = $name . '[month]';
+  $m = (!$discard_month) ? select_month_tag($month_name, _parse_value_for_date($value, 'month', 'm'), $options + $include_custom_month, $html_options) : '';
 
-  $html_options['id'] = $name . '_day';
-  $d = (!$discard_day) ? select_day_tag($name . '[day]', _parse_value_for_date($value, 'day', 'd'), $options + $include_custom_day, $html_options) : '';
 
-  $html_options['id'] = $name . '_year';
-  $y = (!$discard_year) ? select_year_tag($name . '[year]', _parse_value_for_date($value, 'year', 'Y'), $options + $include_custom_year, $html_options) : '';
+  $day_name = $name . '[day]';
+  $d = (!$discard_day) ? select_day_tag($day_name, _parse_value_for_date($value, 'day', 'd'), $options + $include_custom_day, $html_options) : '';
+
+  $year_name = $name . '[year]';
+  $y = (!$discard_year) ? select_year_tag($year_name, _parse_value_for_date($value, 'year', 'Y'), $options + $include_custom_year, $html_options) : '';
 
   // we have $tags = array ('m','d','y')
   foreach ($tags as $k => $v)
@@ -711,8 +954,13 @@ function select_date_tag($name, $value, $options = array(), $html_options = arra
   return implode($date_seperator, $tags);
 }
 
-function select_second_tag($name, $value, $options = array(), $html_options = array())
+function select_second_tag($name, $value = null, $options = array(), $html_options = array())
 {
+  if ($value === null)
+  {
+    $value = date('s');
+  }
+  
   $options = _parse_attributes($options);
   $select_options = array();
 
@@ -728,14 +976,19 @@ function select_second_tag($name, $value, $options = array(), $html_options = ar
   $second_step = _get_option($options, 'second_step', 1);
   for ($x = 0; $x < 60; $x += $second_step)
   {
-    $select_options[$x] = _add_zeros($x, 2);
+    $select_options[$x] = _prepend_zeros($x, 2);
   }
 
   return select_tag($name, options_for_select($select_options, $value), $html_options);
 }
 
-function select_minute_tag($name, $value, $options = array(), $html_options = array())
+function select_minute_tag($name, $value = null, $options = array(), $html_options = array())
 {
+  if ($value === null)
+  {
+    $value = date('i');
+  }
+    
   $options = _parse_attributes($options);
   $select_options = array();
 
@@ -751,14 +1004,19 @@ function select_minute_tag($name, $value, $options = array(), $html_options = ar
   $minute_step = _get_option($options, 'minute_step', 1);
   for ($x = 0; $x < 60; $x += $minute_step)
   {
-    $select_options[$x] = _add_zeros($x, 2);
+    $select_options[$x] = _prepend_zeros($x, 2);
   }
 
   return select_tag($name, options_for_select($select_options, $value), $html_options);
 }
 
-function select_hour_tag($name, $value, $options = array(), $html_options = array())
+function select_hour_tag($name, $value = null, $options = array(), $html_options = array())
 {
+  if ($value === null)
+  {
+    $value = date('h');
+  }
+    
   $options = _parse_attributes($options);
   $select_options = array();
 
@@ -778,14 +1036,19 @@ function select_hour_tag($name, $value, $options = array(), $html_options = arra
 
   for ($x = $start_hour; $x <= $end_hour; $x++)
   {
-    $select_options[$x] = _add_zeros($x, 2);
+    $select_options[$x] = _prepend_zeros($x, 2);
   }
 
   return select_tag($name, options_for_select($select_options, $value), $html_options);
 }
 
-function select_ampm_tag($name, $value, $options = array(), $html_options = array())
+function select_ampm_tag($name, $value = null, $options = array(), $html_options = array())
 {
+  if ($value === null)
+  {
+    $value = date('A');
+  }
+    
   $options = _parse_attributes($options);
   $select_options = array();
 
@@ -813,7 +1076,7 @@ function select_ampm_tag($name, $value, $options = array(), $html_options = arra
  * @param array $html_options
  * @return string
  */
-function select_time_tag($name, $value, $options = array(), $html_options = array())
+function select_time_tag($name, $value = null, $options = array(), $html_options = array())
 {
   $options = _parse_attributes($options);
 
@@ -827,19 +1090,19 @@ function select_time_tag($name, $value, $options = array(), $html_options = arra
   if ($include_custom = _get_option($options, 'include_custom'))
   {
     $include_custom_hour = (is_array($include_custom))
-        ? ((isset($include_custom['hour'])) ? array('include_custom'=>$include_custom['hour']) : array())
+        ? ((isset($include_custom['hour'])) ? array('include_custom'=>$include_custom['hour']) : array()) 
         : array('include_custom'=>$include_custom);
 
     $include_custom_minute = (is_array($include_custom))
-        ? ((isset($include_custom['minute'])) ? array('include_custom'=>$include_custom['minute']) : array())
+        ? ((isset($include_custom['minute'])) ? array('include_custom'=>$include_custom['minute']) : array()) 
         : array('include_custom'=>$include_custom);
 
     $include_custom_second = (is_array($include_custom))
-        ? ((isset($include_custom['second'])) ? array('include_custom'=>$include_custom['second']) : array())
+        ? ((isset($include_custom['second'])) ? array('include_custom'=>$include_custom['second']) : array()) 
         : array('include_custom'=>$include_custom);
 
     $include_custom_ampm = (is_array($include_custom))
-        ? ((isset($include_custom['ampm'])) ? array('include_custom'=>$include_custom['ampm']) : array())
+        ? ((isset($include_custom['ampm'])) ? array('include_custom'=>$include_custom['ampm']) : array()) 
         : array('include_custom'=>$include_custom);
   }
   else
@@ -852,24 +1115,24 @@ function select_time_tag($name, $value, $options = array(), $html_options = arra
 
   $tags = array();
 
-  $html_options['id'] = $name . '_hour';
-  $tags[] = select_hour_tag($name . '[hour]', _parse_value_for_date($value, 'hour', ($_12hour_time) ? 'h' : 'H'), $options + $include_custom_hour, $html_options);
+  $hour_name = $name . '[hour]';
+  $tags[] = select_hour_tag($hour_name, _parse_value_for_date($value, 'hour', ($_12hour_time) ? 'h' : 'H'), $options + $include_custom_hour, $html_options);
 
-  $html_options['id'] = $name . '_minute';
-  $tags[] = select_minute_tag($name . '[minute]', _parse_value_for_date($value, 'minute', 'i'), $options + $include_custom_minute, $html_options);
+  $minute_name = $name . '[minute]';
+  $tags[] = select_minute_tag($minute_name, _parse_value_for_date($value, 'minute', 'i'), $options + $include_custom_minute, $html_options);
 
   if ($include_second)
   {
-    $html_options['id'] = $name . '_second';
-    $tags[] = select_second_tag($name . "[second]" , _parse_value_for_date($value, 'second', 's'), $options + $include_custom_second, $html_options);
+    $second_name = $name . '[second]';
+    $tags[] = select_second_tag($second_name, _parse_value_for_date($value, 'second', 's'), $options + $include_custom_second, $html_options);
   }
 
   $time = implode($time_seperator, $tags);
 
   if ($_12hour_time)
   {
-    $html_options['id'] = $name . '_ampm';
-    $time .=  $ampm_seperator . select_ampm_tag($name . "[ampm]" , _parse_value_for_date($value, 'ampm', 'A'), $options + $include_custom_ampm, $html_options);
+    $ampm_name = $name . "[ampm]";
+    $time .=  $ampm_seperator . select_ampm_tag($ampm_name, _parse_value_for_date($value, 'ampm', 'A'), $options + $include_custom_ampm, $html_options);
   }
 
   return $time;
@@ -883,7 +1146,7 @@ function select_time_tag($name, $value, $options = array(), $html_options = arra
  * @param array $options
  * @return string
  */
-function select_datetime_tag($name, $value, $options = array(), $html_options = array())
+function select_datetime_tag($name, $value = null, $options = array(), $html_options = array())
 {
   $options = _parse_attributes($options);
   $datetime_seperator = _get_option($options, 'datetime_seperator', '');
@@ -894,7 +1157,29 @@ function select_datetime_tag($name, $value, $options = array(), $html_options = 
   return $date.$datetime_seperator.$time;
 }
 
-function _add_zeros($string, $strlen)
+function label_for($id, $label, $options = array())
+{
+  $options = _parse_attributes($options);
+
+  return content_tag('label', $label, array_merge(array('for' => get_name_from_id($id, null)), $options));
+}
+
+function get_name_from_id($name, $value = null)
+{
+  // check to see if we have an array variable for a field name
+  if (strstr($name, '['))
+  {
+    $name = str_replace(
+        array('[]', '][', '[', ']'),
+        array((($value != null) ? '_'.$value : ''), '_', '_', ''),
+        $name
+    );
+  }
+
+  return $name;
+}
+
+function _prepend_zeros($string, $strlen)
 {
   if ($strlen > strlen($string))
   {
@@ -920,7 +1205,7 @@ function _get_I18n_date_locales($culture = null)
   $date_format = strtolower($dateFormatInfo->getShortDatePattern());
 
   $retval['dateFormatInfo'] = $dateFormatInfo;
-
+    
   $match_pattern = "/([dmy]+)(.*?)([dmy]+)(.*?)([dmy]+)/";
   if (!preg_match($match_pattern, $date_format, $match_arr))
   {
@@ -932,14 +1217,14 @@ function _get_I18n_date_locales($culture = null)
 
   //unset all but [dmy]+
   unset($match_arr[0], $match_arr[2], $match_arr[4]);
-
+  
   $retval['date_order'] = array();
   foreach ($match_arr as $v)
   {
     // 'm/d/yy' => $retval[date_order] = array ('m', 'd', 'y');
     $retval['date_order'][] = $v[0];
   }
-
+  
   return $retval;
 }
 
@@ -959,9 +1244,13 @@ function _parse_value_for_date($value, $key, $format_char)
   {
     return date($format_char, $value);
   }
-  else if ($value == '' || ($name == 'ampm' && ($value == 'AM' || $value == 'PM')))
+  else if ($value == '' || ($key == 'ampm' && ($value == 'AM' || $value == 'PM')))
   {
     return $value;
+  }
+  else if (empty($value))
+  {
+    $value = date('Y-m-d H:i:s');
   }
 
   // english text presentation
@@ -996,5 +1285,3 @@ function _boolean_attribute($options, $attribute)
 
   return $options;
 }
-
-?>

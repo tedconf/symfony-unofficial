@@ -8,6 +8,8 @@ Backend administrations are often built according to the structure of the data u
 
 >**Note**: A [screencast](http://downloads.symfony-project.com/demo/admin/admin_generator_commented.mov) showing an administration being built is available for download (21min, QT7, 17 Mb).
 
+>**Note**: A [cheat sheet](http://www.symfony-project.com/uploads/assets/sfAdminGeneratorRefCard.pdf) with the admin generator parameters explained briefly in a single page is available for download (pdf, 28 Kb).
+
 >**Note**: If you need a basic CRUD interface to initiate the templates and actions of a module for your frontend application, you will probably prefer making a [scaffolding](scaffolding.txt) than a generated admin.
 
 Introduction
@@ -342,6 +344,22 @@ In a `list` view, you can add a filter interaction, to help the user find a give
 
 The resulting filter will allow text-based search on an author name (where the `*` character can be used as a joker), and the selection of the comments related to a given article by a choice in a selection list. As for regular `object_select_tag()`, the options displayed in a select are the ones returned by the `->toString()` method of the related class (or the primary key if such a method doesn't exist).
 
+Just like you use partial fields in lists, you can also use partial filters to create a filter that symfony doesn't handle on its own. For instance, imagine a `state` field that may only contain 2 values (`open` and `closed`), but for some reason you store those values directly in the field instead of using a table relation. A simple filter on this field (of string type) would be a text-based search, but what you want is probably a select with a list of values. That's quite easy to achieve with a partial filter:
+
+        list:
+          filters:        [date, _state]
+
+Then, in `templates/_state.php`:
+
+    [php]
+    <?php echo select_tag('filters[state]', options_for_select(array(
+      '' => '',
+      'open' => 'open',
+      'closed' => 'closed',
+    ), isset($filters['state']) ? $filters['state'] : '')) ?>
+    
+Notice that the partial has access to a `$filters` variable, whiwh is very useful to get the current value of the filter.
+
 ### Sort
 
 In a `list` view, the column names are hyperlinks that can be used to reorder the list. These names are displayed both in the `tabular` and `stacked` layouts. Only the fields that correspond to an actual column are clickable - not the ones for custom or partial columns.
@@ -350,6 +368,16 @@ Clicking on these links reloads the page with a `sort` parameter. You can reuse 
 
     [php]
     <?php echo link_to('Comment list by date', 'comment/list?sort=date&type=desc' ) ?>
+
+You can also define a default sort field for the `list` view directly in the `generator.yml`:
+
+        list:
+          sort:   date
+
+Or, if you want to specify the sort order:
+
+        list:
+          sort:   [date, desc]
 
 ### Pagination
 
@@ -415,25 +443,21 @@ The `templates/newpassword.php` partial contain something like:
 
 Notice that this partial uses a simple form helper, not an object form helper, since it is not intended to get the value from the current object.
 
-Now, in order to use the value from this control to update the object in the action, you need to override the `updateUserFromRequest()` method. To do that, copy the code of the corresponding action in the cache into the module `actions.class.php` and add the custom behaviour for the partial field:
+Now, in order to use the value from this control to update the object in the action, you need to extend the `updateUserFromRequest()` method. To do that, create the following function in the module `actions.class.php` with the custom behaviour for the input of the partial field:
 
     [php]
     class autoUserActions extends sfActions
     {
       protected function updateUserFromRequest()
       {
-        $user = $this->getRequestParameter('user');
-
-        if (isset($user['nickname']))
+        $password = $this->getRequestParameter('newpassword');
+        
+        if ($password != '')
         {
-          $this->user->setNickname($user['nickname']);
+          $this->user->setPassword($password);
         }
         
-        // Custom code
-        if ($this->getRequestParameter('newpassword') != '')
-        {
-          $this->user->setPassword($user['newpassword']);
-        }
+        parent::updateUserFromRequest();
       }
     }
 

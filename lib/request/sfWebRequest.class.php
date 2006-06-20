@@ -324,8 +324,9 @@ class sfWebRequest extends sfRequest
   public function getUri()
   {
     $pathArray = $this->getPathInfoArray();
+    $protocol  = $this->isSecure() ? 'https' : 'http';
 
-    return 'http://'.$pathArray['HTTP_HOST'].$pathArray['REQUEST_URI'];
+    return $protocol.'://'.$pathArray['HTTP_HOST'].$pathArray['REQUEST_URI'];
   }
 
   public function getPathInfo ()
@@ -418,28 +419,20 @@ class sfWebRequest extends sfRequest
     // merge POST parameters
     $this->getParameterHolder()->addByRef($_POST);
 
-    if (sfConfig::get('sf_logging_active'))
+    // move symfony parameters in a protected namespace (parameters prefixed with sf_)
+    foreach ($this->getParameterHolder()->getAll() as $key => $value)
     {
-      $parameters = '';
-      foreach ($this->getParameterHolder()->getAll() as $key => $value)
+      if (stripos($key, 'sf_') !== false)
       {
-        $parameters .= $key.' => "'.$value.'", ';
+        $this->getParameterHolder()->remove($key);
+        $this->setParameter($key, $value, 'symfony/request/sfWebRequest');
+        unset($_GET[$key]);
       }
-
-      $this->getContext()->getLogger()->info('{sfWebRequest} request parameters { '.$parameters.'}');
     }
 
-    // move some parameters in other namespaces
-    $special_parameters = array(
-      'ignore_cache' => 'symfony/request/sfWebRequest',
-    );
-    foreach ($special_parameters as $param => $namespace)
+    if (sfConfig::get('sf_logging_active'))
     {
-      if ($this->hasParameter($param))
-      {
-        $value = $this->getParameterHolder()->remove($param);
-        $this->setParameter($param, $value, $namespace);
-      }
+      $this->getContext()->getLogger()->info(sprintf('{sfWebRequest} request parameters %s', str_replace("\n", '', var_export($this->getParameterHolder()->getAll(), true))));
     }
   }
 
@@ -678,8 +671,11 @@ class sfWebRequest extends sfRequest
       return $this->getHttpHeader($header, 'ssl');
     }
 
-    $error = sprintf('Call to undefined function: %s::%s().', get_class($this), $name);
-    trigger_error($error, E_USER_ERROR);
+    if (substr($name, 0, 2) != '__')
+    {
+      $error = sprintf('Call to undefined function: %s::%s().', get_class($this), $name);
+      trigger_error($error, E_USER_ERROR);
+    }
   }
 
   /**
@@ -721,7 +717,7 @@ class sfWebRequest extends sfRequest
     {
       $pathArray = $this->getPathInfoArray();
 
-      $this->relativeUrlRoot = preg_replace('#/[^/]+\.php$#', '', $pathArray['SCRIPT_NAME']);
+      $this->relativeUrlRoot = preg_replace('#/[^/]+\.php5?$#', '', $pathArray['SCRIPT_NAME']);
     }
 
     return $this->relativeUrlRoot;
@@ -741,5 +737,3 @@ class sfWebRequest extends sfRequest
   {
   }
 }
-
-?>

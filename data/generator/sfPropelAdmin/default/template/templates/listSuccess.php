@@ -1,6 +1,6 @@
 [?php use_helpers('I18N', 'Date') ?]
 
-<h1><?php echo $this->getParameterValue('list.title', $this->getModuleName().' list') ?></h1>
+<h1><?php echo $this->getI18NString('list.title', $this->getModuleName().' list') ?></h1>
 
 <div id="sf_admin_header">
 [?php include_partial('<?php echo $this->getModuleName() ?>/list_header') ?]
@@ -24,7 +24,7 @@
 <tr>
 [?php echo include_partial('list_th_<?php echo $this->getParameterValue('list.layout', 'tabular') ?>') ?]
 <?php if ($this->getParameterValue('list.object_actions')): ?>
-  <th>[?php echo __('Actions') ?]</th>
+  <th id="sf_admin_list_th_sf_actions">[?php echo __('Actions') ?]</th>
 <?php endif; ?>
 </tr>
 </thead>
