@@ -407,6 +407,15 @@ function input_password_tag($name = 'password', $value = null, $options = array(
  * <b>TinyMCE Specific Options:</b>
  *  - css - Path to the TinyMCE editor stylesheet
  *
+ *    <b>Css example:</b>
+ *    <code>
+ *    / * user: foo * / => without spaces. 'foo' is the name in the select box
+ *    .foobar
+ *    {
+ *      color: #f00;
+ *    }
+ *    </code>
+ *
  * <b>FCKEditor Specific Options:</b>
  *  - tool   - Sets the FCKEditor toolbar style
  *  - config - Sets custom path to the FCKEditor configuration file
@@ -525,7 +534,7 @@ tinyMCE.init({
 
     return
       content_tag('script', javascript_cdata_section($tinymce_js), array('type' => 'text/javascript')).
-      content_tag('textarea', $content, array_merge(array('name' => $name, 'id' => get_id_from_name($id, $value)), _convert_options($options)));
+      content_tag('textarea', $content, array_merge(array('name' => $name, 'id' => get_id_from_name($id, null)), _convert_options($options)));
   }
   elseif ($rich === 'fck')
   {
@@ -832,7 +841,7 @@ function input_date_tag($name, $value, $options = array())
   $js = '
     document.getElementById("trigger_'.$name.'").disabled = false;
     Calendar.setup({
-      inputField : "'.$name.'",
+      inputField : "'.get_id_from_name($name).'",
       ifFormat : "'.$calendar_date_format.'",
       button : "trigger_'.$name.'"
     });
@@ -863,7 +872,7 @@ function input_date_tag($name, $value, $options = array())
 
   if ($calendar_button_type == 'img')
   {
-    $html .= image_tag($calendar_button, array('id' => 'trigger_'.$name, 'style' => 'cursor: pointer', 'align' => 'absmiddle'));
+    $html .= image_tag($calendar_button, array('id' => 'trigger_'.$name, 'style' => 'cursor: pointer; vertical-align: middle'));
   }
   else
   {

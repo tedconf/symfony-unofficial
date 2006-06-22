@@ -14,7 +14,65 @@ autoload:
       Criteria:     %SF_SYMFONY_LIB_DIR%/vendor/propel/util/Criteria.php
       SQLException: %SF_SYMFONY_LIB_DIR%/vendor/creole/SQLException.php
       DatabaseMap:  %SF_SYMFONY_LIB_DIR%/vendor/propel/map/DatabaseMap.php
+      Doctrine:     %SF_SYMFONY_LIB_DIR%/plugins/sfDoctrine/sfDoctrineAutoload.php
 
+  doctrine:
+    name:           doctrine orm classes
+    files:
+      Doctrine_Access:                      %SF_SYMFONY_LIB_DIR%/vendor/doctrine/Doctrine/Access.php
+      Doctrine_Association:                 %SF_SYMFONY_LIB_DIR%/vendor/doctrine/Doctrine/Association.php
+      Doctrine_BatchIterator:               %SF_SYMFONY_LIB_DIR%/vendor/doctrine/Doctrine/BatchIterator.php
+      Doctrine_Cache:                       %SF_SYMFONY_LIB_DIR%/vendor/doctrine/Doctrine/Cache.php
+      Doctrine_Cache_File:                  %SF_SYMFONY_LIB_DIR%/vendor/doctrine/Doctrine/Cache/File.php
+      Doctrine_Collection:                  %SF_SYMFONY_LIB_DIR%/vendor/doctrine/Doctrine/Collection.php
+      Doctrine_Collection_Batch:            %SF_SYMFONY_LIB_DIR%/vendor/doctrine/Doctrine/Collection/Batch.php
+      Doctrine_Collection_Immediate:        %SF_SYMFONY_LIB_DIR%/vendor/doctrine/Doctrine/Collection/Immediate.php
+      Doctrine_Collection_Lazy:             %SF_SYMFONY_LIB_DIR%/vendor/doctrine/Doctrine/Collection/Lazy.php
+      Doctrine_Configurable:                %SF_SYMFONY_LIB_DIR%/vendor/doctrine/Doctrine/Configurable.php
+      Doctrine_ConfigurableComponent:       %SF_SYMFONY_LIB_DIR%/vendor/doctrine/Doctrine/ConfigurableComponent.php
+      Doctrine_DB:                          %SF_SYMFONY_LIB_DIR%/vendor/doctrine/Doctrine/DB.php
+      Doctrine_DQL_Parser:                  %SF_SYMFONY_LIB_DIR%/vendor/doctrine/Doctrine/DQL/Parser.php
+      Doctrine_DataDict:                    %SF_SYMFONY_LIB_DIR%/vendor/doctrine/Doctrine/DataDict.php
+      Doctrine_Debugger:                    %SF_SYMFONY_LIB_DIR%/vendor/doctrine/Doctrine/Debugger.php
+      Doctrine_Doctrine:                    %SF_SYMFONY_LIB_DIR%/vendor/doctrine/Doctrine/Doctrine.php
+      Doctrine_EventListener:               %SF_SYMFONY_LIB_DIR%/vendor/doctrine/Doctrine/EventListener.php 
+      Doctrine_Find_Exception:              %SF_SYMFONY_LIB_DIR%/vendor/doctrine/Doctrine/Exception/Find.php
+      Doctrine_Mapping_Exception:           %SF_SYMFONY_LIB_DIR%/vendor/doctrine/Doctrine/Exception/Mapping.php
+      Doctrine_Naming_Exception:            %SF_SYMFONY_LIB_DIR%/vendor/doctrine/Doctrine/Exception/Naming.php
+      Doctrine_PrimaryKey_Exception:        %SF_SYMFONY_LIB_DIR%/vendor/doctrine/Doctrine/Exception/PrimaryKey.php
+      Doctrine_Refresh_Exception:           %SF_SYMFONY_LIB_DIR%/vendor/doctrine/Doctrine/Exception/Refresh.php
+      Doctrine_Session_Exception:           %SF_SYMFONY_LIB_DIR%/vendor/doctrine/Doctrine/Exception/Session.php
+      Doctrine_Table_Exception:             %SF_SYMFONY_LIB_DIR%/vendor/doctrine/Doctrine/Exception/Table.php
+      Doctrine_Validator_Exception:         %SF_SYMFONY_LIB_DIR%/vendor/doctrine/Doctrine/Exception/Validator.php
+      Doctrine_Exception:                   %SF_SYMFONY_LIB_DIR%/vendor/doctrine/Doctrine/Exception.php
+      Doctrine_ForeignKey:                  %SF_SYMFONY_LIB_DIR%/vendor/doctrine/Doctrine/ForeignKey.php
+      Doctrine_FormBuilder:                 %SF_SYMFONY_LIB_DIR%/vendor/doctrine/Doctrine/FormBuilder.php
+      Doctrine_Identifier:                  %SF_SYMFONY_LIB_DIR%/vendor/doctrine/Doctrine/Identifier.php 
+      Doctrine_LocalKey:                    %SF_SYMFONY_LIB_DIR%/vendor/doctrine/Doctrine/LocalKey.php 
+      Doctrine_Iterator_Expandable:         %SF_SYMFONY_LIB_DIR%/vendor/doctrine/Doctrine/Iterator/Expandable.php
+      Doctrine_Iterator_Normal:             %SF_SYMFONY_LIB_DIR%/vendor/doctrine/Doctrine/Iterator/Normal.php  
+      Doctrine_Manager:                     %SF_SYMFONY_LIB_DIR%/vendor/doctrine/Doctrine/Manager.php
+      Doctrine_Null:                        %SF_SYMFONY_LIB_DIR%/vendor/doctrine/Doctrine/Null.php
+      Doctrine_Query:                       %SF_SYMFONY_LIB_DIR%/vendor/doctrine/Doctrine/Query.php
+      Doctrine_Record_FactoryGenerator:     %SF_SYMFONY_LIB_DIR%/vendor/doctrine/Doctrine/Record/FactoryGenerator.php
+      Doctrine_Record_Iterator:             %SF_SYMFONY_LIB_DIR%/vendor/doctrine/Doctrine/Record/Iterator.php
+      Doctrine_Record:                      %SF_SYMFONY_LIB_DIR%/vendor/doctrine/Doctrine/Record.php
+      Doctrine_Relation:                    %SF_SYMFONY_LIB_DIR%/vendor/doctrine/Doctrine/Relation.php
+      Doctrine_Repository:                  %SF_SYMFONY_LIB_DIR%/vendor/doctrine/Doctrine/Repository.php
+      Doctrine_Session:                     %SF_SYMFONY_LIB_DIR%/vendor/doctrine/Doctrine/Session.php
+      Doctrine_Session_Common:              %SF_SYMFONY_LIB_DIR%/vendor/doctrine/Doctrine/Session/Common.php
+      Doctrine_Session_Firebird:            %SF_SYMFONY_LIB_DIR%/vendor/doctrine/Doctrine/Session/Firebird.php
+      Doctrine_Session_Informix:            %SF_SYMFONY_LIB_DIR%/vendor/doctrine/Doctrine/Session/Informix.php
+      Doctrine_Session_Mssql:               %SF_SYMFONY_LIB_DIR%/vendor/doctrine/Doctrine/Session/Mssql.php
+      Doctrine_Session_Mysql:               %SF_SYMFONY_LIB_DIR%/vendor/doctrine/Doctrine/Session/Mysql.php
+      Doctrine_Session_Oracle:              %SF_SYMFONY_LIB_DIR%/vendor/doctrine/Doctrine/Session/Oracle.php
+      Doctrine_Session_Pgsql:               %SF_SYMFONY_LIB_DIR%/vendor/doctrine/Doctrine/Session/Pgsql.php
+      Doctrine_Session_Sqlite:              %SF_SYMFONY_LIB_DIR%/vendor/doctrine/Doctrine/Session/Sqlite.php
+      Doctrine_Table:                       %SF_SYMFONY_LIB_DIR%/vendor/doctrine/Doctrine/Table.php
+      Doctrine_Table_Description:           %SF_SYMFONY_LIB_DIR%/vendor/doctrine/Doctrine/Table/Description.php
+      Doctrine_Validator:                   %SF_SYMFONY_LIB_DIR%/vendor/doctrine/Doctrine/Validator.php
+      Doctrine_Validator_Blank:             %SF_SYMFONY_LIB_DIR%/vendor/doctrine/Doctrine/Validator/Blank.php      
+      
   symfony_plugins:
     name:           symfony plugins
     ext:            .class.php
