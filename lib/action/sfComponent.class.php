@@ -198,6 +198,17 @@ abstract class sfComponent
   }
 
   /**
+   * Retreives a database connection.
+   *
+   * @param  string name of the database connection
+   * @return database resource
+   */  
+  public function getConnection($name)
+  {
+    return $this->getContext()->getDatabaseConnection($name);
+  }  
+  
+  /**
    * Sets a variable for the template.
    *
    * @param  string The variable name
