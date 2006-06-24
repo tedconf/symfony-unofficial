@@ -18,16 +18,16 @@ The `sfRequest`, `sfUser` and `sfShoppingCart` objects, among others, have an at
 The parameter holder class
 --------------------------
 
-The `sfParameterHolder` object is an extensible repository for data of any kind (string, associative array, object, etc.). 
+The `sfParameterHolder` object is an extensible repository for data of any kind (string, associative array, object, etc.).
 
 The `->set($key,$value)` and `->get($key, $default_value)` methods are used to set a new parameter and get its value.
 
     [php]
     $myPH = new sfParameterHolder();
-    
+
     $myPH->set('weather','sunny');
     $myPH->set('temperature','cool');
-    
+
     $myPH->get('weather','no idea')   =>  sunny
     $myPH->get('temperature')         =>  cool
 
@@ -63,7 +63,7 @@ Parameter holders also have the ability to deal with namespaces. The namespaces 
     [php]
     $myPH->set('weather','sunny');
     $myPH->set('weather','foggy','symfony/my/namespace');
-    
+
     $myPH->get('weather')                              =>  sunny
     $myPH->get('weather',null,'symfony/my/namespace')  =>  foggy
 
@@ -79,9 +79,9 @@ The `->hasNamespace($ns)`, `->getNamespaces()` and `->removeNamespace($ns)` work
     [php]
     $myPH->hasNamespace('symfony/my/namespace')       =>  true
     $myPH->hasNamespace('symfony/other')              =>  false
-    
+
     $myPH->getNamespaces()                            => ['symfony/default','symfony/my/namespace']
-    
+
     $myPH->removeNamespace('symfony/my/namespace');
     $myPH->has('weather',null,'symfony/my/namespace') =>  false
 
@@ -116,11 +116,11 @@ As a matter of fact, the logic of the parameter holders is almost hidden since t
     $param = $this->getRequest()->getParameter('param','default');
     //is equivalent to
     $param = $this->getRequest()->getParameterHolder()->get('param','default');
-    
+
     $this->getRequest()->setAttribute('attrib', $value);
     //is equivalent to
-    $this->getRequest()->getAttributeHolder()->set('attrib', $value);  
-      
+    $this->getRequest()->getAttributeHolder()->set('attrib', $value);
+
     $attrib = $this->getRequest()->getAttribute('attrib');
     //is equivalent to
     $attrib = $this->getRequest()->getAttributeHolder()->get('attrib');
@@ -133,7 +133,7 @@ For instance, if you need to get the parameter `id` in a request called by:
     // or
     http://myapp.example.com/index.php/module/article/action/read
     //with id=234 in the POST HTTP header
-    
+
 You simply need to write, in the action `read` of the `article` module:
 
     [php]
@@ -143,14 +143,14 @@ Now let's imagine that you need to display a list in two columns. The switch to 
 
     [php]
     <table><tr><td><ul>
-    <?php $request->setAttribute('itemsdisplayed', 0) ?>
+    <?php $sf_request->setAttribute('itemsdisplayed', 0) ?>
     <?php foreach ($items as $item): ?>
       <li>Item <?php echo $item->to_s() ?></li>
-      <?php $request->setAttribute('itemsdisplayed', $request->getAttribute('itemsdisplayed')+1) ?>
-      <?php if ($request->getAttribute('itemsdisplayed')>5): ?>
+      <?php $sf_request->setAttribute('itemsdisplayed', $sf_request->getAttribute('itemsdisplayed')+1) ?>
+      <?php if ($sf_request->getAttribute('itemsdisplayed')>5): ?>
          </ul></td><td><ul>
-         <?php $request->setAttribute('itemsdisplayed', -50) ?>
-      <?php endif ?> 
+         <?php $sf_request->setAttribute('itemsdisplayed', -50) ?>
+      <?php endif ?>
     <?php endforeach ?>
     </ul></td></tr></table>
 
@@ -174,8 +174,8 @@ As for the `sfRequest` object, the `sfUser` objects has shortcut methods to acce
         [php]
         $this->getUser()->setAttribute('attrib', $value);
         //is equivalent to
-        $this->getUser()->getAttributeHolder()->set('attrib', $value);  
-    
+        $this->getUser()->getAttributeHolder()->set('attrib', $value);
+
 Other objects
 -------------
 
