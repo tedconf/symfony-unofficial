@@ -84,7 +84,7 @@ class sfValidatorConfigHandler extends sfYamlConfigHandler
     $fillin = var_export(isset($config['fillin']) ? $config['fillin'] : array(), true);
 
     // generate GET file/parameter data
-    $data[] = "if (\$_SERVER['REQUEST_METHOD'] == 'GET')";
+    $data[] = "if (\$_SERVER['REQUEST_METHOD'] == 'GET' && count(\$_GET) > 0)";
     $data[] = "{";
 
     $ret = $this->generateRegistration('GET', $data, $methods, $names, $validators);
@@ -126,7 +126,7 @@ class sfValidatorConfigHandler extends sfYamlConfigHandler
    * @param array  An associative array of request method data.
    * @param array  An associative array of file/parameter data.
    * @param array  A validators array.
-   * 
+   *
    * @return boolean Returns true if there is some validators for this file/parameter
    */
   private function generateRegistration($method, &$data, &$methods, &$names, &$validators)
