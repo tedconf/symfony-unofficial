@@ -3,7 +3,7 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- * 
+ *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -397,4 +397,29 @@ class sfMail
   {
     return $this->mailer->AltBody;
   }
+
+  public function setLanguage($lang = 'en')
+  {
+    // reset language using absolute path to language directory to fix bug on windows
+  	$path = sfConfig::get('sf_symfony_lib_dir').DIRECTORY_SEPARATOR.'addon'.DIRECTORY_SEPARATOR.'sfMail'.DIRECTORY_SEPARATOR.'phpmailer'.DIRECTORY_SEPARATOR.'language'.DIRECTORY_SEPARATOR;
+  	$this->mailer->SetLanguage($lang, $path);
+  }
+
+  private function clearDefaults()
+  {
+    // clear defaults set by phpmailer as these are overriden by the default mailer.yml
+  	$this->setPriority(null);
+  	$this->setContentType(null);
+  	$this->setCharset(null);
+  	$this->setEncoding(null);
+  	$this->setPort(null);
+  	$this->setDomain(null);
+  	$this->setHostname(null);
+  	$this->setMailer(null);
+  	$this->setWordwrap(null);
+  	$this->setUsername(null);
+  	$this->setPassword(null);
+	  $this->setLanguage();
+  }
+
 }
