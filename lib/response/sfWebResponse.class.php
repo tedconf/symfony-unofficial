@@ -3,7 +3,7 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- * 
+ *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -12,7 +12,7 @@
  * sfWebResponse class.
  *
  * This class manages web reponses. It supports cookies and headers management.
- * 
+ *
  * @package    symfony
  * @subpackage response
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
@@ -369,7 +369,7 @@ class sfWebResponse extends sfResponse
   public function getTitle()
   {
     $metas = $this->parameter_holder->getAll('helper/asset/auto/meta');
-	
+
     return (array_key_exists('title', $metas)) ? $metas['title'] : false;
   }
 
@@ -406,6 +406,26 @@ class sfWebResponse extends sfResponse
     }
 
     $this->setParameter($css, $options, 'helper/asset/auto/stylesheet'.$position);
+  }
+
+  public function getImportStylesheets($position = '')
+  {
+    if ($position)
+    {
+      $position = '/'.$position;
+    }
+
+    return $this->parameter_holder->getAll('helper/asset/auto/importstylesheet'.$position);
+  }
+
+  public function addImportStylesheet($css, $position = '')
+  {
+    if ($position)
+    {
+      $position = '/'.$position;
+    }
+
+    $this->setParameter($css, $options, 'helper/asset/auto/importystylesheet'.$position);
   }
 
   public function getJavascripts($position = '')

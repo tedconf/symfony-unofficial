@@ -3,7 +3,7 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- * 
+ *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -95,6 +95,7 @@ class sfCommonFilter extends sfFilter
       require_once(sfConfig::get('sf_symfony_lib_dir').'/helper/AssetHelper.php');
       $html  = $this->include_javascripts($response);
       $html .= $this->include_stylesheets($response);
+      // $html .= $this->include_import_stylesheets($response);
       $content = $response->getContent();
       if (false !== ($pos = strpos($content, '</head>')))
       {
@@ -162,6 +163,38 @@ class sfCommonFilter extends sfFilter
         }
       }
     }
+
+    return $html;
+  }
+
+  private function include_import_stylesheets()
+  {
+    $already_seen = array();
+    $import = "\n/*<![CDATA[*/\n";
+
+    foreach (array('/first', '', '/last') as $position)
+    {
+      foreach ($response->getImportStylesheets($position) as $files)
+      {
+        if (!is_array($files))
+        {
+          $files = array($files);
+        }
+
+        foreach ($files as $file)
+        {
+          $file = stylesheet_path($file);
+
+          if (isset($already_seen[$file])) continue;
+
+          $already_seen[$file] = 1;
+          $import .= import_stylesheet_tag($file);
+        }
+      }
+    }
+
+    $import .= "/*]]>*/\n";
+    $html = content_tag('style', $import, array('type' => 'text/css', 'media' => 'screen')). "\n";
 
     return $html;
   }

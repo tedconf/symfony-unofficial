@@ -123,6 +123,25 @@ function stylesheet_tag()
 }
 
 /**
+ *  Returns a block of imported stylesheets with one @import per source given as argument.
+ *
+ * @return string
+ */
+function import_stylesheet_tag()
+{
+  $layout = "@import url(\"%s\");\n";
+  $import = '';
+
+  foreach (func_get_args() as $source)
+  {
+    $source = stylesheet_path($source);
+    $import .= sprintf($layout, $source);
+  }
+
+  return $import;
+}
+
+/**
  * Returns path to an image asset.
  *
  * Example:
