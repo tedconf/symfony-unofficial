@@ -7,6 +7,77 @@ pake_alias('cc', 'clear-cache');
 pake_desc('fix directories permissions');
 pake_task('fix-perms', 'project_exists');
 
+pake_desc('load data from fixtures directory');
+pake_task('load-data', 'project_exists');
+
+
+/**
+ * loads yml data from fixtures directory and inserts into database
+ *
+ * @example symfony load-data frontend
+ * @example symfony load-data frontend fixtures delete
+ *
+ * @todo replace delete argument with flag -d
+ *
+ * @param object $task
+ * @param array $args
+ */
+
+function run_load_data($task, $args)
+{
+  if (!count($args))
+  {
+    throw new Exception('You must provide the app to test.');
+  }
+
+  $app = $args[0];
+
+  if (!is_dir(sfConfig::get('sf_app_dir').DIRECTORY_SEPARATOR.$app))
+  {
+    throw new Exception('The app "'.$app.'" does not exist.');
+  }
+
+  // define constants
+  define('SF_ROOT_DIR',    sfConfig::get('sf_root_dir'));
+  define('SF_APP',         $app);
+
+  // get configuration
+  require_once SF_ROOT_DIR.DIRECTORY_SEPARATOR.'apps'.DIRECTORY_SEPARATOR.SF_APP.DIRECTORY_SEPARATOR.'config'.DIRECTORY_SEPARATOR.'config.php';
+
+  $databaseManager = new sfDatabaseManager();
+  $databaseManager->initialize();
+
+  $fixtures_dir = (empty($args[1]) ? 'fixtures'  : $args[1]);
+  $fixtures_dir = sfConfig::get('sf_data_dir').DIRECTORY_SEPARATOR.$fixtures_dir;
+
+  $delete_current_data = (!empty($args[2]) && $args[2] == 'delete') ? true : false;
+
+  $data = new sfPropelData();
+  if($delete_current_data)
+  {
+    $data->setDeleteCurrentData(true);
+  }
+
+  if(file_exists($fixtures_dir))
+  {
+    $data->loadData($fixtures_dir);
+  }
+  else
+  {
+    throw new Exception('Fixture directory does not exist.');
+  }
+}
+
+
+/**
+ * fixes permissions in a symfony project
+ *
+ * @example symfony fix-perms
+ *
+ * @param object $task
+ * @param array $args
+ */
+
 function run_fix_perms($task, $args)
 {
   $sf_root_dir = sfConfig::get('sf_root_dir');
@@ -23,6 +94,17 @@ function run_fix_perms($task, $args)
     pake_chmod($file_finder, sfConfig::get('sf_'.$dir.'_dir'), 0666);
   }
 }
+
+
+/**
+ * clears symfony project cache
+ *
+ * @example symfony clear-cache
+ * @example symfony cc
+ *
+ * @param object $task
+ * @param array $args
+ */
 
 function run_clear_cache($task, $args)
 {
@@ -112,6 +194,15 @@ function run_clear_cache($task, $args)
     }
   }
 }
+
+
+/**
+ * safely removes directory via pake
+ *
+ * @param object $finder
+ * @param string $sub_dir
+ * @param string $lock_name
+ */
 
 function _safe_cache_remove($finder, $sub_dir, $lock_name)
 {
