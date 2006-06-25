@@ -1,7 +1,11 @@
 <?php
 
 // symfony directories
-if (is_readable(SF_ROOT_DIR.'/lib/symfony/symfony.php'))
+if (isset($sf_symfony_lib_dir) && isset($sf_symfony_data_dir))
+{
+  $sf_version          = '@DEV@';
+}
+else if (is_readable(SF_ROOT_DIR.'/lib/symfony/symfony.php'))
 {
   // symlink exists
   $sf_symfony_lib_dir  = SF_ROOT_DIR.'/lib/symfony';
@@ -13,7 +17,7 @@ else
   // PEAR config
   if ((include('symfony/pear.php')) != 'OK')
   {
-    throw new Exception('Unable to find symfony librairies');
+    throw new Exception('Unable to find symfony libraries');
   }
 }
 
