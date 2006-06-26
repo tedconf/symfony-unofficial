@@ -529,7 +529,21 @@
     $response->addJavascript('/sf/js/prototype/builder');
     $response->addJavascript('/sf/js/prototype/effects');
 
-    $element = $element_id ? "'$element_id'" : 'element';
+    if ($element_id)
+    {
+      if (((strncmp(2, $element_id, '\$') == 0) || $element_id == 'this'))
+      {
+        $element = "$element_id" ;
+      }
+      else
+      {
+        $element = "'$element_id'" ;
+      }
+    }
+    else
+    {
+      $element = 'element';
+    }
 
     if (in_array($name, array('toggle_appear', 'toggle_blind', 'toggle_slide')))
     {
