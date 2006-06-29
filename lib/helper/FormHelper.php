@@ -233,7 +233,7 @@ function select_country_tag($name, $value, $options = array())
 
   asort($countries);
 
-  $option_tags = options_for_select($countries, $value);
+  $option_tags = options_for_select($countries, $value, $options);
 
   return select_tag($name, $option_tags, $options);
 }
