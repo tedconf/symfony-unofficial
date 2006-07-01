@@ -225,12 +225,12 @@ class sfViewConfigHandler extends sfYamlConfigHandler
 
     foreach ($this->mergeConfigValue('http_metas', $viewName) as $httpequiv => $content)
     {
-      $data[] = sprintf("    \$response->addHttpMeta('%s', '%s', false);", $httpequiv, str_replace('\'', '\\\'', $content));
+      $data[] = sprintf("    \$response->addHttpMeta('%s', '%s', false);", $httpequiv, $content);
     }
 
     foreach ($this->mergeConfigValue('metas', $viewName) as $name => $content)
     {
-      $data[] = sprintf("    \$response->addMeta('%s', '%s', false);", $name, str_replace('\'', '\\\'', $content));
+      $data[] = sprintf("    \$response->addMeta('%s', '%s', false);", $name, $content);
     }
 
     return implode("\n", $data)."\n";
@@ -348,7 +348,7 @@ class sfViewConfigHandler extends sfYamlConfigHandler
     {
       $delete_all = true;
       foreach ($javascripts as $javascript)
-      {     
+      {
         if (substr($javascript, 0, 1) != '-')
         {
           $omit[] = $javascript;
