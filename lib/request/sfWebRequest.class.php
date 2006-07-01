@@ -371,6 +371,7 @@ class sfWebRequest extends sfRequest
   {
     $pathInfo = '';
     $pathArray = $this->getPathInfoArray();
+    $uri_prefix = '';
 
     // simulate PATH_INFO if needed
     $sf_path_info_key = sfConfig::get('sf_path_info_key');
