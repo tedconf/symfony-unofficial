@@ -23,18 +23,18 @@
     # Truncates +text+ to the length of +length+ and replaces the last three characters with the +truncate_string+
     # if the +text+ is longer than +length+.
 */
-function truncate_text($text, $length = 30, $truncateString = '...', $truncateLastspace = false)
+function truncate_text($text, $length = 30, $truncate_string = '...', $truncate_lastspace = false)
 {
   if ($text == '') return '';
   if (strlen($text) > $length)
   {
-    $truncateText = substr($text, 0, $length - strlen($truncateString));
-    if($truncateLastspace)
+    $truncate_text = substr($text, 0, $length - strlen($truncate_string));
+    if($truncate_lastspace)
     {
-      $truncateText = preg_replace('/\s+?(\S+)?$/', '', $truncateText);
-    }
+      $truncate_text = preg_replace('/\s+?(\S+)?$/', '', $truncate_text);
+    } 
 
-    return $truncateText.$truncateString;
+    return $truncate_text.$truncate_string;
   }
   else
   {
@@ -54,7 +54,7 @@ function highlight_text($text, $phrase, $highlighter = '<strong class="highlight
   {
     return '';
   }
-  elseif ($phrase != '')
+  else if ($phrase != '')
   {
     return preg_replace('/('.preg_quote($phrase).')/i', $highlighter, $text);
   }
@@ -69,26 +69,26 @@ function highlight_text($text, $phrase, $highlighter = '<strong class="highlight
     # by +radius+. If the phrase isn't found, nil is returned. Ex:
     #   excerpt("hello my world", "my", 3) => "...lo my wo..."
 */
-function excerpt_text($text, $phrase, $radius = 100, $excerptString = '...')
+function excerpt_text($text, $phrase, $radius = 100, $excerpt_string = '...')
 {
   if ($text == '')
   {
     return '';
   }
-  elseif ($phrase != '')
+  else if ($phrase != '')
   {
     $phrase = preg_quote($phrase);
 
-    $foundPos = strpos(strtolower($text), strtolower($phrase));
-    if ($foundPos !== false)
+    $found_pos = strpos(strtolower($text), strtolower($phrase));
+    if ($found_pos !== false)
     {
-      $startPos = max($foundPos - $radius, 0);
-      $endPos = min($foundPos + strlen($phrase) + $radius, strlen($text));
+      $start_pos = max($found_pos - $radius, 0);
+      $end_pos = min($found_pos + strlen($phrase) + $radius, strlen($text));
 
-      $prefix = ($startPos > 0) ? $excerptString : '';
-      $postfix = $endPos < strlen($text) ? $excerptString : '';
+      $prefix = ($start_pos > 0) ? $excerpt_string : '';
+      $postfix = $end_pos < strlen($text) ? $excerpt_string : '';
 
-      return $prefix.substr($text, $startPos, $endPos - $startPos).$postfix;
+      return $prefix.substr($text, $start_pos, $end_pos - $start_pos).$postfix;
     }
   }
   else
@@ -130,11 +130,11 @@ function auto_link_text($text, $link = 'all')
   {
     return _auto_link_urls(_auto_link_email_addresses($text));
   }
-  elseif ($link == 'email_addresses')
+  else if ($link == 'email_addresses')
   {
     return _auto_link_email_addresses($text);
   }
-  elseif ($link == 'urls')
+  else if ($link == 'urls')
   {
     return _auto_link_urls($text);
   }

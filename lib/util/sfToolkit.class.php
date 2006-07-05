@@ -305,7 +305,8 @@ class sfToolkit
 
   /**
    * Finds the type of the passed value, returns the value as the new type.
-   * @param string $value
+   *
+   * @param  string
    * @return mixed
    */
   protected static function toType($value)

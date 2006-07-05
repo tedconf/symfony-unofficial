@@ -29,17 +29,17 @@ class sfConsoleRequest extends sfRequest
    *
    * @throws <b>sfInitializationException</b> If an error occurs while initializing this Request.
    */
-  public function initialize($context, $parameters = null)
+  public function initialize ($context, $parameters = null)
   {
     $this->getParameterHolder()->add($_SERVER['argv']);
   }
 
   /**
-   * Execute the function shutdown( procedure.
+   * Execute the shutdown procedure.
    *
    * @return void
    */
-  public function shutdown()
+  public function shutdown ()
   {
   }
 }

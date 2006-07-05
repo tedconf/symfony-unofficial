@@ -29,103 +29,103 @@ function run_clear_cache($task, $args)
     throw new Exception('Cache directory does not exist.');
   }
 
-  $cacheDir = sfConfig::get('sf_cache_dir_name');
+  $cache_dir = sfConfig::get('sf_cache_dir_name');
 
   // app
-  $mainApp = '';
+  $main_app = '';
   if (isset($args[0]))
   {
-    $mainApp = $args[0];
+    $main_app = $args[0];
   }
 
   // type (template, i18n or config)
-  $mainType = '';
+  $main_type = '';
   if (isset($args[1]))
   {
-    $mainType = $args[1];
+    $main_type = $args[1];
   }
 
   // declare type that must be cleaned safely (with a lock file during cleaning)
-  $safeTypes = array(sfConfig::get('sf_app_config_dir_name'), sfConfig::get('sf_app_i18n_dir_name'));
+  $safe_types = array(sfConfig::get('sf_app_config_dir_name'), sfConfig::get('sf_app_i18n_dir_name'));
 
   // finder to remove all files in a cache directory
   $finder = pakeFinder::type('file')->prune('.svn')->discard('.svn', '.sf');
 
   // finder to find directories (1 level) in a directory
-  $dirFinder = pakeFinder::type('dir')->prune('.svn')->discard('.svn', '.sf')->maxdepth(0)->relative();
+  $dir_finder = pakeFinder::type('dir')->prune('.svn')->discard('.svn', '.sf')->maxdepth(0)->relative();
 
   // iterate through applications
   $apps = array();
-  if ($mainApp)
+  if ($main_app)
   {
-    $apps[] = $mainApp;
+    $apps[] = $main_app;
   }
   else
   {
-    $apps = $dirFinder->in($cacheDir);
+    $apps = $dir_finder->in($cache_dir);
   }
 
   foreach ($apps as $app)
   {
-    if (!is_dir($cacheDir.'/'.$app))
+    if (!is_dir($cache_dir.'/'.$app))
     {
       continue;
     }
 
     // remove cache for all environments
-    foreach ($dirFinder->in($cacheDir.'/'.$app) as $env)
+    foreach ($dir_finder->in($cache_dir.'/'.$app) as $env)
     {
       // which types?
       $types = array();
-      if ($mainType)
+      if ($main_type)
       {
-        $types[] = $mainType;
+        $types[] = $main_type;
       }
       else
       {
-        $types = $dirFinder->in($cacheDir.'/'.$app.'/'.$env);
+        $types = $dir_finder->in($cache_dir.'/'.$app.'/'.$env);
       }
 
       $sf_root_dir = sfConfig::get('sf_root_dir');
       foreach ($types as $type)
       {
-        $subDir = $cacheDir.'/'.$app.'/'.$env.'/'.$type;
+        $sub_dir = $cache_dir.'/'.$app.'/'.$env.'/'.$type;
 
-        if (!is_dir($subDir))
+        if (!is_dir($sub_dir))
         {
           continue;
         }
 
         // remove cache files
-        if (in_array($type, $safeTypes))
+        if (in_array($type, $safe_types))
         {
-          $lockName = $app.'_'.$env;
-          _safe_cache_remove($finder, $subDir, $lockName);
+          $lock_name = $app.'_'.$env;
+          _safe_cache_remove($finder, $sub_dir, $lock_name);
         }
         else
         {
-          pake_remove($finder, $sf_root_dir.'/'.$subDir);
+          pake_remove($finder, $sf_root_dir.'/'.$sub_dir);
         }
       }
     }
   }
 }
 
-function _safe_cache_remove($finder, $subDir, $lockName)
+function _safe_cache_remove($finder, $sub_dir, $lock_name)
 {
   $sf_root_dir = sfConfig::get('sf_root_dir');
 
   // create a lock file
-  pake_touch($sf_root_dir.'/'.$lockName.'.lck', '');
+  pake_touch($sf_root_dir.'/'.$lock_name.'.lck', '');
 
   // change mode so the web user can remove it if we die
-  pake_chmod($lockName.'.lck', $sf_root_dir, 0777);
+  pake_chmod($lock_name.'.lck', $sf_root_dir, 0777);
 
   // remove cache files
-  pake_remove($finder, $sf_root_dir.'/'.$subDir);
+  pake_remove($finder, $sf_root_dir.'/'.$sub_dir);
 
   // release lock
-  pake_remove($sf_root_dir.'/'.$lockName.'.lck', '');
+  pake_remove($sf_root_dir.'/'.$lock_name.'.lck', '');
 }
 
 ?>

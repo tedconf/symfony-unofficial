@@ -10,13 +10,13 @@
  */
 
 /**
- * sfPostgreSQLDatabase provides function connect(ivity for the PostgreSQL brand database.
+ * sfPostgreSQLDatabase provides connectivity for the PostgreSQL brand database.
  *
  * <b>Optional parameters:</b>
  *
  * # <b>database</b>   - [none]      - The database name.
  * # <b>host</b>       - [localhost] - The database host.
- * # <b>method</b>     - [normal]    - How to read function connect(ion parameters.
+ * # <b>method</b>     - [normal]    - How to read connection parameters.
  *                                     Possible values are normal, server, and
  *                                     env. The normal method reads them from
  *                                     the specified values. server reads them
@@ -25,7 +25,7 @@
  *                                     as in the settings. env reads them from
  *                                     $_ENV and works like $_SERVER.
  * # <b>password</b>   - [none]      - The database password.
- * # <b>persistent</b> - [No]        - Indicates that the function connect(ion should be
+ * # <b>persistent</b> - [No]        - Indicates that the connection should be
  *                                     persistent.
  * # <b>port</b>       - [none]      - TCP/IP port on which PostgreSQL is
  *                                     listening.
@@ -42,9 +42,9 @@ class sfPostgreSQLDatabase extends sfDatabase
   /**
    * Connect to the database.
    *
-   * @throws <b>sfDatabaseException</b> If a function connect(ion could not be created.
+   * @throws <b>sfDatabaseException</b> If a connection could not be created.
    */
-  public function connect()
+  public function connect ()
   {
     // determine how to get our parameters
     $method = $this->getParameter('method', 'normal');
@@ -60,7 +60,7 @@ class sfPostgreSQLDatabase extends sfDatabase
         $port     = $this->getParameter('port');
         $username = $this->getParameter('username');
 
-        // construct function connect(ion string
+        // construct connection string
         $string = (($database != null) ? (' dbname='   .$database) : '').
                   (($host != null)     ? (' host='     .$host)     : '').
                   (($password != null) ? (' password=' .$password) : '').
@@ -70,13 +70,13 @@ class sfPostgreSQLDatabase extends sfDatabase
         break;
 
       case 'server':
-        // construct a function connect(ion string from existing $_SERVER values
+        // construct a connection string from existing $_SERVER values
         $string = $this->loadParameters($_SERVER);
 
         break;
 
       case 'env':
-        // construct a function connect(ion string from existing $_ENV values
+        // construct a connection string from existing $_ENV values
         $string = $this->loadParameters($_ENV);
 
         break;
@@ -89,32 +89,32 @@ class sfPostgreSQLDatabase extends sfDatabase
         throw new sfDatabaseException($error);
     }
 
-    // let's see if we need a persistent function connect(ion
+    // let's see if we need a persistent connection
     $persistent = $this->getParameter('persistent', false);
     $connect    = ($persistent) ? 'pg_pconnect' : 'pg_connect';
 
     $this->connection = @$connect($string);
 
-    // make sure the function connect(ion went through
+    // make sure the connection went through
     if ($this->connection === false)
     {
-      // the function connect(ion's foobar'd
-      $error = 'Failed to create a PostgreSQLDatabase function connect(ion';
+      // the connection's foobar'd
+      $error = 'Failed to create a PostgreSQLDatabase connection';
 
       throw new sfDatabaseException($error);
     }
 
-    // since we're not an abstraction layer, we copy the function connect(ion
+    // since we're not an abstraction layer, we copy the connection
     // to the resource
     $this->resource = $this->connection;
   }
 
   /**
-   * Load function connect(ion parameters from an existing array.
+   * Load connection parameters from an existing array.
    *
-   * @return string A function connect(ion string.
+   * @return string A connection string.
    */
-  private function loadParameters(&$array)
+  private function loadParameters (&$array)
   {
     $database = $this->getParameter('database');
     $host     = $this->getParameter('host');
@@ -122,7 +122,7 @@ class sfPostgreSQLDatabase extends sfDatabase
     $port     = $this->getParameter('port');
     $username = $this->getParameter('username');
 
-    // construct function connect(ion string
+    // construct connection string
     $string = (($database != null) ? (' dbname='   .$array[$database]) : '') .
               (($host != null)     ? (' host='     .$array[$host])     : '') .
               (($password != null) ? (' password=' .$array[$password]) : '') .
@@ -133,13 +133,13 @@ class sfPostgreSQLDatabase extends sfDatabase
   }
 
   /**
-   * Execute the function shutdown( procedure.
+   * Execute the shutdown procedure.
    *
    * @return void
    *
    * @throws <b>sfDatabaseException</b> If an error occurs while shutting down this database.
    */
-  public function shutdown()
+  public function shutdown ()
   {
     if ($this->connection != null)
     {

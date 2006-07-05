@@ -46,12 +46,12 @@ abstract class sfWebController extends sfController
     {
       $url = $_SERVER['SCRIPT_NAME'];
     }
-    elseif (($sf_relative_url_root = $this->getContext()->getRequest()->getRelativeUrlRoot()) && $sf_no_script_name)
+    else if (($sf_relative_url_root = $this->getContext()->getRequest()->getRelativeUrlRoot()) && $sf_no_script_name)
     {
       $url = $sf_relative_url_root;
     }
 
-    $routeName = '';
+    $route_name = '';
     $fragment = '';
 
     if (!is_array($parameters))
@@ -63,7 +63,7 @@ abstract class sfWebController extends sfController
         $parameters = substr($parameters, 0, $pos);
       }
 
-      list($routeName, $parameters) = $this->convertUrlStringToParameters($parameters);
+      list($route_name, $parameters) = $this->convertUrlStringToParameters($parameters);
     }
 
     if (sfConfig::get('sf_url_format') == 'PATH')
@@ -94,10 +94,10 @@ abstract class sfWebController extends sfController
     }
 
     $r = sfRouting::getInstance();
-    if ($r->hasRoutes() && $generatedUrl = $r->generate($routeName, $parameters, $divider, $equals))
+    if ($r->hasRoutes() && $generated_url = $r->generate($route_name, $parameters, $divider, $equals))
     {
       // strip off first divider character
-      $url .= ltrim($generatedUrl, $divider);
+      $url .= ltrim($generated_url, $divider);
     }
     else
     {
@@ -126,9 +126,9 @@ abstract class sfWebController extends sfController
 
   public function convertUrlStringToParameters($url)
   {
-    $params      = array();
-    $queryString = '';
-    $routeName   = '';
+    $params       = array();
+    $query_string = '';
+    $route_name   = '';
 
     // empty url?
     if (!$url)
@@ -139,7 +139,7 @@ abstract class sfWebController extends sfController
     // we get the query string out of the url
     if ($pos = strpos($url, '?'))
     {
-      $queryString = substr($url, $pos + 1);
+      $query_string = substr($url, $pos + 1);
       $url = substr($url, 0, $pos);
     }
 
@@ -157,7 +157,7 @@ abstract class sfWebController extends sfController
     // route_name?
     if ($url[0] == '@')
     {
-      $routeName = substr($url, 1);
+      $route_name = substr($url, 1);
     }
     else
     {
@@ -167,16 +167,13 @@ abstract class sfWebController extends sfController
       $params['action'] = isset($tmp[1]) ? $tmp[1] : sfConfig::get('sf_default_action');
     }
 
-    $urlParams = explode('&', $queryString);
-    $indMax = count($urlParams) - 1;
-    for ($i = 0; $i <= $indMax; ++$i)
+    $url_params = explode('&', $query_string);
+    $ind_max = count($url_params) - 1;
+    for ($i = 0; $i <= $ind_max; $i++)
     {
-      if (!$urlParams[$i])
-      {
-        continue;
-      }
+      if (!$url_params[$i]) continue;
 
-      $pos = strpos($urlParams[$i], '=');
+      $pos = strpos($url_params[$i], '=');
       if ($pos === false)
       {
         $error = 'Unable to parse url ("%s").';
@@ -185,10 +182,10 @@ abstract class sfWebController extends sfController
         throw new sfParseException($error);
       }
 
-      $params[substr($urlParams[$i], 0, $pos)] = substr($urlParams[$i], $pos + 1);
+      $params[substr($url_params[$i], 0, $pos)] = substr($url_params[$i], $pos + 1);
     }
 
-    return array($routeName, $params);
+    return array($route_name, $params);
   }
 
   /**
@@ -200,7 +197,7 @@ abstract class sfWebController extends sfController
    *
    * @return void
    */
-  public function redirect($url, $delay = 0)
+  public function redirect ($url, $delay = 0)
   {
     $response = $this->getContext()->getResponse();
 

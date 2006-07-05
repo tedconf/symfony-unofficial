@@ -12,27 +12,27 @@ class propelCrudGeneratorTest extends sfLiveProjectUnitTestCase
 
     // copy databases.yml configuration file
     // fix db path and switch to sqlite
-    $ormConfig = file_get_contents($this->getFixturesDir().'/config/databases.yml');
-    $ormConfig = preg_replace('/##DB_PATH##/', sfConfig::get('sf_data_dir').'/test.db', $ormConfig);
-    file_put_contents(sfConfig::get('sf_app_config_dir').'/databases.yml', $ormConfig);
+    $orm_config = file_get_contents($this->getFixturesDir().'/config/databases.yml');
+    $orm_config = preg_replace('/##DB_PATH##/', sfConfig::get('sf_data_dir').'/test.db', $orm_config);
+    file_put_contents(sfConfig::get('sf_app_config_dir').'/databases.yml', $orm_config);
 
     // switch to sqlite
-    $propelConfig = file_get_contents(sfConfig::get('sf_config_dir').'/propel.ini');
-    $propelConfig = preg_replace('/mysql/', 'sqlite', $propelConfig);
-    $propelConfig = preg_replace('/propel.database.url\s*=\s*.+$/m', 'propel.database.url = sqlite://localhost/'.sfConfig::get('sf_data_dir').'/test.db', $propelConfig);
-    file_put_contents(sfConfig::get('sf_config_dir').'/propel.ini', $propelConfig);
+    $propel_config = file_get_contents(sfConfig::get('sf_config_dir').'/propel.ini');
+    $propel_config = preg_replace('/mysql/', 'sqlite', $propel_config);
+    $propel_config = preg_replace('/propel.database.url\s*=\s*.+$/m', 'propel.database.url = sqlite://localhost/'.sfConfig::get('sf_data_dir').'/test.db', $propel_config);
+    file_put_contents(sfConfig::get('sf_config_dir').'/propel.ini', $propel_config);
 
     // build Propel object classes
     $this->runSymfony('propel-build-model');
     $this->runSymfony('propel-build-sql');
 
     // force autoload classes regeneration
-    $autoloadConfigFile = sfConfig::get('sf_app_config_dir_name').'/autoload.yml';
-    if (is_readable($autoloadConfigFile))
+    $autoload_config_file = sfConfig::get('sf_app_config_dir_name').'/autoload.yml';
+    if (is_readable($autoload_config_file))
     {
-      unlink(sfConfigCache::getInstance()->getCacheName($autoloadConfigFile));
+      unlink(sfConfigCache::getInstance()->getCacheName($autoload_config_file));
     }
-    require(sfConfigCache::getInstance()->checkConfig($autoloadConfigFile));
+    require(sfConfigCache::getInstance()->checkConfig($autoload_config_file));
 
     // create database
     $this->runSymfony('propel-insert-sql');

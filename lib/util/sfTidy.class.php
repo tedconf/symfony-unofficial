@@ -23,10 +23,7 @@ class sfTidy
   public static function tidy($html, $name)
   {
 
-    if (!extension_loaded('tidy'))
-    {
-      return $html;
-    }
+    if (!function_exists('tidy_parse_string')) return $html;
 
     if ($sf_logging_active = sfConfig::get('sf_logging_active'))
     {
@@ -43,7 +40,7 @@ class sfTidy
     {
       $tidy->diagnose();
 
-      $errorMsgs = array(
+      $error_msgs = array(
         'access' => array(),
         'warning' => array(),
         'error' => array(),
@@ -52,60 +49,39 @@ class sfTidy
       {
         foreach (split("\n", htmlspecialchars($tidy->errorBuffer)) as $line)
         {
-          if (trim($line) == '' || preg_match('/were found\!/', $line))
-          {
-            continue;
-          }
+          if (trim($line) == '') continue;
+          if (preg_match('/were found\!/', $line)) continue;
 
           $line = '{sfView} '.$line;
           if (preg_match('/Error\:/i', $line))
-          {
-            $errorMsgs['error'][] = $line;
-          }
-          elseif (preg_match('/Access\:/i', $line))
-          {
-            $errorMsgs['access'][] = $line;
-          }
-          elseif (preg_match('/Warning\:/i', $line))
-          {
-            $errorMsgs['warning'][] = $line;
-          }
-          elseif (preg_match('/Info/i', $line))
-          {
+            $error_msgs['error'][] = $line;
+          else if (preg_match('/Access\:/i', $line))
+            $error_msgs['access'][] = $line;
+          else if (preg_match('/Warning\:/i', $line))
+            $error_msgs['warning'][] = $line;
+          else if (preg_match('/Info/i', $line))
             $log->info($line);
-          }
           else
-          {
             $log->info($line);
-          }
         }
       }
 
       if (tidy_error_count($tidy))
       {
         $msg = '{sfView} '.tidy_error_count($tidy).' error(s) for "'.$name.'"';
-        if (count($errorMsgs['error']))
-        {
-          $msg .= '[BEGIN_COMMENT] [n] '.implode('[n]', $errorMsgs['error']).' [END_COMMENT]';
-        }
+        if (count($error_msgs['error'])) $msg .= '[BEGIN_COMMENT] [n] '.implode('[n]', $error_msgs['error']).' [END_COMMENT]';
         $log->err($msg);
       }
       if (tidy_warning_count($tidy))
       {
         $msg = '{sfView} '.tidy_warning_count($tidy).' warning(s) for "'.$name.'"';
-        if (count($errorMsgs['warning']))
-        {
-          $msg .= '[BEGIN_COMMENT] [n] '.implode('[n]', $errorMsgs['warning']).' [END_COMMENT]';
-        }
+        if (count($error_msgs['warning'])) $msg .= '[BEGIN_COMMENT] [n] '.implode('[n]', $error_msgs['warning']).' [END_COMMENT]';
         $log->warning($msg);
       }
       if (tidy_access_count($tidy))
       {
         $msg = '{sfView} '.tidy_access_count($tidy).' accessibility problem(s) for "'.$name.'"';
-        if (count($errorMsgs['access']))
-        {
-          $msg .= '[BEGIN_COMMENT] [n] '.implode('[n]', $errorMsgs['access']).' [END_COMMENT]';
-        }
+        if (count($error_msgs['access'])) $msg .= '[BEGIN_COMMENT] [n] '.implode('[n]', $error_msgs['access']).' [END_COMMENT]';
         $log->warning($msg);
       }
     }

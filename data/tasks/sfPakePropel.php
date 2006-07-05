@@ -85,9 +85,9 @@ function run_propel_build_schema($task, $args)
   }
 }
 
-function _call_phing($task, $taskName, $checkSchema = true)
+function _call_phing($task, $task_name, $check_schema = true)
 {
-  if ($checkSchema && !glob('config/*schema.xml'))
+  if ($check_schema && !glob('config/*schema.xml'))
   {
     throw new Exception('You must create a schema.xml file.');
   }
@@ -105,19 +105,19 @@ function _call_phing($task, $taskName, $checkSchema = true)
   $projectConfigFile = sfConfig::get('sf_config_dir').DIRECTORY_SEPARATOR.'databases.yml';
   $appConfigFile     = sfConfig::get('sf_apps_dir_name').DIRECTORY_SEPARATOR.'apps'.DIRECTORY_SEPARATOR.sfConfig::get('sf_app_config_dir_name').DIRECTORY_SEPARATOR.'databases.yml';
 
-  $propelGeneratorDir = sfConfig::get('sf_symfony_lib_dir').'/vendor/propel-generator';
+  $propel_generator_dir = sfConfig::get('sf_symfony_lib_dir').'/vendor/propel-generator';
 
   $options = array(
     'project' => $task->get_property('name', 'symfony'),
     'lib_dir' => sfConfig::get('sf_symfony_lib_dir'),
     'data_dir' => sfConfig::get('sf_symfony_data_dir'),
-    'propel_generator_dir' => $propelGeneratorDir,
+    'propel_generator_dir' => $propel_generator_dir,
     'propel_ini' => basename($propelIniFileName),
   );
 
   // call phing targets
   pake_import('Phing', false);
-  pakePhingTask::call_phing($task, array($taskName), sfConfig::get('sf_symfony_data_dir').'/bin/build.xml', $options);
+  pakePhingTask::call_phing($task, array($task_name), sfConfig::get('sf_symfony_data_dir').'/bin/build.xml', $options);
 
   pake_remove($propelIniFileName, '');
 

@@ -78,10 +78,7 @@ function include_component($moduleName, $componentName, $vars = array())
       }
     }
 
-    if (sfConfig::get('sf_logging_active'))
-    {
-      $context->getLogger()->info('{sfComponent} call "'.$moduleName.'->'.$componentToRun.'()'.'"');
-    }
+    if (sfConfig::get('sf_logging_active')) $context->getLogger()->info('{sfComponent} call "'.$moduleName.'->'.$componentToRun.'()'.'"');
 
     // run component
     $retval = $componentInstance->$componentToRun();
@@ -154,24 +151,24 @@ function include_partial($name, $vars = array())
   {
     $partial = sfConfig::get('sf_app_template_dir').DIRECTORY_SEPARATOR.$filename;
   }
-  elseif ($sep)
+  else if ($sep)
   {
     $partial = sfConfig::get('sf_app_module_dir').DIRECTORY_SEPARATOR.$type.DIRECTORY_SEPARATOR.sfConfig::get('sf_app_module_template_dir_name').DIRECTORY_SEPARATOR.$filename;
   }
   else
   {
-    $currentModule = sfContext::getInstance()->getActionStack()->getLastEntry()->getModuleName();
-    $partial = sfConfig::get('sf_app_dir').DIRECTORY_SEPARATOR.sfConfig::get('sf_app_module_dir_name').DIRECTORY_SEPARATOR.$currentModule.DIRECTORY_SEPARATOR.sfConfig::get('sf_app_module_template_dir_name').DIRECTORY_SEPARATOR.$filename;
+    $current_module = sfContext::getInstance()->getActionStack()->getLastEntry()->getModuleName();
+    $partial = sfConfig::get('sf_app_dir').DIRECTORY_SEPARATOR.sfConfig::get('sf_app_module_dir_name').DIRECTORY_SEPARATOR.$current_module.DIRECTORY_SEPARATOR.sfConfig::get('sf_app_module_template_dir_name').DIRECTORY_SEPARATOR.$filename;
   }
 
   if (!is_readable($partial))
   {
     $ok = false;
 
-    $currentModule = sfContext::getInstance()->getActionStack()->getLastEntry()->getModuleName();
+    $current_module = sfContext::getInstance()->getActionStack()->getLastEntry()->getModuleName();
 
     // search partial for generated templates in cache
-    $partial = sfConfig::get('sf_module_cache_dir').'/auto'.ucfirst($currentModule).'/templates/'.$filename;
+    $partial = sfConfig::get('sf_module_cache_dir').'/auto'.ucfirst($current_module).'/templates/'.$filename;
     if (is_readable($partial))
     {
       $ok = true;
@@ -179,7 +176,7 @@ function include_partial($name, $vars = array())
     else
     {
       // search partial in a symfony module directory
-      $partial = sfConfig::get('sf_symfony_data_dir').'/modules/'.$currentModule.'/templates/'.$filename;
+      $partial = sfConfig::get('sf_symfony_data_dir').'/modules/'.$current_module.'/templates/'.$filename;
       if (is_readable($partial))
       {
         $ok = true;

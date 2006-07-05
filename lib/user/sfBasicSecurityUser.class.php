@@ -4,7 +4,7 @@
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
  * (c) 2004-2006 Sean Kerr.
- *
+ * 
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -60,10 +60,7 @@ class sfBasicSecurityUser extends sfUser implements sfSecurityUser
       {
         if ($credential == $this->credentials[$i])
         {
-          if (sfConfig::get('sf_logging_active'))
-          {
-            $this->getContext()->getLogger()->info('{sfUser} remove credential "'.$credential.'"');
-          }
+          if (sfConfig::get('sf_logging_active')) $this->getContext()->getLogger()->info('{sfUser} remove credential "'.$credential.'"');
 
           unset($this->credentials[$i]);
           return;
@@ -89,18 +86,12 @@ class sfBasicSecurityUser extends sfUser implements sfSecurityUser
    */
   public function addCredentials()
   {
-    if (func_num_args() == 0)
-    {
-      return;
-    }
+    if (func_num_args() == 0) return;
 
     // Add all credentials
     $credentials = (is_array(func_get_arg(0))) ? func_get_arg(0) : func_get_args();
 
-    if (sfConfig::get('sf_logging_active'))
-    {
-      $this->getContext()->getLogger()->info('{sfUser} add credential(s) "'.implode(', ', $credentials).'"');
-    }
+    if (sfConfig::get('sf_logging_active')) $this->getContext()->getLogger()->info('{sfUser} add credential(s) "'.implode(', ', $credentials).'"');
 
     foreach ($credentials as $aCredential)
     {
@@ -172,10 +163,7 @@ class sfBasicSecurityUser extends sfUser implements sfSecurityUser
    */
   public function setAuthenticated($authenticated)
   {
-    if (sfConfig::get('sf_logging_active'))
-    {
-      $this->getContext()->getLogger()->info('{sfUser} user is '.($authenticated === true ? '' : 'not').' authenticated');
-    }
+    if (sfConfig::get('sf_logging_active')) $this->getContext()->getLogger()->info('{sfUser} user is '.($authenticated === true ? '' : 'not').' authenticated');
 
     if ($authenticated === true)
     {
@@ -209,10 +197,7 @@ class sfBasicSecurityUser extends sfUser implements sfSecurityUser
     // Automatic logout if no request for more than [sf_timeout]
     if ((time() - $this->lastRequest) > sfConfig::get('sf_timeout'))
     {
-      if (sfConfig::get('sf_logging_active'))
-      {
-        $this->getContext()->getLogger()->info('{sfUser} automatic user logout');
-      }
+      if (sfConfig::get('sf_logging_active')) $this->getContext()->getLogger()->info('{sfUser} automatic user logout');
       $this->clearCredentials();
       $this->setAuthenticated(false);
     }
@@ -220,7 +205,7 @@ class sfBasicSecurityUser extends sfUser implements sfSecurityUser
     $this->lastRequest = time();
   }
 
-  public function shutdown()
+  public function shutdown ()
   {
     $storage = $this->getContext()->getStorage();
 
@@ -230,7 +215,7 @@ class sfBasicSecurityUser extends sfUser implements sfSecurityUser
     $storage->write(self::AUTH_NAMESPACE,         $this->authenticated);
     $storage->write(self::CREDENTIAL_NAMESPACE,   $this->credentials);
 
-    // call the parent function shutdown( method
+    // call the parent shutdown method
     parent::shutdown();
   }
 }

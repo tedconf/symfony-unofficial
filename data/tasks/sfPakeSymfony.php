@@ -23,15 +23,15 @@ function run_freeze($task, $args)
   // PEAR release or subversion revision?
   if ($version == 'stable')
   {
-
+    
   }
-  elseif ($version == 'beta')
+  else if ($version == 'beta')
   {
-
+    
   }
-  elseif ($version)
+  else if ($version)
   {
-
+    
   }
   else
   {

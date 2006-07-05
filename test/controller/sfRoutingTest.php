@@ -286,11 +286,11 @@ class sfRoutingTest extends UnitTestCase
       'id' => 12,
     );
     $url = '/test/12'.sfConfig::get('sf_suffix');
-    $namedParams = array(
+    $named_params = array(
       'id' => 12,
     );
     $this->assertEqual($url, $r->generate('', $params, '/', '/'));
-    $this->assertEqual($url, $r->generate('test', $namedParams, '/', '/'));
+    $this->assertEqual($url, $r->generate('test', $named_params, '/', '/'));
   }
 }
 

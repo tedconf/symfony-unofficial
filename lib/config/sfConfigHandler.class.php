@@ -23,7 +23,7 @@
 abstract class sfConfigHandler
 {
   protected
-    $parameterHolder = null;
+    $parameter_holder = null;
 
   /**
    * Add a set of replacement values.
@@ -69,7 +69,7 @@ abstract class sfConfigHandler
 
   public function __construct()
   {
-    $this->parameterHolder = new sfParameterHolder();
+    $this->parameter_holder = new sfParameterHolder();
   }
 
   /**
@@ -100,12 +100,12 @@ abstract class sfConfigHandler
       // replace values 'on' and 'yes' with a boolean true value
       return 'true';
     }
-    elseif ($lvalue == 'off' || $lvalue == 'no' || $lvalue == 'false')
+    else if ($lvalue == 'off' || $lvalue == 'no' || $lvalue == 'false')
     {
       // replace values 'off' and 'no' with a boolean false value
       return 'false';
     }
-    elseif (!is_numeric($value))
+    else if (!is_numeric($value))
     {
       $value = str_replace($keys, $reps, $value);
 
@@ -172,7 +172,7 @@ abstract class sfConfigHandler
 
   public function getParameterHolder()
   {
-    return $this->parameterHolder;
+    return $this->parameter_holder;
   }
 }
 

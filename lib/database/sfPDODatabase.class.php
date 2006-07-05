@@ -10,7 +10,7 @@
  */
 
 /**
- * sfPDODatabase provides function connect(ivity for the PDO database abstraction layer.
+ * sfPDODatabase provides connectivity for the PDO database abstraction layer.
  *
  * @package    symfony
  * @subpackage database
@@ -24,9 +24,9 @@ class sfPDODatabase extends sfDatabase
   /**
    * Connect to the database.
    *
-   * @throws <b>sfDatabaseException</b> If a function connect(ion could not be created.
+   * @throws <b>sfDatabaseException</b> If a connection could not be created.
    */
-  public function connect()
+  public function connect ()
   {
     // determine how to get our parameters
     $method = $this->getParameter('method', 'dsn');
@@ -50,9 +50,9 @@ class sfPDODatabase extends sfDatabase
 
     try
     {
-      $pdoUsername = $this->getParameter('username');
-      $pdoPassword = $this->getParameter('password');
-      $this->connection = new PDO($dsn, $pdoUsername, $pdoPassword);
+      $pdo_username = $this->getParameter('username');
+      $pdo_password = $this->getParameter('password');
+      $this->connection = new PDO($dsn, $pdo_username, $pdo_password);
     }
     catch (PDOException $e)
     {
@@ -71,13 +71,13 @@ class sfPDODatabase extends sfDatabase
   }
 
   /**
-   * Execute the function shutdown( procedure.
+   * Execute the shutdown procedure.
    *
    * @return void
    *
    * @throws <b>sfDatabaseException</b> If an error occurs while shutting down this database.
    */
-  public function shutdown()
+  public function shutdown ()
   {
     if ($this->connection !== null)
     {

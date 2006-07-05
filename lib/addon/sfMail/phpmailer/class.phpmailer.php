@@ -355,7 +355,7 @@ class PHPMailer
         if(!empty($this->AltBody))
             $this->ContentType = "multipart/alternative";
 
-        $this->errorCount = 0; // reset errors
+        $this->error_count = 0; // reset errors
         $this->SetMessageType();
         $header .= $this->CreateHeader();
         $body = $this->CreateBody();
@@ -736,7 +736,7 @@ class PHPMailer
         if($this->WordWrap < 1)
             return;
             
-        switch($this->messageType)
+        switch($this->message_type)
         {
            case "alt":
               // fall through
@@ -813,7 +813,7 @@ class PHPMailer
         }
         $result .= $this->HeaderLine("MIME-Version", "1.0");
 
-        switch($this->messageType)
+        switch($this->message_type)
         {
             case "plain":
                 $result .= $this->HeaderLine("Content-Transfer-Encoding", $this->Encoding);
@@ -857,7 +857,7 @@ class PHPMailer
 
         $this->SetWordWrap();
 
-        switch($this->messageType)
+        switch($this->message_type)
         {
             case "alt":
                 $result .= $this->GetBoundary($this->boundary[1], "", 
@@ -949,15 +949,15 @@ class PHPMailer
      */
     function SetMessageType() {
         if(count($this->attachment) < 1 && strlen($this->AltBody) < 1)
-            $this->messageType = "plain";
+            $this->message_type = "plain";
         else
         {
             if(count($this->attachment) > 0)
-                $this->messageType = "attachments";
+                $this->message_type = "attachments";
             if(strlen($this->AltBody) > 0 && count($this->attachment) < 1)
-                $this->messageType = "alt";
+                $this->message_type = "alt";
             if(strlen($this->AltBody) > 0 && count($this->attachment) > 0)
-                $this->messageType = "alt_attachments";
+                $this->message_type = "alt_attachments";
         }
     }
 
@@ -1393,7 +1393,7 @@ class PHPMailer
      * @return void
      */
     function SetError($msg) {
-        $this->errorCount++;
+        $this->error_count++;
         $this->ErrorInfo = $msg;
     }
 
@@ -1472,7 +1472,7 @@ class PHPMailer
      * @return bool
      */
     function IsError() {
-        return ($this->errorCount > 0);
+        return ($this->error_count > 0);
     }
 
     /**

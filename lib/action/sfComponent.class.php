@@ -3,7 +3,7 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- *
+ * 
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -19,11 +19,11 @@
 abstract class sfComponent
 {
   protected
-    $context                = null,
-    $varHolder              = null,
-    $request                = null,
-    $response               = null,
-    $requestParameterHolder = null;
+    $context                  = null,
+    $var_holder               = null,
+    $request                  = null,
+    $response                 = null,
+    $request_parameter_holder = null;
 
   /**
    * Execute any application/business logic for this action.
@@ -40,10 +40,10 @@ abstract class sfComponent
    *
    *               Or an array with the following indices:
    *
-   *               - The parent module of the view that will be function execute(d.
-   *               - The view that will be function execute(d.
+   *               - The parent module of the view that will be executed.
+   *               - The view that will be executed.
    */
-  abstract function execute();
+  abstract function execute ();
 
   /**
    * Initialize this action.
@@ -55,10 +55,10 @@ abstract class sfComponent
   public function initialize($context)
   {
     $this->context                  = $context;
-    $this->varHolder               = new sfParameterHolder();
+    $this->var_holder               = new sfParameterHolder();
     $this->request                  = $context->getRequest();
     $this->response                 = $context->getResponse();
-    $this->requestParameterHolder = $this->request->getParameterHolder();
+    $this->request_parameter_holder = $this->request->getParameterHolder();
 
     return true;
   }
@@ -68,7 +68,7 @@ abstract class sfComponent
    *
    * @return sfContext The current sfContext instance.
    */
-  public final function getContext()
+  public final function getContext ()
   {
     return $this->context;
   }
@@ -78,19 +78,19 @@ abstract class sfComponent
    *
    * @return sfLogger The current sfLogger instance.
    */
-  public final function getLogger()
+  public final function getLogger ()
   {
     return $this->context->getLogger();
   }
 
   /**
    * Log $message using sfLogger object.
-   *
+   * 
    * @param mixed  String or object containing the message to log.
    * @param string The priority of the message
    *               (available priorities: emerg, alert, crit, err, warning, notice, info, debug).
    */
-  public function logMessage($message, $priority = 'info')
+  public function logMessage ($message, $priority = 'info')
   {
     if (sfConfig::get('sf_logging_active'))
     {
@@ -98,7 +98,7 @@ abstract class sfComponent
     }
   }
 
-  public function debugMessage($message)
+  public function debugMessage ($message)
   {
     if (sfConfig::get('sf_web_debug'))
     {
@@ -118,7 +118,7 @@ abstract class sfComponent
    */
   public function getRequestParameter($name, $default = null)
   {
-    return $this->requestParameterHolder->get($name, $default);
+    return $this->request_parameter_holder->get($name, $default);
   }
 
   /**
@@ -133,7 +133,7 @@ abstract class sfComponent
    */
   public function hasRequestParameter($name)
   {
-    return $this->requestParameterHolder->has($name);
+    return $this->request_parameter_holder->has($name);
   }
 
   /**
@@ -167,17 +167,17 @@ abstract class sfComponent
 
   public function setVar($name, $value)
   {
-    $this->varHolder->set($name, $value);
+    $this->var_holder->set($name, $value);
   }
 
   public function getVar($name)
   {
-    return $this->varHolder->get($name);
+    return $this->var_holder->get($name);
   }
 
   public function getVarHolder()
   {
-    return $this->varHolder;
+    return $this->var_holder;
   }
 
   /**
@@ -192,7 +192,7 @@ abstract class sfComponent
    */
   public function __set($key, $value)
   {
-    return $this->varHolder->setByRef($key, $value);
+    return $this->var_holder->setByRef($key, $value);
   }
 
   /**
@@ -206,7 +206,7 @@ abstract class sfComponent
    */
   public function __get($key)
   {
-    return $this->varHolder->get($key);
+    return $this->var_holder->get($key);
   }
 
   public function setFlash($name, $value, $persist = true)

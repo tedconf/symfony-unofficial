@@ -4,7 +4,7 @@
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
  * (c) 2004-2006 Sean Kerr.
- *
+ * 
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -12,8 +12,8 @@
 /**
  * sfParameterHolder provides a base class for managing parameters.
  *
- * Parameters, in this case, are used to extend classes with function add(itional data
- * that requires no function add(itional logic to manage.
+ * Parameters, in this case, are used to extend classes with additional data
+ * that requires no additional logic to manage.
  *
  * @package    symfony
  * @subpackage util
@@ -23,12 +23,12 @@
  */
 class sfParameterHolder
 {
-  protected $defaultNamespace = null;
+  protected $default_namespace = null;
   protected $parameters = array();
 
   /**
    * The constructor for sfParameterHolder.
-   *
+   * 
    * The default namespace may be overridden at initialization as follows:
    * <code>
    * <?php
@@ -38,19 +38,19 @@ class sfParameterHolder
    */
   public function __construct($namespace = 'symfony/default')
   {
-    $this->defaultNamespace = $namespace;
+    $this->default_namespace = $namespace;
   }
 
   /**
    * Get the default namespace value.
    *
-   * The $defaultNamespace is defined as 'symfony/default'.
+   * The $default_namespace is defined as 'symfony/default'.
    *
    * @return string The default namespace.
    */
-  public function getDefaultNamespace()
+  public function getDefaultNamespace ()
   {
-    return $this->defaultNamespace;
+    return $this->default_namespace;
   }
 
   /**
@@ -58,7 +58,7 @@ class sfParameterHolder
    *
    * @return void
    */
-  public function clear()
+  public function clear ()
   {
     $this->parameters = null;
     $this->parameters = array();
@@ -81,7 +81,7 @@ class sfParameterHolder
   {
     if (!$ns)
     {
-      $ns = $this->defaultNamespace;
+      $ns = $this->default_namespace;
     }
 
     if (false !== ($offset = strpos($name, '[')))
@@ -93,16 +93,16 @@ class sfParameterHolder
         while ($pos = strpos($name, '[', $offset))
         {
           $end = strpos($name, ']', $pos);
-          if ($end == $pos+1)
+          if ($end == $pos + 1)
           {
             // reached a []
             break;
           }
-          else if (!isset($array[substr($name, $pos+1, $end-$pos-1)]))
+          else if (!isset($array[substr($name, $pos + 1, $end - $pos - 1)]))
           {
             return $default;
           }
-          $array = $array[substr($name, $pos+1, $end-$pos-1)];
+          $array = $array[substr($name, $pos + 1, $end - $pos - 1)];
           $offset = $end;
         }
 
@@ -124,11 +124,11 @@ class sfParameterHolder
    *
    * @return array An indexed array of parameter names, if the namespace exists, otherwise null.
    */
-  public function getNames($ns = null)
+  public function getNames ($ns = null)
   {
     if (!$ns)
     {
-      $ns = $this->defaultNamespace;
+      $ns = $this->default_namespace;
     }
 
     if (isset($this->parameters[$ns]))
@@ -144,7 +144,7 @@ class sfParameterHolder
    *
    * @return array An indexed array of parameter namespaces.
    */
-  public function getNamespaces()
+  public function getNamespaces ()
   {
     return array_keys($this->parameters);
   }
@@ -153,7 +153,7 @@ class sfParameterHolder
    * Retrieve an array of parameters, within a namespace.
    *
    * This method is limited to a namespace.  Without any argument,
-   * it returns the parameters of the default namespace.  If a
+   * it returns the parameters of the default namespace.  If a 
    * namespace is passed as an argument, only the parameters of the
    * specified namespace are returned.
    *
@@ -165,7 +165,7 @@ class sfParameterHolder
   {
     if (!$ns)
     {
-      $ns = $this->defaultNamespace;
+      $ns = $this->default_namespace;
     }
 
     $parameters = array();
@@ -186,11 +186,11 @@ class sfParameterHolder
    *
    * @return bool true, if the parameter exists, otherwise false.
    */
-  public function has($name, $ns = null)
+  public function has ($name, $ns = null)
   {
     if (!$ns)
     {
-      $ns = $this->defaultNamespace;
+      $ns = $this->default_namespace;
     }
 
     if (false !== ($offset = strpos($name, '['))) {
@@ -230,7 +230,7 @@ class sfParameterHolder
    *
    * @return bool true, if the namespace exists, otherwise false.
    */
-  public function hasNamespace($ns)
+  public function hasNamespace ($ns)
   {
     return isset($this->parameters[$ns]);
   }
@@ -247,7 +247,7 @@ class sfParameterHolder
   {
     if (!$ns)
     {
-      $ns = $this->defaultNamespace;
+      $ns = $this->default_namespace;
     }
 
     $retval = null;
@@ -292,11 +292,11 @@ class sfParameterHolder
    *
    * @return void
    */
-  public function set($name, $value, $ns = null)
+  public function set ($name, $value, $ns = null)
   {
     if (!$ns)
     {
-      $ns = $this->defaultNamespace;
+      $ns = $this->default_namespace;
     }
 
     if (!isset($this->parameters[$ns]))
@@ -318,11 +318,11 @@ class sfParameterHolder
    *
    * @return void
    */
-  public function setByRef($name, & $value, $ns = null)
+  public function setByRef ($name, & $value, $ns = null)
   {
     if (!$ns)
     {
-      $ns = $this->defaultNamespace;
+      $ns = $this->default_namespace;
     }
 
     if (!isset($this->parameters[$ns]))
@@ -344,16 +344,13 @@ class sfParameterHolder
    *
    * @return void
    */
-  public function add($parameters, $ns = null)
+  public function add ($parameters, $ns = null)
   {
-    if ($parameters === null)
-    {
-      return;
-    }
+    if ($parameters === null) return;
 
     if (!$ns)
     {
-      $ns = $this->defaultNamespace;
+      $ns = $this->default_namespace;
     }
 
     if (!isset($this->parameters[$ns]))
@@ -378,11 +375,11 @@ class sfParameterHolder
    *
    * @return void
    */
-  public function addByRef(& $parameters, $ns = null)
+  public function addByRef (& $parameters, $ns = null)
   {
     if (!$ns)
     {
-      $ns = $this->defaultNamespace;
+      $ns = $this->default_namespace;
     }
 
     if (!isset($this->parameters[$ns]))

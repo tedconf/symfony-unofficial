@@ -3,7 +3,7 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- *
+ * 
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -12,7 +12,7 @@
  * sfWebResponse class.
  *
  * This class manages web reponses. It supports cookies and headers management.
- *
+ * 
  * @package    symfony
  * @subpackage response
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
@@ -36,7 +36,7 @@ class sfWebResponse extends sfResponse
    *
    * @throws <b>sfInitializationException</b> If an error occurs while initializing this Response.
    */
-  public function initialize($context, $parameters = array())
+  public function initialize ($context, $parameters = array())
   {
     parent::initialize($context, $parameters);
 
@@ -93,7 +93,7 @@ class sfWebResponse extends sfResponse
    *
    * @return void
    */
-  public function setCookie($name, $value, $expire = null, $path = '/', $domain = '', $secure = false)
+  public function setCookie ($name, $value, $expire = null, $path = '/', $domain = '', $secure = false)
   {
     if ($expire !== null)
     {
@@ -129,13 +129,13 @@ class sfWebResponse extends sfResponse
    *
    * @return void
    */
-  public function setStatusCode($code, $name = null)
+  public function setStatusCode ($code, $name = null)
   {
     $this->statusCode = $code;
     $this->statusText = $name ? $name : $this->statusTexts[$code];
   }
 
-  public function getStatusCode()
+  public function getStatusCode ()
   {
     return $this->statusCode;
   }
@@ -148,7 +148,7 @@ class sfWebResponse extends sfResponse
    *
    * @return void
    */
-  public function setHttpHeader($name, $value, $replace = true)
+  public function setHttpHeader ($name, $value, $replace = true)
   {
     $name = $this->normalizeHeaderName($name);
     $exists = isset($this->headers[$name]);
@@ -171,7 +171,7 @@ class sfWebResponse extends sfResponse
    *
    * @return array
    */
-  public function getHttpHeader($name, $defaultValue = null)
+  public function getHttpHeader ($name, $defaultValue = null)
   {
     $retval = array($defaultValue);
 
@@ -190,7 +190,7 @@ class sfWebResponse extends sfResponse
    *
    * @return void
    */
-  public function setContentType($value)
+  public function setContentType ($value)
   {
     $this->setHttpHeader('Content-Type', $value, true);
   }
@@ -200,7 +200,7 @@ class sfWebResponse extends sfResponse
    *
    * @return array
    */
-  public function getContentType()
+  public function getContentType ()
   {
     $ct = $this->getHttpHeader('Content-Type', 'text/html');
 
@@ -212,7 +212,7 @@ class sfWebResponse extends sfResponse
    *
    * @return boolean
    */
-  public function hasHttpHeader($name)
+  public function hasHttpHeader ($name)
   {
     return isset($this->headers[$this->normalizeHeaderName($name)]);
   }
@@ -222,7 +222,7 @@ class sfWebResponse extends sfResponse
    *
    * @return void
    */
-  public function sendHttpHeaders()
+  public function sendHttpHeaders ()
   {
     // status
     $status = 'HTTP/1.0 '.$this->statusCode.' '.$this->statusText;
@@ -283,11 +283,11 @@ class sfWebResponse extends sfResponse
     {
       return substr(gmdate('r', $timestamp), 0, -5).'GMT';
     }
-    elseif ($type == 'rfc1036')
+    else if ($type == 'rfc1036')
     {
       return gmdate('l, d-M-y H:i:s ', $timestamp).'GMT';
     }
-    elseif ($type == 'asctime')
+    else if ($type == 'asctime')
     {
       return gmdate('D M j H:i:s', $timestamp);
     }
@@ -335,7 +335,7 @@ class sfWebResponse extends sfResponse
 
   public function getHttpMetas()
   {
-    return $this->parameterHolder->getAll('helper/asset/auto/httpmeta');
+    return $this->parameter_holder->getAll('helper/asset/auto/httpmeta');
   }
 
   public function addHttpMeta($key, $value, $override = true)
@@ -348,7 +348,7 @@ class sfWebResponse extends sfResponse
 
   public function getMetas()
   {
-    return $this->parameterHolder->getAll('helper/asset/auto/meta');
+    return $this->parameter_holder->getAll('helper/asset/auto/meta');
   }
 
   public function addMeta($key, $value, $override = true, $doNotEscape = false)
@@ -371,7 +371,7 @@ class sfWebResponse extends sfResponse
 
   public function getTitle()
   {
-    $metas = $this->parameterHolder->getAll('helper/asset/auto/meta');
+    $metas = $this->parameter_holder->getAll('helper/asset/auto/meta');
 
     return $metas['title'];
   }
@@ -398,7 +398,7 @@ class sfWebResponse extends sfResponse
       $position = '/'.$position;
     }
 
-    return $this->parameterHolder->getAll('helper/asset/auto/stylesheet'.$position);
+    return $this->parameter_holder->getAll('helper/asset/auto/stylesheet'.$position);
   }
 
   public function addStylesheet($css, $position = '', $options = array())
@@ -418,7 +418,7 @@ class sfWebResponse extends sfResponse
       $position = '/'.$position;
     }
 
-    return $this->parameterHolder->getAll('helper/asset/auto/javascript'.$position);
+    return $this->parameter_holder->getAll('helper/asset/auto/javascript'.$position);
   }
 
   public function addJavascript($js, $position = '')
@@ -432,11 +432,11 @@ class sfWebResponse extends sfResponse
   }
 
   /**
-   * Execute the function shutdown( procedure.
+   * Execute the shutdown procedure.
    *
    * @return void
    */
-  public function shutdown()
+  public function shutdown ()
   {
   }
 }

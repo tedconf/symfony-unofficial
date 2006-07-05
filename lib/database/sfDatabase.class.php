@@ -4,14 +4,14 @@
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
  * (c) 2004-2006 Sean Kerr.
- *
+ * 
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
 
 /**
  * sfDatabase is a base abstraction class that allows you to setup any type of
- * database function connect(ion via a configuration file.
+ * database connection via a configuration file.
  *
  * @package    symfony
  * @subpackage database
@@ -22,28 +22,28 @@
 abstract class sfDatabase
 {
   protected
-    $connection      = null,
-    $parameterHolder = null,
-    $resource        = null;
+    $connection       = null,
+    $parameter_holder = null,
+    $resource         = null;
 
   /**
    * Connect to the database.
    *
-   * @throws <b>sfDatabaseException</b> If a function connect(ion could not be created.
+   * @throws <b>sfDatabaseException</b> If a connection could not be created.
    */
-  abstract function connect();
+  abstract function connect ();
 
   /**
-   * Retrieve the database function connect(ion associated with this sfDatabase implementation.
+   * Retrieve the database connection associated with this sfDatabase implementation.
    *
    * When this is executed on a Database implementation that isn't an
    * abstraction layer, a copy of the resource will be returned.
    *
-   * @return mixed A database function connect(ion.
+   * @return mixed A database connection.
    *
-   * @throws <b>sfDatabaseException</b> If a function connect(ion could not be retrieved.
+   * @throws <b>sfDatabaseException</b> If a connection could not be retrieved.
    */
-  public function getConnection()
+  public function getConnection ()
   {
     if ($this->connection == null)
     {
@@ -60,7 +60,7 @@ abstract class sfDatabase
    *
    * @throws <b>sfDatabaseException</b> If a resource could not be retrieved.
    */
-  public function getResource()
+  public function getResource ()
   {
     if ($this->resource == null)
     {
@@ -79,40 +79,40 @@ abstract class sfDatabase
    *
    * @throws <b>sfInitializationException</b> If an error occurs while initializing this Database.
    */
-  public function initialize($parameters = array())
+  public function initialize ($parameters = array())
   {
-    $this->parameterHolder = new sfParameterHolder();
-    $this->parameterHolder->add($parameters);
+    $this->parameter_holder = new sfParameterHolder();
+    $this->parameter_holder->add($parameters);
   }
 
   public function getParameterHolder()
   {
-    return $this->parameterHolder;
+    return $this->parameter_holder;
   }
 
   public function getParameter($name, $default = null, $ns = null)
   {
-    return $this->parameterHolder->get($name, $default, $ns);
+    return $this->parameter_holder->get($name, $default, $ns);
   }
 
   public function hasParameter($name, $ns = null)
   {
-    return $this->parameterHolder->has($name, $ns);
+    return $this->parameter_holder->has($name, $ns);
   }
 
   public function setParameter($name, $value, $ns = null)
   {
-    return $this->parameterHolder->set($name, $value, $ns);
+    return $this->parameter_holder->set($name, $value, $ns);
   }
 
   /**
-   * Execute the function shutdown( procedure.
+   * Execute the shutdown procedure.
    *
    * @return void
    *
    * @throws <b>sfDatabaseException</b> If an error occurs while shutting down this database.
    */
-  abstract function shutdown();
+  abstract function shutdown ();
 }
 
 ?>

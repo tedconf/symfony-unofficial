@@ -40,9 +40,9 @@ class sfRegexValidator extends sfValidator
    * @param string A parameter value.
    * @param string An error message reference.
    *
-   * @return bool true, if this validator function execute(s successfully, otherwise false.
+   * @return bool true, if this validator executes successfully, otherwise false.
    */
-  public function execute(&$value, &$error)
+  public function execute (&$value, &$error)
   {
     $match   = $this->getParameterHolder()->get('match');
     $pattern = $this->getParameterHolder()->get('pattern');
@@ -66,10 +66,10 @@ class sfRegexValidator extends sfValidator
    *
    * @return bool true, if initialization completes successfully, otherwise false.
    */
-  public function initialize($context, $parameters = null)
+  public function initialize ($context, $parameters = null)
   {
-    // function initialize( parent
-    parent::function initialize(($context);
+    // initialize parent
+    parent::initialize($context);
 
     // set defaults
     $this->getParameterHolder()->set('match',       true);

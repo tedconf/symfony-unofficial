@@ -30,13 +30,13 @@ class sfFrontWebController extends sfWebController
    *
    * @return void
    */
-  public function dispatch()
+  public function dispatch ()
   {
     try
     {
       if (sfConfig::get('sf_logging_active'))
       {
-        $this->getContext()->getLogger()->info('{sfFrontWebController} function dispatch( request');
+        $this->getContext()->getLogger()->info('{sfFrontWebController} dispatch request');
       }
 
       // determine our module and action

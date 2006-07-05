@@ -64,7 +64,7 @@ class sfFillInFormFilter extends sfFilter
               $element->setAttribute('value', $this->espaceRequestParameter($request, $element->getAttribute('name')));
             }
           }
-          else if ($element->getAttribute('type') == 'checkbox' || $element->getAttribute('type') == 'radio')
+          elseif ($element->getAttribute('type') == 'checkbox' || $element->getAttribute('type') == 'radio')
           {
             // checkbox and radio
             $name = $element->getAttribute('name');
@@ -75,7 +75,7 @@ class sfFillInFormFilter extends sfFilter
             }
           }
         }
-        else if ($element->nodeName == 'textarea')
+        elseif ($element->nodeName == 'textarea')
         {
           foreach ($element->childNodes as $child_node)
           {
@@ -83,7 +83,7 @@ class sfFillInFormFilter extends sfFilter
           }
           $element->appendChild($doc->createTextNode($this->espaceRequestParameter($request, $element->getAttribute('name'))));
         }
-        else if ($element->nodeName == 'select')
+        elseif ($element->nodeName == 'select')
         {
           // select
           $name     = $element->getAttribute('name');
@@ -99,7 +99,7 @@ class sfFillInFormFilter extends sfFilter
                 $option->setAttribute('selected', 'selected');
               }
             }
-            else if ($value == $option->getAttribute('value'))
+            elseif ($value == $option->getAttribute('value'))
             {
               $option->setAttribute('selected', 'selected');
             }

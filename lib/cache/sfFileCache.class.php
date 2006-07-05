@@ -3,7 +3,7 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- *
+ * 
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -86,7 +86,7 @@ class sfFileCache extends sfCache
   * @var int $automaticCleaning
   */
   protected $automaticCleaningFactor = 500;
-
+  
   /**
   * Nested directory level
   *
@@ -153,9 +153,9 @@ class sfFileCache extends sfCache
       // create cache dir if needed
       if (!is_dir($cacheDir))
       {
-        $currentUmask = umask(0000);
+        $current_umask = umask(0000);
         @mkdir($cacheDir, 0777, true);
-        umask($currentUmask);
+        umask($current_umask);
       }
 
       $this->cacheDir = $cacheDir;
@@ -205,22 +205,16 @@ class sfFileCache extends sfCache
     $data = 0;
     if ($doNotTestCacheValidity)
     {
-      if (file_exists($path.$file))
-      {
-        return 1;
-      }
+      if (file_exists($path.$file)) return 1;
     }
     else
     {
-      if ((file_exists($path.$file)) && (@filemtime($path.$file) > $this->refreshTime))
-      {
-        return 1;
-      }
+      if ((file_exists($path.$file)) && (@filemtime($path.$file) > $this->refreshTime)) return 1;
     }
 
     return 0;
   }
-
+  
   /**
   * Save some data in a cache file
   *
@@ -321,7 +315,7 @@ class sfFileCache extends sfCache
     if ($this->hashedDirectoryLevel > 0)
     {
       $hash = md5($file);
-      for ($i = 0; $i < $this->hashedDirectoryLevel; ++$i)
+      for ($i = 0; $i < $this->hashedDirectoryLevel; $i++)
       {
         $path = $path.substr($hash, 0, $i + 1).DIRECTORY_SEPARATOR;
       }
@@ -332,7 +326,7 @@ class sfFileCache extends sfCache
 
   /**
   * Remove a file
-  *
+  * 
   * @param string $file complete file path and name
   * @return boolean true if no problem
   */
@@ -379,7 +373,7 @@ class sfFileCache extends sfCache
             $result = ($result and ($this->unlink($file2)));
           }
         }
-        elseif (is_dir($file2))
+        else if (is_dir($file2))
         {
           $result = ($result and ($this->cleanDir($file2.DIRECTORY_SEPARATOR, $mode)));
         }
@@ -411,7 +405,7 @@ class sfFileCache extends sfCache
       {
         $hashControl = @fread($fp, 32);
         $length = $length - 32;
-      }
+      } 
       $data = ($length) ? @fread($fp, $length) : '';
       set_magic_quotes_runtime($mqr);
       if ($this->fileLocking)
@@ -466,10 +460,10 @@ class sfFileCache extends sfCache
         @fclose($fp);
 
         // change file mode
-        $currentUmask = umask();
+        $current_umask = umask();
         umask(0000);
         chmod($path.$file, 0666);
-        umask($currentUmask);
+        umask($current_umask);
 
         return true;
       }
@@ -478,9 +472,9 @@ class sfFileCache extends sfCache
         if ($try == 1 && !is_dir($path))
         {
           // create directory structure if needed
-          $currentUmask = umask(0000);
+          $current_umask = umask(0000);
           @mkdir($path, 0777, true);
-          umask($currentUmask);
+          umask($current_umask);
 
           $try = 2;
         }
@@ -493,7 +487,7 @@ class sfFileCache extends sfCache
 
     throw new sfCacheException('Unable to write cache file "'.$path.$file.'"');
   }
-
+  
   /**
   * Write the given data in the cache file and control it just after to avoir corrupted cache entries
   *
@@ -507,7 +501,7 @@ class sfFileCache extends sfCache
 
     return ($dataRead == $data);
   }
-
+  
   /**
   * Make a control key with the string containing datas
   *

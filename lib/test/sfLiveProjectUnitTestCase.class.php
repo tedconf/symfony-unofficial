@@ -47,12 +47,12 @@ class sfLiveProjectUnitTestCase extends UnitTestCase
     if (self::$workDir === null)
     {
       sfToolkit::clearDirectory('/tmp/symfonylivetest');
-      $rootDir = tempnam('/tmp/symfonylivetest', 'tmp');
-      unlink($rootDir);
-      self::$workDir = $rootDir.DIRECTORY_SEPARATOR.md5(uniqid(rand(), true));
-      if (!is_dir($rootDir))
+      $root_dir = tempnam('/tmp/symfonylivetest', 'tmp');
+      unlink($root_dir);
+      self::$workDir = $root_dir.DIRECTORY_SEPARATOR.md5(uniqid(rand(), true));
+      if (!is_dir($root_dir))
       {
-        mkdir($rootDir, 0777);
+        mkdir($root_dir, 0777);
       }
       mkdir(self::$workDir, 0777);
     }
@@ -197,24 +197,24 @@ class sfLiveProjectUnitTestCase extends UnitTestCase
     pake_mirror($finder, $this->getFixturesDir().'/modules/'.$name, sfConfig::get('sf_root_dir').'/apps/app/modules/'.$name, array('override' => true));
   }
 
-  public function checkModuleResponse($url, $checkTrue = array(), $checkFalse = array())
+  public function checkModuleResponse($url, $check_true = array(), $check_false = array())
   {
     $html = $this->getBrowser()->get($url);
 
-    if (!is_array($checkTrue))
+    if (!is_array($check_true))
     {
-      $checkTrue = array($checkTrue);
+      $check_true = array($check_true);
     }
-    foreach ($checkTrue as $check)
+    foreach ($check_true as $check)
     {
       $this->assertWantedPattern($check, $html);
     }
 
-    if (!is_array($checkFalse))
+    if (!is_array($check_false))
     {
-      $checkFalse = array($checkFalse);
+      $check_false = array($check_false);
     }
-    foreach ($checkFalse as $check)
+    foreach ($check_false as $check)
     {
       $this->assertNoUnWantedPattern($check, $html);
     }

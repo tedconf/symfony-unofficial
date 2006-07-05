@@ -67,10 +67,10 @@ class sfPHPView extends sfView
 
     self::$coreHelpersLoaded = 1;
 
-    $coreHelpers = array('Helper', 'Url', 'Asset', 'Tag', 'Escaping');
-    $standardHelpers = sfConfig::get('sf_standard_helpers');
+    $core_helpers = array('Helper', 'Url', 'Asset', 'Tag', 'Escaping');
+    $standard_helpers = sfConfig::get('sf_standard_helpers');
 
-    $helpers = array_unique(array_merge($coreHelpers, $standardHelpers));
+    $helpers = array_unique(array_merge($core_helpers, $standard_helpers));
     $this->loadHelpers($helpers);
   }
 
@@ -81,12 +81,12 @@ class sfPHPView extends sfView
    */
   protected function loadHelpers($helpers)
   {
-    $helperBaseDir = sfConfig::get('sf_symfony_lib_dir').'/helper/';
+    $helper_base_dir = sfConfig::get('sf_symfony_lib_dir').'/helper/';
     foreach ($helpers as $helperName)
     {
-      if (is_readable($helperBaseDir.$helperName.'Helper.php'))
+      if (is_readable($helper_base_dir.$helperName.'Helper.php'))
       {
-        include_once($helperBaseDir.$helperName.'Helper.php');
+        include_once($helper_base_dir.$helperName.'Helper.php');
       }
       else
       {
@@ -114,7 +114,7 @@ class sfPHPView extends sfView
 
     if ($_escaping !== false)
     {
-      $sf_Data = sfOutputEscaper::escape($_escapingMethod, $this->attributeHolder->getAll());
+      $sf_data = sfOutputEscaper::escape($_escapingMethod, $this->attribute_holder->getAll());
 
       if ($_escaping === 'both')
       {
@@ -272,8 +272,8 @@ class sfPHPView extends sfView
       }
 
       // assigns some variables to the template
-      $this->attributeHolder->add($this->getGlobalVars());
-      $this->attributeHolder->add($retval !== null ? $vars : $actionInstance->getVarHolder()->getAll());
+      $this->attribute_holder->add($this->getGlobalVars());
+      $this->attribute_holder->add($retval !== null ? $vars : $actionInstance->getVarHolder()->getAll());
 
       // render template if no cache
       if ($retval === null)

@@ -5,14 +5,14 @@ class ##MODULE_NAME##ActionsWebBrowserTest extends UnitTestCase
   private
     $browser = null;
 
-  public function setUp()
+  public function setUp ()
   {
     // create a new test browser
     $this->browser = new sfTestBrowser();
     $this->browser->initialize('hostname');
   }
 
-  public function tearDown()
+  public function tearDown ()
   {
     $this->browser->shutdown();
   }

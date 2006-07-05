@@ -89,7 +89,7 @@ class sfValidatorConfigHandler extends sfYamlConfigHandler
     // generate POST file/parameter data
 
     $data[] = "}";
-    $data[] = "elseif (\$_SERVER['REQUEST_METHOD'] == 'POST')";
+    $data[] = "else if (\$_SERVER['REQUEST_METHOD'] == 'POST')";
     $data[] = "{";
 
     $this->generateRegistration('POST', $data, $methods, $names, $validators);
@@ -254,7 +254,7 @@ class sfValidatorConfigHandler extends sfYamlConfigHandler
           // load validators for this file/parameter name
           $this->loadValidators($configFile, $validators, $config, $value, $entry);
         }
-        elseif ($attribute == 'type')
+        else if ($attribute == 'type')
         {
           // name type
           $lvalue = strtolower($value);
@@ -328,7 +328,7 @@ class sfValidatorConfigHandler extends sfYamlConfigHandler
           $names[$parent][$subname] = $entry;
         }
       }
-      elseif (strpos($name, '{') != false || strpos($name, '}') != false)
+      else if (strpos($name, '{') != false || strpos($name, '}') != false)
       {
         // name contains an invalid character
         // this is most likely a typo where the user forgot to add a brace

@@ -85,7 +85,7 @@ class sfPhpConfigHandler extends sfYamlConfigHandler
 
         if (ini_get($key) != $value)
         {
-          $error = sprintf('Configuration file "%s" specifies that php.ini "%s" key must be set to "%s". The current value is "%s" (%s). [err0001]', $configFiles[0], $key, $value, ini_get($key), $this->getIniPath());
+          $error = sprintf('Configuration file "%s" specifies that php.ini "%s" key must be set to "%s". The current value is "%s" (%s). [err0001]', $configFiles[0], $key, $value, ini_get($key), $this->get_ini_path());
           throw new sfInitializationException($error);
         }
       }
@@ -101,18 +101,18 @@ class sfPhpConfigHandler extends sfYamlConfigHandler
 
   private function get_ini_path()
   {
-    $cfgPath = get_cfg_var('cfg_file_path');
-    if ($cfgPath == '')
+    $cfg_path = get_cfg_var('cfg_file_path');
+    if ($cfg_path == '')
     {
-      $iniPath = 'WARNING: system is not using a php.ini file';
+      $ini_path = 'WARNING: system is not using a php.ini file';
     }
     else
     {
-      $iniPath = 'php.ini location: "%s"';
-      $iniPath = sprintf($iniPath, $cfgPath);
+      $ini_path = 'php.ini location: "%s"';
+      $ini_path = sprintf($ini_path, $cfg_path);
     }
 
-    return $iniPath;
+    return $ini_path;
   }
 }
 

@@ -85,22 +85,19 @@ require_once \''.$this->getFilePath($this->getStubObjectBuilder()->getPackage().
       {
         $className = $tblFK->getPhpName();
         $culture = '';
-        $culturePeername = '';
+        $culture_peername = '';
         foreach ($tblFK->getColumns() as $col)
         {
           if (("true" === strtolower($col->getAttribute('isCulture'))))
           {
             $culture = $col->getPhpName();
-            $culturePeername = PeerBuilder::getColumnName($col, $className);
+            $culture_peername = PeerBuilder::getColumnName($col, $className);
           }
         }
 
         foreach ($tblFK->getColumns() as $col)
         {
-          if ($col->isPrimaryKey())
-          {
-            continue;
-          }
+          if ($col->isPrimaryKey()) continue;
 
           $script .= '
   public function get'.$col->getPhpName().'()
@@ -118,11 +115,11 @@ require_once \''.$this->getFilePath($this->getStubObjectBuilder()->getPackage().
         }
 
 $script .= '
-  protected $currentI18n = array();
+  protected $current_i18n = array();
 
   public function getCurrent'.$className.'()
   {
-    if (!isset($this->currentI18n[$this->culture]))
+    if (!isset($this->current_i18n[$this->culture]))
     {
       $obj = '.$className.'Peer::retrieveByPK($this->get'.$pk.'(), $this->culture);
       if ($obj)
@@ -132,16 +129,16 @@ $script .= '
       else
       {
         $this->set'.$className.'ForCulture(new '.$className.'(), $this->culture);
-        $this->currentI18n[$this->culture]->set'.$culture.'($this->culture);
+        $this->current_i18n[$this->culture]->set'.$culture.'($this->culture);
       }
     }
 
-    return $this->currentI18n[$this->culture];
+    return $this->current_i18n[$this->culture];
   }
 
   public function set'.$className.'ForCulture($object, $culture)
   {
-    $this->currentI18n[$culture] = $object;
+    $this->current_i18n[$culture] = $object;
     $this->add'.$className.'($object);
   }
 ';
@@ -154,7 +151,7 @@ $script .= '
     $tmp = '';
     parent::addSave($tmp);
 
-    $dateScript = '';
+    $date_script = '';
 
     $updated = false;
     $created = false;
@@ -166,40 +163,40 @@ $script .= '
       {
         // add automatic UpdatedAt updating
         $updated = true;
-        $dateScript .= "
+        $date_script .= "
     if (\$this->isModified() && !\$this->isColumnModified('updated_at'))
     {
       \$this->setUpdatedAt(time());
     }
 ";
       }
-      elseif (!$updated && $clo == 'updated_on')
+      else if (!$updated && $clo == 'updated_on')
       {
         // add automatic UpdatedOn updating
         $updated = true;
-        $dateScript .= "
+        $date_script .= "
     if (\$this->isModified() && !\$this->isColumnModified('updated_on'))
     {
       \$this->setUpdatedOn(time());
     }
 ";
       }
-      elseif (!$created && $clo == 'created_at')
+      else if (!$created && $clo == 'created_at')
       {
         // add automatic CreatedAt updating
         $created = true;
-        $dateScript .= "
+        $date_script .= "
     if (\$this->isNew() && !\$this->isColumnModified('created_at'))
     {
       \$this->setCreatedAt(time());
     }
 ";
       }
-      elseif (!$created && $clo == 'created_on')
+      else if (!$created && $clo == 'created_on')
       {
         // add automatic CreatedOn updating
         $created = true;
-        $dateScript .= "
+        $date_script .= "
     if (\$this->isNew() && !\$this->isColumnModified('created_on'))
     {
       \$this->setCreatedOn(time());
@@ -208,7 +205,7 @@ $script .= '
       }
     }
 
-    $tmp = preg_replace('/{/', '{'.$dateScript, $tmp, 1);
+    $tmp = preg_replace('/{/', '{'.$date_script, $tmp, 1);
     $script .= $tmp;
   }
 }

@@ -24,16 +24,16 @@ class sfWebDebugFilter extends sfFilter
    *
    * @return void
    */
-  public function execute($filterChain)
+  public function execute ($filterChain)
   {
-    // function execute( this filter only once
+    // execute this filter only once
     if ($this->isFirstCall() && sfConfig::get('sf_web_debug'))
     {
       // register sfWebDebug assets
       sfWebDebug::getInstance()->registerAssets();
     }
 
-    // function execute( next filter
+    // execute next filter
     $filterChain->execute();
   }
 
@@ -44,9 +44,9 @@ class sfWebDebugFilter extends sfFilter
    *
    * @return void
    */
-  public function executeBeforeRendering($filterChain)
+  public function executeBeforeRendering ($filterChain)
   {
-    // function execute( this filter only once
+    // execute this filter only once
     if ($this->isFirstCallBeforeRendering() && sfConfig::get('sf_web_debug'))
     {
       $response = $this->getContext()->getResponse();
@@ -76,7 +76,7 @@ class sfWebDebugFilter extends sfFilter
       $response->setContent($newContent);
     }
 
-    // function execute( next filter
+    // execute next filter
     $filterChain->execute();
   }
 }

@@ -30,10 +30,10 @@ function object_admin_input_upload_tag($object, $method, $options = array())
   {
     if (isset($options['include_link']) && $options['include_link'])
     {
-      $imagePath = image_path('/'.sfConfig::get('sf_upload_dir_name').'/'.$options['include_link'].'/'.$object->$method());
-      $imageText = isset($options['include_text']) ? __($options['include_text']) : __('[show file]');
+      $image_path = image_path('/'.sfConfig::get('sf_upload_dir_name').'/'.$options['include_link'].'/'.$object->$method());
+      $image_text = isset($options['include_text']) ? __($options['include_text']) : __('[show file]');
 
-      $html .= sprintf('<a onclick="window.open(this.href);return false;" href="%s">%s</a>', $imagePath, $imageText)."\n";
+      $html .= sprintf('<a onclick="window.open(this.href);return false;" href="%s">%s</a>', $image_path, $image_text)."\n";
     }
 
     if (isset($options['include_remove']) && $options['include_remove'])

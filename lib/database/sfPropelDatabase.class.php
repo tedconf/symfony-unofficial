@@ -17,7 +17,7 @@
  * # <b>is_default</b>     - [false]   - use as default if multiple connections
  *                                       are specified. The parameters
  *                                       that has been flagged using this param
- *                                       is be used when Propel is function initialize(d
+ *                                       is be used when Propel is initialized
  *                                       via sfPropelAutoload.
  *
  * @package    symfony
@@ -30,7 +30,7 @@ class sfPropelDatabase extends sfCreoleDatabase
 {
   static $config = array();
 
-  public function initialize($parameters = null, $name = null)
+  public function initialize ($parameters = null, $name = null)
   {
     parent::initialize($parameters);
 
@@ -41,21 +41,21 @@ class sfPropelDatabase extends sfCreoleDatabase
 
     $this->addConfig();
 
-    $isDefault = $this->getParameter('is_default', false);
+    $is_default = $this->getParameter('is_default', false);
 
     // first defined if none listed as default
-    if ($isDefault || count(self::$config['propel']['datasources']) == 1)
+    if ($is_default || count(self::$config['propel']['datasources']) == 1)
     {
       $this->setDefaultConfig();
     }
   }
 
-  public function setDefaultConfig()
+  public function setDefaultConfig ()
   {
     self::$config['propel']['datasources']['default'] = $this->getParameter('datasource');
   }
 
-  public function addConfig()
+  public function addConfig ()
   {
     $dsn = $this->getParameter('dsn');
 
@@ -87,7 +87,7 @@ class sfPropelDatabase extends sfCreoleDatabase
       );
   }
 
-  public static function getConfiguration()
+  public static function getConfiguration ()
   {
     return self::$config;
   }

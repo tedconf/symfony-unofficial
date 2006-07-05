@@ -21,7 +21,7 @@ class sfRegistry
     $instance = false;
 
   protected
-    $parameterHolder = null;
+    $parameter_holder = null;
 
   private function __construct()
   {
@@ -40,22 +40,22 @@ class sfRegistry
 
   public function getParameterHolder()
   {
-    return $this->parameterHolder;
+    return $this->parameter_holder;
   }
 
   public function getParameter($name, $default = null, $ns = null)
   {
-    return $this->parameterHolder->get($name, $default, $ns);
+    return $this->parameter_holder->get($name, $default, $ns);
   }
 
   public function hasParameter($name, $ns = null)
   {
-    return $this->parameterHolder->has($name, $ns);
+    return $this->parameter_holder->has($name, $ns);
   }
 
   public function setParameter($name, $value, $ns = null)
   {
-    return $this->parameterHolder->set($name, $value, $ns);
+    return $this->parameter_holder->set($name, $value, $ns);
   }
 }
 

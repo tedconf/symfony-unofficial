@@ -129,9 +129,9 @@ function _pear_run_command($config, $command, $opts, $params)
   return (PEAR::isError($ok) ? $ret.$ok->getMessage() : null);
 }
 
-function _pear_run_upgrade($config, $installDir)
+function _pear_run_upgrade($config, $install_dir)
 {
-  $registry = new PEAR_Registry($installDir);
+  $registry = new PEAR_Registry($install_dir);
   $remote = new PEAR_Remote($config);
   $cmd = &PEAR_Command::factory('upgrade', $config);
 
@@ -163,17 +163,17 @@ function _pear_init($method = 'local')
   require_once 'PEAR/Command.php';
   require_once 'PEAR/Remote.php';
 
-  $installLibDir  = sfConfig::get('sf_plugin_lib_dir');
-  $installDataDir = sfConfig::get('sf_plugin_data_dir');
+  $install_lib_dir  = sfConfig::get('sf_plugin_lib_dir');
+  $install_data_dir = sfConfig::get('sf_plugin_data_dir');
 
-  if (!is_dir($installLibDir))
+  if (!is_dir($install_lib_dir))
   {
-    pake_mkdirs($installLibDir);
+    pake_mkdirs($install_lib_dir);
   }
 
-  if (!is_dir($installDataDir))
+  if (!is_dir($install_data_dir))
   {
-    pake_mkdirs($installDataDir);
+    pake_mkdirs($install_data_dir);
   }
 
   // current symfony release
@@ -196,8 +196,8 @@ function _pear_init($method = 'local')
   $config = &PEAR_Config::singleton();
   if ($method == 'local')
   {
-    $config->set('php_dir',  $installLibDir);
-    $config->set('data_dir', $installDataDir);
+    $config->set('php_dir',  $install_lib_dir);
+    $config->set('data_dir', $install_data_dir);
     $config->set('bin_dir',  sfConfig::get('sf_bin_dir'));
     $config->set('test_dir', sfConfig::get('sf_test_dir'));
     $config->set('doc_dir',  sfConfig::get('sf_doc_dir'));
@@ -226,7 +226,7 @@ function _pear_init($method = 'local')
       'xsdversion'    => '2.0',
       '_lastmodified' => time(),
     );
-    file_put_contents($installLibDir.DIRECTORY_SEPARATOR.'.registry'.DIRECTORY_SEPARATOR.'.channel.pear.symfony-project.com'.DIRECTORY_SEPARATOR.'symfony.reg', serialize($symfony));
+    file_put_contents($install_lib_dir.DIRECTORY_SEPARATOR.'.registry'.DIRECTORY_SEPARATOR.'.channel.pear.symfony-project.com'.DIRECTORY_SEPARATOR.'symfony.reg', serialize($symfony));
   }
 
   return $config;

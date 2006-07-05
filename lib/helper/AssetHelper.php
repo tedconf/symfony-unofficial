@@ -31,13 +31,13 @@
  *   auto_discovery_link_tag('rss', 'module/feed', array('title' => 'My RSS')) =>
  *     <link rel="alternate" type="application/rss+xml" title="My RSS" href="http://www.curenthost.com/module/feed" />
  */
-function auto_discovery_link_tag($type = 'rss', $urlOptions = array(), $tagOptions = array())
+function auto_discovery_link_tag($type = 'rss', $url_options = array(), $tag_options = array())
 {
   return tag('link', array(
-    'rel'   => isset($tagOptions['rel']) ? $tagOptions['rel'] : 'alternate',
-    'type'  => isset($tagOptions['type']) ? $tagOptions['type'] : 'application/'.$type.'+xml',
-    'title' => isset($tagOptions['title']) ? $tagOptions['title'] : ucfirst($type),
-    'href'  => url_for($urlOptions, true)
+    'rel'   => isset($tag_options['rel']) ? $tag_options['rel'] : 'alternate',
+    'type'  => isset($tag_options['type']) ? $tag_options['type'] : 'application/'.$type.'+xml',
+    'title' => isset($tag_options['title']) ? $tag_options['title'] : ucfirst($type),
+    'href'  => url_for($url_options, true)
   ));
 }
 
@@ -161,11 +161,11 @@ function image_tag($source, $options = array())
 
   if (!isset($options['alt']))
   {
-    $pathPos = strrpos($source, '/');
-    $dotPos = strrpos($source, '.');
-    $begin = $pathPos ? $pathPos + 1 : 0;
-    $nbStr = ($dotPos ? $dotPos : strlen($source)) - $begin;
-    $options['alt'] = ucfirst(substr($source, $begin, $nbStr));
+    $path_pos = strrpos($source, '/');
+    $dot_pos = strrpos($source, '.');
+    $begin = $path_pos ? $path_pos + 1 : 0;
+    $nb_str = ($dot_pos ? $dot_pos : strlen($source)) - $begin;
+    $options['alt'] = ucfirst(substr($source, $begin, $nb_str));
   }
 
   if (isset($options['size']))

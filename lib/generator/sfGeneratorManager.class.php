@@ -9,7 +9,7 @@
  */
 
 /**
- * sfGeneratorManager helps function generate( classes, views and templates for scaffolding, admin interface, ...
+ * sfGeneratorManager helps generate classes, views and templates for scaffolding, admin interface, ...
  *
  * @package    symfony
  * @subpackage generator
@@ -20,7 +20,7 @@ class sfGeneratorManager
 {
   private $cache = null;
 
-  public function initialize()
+  public function initialize ()
   {
     // create cache instance
     $this->cache = new sfFileCache(sfConfig::get('sf_module_cache_dir'));
@@ -32,9 +32,9 @@ class sfGeneratorManager
     return $this->cache;
   }
 
-  public function generate($generatorClass, $param)
+  public function generate ($generator_class, $param)
   {
-    $generator = new $generatorClass();
+    $generator = new $generator_class();
     $generator->initialize($this);
     $data = $generator->generate($param);
 

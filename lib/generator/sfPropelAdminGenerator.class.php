@@ -3,7 +3,7 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- *
+ * 
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -35,8 +35,8 @@ class sfPropelAdminGenerator extends sfPropelCrudGenerator
   {
     $this->params = $params;
 
-    $requiredParameters = array('model_class', 'moduleName');
-    foreach ($requiredParameters as $entry)
+    $required_parameters = array('model_class', 'moduleName');
+    foreach ($required_parameters as $entry)
     {
       if (!isset($this->params[$entry]))
       {
@@ -80,7 +80,7 @@ class sfPropelAdminGenerator extends sfPropelCrudGenerator
 
     $this->setTheme($theme);
     $templateFiles = array(
-      'listSuccess', 'editSuccess', '_filters',
+      'listSuccess', 'editSuccess', '_filters', 
       '_list_th_'.$this->getParameterValue('list.layout', 'tabular'), '_list_td_'.$this->getParameterValue('list.layout', 'tabular'),
       '_list_th_tabular',
       '_list_header', '_edit_header', '_list_footer', '_edit_footer',
@@ -116,21 +116,21 @@ class sfPropelAdminGenerator extends sfPropelCrudGenerator
     return '';
   }
 
-  public function getButtonToAction($actionName, $params, $pkLink = false)
+  public function getButtonToAction($actionName, $params, $pk_link = false)
   {
-    $options = isset($params['params']) ? sfToolkit::stringToArray($params['params']) : array();
-    $method  = 'button_to';
-    $liClass  = '';
-    $onlyIfId = false;
+    $options    = isset($params['params']) ? sfToolkit::stringToArray($params['params']) : array();
+    $method     = 'button_to';
+    $li_class   = '';
+    $only_if_id = false;
 
     // default values
     if ($actionName[0] == '_')
     {
-      $actionName    = substr($actionName, 1);
-      $defaultName   = strtr($actionName, '_', ' ');
-      $defaultIcon   = '/sf/images/sf_admin/'.$actionName.'_icon.png';
-      $defaultAction = $actionName;
-      $defaultClass  = 'sf_admin_action_'.$actionName;
+      $actionName     = substr($actionName, 1);
+      $default_name   = strtr($actionName, '_', ' ');
+      $default_icon   = '/sf/images/sf_admin/'.$actionName.'_icon.png';
+      $default_action = $actionName;
+      $default_class  = 'sf_admin_action_'.$actionName;
 
       if ($actionName == 'save' || $actionName == 'save_and_add')
       {
@@ -146,38 +146,38 @@ class sfPropelAdminGenerator extends sfPropelCrudGenerator
           $options['confirm'] = 'Are you sure?';
         }
 
-        $liClass = 'float-left';
+        $li_class = 'float-left';
 
-        $onlyIfId = true;
+        $only_if_id = true;
       }
     }
     else
     {
-      $defaultName   = strtr($actionName, '_', ' ');
-      $defaultIcon   = '/sf/images/sf_admin/default_icon.png';
-      $defaultAction = 'List'.sfInflector::camelize($actionName);
-      $defaultClass  = '';
+      $default_name   = strtr($actionName, '_', ' ');
+      $default_icon   = '/sf/images/sf_admin/default_icon.png';
+      $default_action = 'List'.sfInflector::camelize($actionName);
+      $default_class  = '';
     }
 
-    $name   = isset($params['name']) ? $params['name'] : $defaultName;
-    $icon   = isset($params['icon']) ? $params['icon'] : $defaultIcon;
-    $action = isset($params['action']) ? $params['action'] : $defaultAction;
-    $urlParams = $pkLink ? '?'.$this->getPrimaryKeyUrlParams() : '\'';
+    $name   = isset($params['name']) ? $params['name'] : $default_name;
+    $icon   = isset($params['icon']) ? $params['icon'] : $default_icon;
+    $action = isset($params['action']) ? $params['action'] : $default_action;
+    $url_params = $pk_link ? '?'.$this->getPrimaryKeyUrlParams() : '\'';
 
-    if (!isset($options['class']) && $defaultClass)
+    if (!isset($options['class']) && $default_class)
     {
-      $options['class'] = $defaultClass;
+      $options['class'] = $default_class;
     }
     else
     {
       $options['style'] = 'background: #ffc url('.$icon.') no-repeat 3px 2px';
     }
 
-    $liClass = $liClass ? ' class='.$liClass : '';
+    $li_class = $li_class ? ' class='.$li_class : '';
 
-    $html = '<li'.$liClass.'>';
+    $html = '<li'.$li_class.'>';
 
-    if ($onlyIfId)
+    if ($only_if_id)
     {
       $html .= '[?php if ('.$this->getPrimaryKeyIsSet().'): ?]'."\n";
     }
@@ -188,10 +188,10 @@ class sfPropelAdminGenerator extends sfPropelCrudGenerator
     }
     else
     {
-      $html .= '[?php echo button_to(__(\''.$name.'\'), \''.$this->getModuleName().'/'.$action.$urlParams.', '.var_export($options, true).') ?]';
+      $html .= '[?php echo button_to(__(\''.$name.'\'), \''.$this->getModuleName().'/'.$action.$url_params.', '.var_export($options, true).') ?]';
     }
 
-    if ($onlyIfId)
+    if ($only_if_id)
     {
       $html .= '[?php endif ?]'."\n";
     }
@@ -201,7 +201,7 @@ class sfPropelAdminGenerator extends sfPropelCrudGenerator
     return $html;
   }
 
-  public function getLinkToAction($actionName, $params, $pkLink = false)
+  public function getLinkToAction($actionName, $params, $pk_link = false)
   {
     // default values
     if ($actionName[0] == '_')
@@ -218,17 +218,17 @@ class sfPropelAdminGenerator extends sfPropelCrudGenerator
       $action = isset($params['action']) ? $params['action'] : 'List'.sfInflector::camelize($actionName);
     }
 
-    $urlParams = $pkLink ? '?'.$this->getPrimaryKeyUrlParams() : '\'';
+    $url_params = $pk_link ? '?'.$this->getPrimaryKeyUrlParams() : '\'';
 
-    return '<li>[?php echo link_to(image_tag(\''.$icon.'\', array(\'alt\' => __(\''.$name.'\'), \'title\' => __(\''.$name.'\'))), \''.$this->getModuleName().'/'.$action.$urlParams.') ?]</li>';
+    return '<li>[?php echo link_to(image_tag(\''.$icon.'\', array(\'alt\' => __(\''.$name.'\'), \'title\' => __(\''.$name.'\'))), \''.$this->getModuleName().'/'.$action.$url_params.') ?]</li>';
   }
 
   public function getColumnEditTag($column, $params = array())
   {
     // user defined parameters
-    $userParams = $this->getParameterValue('edit.fields.'.$column->getName().'.params');
-    $userParams = is_array($userParams) ? $userParams : sfToolkit::stringToArray($userParams);
-    $params     = $userParams ? array_merge($params, $userParams) : $params;
+    $user_params = $this->getParameterValue('edit.fields.'.$column->getName().'.params');
+    $user_params = is_array($user_params) ? $user_params : sfToolkit::stringToArray($user_params);
+    $params      = $user_params ? array_merge($params, $user_params) : $params;
 
     if ($column->isPartial())
     {
@@ -244,7 +244,7 @@ class sfPropelAdminGenerator extends sfPropelCrudGenerator
     {
       $params = array_merge(array('rich' => true, 'calendar_button_img' => '/sf/images/sf_admin/date.png'), $params);
     }
-    elseif ($type == CreoleTypes::TIMESTAMP)
+    else if ($type == CreoleTypes::TIMESTAMP)
     {
       $params = array_merge(array('rich' => true, 'withtime' => true, 'calendar_button_img' => '/sf/images/sf_admin/date.png'), $params);
     }
@@ -420,7 +420,7 @@ EOF;
     $ref   =& $this->params;
     $parts =  explode('.', $key);
     $count =  count($parts);
-    for ($i = 0; $i < $count; ++$i)
+    for ($i = 0; $i < $count; $i++)
     {
       $partKey = $parts[$i];
       if (!isset($ref[$partKey]))
@@ -474,9 +474,9 @@ EOF;
 
   public function getColumnListTag($column, $params = array())
   {
-    $userParams = $this->getParameterValue('list.fields.'.$column->getName().'.params');
-    $userParams = is_array($userParams) ? $userParams : sfToolkit::stringToArray($userParams);
-    $params     = $userParams ? array_merge($params, $userParams) : $params;
+    $user_params = $this->getParameterValue('list.fields.'.$column->getName().'.params');
+    $user_params = is_array($user_params) ? $user_params : sfToolkit::stringToArray($user_params);
+    $params      = $user_params ? array_merge($params, $user_params) : $params;
 
     $type = $column->getCreoleType();
 
@@ -484,7 +484,7 @@ EOF;
     {
       return "include_partial('".$column->getName()."', array('{$this->getSingularName()}' => \${$this->getSingularName()}))";
     }
-    elseif ($type == CreoleTypes::DATE || $type == CreoleTypes::TIMESTAMP)
+    else if ($type == CreoleTypes::DATE || $type == CreoleTypes::TIMESTAMP)
     {
       $format = isset($params['date_format']) ? $params['date_format'] : 'f';
       return "format_date(\${$this->getSingularName()}->get{$column->getPhpName()}(), \"$format\")";
@@ -501,13 +501,13 @@ EOF;
 
   public function getColumnFilterTag($column, $params = array())
   {
-    $userParams = $this->getParameterValue('list.fields.'.$column->getName().'.params');
-    $userParams = is_array($userParams) ? $userParams : sfToolkit::stringToArray($userParams);
-    $params     = $userParams ? array_merge($params, $userParams) : $params;
+    $user_params = $this->getParameterValue('list.fields.'.$column->getName().'.params');
+    $user_params = is_array($user_params) ? $user_params : sfToolkit::stringToArray($user_params);
+    $params      = $user_params ? array_merge($params, $user_params) : $params;
 
     $type = $column->getCreoleType();
 
-    $defaultValue = "isset(\$filters['".$column->getName()."']) ? \$filters['".$column->getName()."'] : null";
+    $default_value = "isset(\$filters['".$column->getName()."']) ? \$filters['".$column->getName()."'] : null";
     $name = '\'filters['.$column->getName().']\'';
 
     if ($column->isForeignKey())
@@ -515,23 +515,23 @@ EOF;
       $relatedTable = $this->getMap()->getDatabaseMap()->getTable($column->getRelatedTableName());
       $params = $this->getObjectTagParams($params, array('include_blank' => true));
 
-      $options = "objects_for_select(".$relatedTable->getPhpName()."Peer::doSelect(new Criteria()), 'getPrimaryKey', '__toString', $defaultValue, $params)";
+      $options = "objects_for_select(".$relatedTable->getPhpName()."Peer::doSelect(new Criteria()), 'getPrimaryKey', '__toString', $default_value, $params)";
 
       return "select_tag($name, $options, $params)";
     }
-    elseif ($type == CreoleTypes::DATE)
+    else if ($type == CreoleTypes::DATE)
     {
       // rich=false not yet implemented
       $params = $this->getObjectTagParams($params, array('rich' => true, 'calendar_button_img' => '/sf/images/sf_admin/date.png'));
-      return "input_date_tag($name, $defaultValue, $params)";
+      return "input_date_tag($name, $default_value, $params)";
     }
-    elseif ($type == CreoleTypes::TIMESTAMP)
+    else if ($type == CreoleTypes::TIMESTAMP)
     {
       // rich=false not yet implemented
       $params = $this->getObjectTagParams($params, array('rich' => true, 'withtime' => true, 'calendar_button_img' => '/sf/images/sf_admin/date.png'));
-      return "input_date_tag($name, $defaultValue, $params)";
+      return "input_date_tag($name, $default_value, $params)";
     }
-    elseif ($type == CreoleTypes::BOOLEAN)
+    else if ($type == CreoleTypes::BOOLEAN)
     {
       $defaultIncludeCustom = '__("yes or no")';
       $params = $this->getObjectTagParams($params, array('include_custom' => $defaultIncludeCustom));
@@ -539,35 +539,35 @@ EOF;
       // little hack
       $params = preg_replace("/'".preg_quote($defaultIncludeCustom)."'/", $defaultIncludeCustom, $params);
 
-      $options = "options_for_select(array(1 => __('yes'), 0 => __('no')), $defaultValue, $params)";
+      $options = "options_for_select(array(1 => __('yes'), 0 => __('no')), $default_value, $params)";
 
       return "select_tag($name, $options, $params)";
     }
-    elseif ($type == CreoleTypes::CHAR || $type == CreoleTypes::VARCHAR)
+    else if ($type == CreoleTypes::CHAR || $type == CreoleTypes::VARCHAR)
     {
       $size = ($column->getSize() < 15 ? $column->getSize() : 15);
       $params = $this->getObjectTagParams($params, array('size' => $size));
-      return "input_tag($name, $defaultValue, $params)";
+      return "input_tag($name, $default_value, $params)";
     }
-    elseif ($type == CreoleTypes::INTEGER || $type == CreoleTypes::TINYINT || $type == CreoleTypes::SMALLINT || $type == CreoleTypes::BIGINT)
+    else if ($type == CreoleTypes::INTEGER || $type == CreoleTypes::TINYINT || $type == CreoleTypes::SMALLINT || $type == CreoleTypes::BIGINT)
     {
       $params = $this->getObjectTagParams($params, array('size' => 7));
-      return "input_tag($name, $defaultValue, $params)";
+      return "input_tag($name, $default_value, $params)";
     }
-    elseif ($type == CreoleTypes::FLOAT || $type == CreoleTypes::DOUBLE || $type == CreoleTypes::DECIMAL || $type == CreoleTypes::NUMERIC || $type == CreoleTypes::REAL)
+    else if ($type == CreoleTypes::FLOAT || $type == CreoleTypes::DOUBLE || $type == CreoleTypes::DECIMAL || $type == CreoleTypes::NUMERIC || $type == CreoleTypes::REAL)
     {
       $params = $this->getObjectTagParams($params, array('size' => 7));
-      return "input_tag($name, $defaultValue, $params)";
+      return "input_tag($name, $default_value, $params)";
     }
-    elseif ($type == CreoleTypes::TEXT || $type == CreoleTypes::LONGVARCHAR)
+    else if ($type == CreoleTypes::TEXT || $type == CreoleTypes::LONGVARCHAR)
     {
       $params = $this->getObjectTagParams($params, array('size' => '15x2'));
-      return "textarea_tag($name, $defaultValue, $params)";
+      return "textarea_tag($name, $default_value, $params)";
     }
     else
     {
       $params = $this->getObjectTagParams($params, array('disabled' => true));
-      return "input_tag($name, $defaultValue, $params)";
+      return "input_tag($name, $default_value, $params)";
     }
   }
 
@@ -604,27 +604,27 @@ class sfAdminColumn
     return $this->column ? $this->column->$name() : null;
   }
 
-  public function isReal()
+  public function isReal ()
   {
     return $this->column ? true : false;
   }
 
-  public function getPhpName()
+  public function getPhpName ()
   {
     return $this->phpName;
   }
 
-  public function getName()
+  public function getName ()
   {
     return sfInflector::underscore($this->phpName);
   }
 
-  public function isPartial()
+  public function isPartial ()
   {
     return (($this->flag == '_') ? true : false);
   }
 
-  public function isLink()
+  public function isLink ()
   {
     return (($this->flag == '=' || $this->isPrimaryKey()) ? true : false);
   }

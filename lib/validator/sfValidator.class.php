@@ -4,7 +4,7 @@
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
  * (c) 2004-2006 Sean Kerr.
- *
+ * 
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -21,7 +21,7 @@
 abstract class sfValidator
 {
   private
-    $parameterHolder = null,
+    $parameter_holder = null,
     $context = null;
 
   /**
@@ -30,16 +30,16 @@ abstract class sfValidator
    * @param mixed A file or parameter value/array.
    * @param string An error message reference.
    *
-   * @return bool true, if this validator function execute(s successfully, otherwise false.
+   * @return bool true, if this validator executes successfully, otherwise false.
    */
-  abstract function execute(&$value, &$error);
+  abstract function execute (&$value, &$error);
 
   /**
    * Retrieve the current application context.
    *
    * @return sfContext The current sfContext instance.
    */
-  public final function getContext()
+  public final function getContext ()
   {
     return $this->context;
   }
@@ -52,34 +52,34 @@ abstract class sfValidator
    *
    * @return bool true, if initialization completes successfully, otherwise false.
    */
-  public function initialize($context, $parameters = array())
+  public function initialize ($context, $parameters = array())
   {
     $this->context = $context;
 
-    $this->parameterHolder = new sfParameterHolder();
-    $this->parameterHolder->add($parameters);
+    $this->parameter_holder = new sfParameterHolder();
+    $this->parameter_holder->add($parameters);
 
     return true;
   }
 
-  public function getParameterHolder()
+  public function getParameterHolder ()
   {
-    return $this->parameterHolder;
+    return $this->parameter_holder;
   }
 
   public function getParameter($name, $default = null, $ns = null)
   {
-    return $this->parameterHolder->get($name, $default, $ns);
+    return $this->parameter_holder->get($name, $default, $ns);
   }
 
   public function hasParameter($name, $ns = null)
   {
-    return $this->parameterHolder->has($name, $ns);
+    return $this->parameter_holder->has($name, $ns);
   }
 
   public function setParameter($name, $value, $ns = null)
   {
-    return $this->parameterHolder->set($name, $value, $ns);
+    return $this->parameter_holder->set($name, $value, $ns);
   }
 }
 

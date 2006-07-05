@@ -19,12 +19,12 @@
 class sfWebDebug
 {
   private
-    $log           = array(),
-    $shortLog      = array(),
-    $maxPriority   = 1000,
+    $log             = array(),
+    $short_log       = array(),
+    $max_priority    = 1000,
     $types           = array(),
-    $lastTimeLog   = -1,
-    $baseImagePath = '/sf/images/sf_debug_stats';
+    $last_time_log   = -1,
+    $base_image_path = '/sf/images/sf_debug_stats';
 
   private static
     $instance        = null;
@@ -77,24 +77,24 @@ class sfWebDebug
 
   public function logShortMessage($message)
   {
-    $this->shortLog[] = $message;
+    $this->short_log[] = $message;
   }
 
   public function log($logEntry)
   {
     // elapsed time
-    if ($this->lastTimeLog == -1)
+    if ($this->last_time_log == -1)
     {
-      $this->lastTimeLog = sfConfig::get('sf_timer_start');
+      $this->last_time_log = sfConfig::get('sf_timer_start');
     }
 
-    $logEntry->setElapsedTime(sprintf('%.0f', (microtime(true) - $this->lastTimeLog) * 1000));
-    $this->lastTimeLog = microtime(true);
+    $logEntry->setElapsedTime(sprintf('%.0f', (microtime(true) - $this->last_time_log) * 1000));
+    $this->last_time_log = microtime(true);
 
     // update max priority
-    if ($logEntry->getPriority() < $this->maxPriority)
+    if ($logEntry->getPriority() < $this->max_priority)
     {
-      $this->maxPriority = $logEntry->getPriority();
+      $this->max_priority = $logEntry->getPriority();
     }
 
     // update types
@@ -119,11 +119,10 @@ class sfWebDebug
     }
   }
 
-  private function formatLogLine($type, $logLine)
+  private function formatLogLine($type, $log_line)
   {
     static $constants;
-    if (!$constants)
-    {
+    if (!$constants) {
       foreach (array('sf_app_dir', 'sf_root_dir', 'sf_symfony_lib_dir', 'sf_symfony_data_dir') as $constant)
       {
         $constants[realpath(sfConfig::get($constant)).DIRECTORY_SEPARATOR] = $constant.DIRECTORY_SEPARATOR;
@@ -131,28 +130,28 @@ class sfWebDebug
     }
 
     // escape HTML
-    $logLine = htmlentities($logLine);
+    $log_line = htmlentities($log_line);
 
     // replace constants value with constant name
-    $logLine = strtr($logLine, $constants);
+    $log_line = strtr($log_line, $constants);
 
-    $logLine = sfToolkit::pregtr($logLine, array('/&quot;(.+?)&quot;/s' => '"<span class="sfStatsFileInfo">\\1</span>"',
+    $log_line = sfToolkit::pregtr($log_line, array('/&quot;(.+?)&quot;/s' => '"<span class="sfStatsFileInfo">\\1</span>"',
                                                    '/^(.+?)\(\)\:/S'      => '<span class="sfStatsFileInfo">\\1()</span>:',
                                                    '/line (\d+)$/'        => 'line <span class="sfStatsFileInfo">\\1</span>'));
 
     // special formatting for creole/SQL lines
     if (strtolower($type) == 'creole')
     {
-      $logLine = preg_replace('/\b(SELECT|FROM|AS|LIMIT|ASC|COUNT|DESC|WHERE|LEFT JOIN|INNER JOIN|RIGHT JOIN|ORDER BY|GROUP BY|IN|LIKE|DISTINCT)\b/', '<span class="sfStatsFileInfo">\\1</span>', $logLine);
+      $log_line = preg_replace('/\b(SELECT|FROM|AS|LIMIT|ASC|COUNT|DESC|WHERE|LEFT JOIN|INNER JOIN|RIGHT JOIN|ORDER BY|GROUP BY|IN|LIKE|DISTINCT)\b/', '<span class="sfStatsFileInfo">\\1</span>', $log_line);
 
       // remove username/password from DSN
-      if (strpos($logLine, 'DSN') !== false)
+      if (strpos($log_line, 'DSN') !== false)
       {
-        $logLine = preg_replace("/=&gt;\s+'?[^'\s,]+'?/", "=&gt; '****'", $logLine);
+        $log_line = preg_replace("/=&gt;\s+'?[^'\s,]+'?/", "=&gt; '****'", $log_line);
       }
     }
 
-    return $logLine;
+    return $log_line;
   }
 
   public function getResults()
@@ -167,52 +166,52 @@ class sfWebDebug
     $result = '';
 
     // total time elapsed
-    $totalTime = 0;
+    $total_time = 0;
     if (sfConfig::get('sf_debug'))
     {
-      $totalTime = (microtime(true) - sfConfig::get('sf_timer_start')) * 1000;
-      $totalTime = sprintf(($totalTime <= 1) ? '%.2f' : '%.0f', $totalTime);
+      $total_time = (microtime(true) - sfConfig::get('sf_timer_start')) * 1000;
+      $total_time = sprintf(($total_time <= 1) ? '%.2f' : '%.0f', $total_time);
     }
 
     // memory used
-    $totalMemory = 0;
+    $total_memory = 0;
     if (sfConfig::get('sf_debug') && function_exists('memory_get_usage'))
     {
-      $totalMemory = sprintf('%.1f', (memory_get_usage() / 1024));
+      $total_memory = sprintf('%.1f', (memory_get_usage() / 1024));
     }
 
     // max priority
-    $logImage = '';
+    $log_image = '';
     if ($sf_logging_active = sfConfig::get('sf_logging_active'))
     {
-      if ($this->maxPriority >= 6)
+      if ($this->max_priority >= 6)
       {
-        $logImage = 'info';
+        $log_image = 'info';
       }
-      elseif ($this->maxPriority >= 4)
+      else if ($this->max_priority >= 4)
       {
-        $logImage = 'warning';
+        $log_image = 'warning';
       }
       else
       {
-        $logImage = 'error';
+        $log_image = 'error';
       }
     }
 
     // short messages
-    $shortMessages = '';
-    if ($this->shortLog)
+    $short_messages = '';
+    if ($this->short_log)
     {
-      $shortMessages = '<div id="sfStatsShortMessages">&raquo;&nbsp;'.implode('<br />&raquo;&nbsp;', $this->shortLog).'</div>';
+      $short_messages = '<div id="sfStatsShortMessages">&raquo;&nbsp;'.implode('<br />&raquo;&nbsp;', $this->short_log).'</div>';
     }
 
     $result .= '
-      <div class="sfStats" id="sfStats'.ucfirst($logImage).'">
-      '.$this->displayMenu($logImage).'
+      <div class="sfStats" id="sfStats'.ucfirst($log_image).'">
+      '.$this->displayMenu($log_image).'
       <div id="sfStatsDetails">'.$this->displayCurrentConfig().'</div>
-      <div id="sfStatsTime">processed in <strong>'.$totalTime.'</strong> ms</div>
-      '.($totalMemory ? '<div id="sfStatsMemory">memory: <strong>'.$totalMemory.'</strong> KB</div>' : '').'
-      '.$shortMessages.'
+      <div id="sfStatsTime">processed in <strong>'.$total_time.'</strong> ms</div>
+      '.($total_memory ? '<div id="sfStatsMemory">memory: <strong>'.$total_memory.'</strong> KB</div>' : '').'
+      '.$short_messages.'
       </div>
     ';
 
@@ -226,7 +225,7 @@ class sfWebDebug
         <th>type</th>
         <th>message</th>
       </tr>\n";
-      $lineNb = 0;
+      $line_nb = 0;
       foreach($this->log as $logEntry)
       {
         $log = $logEntry->getMessage();
@@ -236,7 +235,7 @@ class sfWebDebug
           $class = 'Green';
           $priority = 'info';
         }
-        elseif ($logEntry->getPriority() >= 4)
+        else if ($logEntry->getPriority() >= 4)
         {
           $class = 'Orange';
           $priority = 'warning';
@@ -247,28 +246,27 @@ class sfWebDebug
           $priority = 'error';
         }
 
-        if (strpos($type = $logEntry->getType(), 'sf') === 0)
-        {
+        if (strpos($type = $logEntry->getType(), 'sf') === 0) {
             $type = substr($type, 2);
         }
 
         // xdebug information
-        $debugInfo = '';
+        $debug_info = '';
         if ($logEntry->getDebugStack())
         {
-          $debugInfo .= '&nbsp;<a href="#" onclick="Element.toggle(\'debug_'.$lineNb.'\'); return false;">'.image_tag($this->baseImagePath.'/toggle.gif').'</a><div class="sfStatsDebugInfo" id="debug_'.$lineNb.'" style="display:none">';
-          foreach ($logEntry->getDebugStack() as $i => $logLine)
+          $debug_info .= '&nbsp;<a href="#" onclick="Element.toggle(\'debug_'.$line_nb.'\'); return false;">'.image_tag($this->base_image_path.'/toggle.gif').'</a><div class="sfStatsDebugInfo" id="debug_'.$line_nb.'" style="display:none">';
+          foreach ($logEntry->getDebugStack() as $i => $log_line)
           {
-            $debugInfo .= '#'.$i.' &raquo; '.$this->formatLogLine($type, $logLine).'<br/>';
+            $debug_info .= '#'.$i.' &raquo; '.$this->formatLogLine($type, $log_line).'<br/>';
           }
-          $debugInfo .= "</div>\n";
+          $debug_info .= "</div>\n";
         }
 
         // format log
         $log = $this->formatLogLine($type, $log);
 
-        ++$lineNb;
-        $logs .= sprintf("<tr class='sfStats%s %s'><td>%s</td><td>%s</td><td>+%s&nbsp;</td><td><span class=\"sfStatsLogType\">%s</span></td><td>%s%s</td></tr>\n", $class, $logEntry->getType(), $lineNb, image_tag($this->baseImagePath.'/'.$priority.'.png', 'align=middle'), $logEntry->getElapsedTime(), $type, $log, $debugInfo);
+        ++$line_nb;
+        $logs .= sprintf("<tr class='sfStats%s %s'><td>%s</td><td>%s</td><td>+%s&nbsp;</td><td><span class=\"sfStatsLogType\">%s</span></td><td>%s%s</td></tr>\n", $class, $logEntry->getType(), $line_nb, image_tag($this->base_image_path.'/'.$priority.'.png', 'align=middle'), $logEntry->getElapsedTime(), $type, $log, $debug_info);
       }
       $logs .= '</table>';
 
@@ -295,8 +293,8 @@ class sfWebDebug
         <div id="sfStatsLogMenu">
           <div class="float">'.
           implode('&nbsp;-&nbsp;', $types).'&nbsp;&nbsp;
-          <a href="#" onclick="toggleMessages(\'sfStatsGreen\')">'.image_tag($this->baseImagePath.'/info.png', 'align=middle').'</a>&nbsp;
-          <a href="#" onclick="Element.hide(\'sfStatsLogMain\')">'.image_tag($this->baseImagePath.'/close.png', 'align=middle').'</a>
+          <a href="#" onclick="toggleMessages(\'sfStatsGreen\')">'.image_tag($this->base_image_path.'/info.png', 'align=middle').'</a>&nbsp;
+          <a href="#" onclick="Element.hide(\'sfStatsLogMain\')">'.image_tag($this->base_image_path.'/close.png', 'align=middle').'</a>
           </div>
           <strong>Log messages</strong>
         </div>
@@ -308,23 +306,23 @@ class sfWebDebug
     return '<div id="sfStatsBase">'.$result.'</div>';
   }
 
-  private function displayMenu($logImage)
+  private function displayMenu($log_image)
   {
     $result = '<div id="sfStatsRightMenu">';
 
     if (sfConfig::get('sf_logging_active'))
     {
-      $result .= '<a href="#" onclick="Element.show(\'sfStatsLogMain\'); return false;">'.image_tag($this->baseImagePath.'/'.$logImage.'.png', 'align=middle').'</a>&nbsp;';
+      $result .= '<a href="#" onclick="Element.show(\'sfStatsLogMain\'); return false;">'.image_tag($this->base_image_path.'/'.$log_image.'.png', 'align=middle').'</a>&nbsp;';
     }
 
     if (sfConfig::get('sf_debug') && sfConfig::get('sf_cache'))
     {
-      $selfUrl = $_SERVER['PHP_SELF'].((strpos($_SERVER['PHP_SELF'], 'ignore_cache') !== false) ? '?ignore_cache=1' : '');
-      $result .= '<a href="'.$selfUrl.'" title="reload and ignore cache">'.image_tag($this->baseImagePath.'/reload.png', 'align=middle').'</a>';
+      $self_url = $_SERVER['PHP_SELF'].((strpos($_SERVER['PHP_SELF'], 'ignore_cache') !== false) ? '?ignore_cache=1' : '');
+      $result .= '<a href="'.$self_url.'" title="reload and ignore cache">'.image_tag($this->base_image_path.'/reload.png', 'align=middle').'</a>';
     }
 
     $result .= '
-    <a href="#" onclick="Element.hide(\'sfStats'.ucfirst($logImage).'\'); return false;">'.image_tag($this->baseImagePath.'/close.png', 'align=middle').'</a>
+    <a href="#" onclick="Element.hide(\'sfStats'.ucfirst($log_image).'\'); return false;">'.image_tag($this->base_image_path.'/close.png', 'align=middle').'</a>
     </div>
     <div id="sfStatsLeftMenu"><a href="#" class="bold" onclick="Element.toggle(\'sfStatsDetails\', \'sfStatsTime\'); return false;">symfony</a></div>
     ';
@@ -377,7 +375,7 @@ class sfWebDebug
     return $result;
   }
 
-  public function decorateContentWithDebug($internalUri, $suffix, $retval, $borderColor, $bgColor)
+  public function decorateContentWithDebug($internalUri, $suffix, $retval, $border_color, $bg_color)
   {
     if (!sfConfig::get('sf_web_debug'))
     {
@@ -387,16 +385,16 @@ class sfWebDebug
     $cache = $this->context->getViewCacheManager();
     $this->loadHelpers();
 
-    $lastModified = $cache->lastModified($internalUri, $suffix);
+    $last_modified = $cache->lastModified($internalUri, $suffix);
     $id            = md5($internalUri);
     $retval = '
-      <div id="main_'.$id.'" class="sfWebDebugActionCache" style="border: 1px solid '.$borderColor.'">
-      <div id="sub_main_'.$id.'" class="sfStatsCache" style="background-color: '.$bgColor.'; border-right: 1px solid '.$borderColor.'; border-bottom: 1px solid '.$borderColor.';">
-      <div style="height: 16px; padding: 2px"><a href="#" onclick="Element.toggle(\''.$id.'\'); return false;"><strong>cache information</strong></a>&nbsp;<a href="#" onclick="Element.hide(\'sub_main_'.$id.'\'); document.getElementById(\'main_'.$id.'\').style.border = \'none\'; return false;">'.image_tag($this->baseImagePath.'/close.png', 'align=middle').'</a>&nbsp;</div>
+      <div id="main_'.$id.'" class="sfWebDebugActionCache" style="border: 1px solid '.$border_color.'">
+      <div id="sub_main_'.$id.'" class="sfStatsCache" style="background-color: '.$bg_color.'; border-right: 1px solid '.$border_color.'; border-bottom: 1px solid '.$border_color.';">
+      <div style="height: 16px; padding: 2px"><a href="#" onclick="Element.toggle(\''.$id.'\'); return false;"><strong>cache information</strong></a>&nbsp;<a href="#" onclick="Element.hide(\'sub_main_'.$id.'\'); document.getElementById(\'main_'.$id.'\').style.border = \'none\'; return false;">'.image_tag($this->base_image_path.'/close.png', 'align=middle').'</a>&nbsp;</div>
         <div style="padding: 2px; display: none" id="'.$id.'">
         [uri]&nbsp;'.$internalUri.'<br />
         [life&nbsp;time]&nbsp;'.$cache->getLifeTime($internalUri, $suffix).'&nbsp;seconds<br />
-        [last&nbsp;modified]&nbsp;'.(time() - $lastModified).'&nbsp;seconds<br />
+        [last&nbsp;modified]&nbsp;'.(time() - $last_modified).'&nbsp;seconds<br />
         &nbsp;<br />&nbsp;
         </div>
       </div><div>

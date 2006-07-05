@@ -78,7 +78,7 @@ class sfDebugConnection implements Connection
     if (!($driver = Creole::getDriver($dsninfo['phptype'])))
     {
       throw new SQLException("No driver has been registered to handle connection type: $type");
-    }
+    }   
     $connectionClass = Creole::import($driver);
     $this->childConnection = new $connectionClass();
     $this->log("{sfCreole} connect(): DSN: ". var_export($dsninfo, true) . ", FLAGS: " . var_export($flags, true));
@@ -116,7 +116,7 @@ class sfDebugConnection implements Connection
   {
     $this->log("{sfCreole} prepareStatement(): $sql");
     $obj = $this->childConnection->prepareStatement($sql);
-    $objClass = get_class($obj);
+    $objClass = get_class($obj);    
     return new $objClass($this, $sql);
   }
 
@@ -155,8 +155,8 @@ class sfDebugConnection implements Connection
   {
     $this->log("{sfCreole} executeQuery(): $sql");
     $this->lastExecutedQuery = $sql;
-    ++$this->numQueriesExecuted;
-    return $this->childConnection->executeQuery($sql, $fetchmode);
+    $this->numQueriesExecuted++;
+    return $this->childConnection->executeQuery($sql, $fetchmode);  
   }
 
   /**
@@ -166,8 +166,8 @@ class sfDebugConnection implements Connection
   {
     $this->log("{sfCreole} executeUpdate(): $sql");
     $this->lastExecutedQuery = $sql;
-    ++$this->numQueriesExecuted;
-    return $this->childConnection->executeUpdate($sql);
+    $this->numQueriesExecuted++;
+    return $this->childConnection->executeUpdate($sql); 
   }
 
   /**
@@ -232,21 +232,19 @@ class sfDebugConnection implements Connection
   /**
    * @see Connection::rollback()
    */
-  public function rollback()
-  {
+  public function rollback() {
     $this->log("{sfCreole} rolling back transaction.");
     return $this->childConnection->rollback();
   }
-
+  
   /**
    * @see Connection::setAutoCommit()
    */
-  public function setAutoCommit($bit)
-  {
+  public function setAutoCommit($bit) {
     $this->log("{sfCreole} setting autocommit to: ".var_export($bit, true));
     return $this->childConnection->setAutoCommit($bit);
   }
-
+  
   /**
    * @see Connection::getAutoCommit()
    */

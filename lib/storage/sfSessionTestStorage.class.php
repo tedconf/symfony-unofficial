@@ -3,7 +3,7 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- *
+ * 
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -32,9 +32,9 @@ class sfSessionTestStorage extends sfStorage
    *
    * @throws <b>sfInitializationException</b> If an error occurs while initializing this Storage.
    */
-  public function initialize($context, $parameters = null)
+  public function initialize ($context, $parameters = null)
   {
-    // function initialize( parent
+    // initialize parent
     parent::initialize($context, $parameters);
 
     if (array_key_exists('session_id', $_SERVER))
@@ -44,13 +44,9 @@ class sfSessionTestStorage extends sfStorage
       // we read session data from temp file
       $file = sfConfig::get('sf_test_cache_dir').'/'.$this->sessionId.'.session';
       if (file_exists($file))
-      {
         $this->sessionData = unserialize(file_get_contents($file));
-      }
       else
-      {
         $this->sessionData = array();
-      }
     }
     else
     {
@@ -78,9 +74,7 @@ class sfSessionTestStorage extends sfStorage
     $retval = null;
 
     if (isset($this->sessionData[$key]))
-    {
       $retval =& $this->sessionData[$key];
-    }
 
     return $retval;
   }
@@ -108,17 +102,17 @@ class sfSessionTestStorage extends sfStorage
   }
 
   /**
-   * Execute the function shutdown( procedure.
+   * Execute the shutdown procedure.
    *
    * @return void
    */
-  public function shutdown()
+  public function shutdown ()
   {
     if ($this->sessionId)
     {
-      $currentUmask = umask(0000);
+      $current_umask = umask(0000);
       @mkdir(sfConfig::get('sf_cache_dir').'/session', 0777, true);
-      umask($currentUmask);
+      umask($current_umask);
       file_put_contents(sfConfig::get('sf_cache_dir').'/session/'.$this->sessionId.'.session', serialize($this->sessionData));
       $this->sessionId   = '';
       $this->sessionData = array();
@@ -136,7 +130,7 @@ class sfSessionTestStorage extends sfStorage
    *
    * @return void
    */
-  public function write($key, &$data)
+  public function write ($key, &$data)
   {
     $this->sessionData[$key] =& $data;
   }

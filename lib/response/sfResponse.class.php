@@ -20,7 +20,7 @@
 abstract class sfResponse
 {
   protected
-    $parameterHolder = null;
+    $parameter_holder = null;
 
   private
     $context = null,
@@ -35,15 +35,15 @@ abstract class sfResponse
    *
    * @throws <b>sfInitializationException</b> If an error occurs while initializing this Response.
    */
-  public function initialize($context, $parameters = array())
+  public function initialize ($context, $parameters = array())
   {
     $this->context = $context;
 
-    $this->parameterHolder = new sfParameterHolder();
-    $this->parameterHolder->add($parameters);
+    $this->parameter_holder = new sfParameterHolder();
+    $this->parameter_holder->add($parameters);
   }
 
-  public function getContext()
+  public function getContext ()
   {
     return $this->context;
   }
@@ -57,7 +57,7 @@ abstract class sfResponse
    *
    * @throws <b>sfFactoryException</b> If a request implementation instance cannot be created.
    */
-  public static function newInstance($class)
+  public static function newInstance ($class)
   {
     // the class exists
     $object = new $class();
@@ -81,7 +81,7 @@ abstract class sfResponse
    *
    * @return void
    */
-  public function setContent($content)
+  public function setContent ($content)
   {
     $this->content = $content;
   }
@@ -91,7 +91,7 @@ abstract class sfResponse
    *
    * @return string
    */
-  public function getContent()
+  public function getContent ()
   {
     return $this->content;
   }
@@ -101,7 +101,7 @@ abstract class sfResponse
    *
    * @return string
    */
-  public function sendContent()
+  public function sendContent ()
   {
     if (sfConfig::get('sf_logging_active'))
     {
@@ -113,30 +113,30 @@ abstract class sfResponse
 
   public function getParameterHolder()
   {
-    return $this->parameterHolder;
+    return $this->parameter_holder;
   }
 
   public function getParameter($name, $default = null, $ns = null)
   {
-    return $this->parameterHolder->get($name, $default, $ns);
+    return $this->parameter_holder->get($name, $default, $ns);
   }
 
   public function hasParameter($name, $ns = null)
   {
-    return $this->parameterHolder->has($name, $ns);
+    return $this->parameter_holder->has($name, $ns);
   }
 
   public function setParameter($name, $value, $ns = null)
   {
-    return $this->parameterHolder->set($name, $value, $ns);
+    return $this->parameter_holder->set($name, $value, $ns);
   }
 
   /**
-   * Execute the function shutdown( procedure.
+   * Execute the shutdown procedure.
    *
    * @return void
    */
-  abstract function shutdown();
+  abstract function shutdown ();
 }
 
 ?>

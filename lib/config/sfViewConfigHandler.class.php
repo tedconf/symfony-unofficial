@@ -158,9 +158,9 @@ class sfViewConfigHandler extends sfYamlConfigHandler
 
     $slots = null;
 
-    $useDefaultSlots = $this->getConfigValue('use_default_slots', $viewName);
+    $use_default_slots = $this->getConfigValue('use_default_slots', $viewName);
 
-    if ($useDefaultSlots)
+    if ($use_default_slots)
     {
       $slots = $this->mergeConfigValue('slots', $viewName);
     }
@@ -208,8 +208,8 @@ class sfViewConfigHandler extends sfYamlConfigHandler
   {
     $data = '';
 
-    $hasLayout = $this->getConfigValue('has_layout', $viewName);
-    if ($hasLayout)
+    $has_layout = $this->getConfigValue('has_layout', $viewName);
+    if ($has_layout)
     {
       $layout = $this->getconfigValue('layout', $viewName);
       $data .= "    \$this->setDecoratorDirectory(sfConfig::get('sf_app_template_dir'));\n".
@@ -243,7 +243,7 @@ class sfViewConfigHandler extends sfYamlConfigHandler
     $stylesheets = $this->mergeConfigValue('stylesheets', $viewName);
     if (is_array($stylesheets))
     {
-      // remove stylesheets marked with a beginning '-'
+      // remove javascripts marked with a beginning '-'
       $delete = array();
       foreach ($stylesheets as $stylesheet)
       {

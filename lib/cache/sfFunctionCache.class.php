@@ -3,7 +3,7 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- *
+ * 
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -27,14 +27,14 @@ class sfFunctionCache extends sfFileCache
    * Calls a cacheable function or method (or not if there is already a cache for it)
    *
    * Arguments of this method are read with func_get_args. So it doesn't appear
-   * in the function definition. Synopsis :
+   * in the function definition. Synopsis : 
    * call('functionName', $arg1, $arg2, ...)
    * (arg1, arg2... are arguments of 'functionName')
    *
    * @return mixed result of the function/method
    * @access public
    */
-  public function call()
+  public function call ()
   {
     $arguments = func_get_args();
 
@@ -57,21 +57,21 @@ class sfFunctionCache extends sfFileCache
       {
         // classname::staticMethod
         list($class, $method) = explode('::', $target);
-        $result = function call(_user_func_array(array($class, $method), $arguments);
+        $result = call_user_func_array(array($class, $method), $arguments);
       }
-      elseif (strstr($target, '->'))
+      else if (strstr($target, '->'))
       {
         // object->method
-        // use a stupid name ($objet123456789 because) of problems when the object
+        // use a stupid name ($objet_123456789 because) of problems when the object
         // name is the same as this var name
-        list($object123456789, $method) = explode('->', $target);
-        global $$object123456789;
-        $result = function call(_user_func_array(array($$object123456789, $method), $arguments);
+        list($object_123456789, $method) = explode('->', $target);
+        global $$object_123456789;
+        $result = call_user_func_array(array($$object_123456789, $method), $arguments);
       }
       else
       {
         // function
-        $result = function call(_user_func_array($target, $arguments);
+        $result = call_user_func_array($target, $arguments);
       }
       $output = ob_get_contents();
       ob_end_clean();

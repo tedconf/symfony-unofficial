@@ -62,16 +62,16 @@
 
   function get_ajax_options()
   {
-    static $ajaxOptions;
-    if (!$ajaxOptions)
+    static $ajax_options;
+    if (!$ajax_options)
     {
-      $ajaxOptions = array_merge(array(
+      $ajax_options = array_merge(array(
         'before', 'after', 'condition', 'url', 'asynchronous', 'method',
         'insertion', 'position', 'form', 'with', 'update', 'script'
         ), get_callbacks());
     }
 
-    return $ajaxOptions;
+    return $ajax_options;
   }
 
   /**
@@ -82,14 +82,14 @@
    *   <?php echo link_to_function('Greeting', "alert('Hello world!')") ?>
    *   <?php echo link_to_function(image_tag('delete'), "if confirm('Really?'){ do_delete(); }") ?>
    */
-  function link_to_function($name, $function, $htmlOptions = array())
+  function link_to_function($name, $function, $html_options = array())
   {
-    $htmlOptions = _parse_attributes($htmlOptions);
+    $html_options = _parse_attributes($html_options);
 
-    $htmlOptions['href'] = '#';
-    $htmlOptions['onclick'] = $function.'; return false;';
+    $html_options['href'] = '#';
+    $html_options['onclick'] = $function.'; return false;';
 
-    return content_tag('a', $name, $htmlOptions);
+    return content_tag('a', $name, $html_options);
   }
 
   /**
@@ -99,15 +99,15 @@
    * Examples:
    *   <?php echo button_to_function('Greeting', "alert('Hello world!')") ?>
    */
-  function button_to_function($name, $function, $htmlOptions = array())
+  function button_to_function($name, $function, $html_options = array())
   {
-    $htmlOptions = _parse_attributes($htmlOptions);
+    $html_options = _parse_attributes($html_options);
 
-    $htmlOptions['onclick'] = $function.'; return false;';
-    $htmlOptions['type']    = 'button';
-    $htmlOptions['value']   = $name;
+    $html_options['onclick'] = $function.'; return false;';
+    $html_options['type']    = 'button';
+    $html_options['value']   = $name;
 
-    return content_tag('input', '', $htmlOptions);
+    return content_tag('input', '', $html_options);
   }
 
   /**
@@ -151,7 +151,7 @@
    *
    * Example:
    *  <?php echo link_to_remote($word, array(
-   *    'url'      => '@undo?n='.$wordCounter,
+   *    'url'      => '@undo?n='.$word_counter,
    *    'complete' => 'undoRequestCompleted(request)'
    *  )) ?>
    *
@@ -206,9 +206,9 @@
    *                       it could just as well be the ID of a
    *                       table row or any other DOM element.
    */
-  function link_to_remote($name, $options = array(), $htmlOptions = array())
+  function link_to_remote($name, $options = array(), $html_options = array())
   {
-    return link_to_function($name, remote_function($options), $htmlOptions);
+    return link_to_function($name, remote_function($options), $html_options);
   }
 
   /**
@@ -231,7 +231,7 @@
    * The options for specifying the target with 'url' and defining callbacks are the same as 'link_to_remote()'.
    *
    * A "fall-through" target for browsers that don't do JavaScript can be specified
-   * with the 'action'/'method' options on '$optionsHtml'
+   * with the 'action'/'method' options on '$options_html'
    *
    * Example:
    *  <?php echo form_remote_tag(array(
@@ -246,18 +246,18 @@
    * By default the fall-through action is the same as the one specified in the 'url'
    * (and the default method is 'post').
    */
-  function form_remote_tag($options = array(), $optionsHtml = array())
+  function form_remote_tag($options = array(), $options_html = array())
   {
     $options = _parse_attributes($options);
-    $optionsHtml = _parse_attributes($optionsHtml);
+    $options_html = _parse_attributes($options_html);
 
     $options['form'] = true;
 
-    $optionsHtml['onsubmit'] = remote_function($options).'; return false;';
-    $optionsHtml['action'] = isset($optionsHtml['action']) ? $optionsHtml['action'] : url_for($options['url']);
-    $optionsHtml['method'] = isset($optionsHtml['method']) ? $optionsHtml['method'] : 'post';
+    $options_html['onsubmit'] = remote_function($options).'; return false;';
+    $options_html['action'] = isset($options_html['action']) ? $options_html['action'] : url_for($options['url']);
+    $options_html['method'] = isset($options_html['method']) ? $options_html['method'] : 'post';
 
-    return tag('form', $optionsHtml, true);
+    return tag('form', $options_html, true);
   }
 
   /**
@@ -284,7 +284,7 @@
   }
 
   /**
-   * Returns a Javascript function (or expression) that will update a DOM element '$elementId'
+   * Returns a Javascript function (or expression) that will update a DOM element '$element_id'
    * according to the '$options' passed.
    *
    * Possible '$options' are:
@@ -327,7 +327,7 @@
    *      'content'  => '<p>New Product: '.$product->getName().'</p>',
    *  )) ?>
    */
-  function update_element_function($elementId, $options = array())
+  function update_element_function($element_id, $options = array())
   {
     sfContext::getInstance()->getResponse()->addJavascript('/sf/js/prototype/prototype');
 
@@ -339,29 +339,29 @@
       case 'update':
         if (isset($options['position']) && $options['position'])
         {
-          $javascriptFunction = "new Insertion.".sfInflector::camelize($options['position'])."('$elementId','$content')";
+          $javascript_function = "new Insertion.".sfInflector::camelize($options['position'])."('$element_id','$content')";
         }
         else
         {
-          $javascriptFunction = "\$('$elementId').innerHTML = '$content'";
+          $javascript_function = "\$('$element_id').innerHTML = '$content'";
         }
         break;
 
       case 'empty':
-        $javascriptFunction = "\$('$elementId').innerHTML = ''";
+        $javascript_function = "\$('$element_id').innerHTML = ''";
         break;
 
       case 'remove':
-        $javascriptFunction = "Element.remove('$elementId')";
+        $javascript_function = "Element.remove('$element_id')";
         break;
 
       default:
         throw new sfException('Invalid action, choose one of update, remove, empty');
     }
 
-    $javascriptFunction .= ";\n";
+    $javascript_function .= ";\n";
 
-    return (isset($options['binding']) ? $javascriptFunction.$options['binding'] : $javascriptFunction);
+    return (isset($options['binding']) ? $javascript_function.$options['binding'] : $javascript_function);
   }
 
   /**
@@ -388,7 +388,7 @@
   {
     sfContext::getInstance()->getResponse()->addJavascript('/sf/js/prototype/prototype');
 
-    $javascriptOptions = _options_for_ajax($options);
+    $javascript_options = _options_for_ajax($options);
 
     $update = '';
     if (isset($options['update']) && is_array($options['update']))
@@ -404,7 +404,7 @@
       }
       $update = '{'.join(',', $update).'}';
     }
-    elseif (isset($options['update']))
+    else if (isset($options['update']))
     {
       $update .= "'".$options['update']."'";
     }
@@ -412,7 +412,7 @@
     $function = !$update ?  "new Ajax.Request(" : "new Ajax.Updater($update, ";
 
     $function .= '\''.url_for($options['url']).'\'';
-    $function .= ', '.$javascriptOptions.')';
+    $function .= ', '.$javascript_options.')';
 
     if (isset($options['before']))
     {
@@ -439,7 +439,7 @@
   }
 
   /**
-   * Observes the field with the DOM ID specified by '$fieldId' and makes
+   * Observes the field with the DOM ID specified by '$field_id' and makes
    * an AJAX call when its contents have changed.
    *
    * Required '$options' are:
@@ -463,37 +463,37 @@
    * Additionally, you may specify any of the options documented in
    * link_to_remote().
    */
-  function observe_field($fieldId, $options = array())
+  function observe_field($field_id, $options = array())
   {
     sfContext::getInstance()->getResponse()->addJavascript('/sf/js/prototype/prototype');
 
     if (isset($options['frequency']) && $options['frequency'] > 0)
     {
-      return _build_observer('Form.Element.Observer', $fieldId, $options);
+      return _build_observer('Form.Element.Observer', $field_id, $options);
     }
     else
     {
-      return _build_observer('Form.Element.EventObserver', $fieldId, $options);
+      return _build_observer('Form.Element.EventObserver', $field_id, $options);
     }
   }
 
   /**
    * Like 'observe_field()', but operates on an entire form identified by the
-   * DOM ID '$formId'. '$options' are the same as 'observe_field()', except
+   * DOM ID '$form_id'. '$options' are the same as 'observe_field()', except
    * the default value of the 'with' option evaluates to the
    * serialized (request string) value of the form.
    */
-  function observe_form($formId, $options = array())
+  function observe_form($form_id, $options = array())
   {
     sfContext::getInstance()->getResponse()->addJavascript('/sf/js/prototype/prototype');
 
     if (isset($options['frequency']) && $options['frequency'] > 0)
     {
-      return _build_observer('Form.Observer', $formId, $options);
+      return _build_observer('Form.Observer', $form_id, $options);
     }
     else
     {
-      return _build_observer('Form.EventObserver', $formId, $options);
+      return _build_observer('Form.EventObserver', $form_id, $options);
     }
   }
 
@@ -508,7 +508,7 @@
    *        'complete => visual_effect('highlight', 'posts', array('duration' => 0.5 )),
    *  )) ?>
    *
-   * If no '$elementId' is given, it assumes "element" which should be a local
+   * If no '$element_id' is given, it assumes "element" which should be a local
    * variable in the generated JavaScript execution context. This can be used
    * for example with drop_receiving_element():
    *
@@ -522,44 +522,44 @@
    * You can change the behaviour with various options, see
    * http://script.aculo.us for more documentation.
    */
-  function visual_effect($name, $elementId = false, $jsOptions = array())
+  function visual_effect($name, $element_id = false, $js_options = array())
   {
     $response = sfContext::getInstance()->getResponse();
     $response->addJavascript('/sf/js/prototype/prototype');
     $response->addJavascript('/sf/js/prototype/builder');
     $response->addJavascript('/sf/js/prototype/effects');
 
-    $element = $elementId ? "'$elementId'" : 'element';
+    $element = $element_id ? "'$element_id'" : 'element';
 
     if (in_array($name, array('toggle_appear', 'toggle_blind', 'toggle_slide')))
     {
-      return "new Effect.toggle($element, '".substr($name, 7)."', "._options_for_javascript($jsOptions).");";
+      return "new Effect.toggle($element, '".substr($name, 7)."', "._options_for_javascript($js_options).");";
     }
     else
     {
-      return "new Effect.".sfInflector::camelize($name)."($element, "._options_for_javascript($jsOptions).");";
+      return "new Effect.".sfInflector::camelize($name)."($element, "._options_for_javascript($js_options).");";
     }
   }
 
   /**
-   * Makes the elements with the DOM ID specified by '$elementId' sortable
+   * Makes the elements with the DOM ID specified by '$element_id' sortable
    * by drag-and-drop and make an AJAX call whenever the sort order has
    * changed. By default, the action called gets the serialized sortable
    * element as parameters.
    *
    * Example:
-   *   <php echo sortable_element($myList, array(
+   *   <php echo sortable_element($my_list, array(
    *      'url' => '@order',
    *   )) ?>
    *
-   * In the example, the action gets a '$myList' array parameter
+   * In the example, the action gets a '$my_list' array parameter
    * containing the values of the ids of elements the sortable consists
    * of, in the current order.
    *
    * You can change the behaviour with various options, see
    * http://script.aculo.us for more documentation.
    */
-  function sortable_element($elementId, $options = array())
+  function sortable_element($element_id, $options = array())
   {
     $response = sfContext::getInstance()->getResponse();
     $response->addJavascript('/sf/js/prototype/prototype');
@@ -569,7 +569,7 @@
 
     if (!isset($options['with']))
     {
-      $options['with'] = "Sortable.serialize('$elementId')";
+      $options['with'] = "Sortable.serialize('$element_id')";
     }
 
     if (!isset($options['onUpdate']))
@@ -605,11 +605,11 @@
       $options['only'] = _array_or_string_for_javascript($options['only']);
     }
 
-    return javascript_tag("Sortable.create('$elementId', "._options_for_javascript($options).")");
+    return javascript_tag("Sortable.create('$element_id', "._options_for_javascript($options).")");
   }
 
   /**
-   * Makes the element with the DOM ID specified by '$elementId' draggable.
+   * Makes the element with the DOM ID specified by '$element_id' draggable.
    *
    * Example:
    *   <?php echo draggable_element('my_image', array(
@@ -619,7 +619,7 @@
    * You can change the behaviour with various options, see
    * http://script.aculo.us for more documentation.
    */
-  function draggable_element($elementId, $options = array())
+  function draggable_element($element_id, $options = array())
   {
     $response = sfContext::getInstance()->getResponse();
     $response->addJavascript('/sf/js/prototype/prototype');
@@ -627,11 +627,11 @@
     $response->addJavascript('/sf/js/prototype/effects');
     $response->addJavascript('/sf/js/prototype/dragdrop');
 
-    return javascript_tag("new Draggable('$elementId', "._options_for_javascript($options).")");
+    return javascript_tag("new Draggable('$element_id', "._options_for_javascript($options).")");
   }
 
   /**
-   * Makes the element with the DOM ID specified by '$elementId' receive
+   * Makes the element with the DOM ID specified by '$element_id' receive
    * dropped draggable elements (created by 'draggable_element()') and make an AJAX call.
    * By default, the action called gets the DOM ID of the element as parameter.
    *
@@ -643,7 +643,7 @@
    * You can change the behaviour with various options, see
    * http://script.aculo.us for more documentation.
    */
-  function drop_receiving_element($elementId, $options = array())
+  function drop_receiving_element($element_id, $options = array())
   {
     $response = sfContext::getInstance()->getResponse();
     $response->addJavascript('/sf/js/prototype/prototype');
@@ -675,7 +675,7 @@
       $options['hoverclass'] = "'{$options['hoverclass']}'";
     }
 
-    return javascript_tag("Droppables.add('$elementId', "._options_for_javascript($options).")");
+    return javascript_tag("Droppables.add('$element_id', "._options_for_javascript($options).")");
   }
 
   /**
@@ -704,7 +704,7 @@
    * @return string input field tag, div for completion results, and
    *                 auto complete javascript tags
    */
-  function input_auto_complete_tag($name, $value, $url, $tagOptions = array(), $completionOptions = array())
+  function input_auto_complete_tag($name, $value, $url, $tag_options = array(), $completion_options = array())
   {
     $context = sfContext::getInstance();
 
@@ -713,15 +713,15 @@
     $response->addJavascript('/sf/js/prototype/controls');
     $response->addJavascript('/sf/js/prototype/effects');
 
-    $compOptions = _convert_options($completionOptions);
-    if (isset($compOptions['use_style']) && $compOptions['use_style'] == true)
+    $comp_options = _convert_options($completion_options);
+    if (isset($comp_options['use_style']) && $comp_options['use_style'] == true)
     {
       $response->addStylesheet('/sf/css/sf_helpers/input_auto_complete_tag');
     }
 
-    $javascript  = input_tag($name, $value, $tagOptions);
+    $javascript  = input_tag($name, $value, $tag_options);
     $javascript .= content_tag('div', '' , array('id' => "{$name}_auto_complete", 'class' => 'auto_complete'));
-    $javascript .= _auto_complete_field($name, $url, $compOptions);
+    $javascript .= _auto_complete_field($name, $url, $comp_options);
 
     return $javascript;
   }
@@ -734,21 +734,21 @@
    *
    * @return string javascript to manipulate the id field to allow click and edit functionality
    */
-  function input_in_place_editor_tag($name, $url, $editorOptions = array())
+  function input_in_place_editor_tag($name, $url, $editor_options = array())
   {
     $response = sfContext::getInstance()->getResponse();
     $response->addJavascript('/sf/js/prototype/prototype');
     $response->addJavascript('/sf/js/prototype/controls');
     $response->addJavascript('/sf/js/prototype/effects');
 
-    $editorOptions = _convert_options($editorOptions);
-    $defaultOptions = array('tag' => 'span', 'id' => '\''.$name.'_in_place_editor', 'class' => 'in_place_editor_field');
+    $editor_options = _convert_options($editor_options);
+    $default_options = array('tag' => 'span', 'id' => '\''.$name.'_in_place_editor', 'class' => 'in_place_editor_field');
 
-    return _in_place_editor($name, $url, array_merge($defaultOptions, $editorOptions));
+    return _in_place_editor($name, $url, array_merge($default_options, $editor_options));
   }
 
   /*
-   * Makes an HTML element specified by the DOM ID '$fieldId' become an in-place
+   * Makes an HTML element specified by the DOM ID '$field_id' become an in-place
    * editor of a property.
    *
    * A form is automatically created and displayed when the user clicks the element,
@@ -777,62 +777,59 @@
    * 'with'                JavaScript snippet that should return what is to be sent
    *                       in the AJAX call, 'form' is an implicit parameter
    */
-    function _in_place_editor($fieldId, $url, $options = array())
+    function _in_place_editor($field_id, $url, $options = array())
     {
       $javascript = "new Ajax.InPlaceEditor(";
 
-      $javascript .= "'$fieldId', ";
+      $javascript .= "'$field_id', ";
       $javascript .= "'" . url_for($url) . "'";
 
-      $jsOptions = array();
+      $js_options = array();
 
-      if (isset($options['tokens']))
-      {
-        $jsOptions['tokens'] = _array_or_string_for_javascript($options['tokens']);
-      }
+      if (isset($options['tokens'])) $js_options['tokens'] = _array_or_string_for_javascript($options['tokens']);
 
       if (isset($options['cancel_text']))
       {
-        $jsOptions['cancelText'] = "'".$options['cancel_text']."'";
+        $js_options['cancelText'] = "'".$options['cancel_text']."'";
       }
       if (isset($options['save_text']))
       {
-        $jsOptions['okText'] = "'".$options['save_text']."'";
+        $js_options['okText'] = "'".$options['save_text']."'";
       }
       if (isset($options['cols']))
       {
-        $jsOptions['cols'] = $options['cols'];
+        $js_options['cols'] = $options['cols'];
       }
       if (isset($options['rows']))
       {
-        $jsOptions['rows'] = $options['rows'];
+        $js_options['rows'] = $options['rows'];
       }
       if (isset($options['external_control']))
       {
-        $jsOptions['externalControl'] = $options['external_control'];
+        $js_options['externalControl'] = $options['external_control'];
       }
       if (isset($options['options']))
       {
-        $jsOptions['ajaxOptions'] = $options['options'];
+        $js_options['ajaxOptions'] = $options['options'];
       }
       if (isset($options['with']))
       {
-        $jsOptions['callback'] = "function(form) { return".$options['with']."}";
+        $js_options['callback'] = "function(form) { return".$options['with']."}";
       }
       if (isset($options['highlightcolor']))
       {
-        $jsOptions['highlightcolor'] = "'".$options['highlightcolor']."'";
+        $js_options['highlightcolor'] = "'".$options['highlightcolor']."'";
       }
       if (isset($options['highlightendcolor']))
       {
-        $jsOptions['highlightendcolor'] = "'".$options['highlightendcolor']."'";
+        $js_options['highlightendcolor'] = "'".$options['highlightendcolor']."'";
       }
       if(isset($options['loadTextURL']))
       {
-        $jsOptions['loadTextURL'] =  "'".$options['loadTextURL']."'";
+        $js_options['loadTextURL'] =  "'".$options['loadTextURL']."'";
       }
 
-      $javascript .= ', '._options_for_javascript($jsOptions);
+      $javascript .= ', '._options_for_javascript($js_options);
       $javascript .= ');';
 
       return javascript_tag($javascript);
@@ -845,61 +842,61 @@
    * @param array completion options
    * @return string javascript tag for Ajax.Autocompleter
    */
-  function _auto_complete_field($fieldId, $url, $options = array())
+  function _auto_complete_field($field_id, $url, $options = array())
   {
     $javascript = "new Ajax.Autocompleter(";
 
-    $javascript .= "'$fieldId', ";
+    $javascript .= "'$field_id', ";
     if (isset($options['update']))
     {
       $javascript .= "'".$options['update']."', ";
     }
     else
     {
-      $javascript .= "'{$fieldId}_auto_complete', ";
+      $javascript .= "'{$field_id}_auto_complete', ";
     }
 
     $javascript .= "'".url_for($url)."'";
 
-    $jsOptions = array();
+    $js_options = array();
     if (isset($options['tokens']))
     {
-      $jsOptions['tokens'] = _array_or_string_for_javascript($options['tokens']);
+      $js_options['tokens'] = _array_or_string_for_javascript($options['tokens']);
     }
     if (isset ($options['with']))
     {
-      $jsOptions['callback'] = "function(element, value) { return".$options['with']."}";
+      $js_options['callback'] = "function(element, value) { return".$options['with']."}";
     }
     if (isset($options['indicator']))
     {
-      $jsOptions['indicator']  = "'".$options['indicator']."'";
+      $js_options['indicator']  = "'".$options['indicator']."'";
     }
     if (isset($options['on_show']))
     {
-      $jsOptions['onShow'] = $options['on_show'];
+      $js_options['onShow'] = $options['on_show'];
     }
     if (isset($options['on_hide']))
     {
-      $jsOptions['onHide'] = $options['on_hide'];
+      $js_options['onHide'] = $options['on_hide'];
     }
     if (isset($options['min_chars']))
     {
-      $jsOptions['minChars'] = $options['min_chars'];
+      $js_options['minChars'] = $options['min_chars'];
     }
     if (isset($options['frequency']))
     {
-      $jsOptions['frequency'] = $options['frequency'];
+      $js_options['frequency'] = $options['frequency'];
     }
     if (isset($options['update_element']))
     {
-      $jsOptions['updateElement'] = $options['update_element'];
+      $js_options['updateElement'] = $options['update_element'];
     }
     if (isset($options['after_update_element']))
     {
-      $jsOptions['afterUpdateElement'] = $options['after_update_element'];
+      $js_options['afterUpdateElement'] = $options['after_update_element'];
     }
 
-    $javascript .= ', '._options_for_javascript($jsOptions).');';
+    $javascript .= ', '._options_for_javascript($js_options).');';
 
     return javascript_tag($javascript);
   }
@@ -922,7 +919,7 @@
     {
       return "['".join('\',\'', $option)."']";
     }
-    elseif ($option)
+    else if ($option)
     {
       return "'$option'";
     }
@@ -930,33 +927,27 @@
 
   function _options_for_ajax($options)
   {
-    $jsOptions = _build_callbacks($options);
+    $js_options = _build_callbacks($options);
 
-    $jsOptions['asynchronous'] = (isset($options['type'])) ? ($options['type'] != 'synchronous') : 'true';
-    if (isset($options['method']))
-    {
-      $jsOptions['method'] = _method_option_to_s($options['method']);
-    }
-    if (isset($options['position']))
-    {
-      $jsOptions['insertion'] = "Insertion.".sfInflector::camelize($options['position']);
-    }
-    $jsOptions['evalScripts'] = (!isset($options['script']) || $options['script'] == '0' || $options['script'] == false) ? 'false' : 'true';
+    $js_options['asynchronous'] = (isset($options['type'])) ? ($options['type'] != 'synchronous') : 'true';
+    if (isset($options['method'])) $js_options['method'] = _method_option_to_s($options['method']);
+    if (isset($options['position'])) $js_options['insertion'] = "Insertion.".sfInflector::camelize($options['position']);
+    $js_options['evalScripts'] = (!isset($options['script']) || $options['script'] == '0' || $options['script'] == false) ? 'false' : 'true';
 
     if (isset($options['form']))
     {
-      $jsOptions['parameters'] = 'Form.serialize(this)';
+      $js_options['parameters'] = 'Form.serialize(this)';
     }
-    elseif (isset($options['submit']))
+    else if (isset($options['submit']))
     {
-      $jsOptions['parameters'] = "Form.serialize(document.getElementById('{$options['submit']}'))";
+      $js_options['parameters'] = "Form.serialize(document.getElementById('{$options['submit']}'))";
     }
-    elseif (isset($options['with']))
+    else if (isset($options['with']))
     {
-      $jsOptions['parameters'] = $options['with'];
+      $js_options['parameters'] = $options['with'];
     }
 
-    return _options_for_javascript($jsOptions);
+    return _options_for_javascript($js_options);
   }
 
   function _method_option_to_s($method)

@@ -3,7 +3,7 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- *
+ * 
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -29,7 +29,7 @@ class sfConfig
    *
    * @return mixed A config parameter value, if the config parameter exists, otherwise null.
    */
-  public static function get($name, $default = null)
+  public static function get ($name, $default = null)
   {
     return isset(self::$config[$name]) ? self::$config[$name] : $default;
   }
@@ -44,7 +44,7 @@ class sfConfig
    *
    * @return void
    */
-  public static function set($name, $value)
+  public static function set ($name, $value)
   {
     self::$config[$name] = $value;
   }
@@ -59,7 +59,7 @@ class sfConfig
    *
    * @return void
    */
-  public static function add($parameters = array())
+  public static function add ($parameters = array())
   {
     self::$config = array_merge(self::$config, $parameters);
   }
@@ -69,7 +69,7 @@ class sfConfig
    *
    * @return array An associative array of configuration parameters.
    */
-  public static function getAll()
+  public function getAll ()
   {
     return self::$config;
   }
@@ -79,7 +79,7 @@ class sfConfig
    *
    * @return void
    */
-  public static function clear()
+  public static function clear ()
   {
     self::$config = null;
     self::$config = array();

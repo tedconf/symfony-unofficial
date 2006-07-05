@@ -19,15 +19,13 @@
  */
 class sfHtmlValidator extends sfValidator
 {
-    public function execute(&$value, &$error)
+    public function execute (&$value, &$error)
     {
       if (trim(strip_tags($value)) == '')
       {
         // If page contains an object or an image, it's ok
         if (preg_match('/<img/i', $value) || preg_match('/<object/i', $value))
-        {
           return true;
-        }
         else
         {
           $error = $this->getParameterHolder()->get('html_error');
@@ -38,10 +36,10 @@ class sfHtmlValidator extends sfValidator
       return true;
     }
 
-    public function initialize($context, $parameters = null)
+    public function initialize ($context, $parameters = null)
     {
-      // function initialize( parent
-      parent::function initialize(($context);
+      // initialize parent
+      parent::initialize($context);
 
       // set defaults
       $this->getParameterHolder()->set('html_error', 'Invalid input');

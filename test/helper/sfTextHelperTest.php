@@ -79,24 +79,24 @@ class sfTextHelperTest extends UnitTestCase
 
   public function test_auto_linking()
   {
-    $emailRaw = 'fabien.potencier@symfony-project.com.com';
-    $emailResult = '<a href="mailto:'.$emailRaw.'">'.$emailRaw.'</a>';
-    $linkRaw = 'http://www.google.com';
-    $linkResult = '<a href="'.$linkRaw.'">'.$linkRaw.'</a>';
-    $link2Raw = 'www.google.com';
-    $link2Result = '<a href="http://'.$link2Raw.'">'.$link2Raw.'</a>';
+    $email_raw = 'fabien.potencier@symfony-project.com.com';
+    $email_result = '<a href="mailto:'.$email_raw.'">'.$email_raw.'</a>';
+    $link_raw = 'http://www.google.com';
+    $link_result = '<a href="'.$link_raw.'">'.$link_raw.'</a>';
+    $link2_raw = 'www.google.com';
+    $link2_result = '<a href="http://'.$link2_raw.'">'.$link2_raw.'</a>';
 
-    $this->assertEqual('hello '.$emailResult, auto_link_text('hello '.$emailRaw, 'email_addresses'));
-    $this->assertEqual('Go to '.$linkResult, auto_link_text('Go to '.$linkRaw, 'urls'));
-    $this->assertEqual('Go to '.$linkRaw, auto_link_text('Go to '.$linkRaw, 'email_addresses'));
-    $this->assertEqual('Go to '.$linkResult.' and say hello to '.$emailResult,
-      auto_link_text('Go to '.$linkRaw.' and say hello to '.$emailRaw));
-    $this->assertEqual('<p>Link '.$linkResult.'</p>', auto_link_text('<p>Link '.$linkRaw.'</p>'));
-    $this->assertEqual('<p>'.$linkResult.' Link</p>', auto_link_text('<p>'.$linkRaw.' Link</p>'));
-    $this->assertEqual('Go to '.$link2Result, auto_link_text('Go to '.$link2Raw, 'urls'));
-    $this->assertEqual('Go to '.$link2Raw, auto_link_text('Go to '.$link2Raw, 'email_addresses'));
-    $this->assertEqual('<p>Link '.$link2Result.'</p>', auto_link_text('<p>Link '.$link2Raw.'</p>'));
-    $this->assertEqual('<p>'.$link2Result.' Link</p>', auto_link_text('<p>'.$link2Raw.' Link</p>'));
+    $this->assertEqual('hello '.$email_result, auto_link_text('hello '.$email_raw, 'email_addresses'));
+    $this->assertEqual('Go to '.$link_result, auto_link_text('Go to '.$link_raw, 'urls'));
+    $this->assertEqual('Go to '.$link_raw, auto_link_text('Go to '.$link_raw, 'email_addresses'));
+    $this->assertEqual('Go to '.$link_result.' and say hello to '.$email_result,
+      auto_link_text('Go to '.$link_raw.' and say hello to '.$email_raw));
+    $this->assertEqual('<p>Link '.$link_result.'</p>', auto_link_text('<p>Link '.$link_raw.'</p>'));
+    $this->assertEqual('<p>'.$link_result.' Link</p>', auto_link_text('<p>'.$link_raw.' Link</p>'));
+    $this->assertEqual('Go to '.$link2_result, auto_link_text('Go to '.$link2_raw, 'urls'));
+    $this->assertEqual('Go to '.$link2_raw, auto_link_text('Go to '.$link2_raw, 'email_addresses'));
+    $this->assertEqual('<p>Link '.$link2_result.'</p>', auto_link_text('<p>Link '.$link2_raw.'</p>'));
+    $this->assertEqual('<p>'.$link2_result.' Link</p>', auto_link_text('<p>'.$link2_raw.' Link</p>'));
   }
 }
 

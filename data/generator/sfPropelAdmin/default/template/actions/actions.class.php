@@ -87,10 +87,10 @@ class <?php echo $this->getGeneratedModuleName() ?>Actions extends sfActions
 
 <?php foreach ($this->getColumnCategories('edit.display') as $category): ?>
 <?php foreach ($this->getColumns('edit.display', $category) as $name => $column): ?>
-<?php $inputType = $this->getParameterValue('edit.fields.'.$column->getName().'.type') ?>
-<?php if ($inputType == 'admin_input_upload_tag'): ?>
-<?php $uploadDir = $this->getParameterValue('edit.fields.'.$column->getName().'.upload_dir') ?>
-      $currentFile = sfConfig::get('sf_upload_dir').'/<?php echo $uploadDir ?>/'.$this-><?php echo $this->getSingularName() ?>->get<?php echo $column->getPhpName() ?>();
+<?php $input_type = $this->getParameterValue('edit.fields.'.$column->getName().'.type') ?>
+<?php if ($input_type == 'admin_input_upload_tag'): ?>
+<?php $upload_dir = $this->getParameterValue('edit.fields.'.$column->getName().'.upload_dir') ?>
+      $currentFile = sfConfig::get('sf_upload_dir').'/<?php echo $upload_dir ?>/'.$this-><?php echo $this->getSingularName() ?>->get<?php echo $column->getPhpName() ?>();
       if (is_file($currentFile))
       {
         unlink($currentFile);
@@ -120,14 +120,14 @@ class <?php echo $this->getGeneratedModuleName() ?>Actions extends sfActions
 <?php $name = $column->getName() ?>
 <?php if ($column->isPrimaryKey()) continue ?>
 <?php $credentials = $this->getParameterValue('edit.fields.'.$column->getName().'.credentials') ?>
-<?php $inputType = $this->getParameterValue('edit.fields.'.$column->getName().'.type') ?>
+<?php $input_type = $this->getParameterValue('edit.fields.'.$column->getName().'.type') ?>
 <?php if ($credentials): $credentials = str_replace("\n", ' ', var_export($credentials, true)) ?>
     if ($this->getUser()->hasCredential(<?php echo $credentials ?>))
     {
 <?php endif ?>
-<?php if ($inputType == 'admin_input_upload_tag'): ?>
-<?php $uploadDir = $this->getParameterValue('edit.fields.'.$column->getName().'.upload_dir') ?>
-    $currentFile = sfConfig::get('sf_upload_dir').'/<?php echo $uploadDir ?>/'.$this-><?php echo $this->getSingularName() ?>->get<?php echo $column->getPhpName() ?>();
+<?php if ($input_type == 'admin_input_upload_tag'): ?>
+<?php $upload_dir = $this->getParameterValue('edit.fields.'.$column->getName().'.upload_dir') ?>
+    $currentFile = sfConfig::get('sf_upload_dir').'/<?php echo $upload_dir ?>/'.$this-><?php echo $this->getSingularName() ?>->get<?php echo $column->getPhpName() ?>();
     if (!$this->getRequest()->hasErrors() && isset($<?php echo $this->getSingularName() ?>['<?php echo $name ?>_remove']))
     {
       $this-><?php echo $this->getSingularName() ?>->set<?php echo $column->getPhpName() ?>('');
@@ -143,14 +143,14 @@ class <?php echo $this->getGeneratedModuleName() ?>Actions extends sfActions
     if (isset($<?php echo $this->getSingularName() ?>['<?php echo $name ?>']))
     {
 <?php endif ?>
-<?php if ($inputType == 'admin_input_upload_tag'): ?>
+<?php if ($input_type == 'admin_input_upload_tag'): ?>
       $fileName = md5($this->getRequest()->getFileName('<?php echo $this->getSingularName() ?>[<?php echo $name ?>]').time());
       $ext = $this->getRequest()->getFileExtension('<?php echo $this->getSingularName() ?>[<?php echo $name ?>]');
       if (is_file($currentFile))
       {
         unlink($currentFile);
       }
-      $this->getRequest()->moveFile('<?php echo $this->getSingularName() ?>[<?php echo $name ?>]', sfConfig::get('sf_upload_dir').'/<?php echo $uploadDir ?>/'.$fileName.$ext);
+      $this->getRequest()->moveFile('<?php echo $this->getSingularName() ?>[<?php echo $name ?>]', sfConfig::get('sf_upload_dir').'/<?php echo $upload_dir ?>/'.$fileName.$ext);
       $this-><?php echo $this->getSingularName() ?>->set<?php echo $column->getPhpName() ?>($fileName.$ext);
 <?php elseif ($type == CreoleTypes::DATE || $type == CreoleTypes::TIMESTAMP): ?>
       if ($<?php echo $this->getSingularName() ?>['<?php echo $name ?>'])
@@ -230,15 +230,15 @@ class <?php echo $this->getGeneratedModuleName() ?>Actions extends sfActions
 
   protected function addSortCriteria (&$c)
   {
-    if ($sortColumn = $this->getUser()->getAttribute('sort', null, 'sf_admin/<?php echo $this->getSingularName() ?>/sort'))
+    if ($sort_column = $this->getUser()->getAttribute('sort', null, 'sf_admin/<?php echo $this->getSingularName() ?>/sort'))
     {
       if ($this->getUser()->getAttribute('type', null, 'sf_admin/<?php echo $this->getSingularName() ?>/sort') == 'asc')
       {
-        $c->addAscendingOrderByColumn($sortColumn);
+        $c->addAscendingOrderByColumn($sort_column);
       }
       else
       {
-        $c->addDescendingOrderByColumn($sortColumn);
+        $c->addDescendingOrderByColumn($sort_column);
       }
     }
   }

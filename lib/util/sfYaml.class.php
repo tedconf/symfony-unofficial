@@ -21,7 +21,7 @@ class sfYaml
   /**
    * Load YAML into a PHP array statically
    *
-   * The function load( method, when supplied with a YAML stream (string or file),
+   * The load method, when supplied with a YAML stream (string or file),
    * will do its best to convert YAML in a file into a PHP array.
    *
    *  Usage:
@@ -33,12 +33,12 @@ class sfYaml
    * @return array
    * @param string $input Path of YAML file or string containing YAML
    */
-  public static function load($input)
+  public static function load ($input)
   {
     $input = self::getIncludeContents($input);
 
     // syck is prefered over spyc
-    if (extension_loaded('syck'))
+    if (function_exists('syck_load'))
     {
       $retval = syck_load($input);
 
@@ -64,13 +64,13 @@ class sfYaml
   /**
    * Dump YAML from PHP array statically
    *
-   * The function dump( method, when supplied with an array, will do its best
+   * The dump method, when supplied with an array, will do its best
    * to convert the array into friendly YAML.
    *
    * @return string
    * @param array $array PHP array
    */
-  public static function dump($array)
+  public static function dump ($array)
   {
     $spyc = new Spyc();
 

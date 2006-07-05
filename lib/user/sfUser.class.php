@@ -32,8 +32,8 @@ class sfUser
   const CULTURE_NAMESPACE = 'symfony/user/sfUser/culture';
 
   private
-    $parameterHolder = null,
-    $attributeHolder = null,
+    $parameter_holder = null,
+    $attribute_holder = null,
     $culture = null;
 
   protected
@@ -44,7 +44,7 @@ class sfUser
    *
    * @return Context A Context instance.
    */
-  public function getContext()
+  public function getContext ()
   {
     return $this->context;
   }
@@ -60,14 +60,14 @@ class sfUser
    *
    * @throws <b>sfInitializationException</b> If an error occurs while initializing this User.
    */
-  public function initialize($context, $parameters = array())
+  public function initialize ($context, $parameters = array())
   {
     $this->context = $context;
 
-    $this->parameterHolder = new sfParameterHolder();
-    $this->parameterHolder->add($parameters);
+    $this->parameter_holder = new sfParameterHolder();
+    $this->parameter_holder->add($parameters);
 
-    $this->attributeHolder = new sfParameterHolder(self::ATTRIBUTE_NAMESPACE);
+    $this->attribute_holder = new sfParameterHolder(self::ATTRIBUTE_NAMESPACE);
 
     // read attributes from storage
     $attributes = $this->getContext()->getStorage()->read(self::ATTRIBUTE_NAMESPACE);
@@ -75,7 +75,7 @@ class sfUser
     {
       foreach ($attributes as $namespace => $values)
       {
-        $this->attributeHolder->add($values, $namespace);
+        $this->attribute_holder->add($values, $namespace);
       }
     }
 
@@ -97,7 +97,7 @@ class sfUser
    *
    * @throws <b>sfFactoryException</b> If a user implementation instance cannot
    */
-  public static function newInstance($class)
+  public static function newInstance ($class)
   {
     // the class exists
     $object = new $class();
@@ -119,7 +119,7 @@ class sfUser
    *
    * @param  string culture
    */
-  public function setCulture($culture)
+  public function setCulture ($culture)
   {
     if ($this->culture != $culture)
     {
@@ -145,57 +145,57 @@ class sfUser
 
   public function getParameterHolder()
   {
-    return $this->parameterHolder;
+    return $this->parameter_holder;
   }
 
   public function getAttributeHolder()
   {
-    return $this->attributeHolder;
+    return $this->attribute_holder;
   }
 
   public function getAttribute($name, $default = null, $ns = null)
   {
-    return $this->attributeHolder->get($name, $default, $ns);
+    return $this->attribute_holder->get($name, $default, $ns);
   }
 
   public function hasAttribute($name, $ns = null)
   {
-    return $this->attributeHolder->has($name, $ns);
+    return $this->attribute_holder->has($name, $ns);
   }
 
   public function setAttribute($name, $value, $ns = null)
   {
-    return $this->attributeHolder->set($name, $value, $ns);
+    return $this->attribute_holder->set($name, $value, $ns);
   }
 
   public function getParameter($name, $default = null, $ns = null)
   {
-    return $this->parameterHolder->get($name, $default, $ns);
+    return $this->parameter_holder->get($name, $default, $ns);
   }
 
   public function hasParameter($name, $ns = null)
   {
-    return $this->parameterHolder->has($name, $ns);
+    return $this->parameter_holder->has($name, $ns);
   }
 
   public function setParameter($name, $value, $ns = null)
   {
-    return $this->parameterHolder->set($name, $value, $ns);
+    return $this->parameter_holder->set($name, $value, $ns);
   }
 
   /**
-   * Execute the function shutdown( procedure.
+   * Execute the shutdown procedure.
    *
    * @return void
    */
-  public function shutdown()
+  public function shutdown ()
   {
     $storage = $this->getContext()->getStorage();
 
     $attributes = array();
-    foreach ($this->attributeHolder->getNamespaces() as $namespace)
+    foreach ($this->attribute_holder->getNamespaces() as $namespace)
     {
-      $attributes[$namespace] = $this->attributeHolder->getAll($namespace);
+      $attributes[$namespace] = $this->attribute_holder->getAll($namespace);
     }
 
     // write attributes to the storage

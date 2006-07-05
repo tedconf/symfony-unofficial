@@ -38,7 +38,7 @@ class sfCacheFilter extends sfFilter
    *
    * @return void
    */
-  public function execute($filterChain)
+  public function execute ($filterChain)
   {
     if (sfConfig::get('sf_cache'))
     {
@@ -86,7 +86,7 @@ class sfCacheFilter extends sfFilter
       }
     }
 
-    // function execute( next filter
+    // execute next filter
     $filterChain->execute();
   }
 
@@ -97,7 +97,7 @@ class sfCacheFilter extends sfFilter
    *
    * @return void
    */
-  public function executeBeforeRendering($filterChain)
+  public function executeBeforeRendering ($filterChain)
   {
     if (sfConfig::get('sf_cache'))
     {
@@ -140,7 +140,7 @@ class sfCacheFilter extends sfFilter
       }
     }
 
-    // function execute( next filter
+    // execute next filter
     $filterChain->execute();
   }
 

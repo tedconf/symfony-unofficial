@@ -38,8 +38,8 @@ class sfPropelCrudGenerator extends sfGenerator
 
   public function generate($params = array())
   {
-    $requiredParameters = array('model_class', 'moduleName');
-    foreach ($requiredParameters as $entry)
+    $required_parameters = array('model_class', 'moduleName');
+    foreach ($required_parameters as $entry)
     {
       if (!isset($params[$entry]))
       {
@@ -107,17 +107,17 @@ class sfPropelCrudGenerator extends sfGenerator
     $classes = sfFinder::type('file')->name('*MapBuilder.php')->relative()->in(sfConfig::get('sf_lib_dir') ? sfConfig::get('sf_lib_dir').'/model' : 'lib/model');
     foreach ($classes as $class)
     {
-      $classMapBuilder = basename($class, '.php');
-      require_once(sfConfig::get('sf_model_lib_dir').'/map/'.$classMapBuilder.'.php');
-      $maps[$classMapBuilder] = new $classMapBuilder();
-      if (!$maps[$classMapBuilder]->isBuilt())
+      $class_map_builder = basename($class, '.php');
+      require_once(sfConfig::get('sf_model_lib_dir').'/map/'.$class_map_builder.'.php');
+      $maps[$class_map_builder] = new $class_map_builder();
+      if (!$maps[$class_map_builder]->isBuilt())
       {
-        $maps[$classMapBuilder]->doBuild();
+        $maps[$class_map_builder]->doBuild();
       }
 
-      if ($this->className == str_replace('MapBuilder', '', $classMapBuilder))
+      if ($this->className == str_replace('MapBuilder', '', $class_map_builder))
       {
-        $this->map = $maps[$classMapBuilder];
+        $this->map = $maps[$class_map_builder];
       }
     }
     if (!$this->map)
@@ -141,38 +141,38 @@ class sfPropelCrudGenerator extends sfGenerator
 
   public function getMethodParamsForGetOrCreate()
   {
-    $methodParams = array();
+    $method_params = array();
     foreach ($this->getPrimaryKey() as $pk)
     {
       $fieldName       = sfInflector::underscore($pk->getPhpName());
-      $methodParams[] = "\$$fieldName = '$fieldName'";
+      $method_params[] = "\$$fieldName = '$fieldName'";
     }
 
-    return implode(', ', $methodParams);
+    return implode(', ', $method_params);
   }
 
   public function getTestPksForGetOrCreate()
   {
-    $testPks = array();
+    $test_pks = array();
     foreach ($this->getPrimaryKey() as $pk)
     {
       $fieldName  = sfInflector::underscore($pk->getPhpName());
-      $testPks[] = "!\$this->getRequestParameter('$fieldName', 0)";
+      $test_pks[] = "!\$this->getRequestParameter('$fieldName', 0)";
     }
 
-    return implode("\n     || ", $testPks);
+    return implode("\n     || ", $test_pks);
   }
 
   public function getRetrieveByPkParamsForGetOrCreate()
   {
-    $retrieveParams = array();
+    $retrieve_params = array();
     foreach ($this->getPrimaryKey() as $pk)
     {
       $fieldName         = sfInflector::underscore($pk->getPhpName());
-      $retrieveParams[] = "\$this->getRequestParameter(\$$fieldName)";
+      $retrieve_params[] = "\$this->getRequestParameter(\$$fieldName)";
     }
 
-    return implode(",\n".str_repeat(' ', max(0, 45 - strlen($this->singularName.$this->className))), $retrieveParams);
+    return implode(",\n".str_repeat(' ', max(0, 45 - strlen($this->singularName.$this->className))), $retrieve_params);
   }
 
   public function getTableMap()
@@ -263,9 +263,9 @@ class sfPropelCrudGenerator extends sfGenerator
     return implode(' && ', $params);
   }
 
-  protected function getObjectTagParams($params, $defaultParams = array())
+  protected function getObjectTagParams($params, $default_params = array())
   {
-    return var_export(array_merge($defaultParams, $params), true);
+    return var_export(array_merge($default_params, $params), true);
   }
 
   public function getColumnListTag($column, $params = array())

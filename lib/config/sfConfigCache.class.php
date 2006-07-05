@@ -68,7 +68,7 @@ class sfConfigCache
       // we have a handler associated with the full configuration path
       $handlerToCall = $this->handlers[$handler];
     }
-    elseif (isset($this->handlers[$basename]))
+    else if (isset($this->handlers[$basename]))
     {
       // we have a handler associated with the configuration base name
       $handlerToCall = $this->handlers[$basename];

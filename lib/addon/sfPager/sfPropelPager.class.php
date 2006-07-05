@@ -3,7 +3,7 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- *
+ * 
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -25,20 +25,20 @@
 class sfPropelPager
 {
   private
-    $page                = 1,
-    $maxPerPage          = 0,
-    $lastPage            = 1,
-    $nbResults           = 0,
-    $class               = '',
-    $tableName           = '',
-    $criteria            = null,
-    $objects             = null,
-    $cursor              = 1,
-    $parameters          = array(),
-    $currentMaxLink      = 1,
-    $parameterHolder     = null,
-    $peerMethodName      = 'doSelect',
-    $peerCountMethodName = 'doCount';
+    $page                   = 1,
+    $maxPerPage             = 0,
+    $lastPage               = 1,
+    $nbResults              = 0,
+    $class                  = '',
+    $tableName              = '',
+    $criteria               = null,
+    $objects                = null,
+    $cursor                 = 1,
+    $parameters             = array(),
+    $currentMaxLink         = 1,
+    $parameter_holder       = null,
+    $peer_method_name       = 'doSelect',
+    $peer_count_method_name = 'doCount';
 
   public function __construct($class, $defaultMaxPerPage = 10)
   {
@@ -47,7 +47,7 @@ class sfPropelPager
     $this->setCriteria(new Criteria());
     $this->setMaxPerPage($defaultMaxPerPage);
     $this->setPage(1);
-    $this->parameterHolder = new sfParameterHolder();
+    $this->parameter_holder = new sfParameterHolder();
   }
 
   public function init()
@@ -79,22 +79,22 @@ class sfPropelPager
 
   public function getPeerMethod()
   {
-    return $this->peerMethodName;
+    return $this->peer_method_name;
   }
 
-  public function setPeerMethod($peerMethodName)
+  public function setPeerMethod($peer_method_name)
   {
-    $this->peerMethodName = $peerMethodName;
+    $this->peer_method_name = $peer_method_name;
   }
 
   public function getPeerCountMethod()
   {
-    return $this->peerCountMethodName;
+    return $this->peer_count_method_name;
   }
 
-  public function setPeerCountMethod($peerCountMethodName)
+  public function setPeerCountMethod($peer_count_method_name)
   {
-    $this->peerCountMethodName = $peerCountMethodName;
+    $this->peer_count_method_name = $peer_count_method_name;
   }
 
   public function getCurrentMaxLink()
@@ -102,16 +102,16 @@ class sfPropelPager
     return $this->currentMaxLink;
   }
 
-  public function getLinks($nbLinks = 5)
+  public function getLinks($nb_links = 5)
   {
     $links = array();
-    $tmp = $this->page - floor($nbLinks / 2);
-    $check = $this->lastPage - $nbLinks + 1;
+    $tmp   = $this->page - floor($nb_links / 2);
+    $check = $this->lastPage - $nb_links + 1;
     $limit = ($check > 0) ? $check : 1;
     $begin = ($tmp > 0) ? (($tmp > $limit) ? $limit : $tmp) : 1;
 
     $i = $begin;
-    while (($i < $begin + $nbLinks) && ($i <= $this->lastPage))
+    while (($i < $begin + $nb_links) && ($i <= $this->lastPage))
     {
       $links[] = $i++;
     }
@@ -119,7 +119,7 @@ class sfPropelPager
     $this->currentMaxLink = $links[count($links) - 1];
 
     return $links;
-  }
+  }    
 
   public function haveToPaginate()
   {
@@ -137,7 +137,7 @@ class sfPropelPager
     {
       $this->cursor = 1;
     }
-    elseif ($pos > $this->nbResults)
+    else if ($pos > $this->nbResults)
     {
       $this->cursor = $this->nbResults;
     }
@@ -321,7 +321,7 @@ class sfPropelPager
         $this->page = 1;
       }
     }
-    elseif ($max == 0)
+    else if ($max == 0)
     {
       $this->maxPerPage = 0;
       $this->page = 0;
@@ -338,7 +338,7 @@ class sfPropelPager
 
   public function getParameterHolder()
   {
-    return $this->parameterHolder;
+    return $this->parameter_holder;
   }
 }
 
