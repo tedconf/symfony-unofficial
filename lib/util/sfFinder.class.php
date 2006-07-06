@@ -3,7 +3,7 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- * 
+ *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -231,6 +231,20 @@ class sfFinder
   }
 
   /**
+   * Ignores version control directories.
+   *
+   * Currently supports subversion, CVS, DARCS, Gnu Arch, Monotone, Bazaar-NG
+   *
+   * @return object current pakeFinder object
+   */
+  public function ignore_version_control()
+  {
+    $ignores = array('.svn', 'CVS', '_darcs', '.arch-params', '.monotone', '.bzr');
+
+    return $this->discard($ignores)->prune($ignores);
+  }
+
+  /**
    * Executes function or method for each element.
    *
    * Element match if functino or method returns true.
@@ -295,7 +309,7 @@ class sfFinder
     $files    = array();
     $here_dir = getcwd();
     $numargs  = func_num_args();
-    $arg_list = func_get_args(); 
+    $arg_list = func_get_args();
 
     // first argument is an array?
     if ($numargs == 1 && is_array($arg_list[0]))
@@ -641,9 +655,9 @@ class sfGlobToRegex
  * Now this would be very pointless, if sfNumberCompare didn't understand
  * magnitudes.
 
- * The target value may use magnitudes of kilobytes (C<k>, C<ki>),
- * megabytes (C<m>, C<mi>), or gigabytes (C<g>, C<gi>).  Those suffixed
- * with an C<i> use the appropriate 2**n version in accordance with the
+ * The target value may use magnitudes of kilobytes (k, ki),
+ * megabytes (m, mi), or gigabytes (g, gi).  Those suffixed
+ * with an i use the appropriate 2**n version in accordance with the
  * IEC standard: http://physics.nist.gov/cuu/Units/binary.html
  *
  * based on perl Number::Compare module.
@@ -707,5 +721,3 @@ class sfNumberCompare
     return false;
   }
 }
-
-?>

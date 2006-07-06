@@ -113,7 +113,8 @@ abstract class sfWebController extends sfController
 
     if ($absolute)
     {
-      $url = 'http://'.$this->getContext()->getRequest()->getHost().$url;
+      $request = $this->getContext()->getRequest();
+      $url = 'http'.($request->isSecure() ? 's' : '').'://'.$request->getHost().$url;
     }
 
     if ($fragment)
@@ -209,5 +210,3 @@ abstract class sfWebController extends sfController
     $response->sendContent();
   }
 }
-
-?>

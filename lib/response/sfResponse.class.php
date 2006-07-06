@@ -3,7 +3,7 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- * 
+ *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -41,6 +41,11 @@ abstract class sfResponse
 
     $this->parameter_holder = new sfParameterHolder();
     $this->parameter_holder->add($parameters);
+  }
+
+  public function setContext ($context)
+  {
+    $this->context = $context;
   }
 
   public function getContext ()
@@ -138,5 +143,3 @@ abstract class sfResponse
    */
   abstract function shutdown ();
 }
-
-?>

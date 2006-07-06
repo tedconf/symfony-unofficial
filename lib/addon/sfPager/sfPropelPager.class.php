@@ -3,13 +3,14 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- * 
+ *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
 
 /**
- * @package    symfony.runtime.addon
+ * @package    symfony
+ * @subpackage addon
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  * @version    SVN: $Id$
  */
@@ -18,7 +19,8 @@
  *
  * sfPropelPager class.
  *
- * @package    symfony.runtime.addon
+ * @package    symfony
+ * @subpackage addon
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  * @version    SVN: $Id$
  */
@@ -119,7 +121,7 @@ class sfPropelPager
     $this->currentMaxLink = $links[count($links) - 1];
 
     return $links;
-  }    
+  }
 
   public function haveToPaginate()
   {
@@ -303,7 +305,9 @@ class sfPropelPager
 
   public function setPage($page)
   {
-    $this->page = ($page < 0) ? 1 : $page;
+    $page = intval($page);
+
+    $this->page = ($page <= 0) ? 1 : $page;
   }
 
   public function getMaxPerPage()
@@ -340,6 +344,19 @@ class sfPropelPager
   {
     return $this->parameter_holder;
   }
-}
 
-?>
+  public function getParameter($name, $default = null, $ns = null)
+  {
+    return $this->parameter_holder->get($name, $default, $ns);
+  }
+
+  public function hasParameter($name, $ns = null)
+  {
+    return $this->parameter_holder->has($name, $ns);
+  }
+
+  public function setParameter($name, $value, $ns = null)
+  {
+    return $this->parameter_holder->set($name, $value, $ns);
+  }
+}

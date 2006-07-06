@@ -9,7 +9,7 @@
 /**
  * The sfLog_console class is a concrete implementation of the sfLog::
  * abstract class which writes message to the text console.
- * 
+ *
  * @author  Jon Parise <jon@php.net>
  * @since   sfLog 1.1
  * @package sfLog
@@ -42,7 +42,7 @@ class sfLog_console extends sfLog
      * @var string
      * @access private
      */
-    var $_lineFormat = '%1$s %2$s [%3$s] %4$s';
+    var $_lineFormat = '%1$s %2$s [%3$ -5s] %4$s';
 
     /**
      * String containing the timestamp format.  It will be passed directly to
@@ -61,13 +61,13 @@ class sfLog_console extends sfLog
      */
     var $_formatMap = array('%{timestamp}'  => '%1$s',
                             '%{ident}'      => '%2$s',
-                            '%{priority}'   => '%3$s',
+                            '%{priority}'   => '%3$ -5s',
                             '%{message}'    => '%4$s',
                             '%\{'           => '%%{');
 
     /**
      * Constructs a new sfLog_console object.
-     * 
+     *
      * @param string $name     Ignored.
      * @param string $ident    The identity string.
      * @param array  $conf     The configuration array.
@@ -132,14 +132,14 @@ class sfLog_console extends sfLog
             fwrite($this->_stream, $this->_buffer);
             $this->_buffer = '';
         }
- 
+
         return fflush($this->_stream);
     }
 
     /**
      * Writes $message to the text console. Also, passes the message
      * along to any sfLog_observer instances that are observing this sfLog.
-     * 
+     *
      * @param mixed  $message    String or object containing the message to log.
      * @param string $priority The priority of the message.  Valid
      *                  values are: SF_PEAR_LOG_EMERG, SF_PEAR_LOG_ALERT,
@@ -184,5 +184,3 @@ class sfLog_console extends sfLog
         return true;
     }
 }
-
-?>

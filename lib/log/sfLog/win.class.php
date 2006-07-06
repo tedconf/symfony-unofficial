@@ -14,7 +14,7 @@
  * entitled "JavaScript Power PHP Debugging:
  *
  *  http://www.zend.com/zend/tut/tutorial-DebugLib.php
- * 
+ *
  * @author  Jon Parise <jon@php.net>
  * @since   sfLog 1.7.0
  * @package sfLog
@@ -60,7 +60,7 @@ class sfLog_win extends sfLog
 
     /**
      * Constructs a new sfLog_win object.
-     * 
+     *
      * @param string $name     Ignored.
      * @param string $ident    The identity string.
      * @param array  $conf     The configuration array.
@@ -204,7 +204,7 @@ END_OF_SCRIPT;
     /**
      * sfLogs $message to the output window.  The message is also passed along
      * to any sfLog_observer instances that are observing this sfLog.
-     * 
+     *
      * @param mixed  $message  String or object containing the message to log.
      * @param string $priority The priority of the message.  Valid
      *                  values are: SF_PEAR_LOG_EMERG, SF_PEAR_LOG_ALERT,
@@ -250,5 +250,3 @@ END_OF_SCRIPT;
         return true;
     }
 }
-
-?>

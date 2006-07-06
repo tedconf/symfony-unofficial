@@ -3,7 +3,7 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- * 
+ *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -12,7 +12,7 @@
  * sfWebResponse class.
  *
  * This class manages web reponses. It supports cookies and headers management.
- * 
+ *
  * @package    symfony
  * @subpackage response
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
@@ -233,12 +233,6 @@ class sfWebResponse extends sfResponse
       $this->getContext()->getLogger()->info('{sfWebResponse} send status "'.$status.'"');
     }
 
-    // set headers from HTTP meta
-    foreach ($this->getHttpMetas() as $name => $value)
-    {
-      $this->setHttpHeader($name, $value, false);
-    }
-
     // headers
     foreach ($this->headers as $name => $values)
     {
@@ -343,6 +337,9 @@ class sfWebResponse extends sfResponse
     if ($override || !$this->hasParameter($key, 'helper/asset/auto/httpmeta'))
     {
       $this->setParameter($key, $value, 'helper/asset/auto/httpmeta');
+
+      // set HTTP header
+      $this->setHttpHeader($key, $value, false);
     }
   }
 
@@ -373,7 +370,7 @@ class sfWebResponse extends sfResponse
   {
     $metas = $this->parameter_holder->getAll('helper/asset/auto/meta');
 
-    return $metas['title'];
+    return (array_key_exists('title', $metas)) ? $metas['title'] : false;
   }
 
   public function setTitle($title, $doNotEscape = false)
@@ -431,6 +428,46 @@ class sfWebResponse extends sfResponse
     $this->setParameter($js, $js, 'helper/asset/auto/javascript'.$position);
   }
 
+  public function getCookies()
+  {
+    $cookies = array();
+    foreach ($this->cookies as $cookie)
+    {
+      $cookies[$cookie['name']] = $cookie;
+    }
+
+    return $cookies;
+  }
+
+  public function getHttpHeaders()
+  {
+    return $this->headers;
+  }
+
+  public function mergeProperties($response)
+  {
+    // add stylesheets
+    foreach (array('first', '', 'last') as $position)
+    {
+      $this->getParameterHolder()->add($response->getStylesheets($position), 'helper/asset/auto/stylesheet'.$position);
+    }
+
+    // add javascripts
+    foreach (array('first', '', 'last') as $position)
+    {
+      $this->getParameterHolder()->add($response->getJavascripts($position), 'helper/asset/auto/javascript'.$position);
+    }
+
+    // add headers
+    foreach ($response->getHttpHeaders() as $name => $values)
+    {
+      foreach ($values as $value)
+      {
+        $this->setHttpHeader($name, $value);
+      }
+    }
+  }
+
   /**
    * Execute the shutdown procedure.
    *
@@ -440,5 +477,3 @@ class sfWebResponse extends sfResponse
   {
   }
 }
-
-?>

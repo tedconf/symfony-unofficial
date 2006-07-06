@@ -79,7 +79,7 @@ class sfLog_sqlite extends sfLog
      *                             to open a new database connection
      *                             or an already opened sqlite connection.
      * @param int    $level        sfLog messages up to and including this level.
-     * @access public     
+     * @access public
      */
     function sfLog_sqlite($name, $ident = '', &$conf, $level = SF_PEAR_LOG_DEBUG)
     {
@@ -104,7 +104,7 @@ class sfLog_sqlite extends sfLog
      * been opened. This is implicitly called by log(), if necessary.
      *
      * @return boolean   True on success, false on failure.
-     * @access public     
+     * @access public
      */
     function open()
     {
@@ -137,7 +137,7 @@ class sfLog_sqlite extends sfLog
      * existing connection that was passed to us via $conf['db'].
      *
      * @return boolean   True on success, false on failure.
-     * @access public     
+     * @access public
      */
     function close()
     {
@@ -165,7 +165,7 @@ class sfLog_sqlite extends sfLog
      *                  SF_PEAR_LOG_CRIT, SF_PEAR_LOG_ERR, SF_PEAR_LOG_WARNING,
      *                  SF_PEAR_LOG_NOTICE, SF_PEAR_LOG_INFO, and SF_PEAR_LOG_DEBUG.
      * @return boolean  True on success or false on failure.
-     * @access public     
+     * @access public
      */
     function log($message, $priority = null)
     {
@@ -232,5 +232,3 @@ class sfLog_sqlite extends sfLog
         return true;
     }
 }
-
-?>

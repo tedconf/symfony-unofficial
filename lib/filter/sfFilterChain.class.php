@@ -4,7 +4,7 @@
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
  * (c) 2004-2006 Sean Kerr.
- * 
+ *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -37,6 +37,8 @@ class sfFilterChain
     ++$this->index;
 
     $max = count($this->chain);
+    $filter = null;
+    $method = null;
     if ($this->index < $max)
     {
       $filter = $this->chain[$this->execution ? ($max - $this->index - 1) : $this->index];
@@ -116,5 +118,3 @@ class sfFilterChain
     $this->renderingFilter = $filter;
   }
 }
-
-?>

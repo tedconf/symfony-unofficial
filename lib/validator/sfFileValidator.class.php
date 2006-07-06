@@ -3,7 +3,7 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- * 
+ *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -83,8 +83,29 @@ class sfFileValidator extends sfValidator
 
     $this->getParameterHolder()->add($parameters);
 
+    // pre-defined categories
+    $categories = array(
+      '@web_images' => array(
+        'image/jpeg',
+        'image/pjpeg',
+        'image/png',
+        'image/x-png',
+        'image/gif',
+      ),
+    );
+
+    if (!is_array($this->getParameter('mime_types')))
+    {
+      if (isset($categories[$this->getParameter('mime_types')]))
+      {
+        $this->setParameter('mime_types', $categories[$this->getParameter('mime_types')]);
+      }
+      else
+      {
+        $this->setParameter('mime_types', array($this->getParameter('mime_types')));
+      }
+    }
+
     return true;
   }
 }
-
-?>

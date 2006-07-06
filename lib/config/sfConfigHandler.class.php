@@ -120,7 +120,7 @@ abstract class sfConfigHandler
    * Replace constant identifiers in a value.
    *
    * If the value is an array replacements are made recursively.
-   * 
+   *
    * @param mixed The value on which to run the replacement procedure.
    *
    * @return string The new value.
@@ -133,7 +133,7 @@ abstract class sfConfigHandler
     }
     else
     {
-      $value = self::replaceConstantsCallback($value);
+      self::replaceConstantsCallback($value);
     }
 
     return $value;
@@ -147,9 +147,9 @@ abstract class sfConfigHandler
    * @param string the value to perform the replacement on
    * @return string the value with substitutions made
    */
-  private static function replaceConstantsCallback($value)
+  private static function replaceConstantsCallback(&$value)
   {
-    return preg_replace('/%(.+?)%/e', 'sfConfig::get(strtolower("\\1"))', $value);
+    $value = preg_replace('/%(.+?)%/e', 'sfConfig::get(strtolower("\\1"))', $value);
   }
 
   /**
@@ -175,5 +175,3 @@ abstract class sfConfigHandler
     return $this->parameter_holder;
   }
 }
-
-?>

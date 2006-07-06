@@ -23,7 +23,7 @@
    * For a given DSN (database connection string), return some information
    * about the DSN. This function comes from PEAR's DB package.
    * @param string DSN format, similar to PEAR's DB
-   * @return array DSN information. 
+   * @return array DSN information.
    */
     function parseDSN($dsn)
     {
@@ -141,7 +141,7 @@
     }
 
   /**
-   * Convert strings to UTF-8 via iconv. NB, the result may not by UTF-8 
+   * Convert strings to UTF-8 via iconv. NB, the result may not by UTF-8
    * if the conversion failed.
    * @param string string to convert to UTF-8
    * @return string UTF-8 encoded string, original string if iconv failed.
@@ -156,7 +156,7 @@
     return $string;
   }
 
-  /** 
+  /**
    * Convert UTF-8 strings to a different encoding. NB. The result
    * may not have been encoded if iconv fails.
    * @param string the UTF-8 string for conversion
@@ -171,5 +171,3 @@
     }
     return $string;
   }
-
-?>

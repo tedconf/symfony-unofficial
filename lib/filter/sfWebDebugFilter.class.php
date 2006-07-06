@@ -3,7 +3,7 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- * 
+ *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -54,8 +54,8 @@ class sfWebDebugFilter extends sfFilter
       // don't add debug toolbar on XHR requests
       // don't add debug if 304
       if (
-          $this->getContext()->getRequest()->isXmlHttpRequest() || 
-          strpos($response->getContentType(), 'text/html') === false ||
+          $this->getContext()->getRequest()->isXmlHttpRequest() ||
+          strpos($response->getContentType(), 'html') === false ||
           $response->getStatusCode() == 304
       )
       {
@@ -70,7 +70,7 @@ class sfWebDebugFilter extends sfFilter
       $newContent = str_ireplace('</body>', $webDebug.'</body>', $content);
       if ($content == $newContent)
       {
-        $newContent .= $content.$webDebug;
+        $newContent .= $webDebug;
       }
 
       $response->setContent($newContent);
@@ -80,5 +80,3 @@ class sfWebDebugFilter extends sfFilter
     $filterChain->execute();
   }
 }
-
-?>

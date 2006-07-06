@@ -4,58 +4,58 @@
  * $Horde: horde/lib/sfLog/mcal.php,v 1.2 2000/06/28 21:36:13 jon Exp $
  *
  * @version $Revision$
- * @package sfLog 
+ * @package sfLog
  */
 
 /**
  * The sfLog_mcal class is a concrete implementation of the sfLog::
  * abstract class which sends messages to a local or remote calendar
  * store accessed through MCAL.
- * 
+ *
  * @author  Chuck Hagenbuch <chuck@horde.org>
  * @since Horde 1.3
  * @since sfLog 1.0
- * @package sfLog 
+ * @package sfLog
  */
 class sfLog_mcal extends sfLog {
 
     /**
-    * holding the calendar specification to connect to. 
+    * holding the calendar specification to connect to.
     * @var string
     * @access private
     */
     var $_calendar = '{localhost/mstore}';
 
-    /** 
-    * holding the username to use. 
+    /**
+    * holding the username to use.
     * @var string
     * @access private
     */
     var $_username = '';
 
-    /** 
-    * holding the password to use. 
+    /**
+    * holding the password to use.
     * @var string
     * @access private
     */
     var $_password = '';
 
-    /** 
-    * holding the options to pass to the calendar stream. 
+    /**
+    * holding the options to pass to the calendar stream.
     * @var integer
     * @access private
     */
     var $_options = 0;
 
-    /** 
-    * ResourceID of the MCAL stream. 
+    /**
+    * ResourceID of the MCAL stream.
     * @var string
     * @access private
     */
     var $_stream = '';
 
-    /** 
-    * Integer holding the log facility to use. 
+    /**
+    * Integer holding the log facility to use.
     * @var string
     * @access private
     */
@@ -64,7 +64,7 @@ class sfLog_mcal extends sfLog {
 
     /**
      * Constructs a new sfLog_mcal object.
-     * 
+     *
      * @param string $name     The category to use for our events.
      * @param string $ident    The identity string.
      * @param array  $conf     The configuration array.
@@ -119,7 +119,7 @@ class sfLog_mcal extends sfLog {
      * calendar stream. Calls open() if necessary. Also passes the
      * message along to any sfLog_observer instances that are observing
      * this sfLog.
-     * 
+     *
      * @param mixed  $message  String or object containing the message to log.
      * @param string $priority The priority of the message. Valid
      *                  values are: SF_PEAR_LOG_EMERG, SF_PEAR_LOG_ALERT,
@@ -167,5 +167,3 @@ class sfLog_mcal extends sfLog {
         return true;
     }
 }
-
-?>

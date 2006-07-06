@@ -4,7 +4,7 @@
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
  * (c) 2004-2006 Sean Kerr.
- * 
+ *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -53,7 +53,7 @@ class sfStringValidator extends sfValidator
   {
     $min = $this->getParameterHolder()->get('min');
 
-    if ($min != null && strlen($value) < $min)
+    if ($min != null && strlen(trim($value)) < $min)
     {
       // too short
       $error = $this->getParameterHolder()->get('min_error');
@@ -63,7 +63,7 @@ class sfStringValidator extends sfValidator
 
     $max = $this->getParameterHolder()->get('max');
 
-    if ($max != null && strlen($value) > $max)
+    if ($max != null && strlen(trim($value)) > $max)
     {
       // too long
       $error = $this->getParameterHolder()->get('max_error');
@@ -118,5 +118,3 @@ class sfStringValidator extends sfValidator
     return true;
   }
 }
-
-?>

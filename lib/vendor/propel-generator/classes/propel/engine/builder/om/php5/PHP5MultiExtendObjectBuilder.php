@@ -24,23 +24,23 @@ require_once 'propel/engine/builder/om/ObjectBuilder.php';
 
 /**
  * Generates the empty PHP5 stub object class for use with inheritance in the user object model (OM).
- * 
+ *
  * This class produces the empty stub class that can be customized with application
  * business logic, custom behavior, etc.
- * 
+ *
  * This class replaces the MultiExtendObject.tpl, with the intent of being easier for users
  * to customize (through extending & overriding).
- * 
+ *
  * @author Hans Lellelid <hans@xmpl.org>
  * @package propel.engine.builder.om.php5
  */
 class PHP5MultiExtendObjectBuilder extends ObjectBuilder {
-	
+
 	/**
 	 * The current child "object" we are operating on.
 	 */
 	private $child;
-	
+
 	/**
 	 * Returns the name of the current class being built.
 	 * @return string
@@ -49,7 +49,7 @@ class PHP5MultiExtendObjectBuilder extends ObjectBuilder {
 	{
 		return $this->getChild()->getClassName();
 	}
-	
+
 	/**
 	 * Override method to return child package, if specified.
 	 * @return string
@@ -58,7 +58,7 @@ class PHP5MultiExtendObjectBuilder extends ObjectBuilder {
 	{
 		return ($this->child->getPackage() ? $this->child->getPackage() : parent::getPackage());
 	}
-	
+
 	/**
 	 * Set the child object that we're operating on currrently.
 	 * @param $child Inheritance
@@ -67,7 +67,7 @@ class PHP5MultiExtendObjectBuilder extends ObjectBuilder {
 	{
 		$this->child = $child;
 	}
-	
+
 	/**
 	 * Returns the child object we're operating on currently.
 	 * @return Inheritance
@@ -80,7 +80,7 @@ class PHP5MultiExtendObjectBuilder extends ObjectBuilder {
 		}
 		return $this->child;
 	}
-	
+
 	/**
 	 * Returns classpath to parent class.
 	 * @return string
@@ -93,7 +93,7 @@ class PHP5MultiExtendObjectBuilder extends ObjectBuilder {
 			return $this->getObjectBuilder()->getClasspath();
 		}
 	}
-	
+
 	/**
 	 * Returns classname of parent class.
 	 * @return string
@@ -102,16 +102,16 @@ class PHP5MultiExtendObjectBuilder extends ObjectBuilder {
 	{
 		return ClassTools::classname($this->getParentClasspath());
 	}
-	
+
 	/**
 	 * Gets the file path to the parent class.
 	 * @return string
 	 */
 	protected function getParentClassFilePath()
 	{
-		$this->getFilePath($this->getParentClasspath());
+		return $this->getFilePath($this->getParentClasspath());
 	}
-	
+
 	/**
 	 * Adds the include() statements for files that this class depends on or utilizes.
 	 * @param string &$script The script will be modified in this method.
@@ -125,20 +125,20 @@ require_once '".$this->getParentClassFilePath()."';
 require_once '".$this->getObjectBuilder()->getClassFilePath()."';
 ";
 	} // addIncludes()
-	
+
 	/**
 	 * Adds class phpdoc comment and openning of class.
 	 * @param string &$script The script will be modified in this method.
 	 */
 	protected function addClassOpen(&$script)
 	{
-		
+
 		$table = $this->getTable();
 		$tableName = $table->getName();
 		$tableDesc = $table->getDescription();
-		
+
 		$baseClassname = $this->getObjectBuilder()->getClassname();
-		
+
 		$script .= "
 
 /**
@@ -160,17 +160,17 @@ require_once '".$this->getObjectBuilder()->getClassFilePath()."';
  * long as it does not already exist in the output directory.
  *
  * @package ".$this->getPackage()."
- */	
+ */
 class ".$this->getClassname()." extends ".$this->getParentClassname()." {
 ";
 	}
-	
+
 	/**
 	 * Specifies the methods that are added as part of the stub object class.
-	 * 
+	 *
 	 * By default there are no methods for the empty stub classes; override this method
 	 * if you want to change that behavior.
-	 * 
+	 *
 	 * @see ObjectBuilder::addClassBody()
 	 */
 	protected function addClassBody(&$script)
@@ -178,9 +178,9 @@ class ".$this->getClassname()." extends ".$this->getParentClassname()." {
 		$child = $this->getChild();
         $col = $child->getColumn();
         $cfc = $col->getPhpName();
-		
+
 		$const = "CLASSKEY_".strtoupper($child->getKey());
-		
+
 		$script .= "
 	/**
 	 * Constructs a new ".$this->getChild()->getClassName()." class, setting the ".$col->getName()." column to ".$this->getPeerClassname()."::$const.
@@ -188,22 +188,22 @@ class ".$this->getClassname()." extends ".$this->getParentClassname()." {
 	public function __construct()
 	{
 ";
-		
+
 		$script .= "
         \$this->set$cfc(".$this->getPeerClassname()."::CLASSKEY_".strtoupper($child->getKey()).");
     }
 ";
 	}
-	
+
 	/**
 	 * Closes class.
 	 * @param string &$script The script will be modified in this method.
-	 */	
+	 */
 	protected function addClassClose(&$script)
 	{
 		$script .= "
 } // " . $this->getClassname() . "
 ";
 	}
-	
+
 } // PHP5ExtensionObjectBuilder

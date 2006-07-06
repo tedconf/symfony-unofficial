@@ -1,16 +1,16 @@
 <!--
-    Use this file to faciliate easy per-project building using 
+    Use this file to faciliate easy per-project building using
 	PEAR-installed Propel-generator.
 
 	This Phing script is invoked via the shell script propel-gen (.bat
 	for Windows).  Normally you should not need to edit this script or
 	be aware of it in any way.
-	
+
     Normal use:
     $> propel-gen /path/to/my/project
-    
-    Specific target: 
-    $> propel-gen insert-sql /path/to/my/project 
+
+    Specific target:
+    $> propel-gen insert-sql /path/to/my/project
 
 -->
 <project name="propel-project-builder" default="main" basedir=".">
@@ -18,13 +18,16 @@
 <!-- set a default target if none provided -->
 <property name="target" value="main"/>
 
+<property name="propel.project.dir" value="${project.dir}"/>
+<resolvepath propertyName="propel.project.dir" file="${propel.project.dir}" dir="${application.startdir}"/>
+
 <target name="projdircheckExists">
   <condition property="projDirExists">
   	<and>
 		<not>
-			<equals arg1="${project.dir}" arg2="" trim="true"/>
+			<equals arg1="${propel.project.dir}" arg2="" trim="true"/>
 		</not>
-		<available file="${project.dir}/build.properties"/>
+		<available file="${propel.project.dir}/build.properties"/>
 	</and>
   </condition>
 </target>
@@ -32,40 +35,40 @@
 <target name="projdircheck" depends="projdircheckExists" unless="projDirExists">
 	<echo message="====================================================="/>
 	<echo message="Project directory not specified or invalid. You must "/>
-	<echo message="specify the ABSOLUTE path to your project directory and "/>
-	<echo message="your project directory must contain your build.properties "/>
+	<echo message="specify the path to your project directory and your "/>
+	<echo message="project directory must contain your build.properties "/>
 	<echo message="and schema.xml files.                                "/>
 	<echo message=" "/>
 	<echo message="Usage: "/>
 	<echo message=" "/>
 	<echo message="$&gt; propel-gen /path/to/projectdir [target]"/>
 	<echo message=" "/>
-	<echo message="====================================================="/>	
-	<fail message="No project directory specified (did you specify a relative path instead of absolute?)."/>
+	<echo message="====================================================="/>
+	<fail message="No project directory specified."/>
 </target>
 
 <target name="configure" depends="projdircheck">
 	<echo msg="Loading project-specific props from ${project.dir}/build.properties"/>
-	<property file="${project.dir}/build.properties"/>
+	<property file="${propel.project.dir}/build.properties"/>
 </target>
 
-<target name="main" depends="configure" 
-  description="The main target. Includes project-specific build.properties and calls the build-propel.xml script">	
+<target name="main" depends="configure"
+  description="The main target. Includes project-specific build.properties and calls the build-propel.xml script">
 
  <!--<property file="${project.dir}/build.properties"/>-->
  <phing phingfile="build-propel.xml" target="${target}"/>
- 
+
 </target>
 
 
-<!-- 
- Convenience mappings to build-propel.xml main targets 
- 
+<!--
+ Convenience mappings to build-propel.xml main targets
+
  This makes it possible to use this buildfile w/o needing to specify
  target as a property, e.g.:
- 
+
  $> phing -Dproject=bookstore insert-sql
- 
+
  The main reason for this is just consistency w/ old build-propel.xml file
  (primarily for documentation & user confusion avoidance reasons).  There are relatively
  few & infrequently changing main targets of build-propel.xml, so it's a non-

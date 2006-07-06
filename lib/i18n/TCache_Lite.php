@@ -17,7 +17,7 @@
  * @package    symfony
  * @subpackage i18n
  */
- 
+
 /**
 * Fast, light and safe Cache Class
 *
@@ -95,11 +95,11 @@ class TCache_Lite
     protected $_file;
 
     /**
-    * Enable / disable write control (the cache is read just after writing 
+    * Enable / disable write control (the cache is read just after writing
     * to detect corrupt entries)
     *
-    * Enable write control will lightly slow the cache writing but not the 
-    * cache reading. Write control can detect some corrupt cache files but 
+    * Enable write control will lightly slow the cache writing but not the
+    * cache reading. Write control can detect some corrupt cache files but
     * maybe it's not a perfect control
     *
     * @var boolean $_writeControl
@@ -109,7 +109,7 @@ class TCache_Lite
     /**
     * Enable / disable read control
     *
-    * If enabled, a control key is embeded in cache file and this key is 
+    * If enabled, a control key is embeded in cache file and this key is
     * compared with the one calculated after the reading.
     *
     * @var boolean $_writeControl
@@ -121,7 +121,7 @@ class TCache_Lite
     *
     * Available values are :
     * 'md5' for a md5 hash control (best but slowest)
-    * 'crc32' for a crc32 hash control (lightly less safe but faster, 
+    * 'crc32' for a crc32 hash control (lightly less safe but faster,
     * better choice)
     * 'strlen' for a length only test (fastest)
     *
@@ -146,7 +146,7 @@ class TCache_Lite
     /**
     * Enable / Disable "Memory Caching"
     *
-    * NB : There is no lifetime for memory caching ! 
+    * NB : There is no lifetime for memory caching !
     *
     * @var boolean $_memoryCaching
     */
@@ -180,7 +180,7 @@ class TCache_Lite
     * @var int $memoryCachingLimit
     */
     protected $_memoryCachingLimit = 1000;
-    
+
     /**
     * File Name protection
     *
@@ -192,17 +192,17 @@ class TCache_Lite
     * @var boolean $fileNameProtection
     */
     protected $_fileNameProtection = true;
-    
+
     /**
     * Enable / disable automatic serialization
     *
     * it can be used to save directly datas which aren't strings
-    * (but it's slower)    
+    * (but it's slower)
     *
     * @var boolean $_serialize
     */
     protected $_automaticSerialization = false;
-    
+
     // --- Public methods ---
 
     /**
@@ -229,17 +229,17 @@ class TCache_Lite
     */
     function TCache_Lite($options = array(NULL))
     {
-        $availableOptions = array(  'automaticSerialization', 
-                      'fileNameProtection', 
-                      'memoryCaching', 
-                      'onlyMemoryCaching', 
-                      'memoryCachingLimit', 
-                      'cacheDir', 
-                      'caching', 
-                      'lifeTime', 
-                      'fileLocking', 
-                      'writeControl', 
-                      'readControl', 
+        $availableOptions = array(  'automaticSerialization',
+                      'fileNameProtection',
+                      'memoryCaching',
+                      'onlyMemoryCaching',
+                      'memoryCachingLimit',
+                      'cacheDir',
+                      'caching',
+                      'lifeTime',
+                      'fileLocking',
+                      'writeControl',
+                      'readControl',
                       'readControlType');
         foreach($options as $key => $value) {
             if(in_array($key, $availableOptions)) {
@@ -249,7 +249,7 @@ class TCache_Lite
         }
         $this->_refreshTime = time() - $this->_lifeTime;
   }
-    
+
     /**
     * Test if a cache is available and (if yes) return it
     *
@@ -300,11 +300,11 @@ class TCache_Lite
         }
         return false;
     }
-    
+
     /**
     * Save some data in a cache file
     *
-    * @param string $data data to put in cache (can be another type than strings 
+    * @param string $data data to put in cache (can be another type than strings
     * if automaticSerialization is on)
     * @param string $id cache id
     * @param string $group name of the cache group
@@ -352,7 +352,7 @@ class TCache_Lite
     {
         $this->_setFileName($id, $group);
         if (!@unlink($this->_file)) {
-            $this->raiseError('TCache_Lite : Unable to remove cache !', -3);   
+            $this->raiseError('TCache_Lite : Unable to remove cache !', -3);
             return false;
         }
         return true;
@@ -368,7 +368,7 @@ class TCache_Lite
     * @return boolean true if no problem
     * @access public
     */
-    function clean($group = false)     
+    function clean($group = false)
     {
         if ($this->_fileNameProtection) {
             $motif = ($group) ? 'cache_'.md5($group).'_' : 'cache_';
@@ -379,7 +379,7 @@ class TCache_Lite
             while (list($key, $value) = each($this->_memoryCaching)) {
                 if (strpos($key, $motif, 0)) {
                     unset($this->_memoryCaching[$key]);
-                    $this->_memoryCachingCounter = 
+                    $this->_memoryCachingCounter =
                         $this->_memoryCachingCounter - 1;
                 }
             }
@@ -406,7 +406,7 @@ class TCache_Lite
         }
         return true;
     }
-    
+
       /**
     * Set a new life time
     *
@@ -439,11 +439,11 @@ class TCache_Lite
     *
     * @access public
     */
-    function getMemoryCachingState($id, $group = 'default', 
+    function getMemoryCachingState($id, $group = 'default',
                     $doNotTestCacheValidity = false)
     {
         if ($this->_caching) {
-            if ($data = $this->get($id, $group, $doNotTestCacheValidity)) 
+            if ($data = $this->get($id, $group, $doNotTestCacheValidity))
             {
                 $array = unserialize($data);
                 $this->_memoryCachingCounter = $array['counter'];
@@ -451,7 +451,7 @@ class TCache_Lite
             }
         }
     }
-    
+
     /**
     * Return the cache last modification time
     *
@@ -462,7 +462,7 @@ class TCache_Lite
     function lastModified() {
         return filemtime($this->cache->_file);
     }
-    
+
     /**
     * Trigger a PEAR error
     *
@@ -512,12 +512,12 @@ class TCache_Lite
             $this->_file = $this->_cacheDir.'cache_'.$group.'_'.$id;
         }
     }
-    
+
     function getCacheFile()
     {
       return $this->_file;
     }
-    
+
     /**
     * Read the cache file and return the content
     *
@@ -530,14 +530,14 @@ class TCache_Lite
         if ($this->_fileLocking) @flock($fp, LOCK_SH);
         if ($fp) {
           // because the filesize can be cached by PHP itself...
-            clearstatcache(); 
+            clearstatcache();
             $length = @filesize($this->_file);
             $mqr = get_magic_quotes_runtime();
             set_magic_quotes_runtime(0);
             if ($this->_readControl) {
                 $hashControl = @fread($fp, 32);
                 $length = $length - 32;
-            } 
+            }
             $data = @fread($fp, $length);
             set_magic_quotes_runtime($mqr);
             if ($this->_fileLocking) @flock($fp, LOCK_UN);
@@ -545,16 +545,16 @@ class TCache_Lite
             if ($this->_readControl) {
                 $hashData = $this->_hash($data, $this->_readControlType);
                 if ($hashData != $hashControl) {
-                    @touch($this->_file, time() - 2*abs($this->_lifeTime)); 
+                    @touch($this->_file, time() - 2*abs($this->_lifeTime));
                     return false;
                 }
             }
             return $data;
         }
-        $this->raiseError('Cache_Lite : Unable to read cache !', -2);   
+        $this->raiseError('Cache_Lite : Unable to read cache !', -2);
         return false;
     }
-    
+
     /**
     * Write the given data in the cache file
     *
@@ -579,7 +579,7 @@ class TCache_Lite
         $this->raiseError('Cache_Lite : Unable to write cache !', -1);
         return false;
     }
-    
+
     /**
     * Write the given data in the cache file and control it just after to avoid
     * corrupted cache entries
@@ -594,7 +594,7 @@ class TCache_Lite
         $dataRead = $this->_read($data);
         return ($dataRead==$data);
     }
-    
+
     /**
     * Make a control key with the string containing datas
     *
@@ -617,7 +617,5 @@ class TCache_Lite
             '(available values are only \'md5\', \'crc32\', \'strlen\')', -5);
         }
     }
-    
-} 
 
-?>
+}

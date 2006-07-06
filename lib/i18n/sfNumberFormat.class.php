@@ -25,7 +25,7 @@ require_once(dirname(__FILE__).'/util.php');
 
 /**
  * sfNumberFormat class.
- * 
+ *
  * sfNumberFormat formats decimal numbers in any locale. The decimal
  * number is formatted according to a particular pattern. These
  * patterns can arise from the sfNumberFormatInfo object which is
@@ -35,7 +35,7 @@ require_once(dirname(__FILE__).'/util.php');
  * <code>
  *  //create a invariant number formatter.
  *  $formatter = new sfNumberFormat();
- * 
+ *
  *  //create a number format for the french language locale.
  *  $fr = new sfNumberFormat('fr');
  *
@@ -43,7 +43,7 @@ require_once(dirname(__FILE__).'/util.php');
  *  $format = new sfNumberFormat($numberInfo);
  * </code>
  *
- * A normal decimal number can also be displayed as a currency 
+ * A normal decimal number can also be displayed as a currency
  * or as a percentage. For example
  * <code>
  * $format->format(1234.5); //Decimal number "1234.5"
@@ -55,12 +55,12 @@ require_once(dirname(__FILE__).'/util.php');
  * to format the number as Japanese Yen:
  * <code>
  *  $ja = new sfNumberFormat('ja_JP');
- * 
+ *
  *  //Japanese currency pattern, and using Japanese Yen symbol
  *  $ja->format(123.14,'c','JPY'); //ï¿?123 (Yen 123)
  * </code>
  * For each culture, the symbol for each currency may be different.
- * 
+ *
  * @author Xiang Wei Zhuo <weizhuo[at]gmail[dot]com>
  * @version v1.0, last update on Fri Dec 10 18:10:20 EST 2004
  * @package System.I18N.core
@@ -69,7 +69,7 @@ class sfNumberFormat
 {
   /**
    * The DateTimeFormatInfo, containing culture specific patterns and names.
-   * @var DateTimeFormatInfo   
+   * @var DateTimeFormatInfo
    */
   protected $formatInfo;
 
@@ -77,9 +77,9 @@ class sfNumberFormat
    * Create a new number format instance. The constructor can be instantiated
    * with a string that represent a culture/locale. Similarly, passing
    * a sfCultureInfo or sfNumberFormatInfo instance will instantiated a instance
-   * for that particular culture. 
+   * for that particular culture.
    * @param mixed either null, a sfCultureInfo, a sfNumberFormatInfo, or string
-   * @return sfNumberFormat 
+   * @return sfNumberFormat
    */
   function __construct($formatInfo = null)
   {
@@ -107,11 +107,11 @@ class sfNumberFormat
    * 3 decimal places.
    * @param mixed the number to format.
    * @param string the format pattern, either, 'c', 'd', 'e', 'p'
-   * or a custom pattern. E.g. "#.000" will format the number to 
+   * or a custom pattern. E.g. "#.000" will format the number to
    * 3 decimal places.
-   * @param string 3-letter ISO 4217 code. For example, the code 
+   * @param string 3-letter ISO 4217 code. For example, the code
    * "USD" represents the US Dollar and "EUR" represents the Euro currency.
-   * @return string formatted number string 
+   * @return string formatted number string
    */
   function format($number, $pattern = 'd', $currency = 'USD', $charset = 'UTF-8')
   {
@@ -228,7 +228,7 @@ class sfNumberFormat
   /**
    * Format the decimal places.
    * @param string the decimal number in string form.
-   * @return string formatted decimal places. 
+   * @return string formatted decimal places.
    */
   protected function formatDecimal($string)
   {
@@ -307,5 +307,3 @@ class sfNumberFormat
     }
   }
 }
-
-?>

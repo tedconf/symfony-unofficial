@@ -19,50 +19,50 @@
  */
 
 /**
- * Defines how DateTime values are formatted and displayed, depending 
+ * Defines how DateTime values are formatted and displayed, depending
  * on the culture.
- * 
- * This class contains information, such as date patterns, time patterns, 
- * and AM/PM designators. 
  *
- * To create a sfDateTimeFormatInfo for a specific culture, create a 
- * sfCultureInfo for that culture and retrieve the sfCultureInfo.sfDateTimeFormat 
+ * This class contains information, such as date patterns, time patterns,
+ * and AM/PM designators.
+ *
+ * To create a sfDateTimeFormatInfo for a specific culture, create a
+ * sfCultureInfo for that culture and retrieve the sfCultureInfo.sfDateTimeFormat
  * property. For example:
  * <code>
  * $culture = new sfCultureInfo('en_AU');
  * $dtfi = $culture->DateTimeFormat;
  * </code>
- * 
- * To create a sfDateTimeFormatInfo for the invariant culture, use 
+ *
+ * To create a sfDateTimeFormatInfo for the invariant culture, use
  * <code>
  * sfDateTimeFormatInfo::getInstance($culture=null);
  * </code>
  * you may pass a sfCultureInfo parameter $culture to get the sfDateTimeFormatInfo
  * for a specific culture.
  *
- * sfDateTime values are formatted using standard or custom patterns stored in 
+ * sfDateTime values are formatted using standard or custom patterns stored in
  * the properties of a sfDateTimeFormatInfo.
- * 
- * The standard patterns can be replaced with custom patterns by setting the 
+ *
+ * The standard patterns can be replaced with custom patterns by setting the
  * associated properties of sfDateTimeFormatInfo.
  *
- * The following table lists the standard format characters for each standard 
- * pattern and the associated sfDateTimeFormatInfo property that can be set to 
+ * The following table lists the standard format characters for each standard
+ * pattern and the associated sfDateTimeFormatInfo property that can be set to
  * modify the standard pattern. The format characters are case-sensitive;
  * for example, 'g' and 'G' represent slightly different patterns.
  *
  * <code>
  *  Format Character    Associated Property     Example Format Pattern (en-US)
  *  --------------------------------------------------------------------------
- *  d                   ShortDatePattern        MM/dd/yyyy 
- *  D                   LongDatePattern         dddd, dd MMMM yyyy 
+ *  d                   ShortDatePattern        MM/dd/yyyy
+ *  D                   LongDatePattern         dddd, dd MMMM yyyy
  *  F                   FullDateTimePattern     dddd, dd MMMM yyyy HH:mm:ss
- *  m, M                MonthDayPattern         MMMM dd 
+ *  m, M                MonthDayPattern         MMMM dd
  *  r, R                RFC1123Pattern          ddd, dd MMM yyyy HH':'mm':'ss 'GMT'
- *  s                   SortableDateTimePattern yyyy'-'MM'-'dd'T'HH':'mm':'ss 
- *  t                   ShortTimePattern        HH:mm 
- *  T                   LongTimePattern         HH:mm:ss 
- *  Y                   YearMonthPattern        yyyy MMMM 
+ *  s                   SortableDateTimePattern yyyy'-'MM'-'dd'T'HH':'mm':'ss
+ *  t                   ShortTimePattern        HH:mm
+ *  T                   LongTimePattern         HH:mm:ss
+ *  Y                   YearMonthPattern        yyyy MMMM
  *  --------------------------------------------------------------------------
  * </code>
  *
@@ -74,13 +74,13 @@ class sfDateTimeFormatInfo
 {
   /**
    * ICU date time formatting data.
-   * @var array 
+   * @var array
    */
   private $data = array();
 
   /**
    * A list of properties that are accessable/writable.
-   * @var array 
+   * @var array
    */
   protected $properties = array();
 
@@ -89,7 +89,7 @@ class sfDateTimeFormatInfo
    * as an attribute/property to retrieve the value.
    * @return mixed
    */
-  function __get($name) 
+  function __get($name)
   {
     $getProperty = 'get'.$name;
     if(in_array($getProperty, $this->properties))
@@ -97,36 +97,36 @@ class sfDateTimeFormatInfo
     else
       throw new sfException('Property '.$name.' does not exists.');
   }
-  
+
   /**
    * Allow functions that begins with 'set' to be called directly
    * as an attribute/property to set the value.
    */
-  function __set($name, $value) 
+  function __set($name, $value)
   {
     $setProperty = 'set'.$name;
     if(in_array($setProperty, $this->properties))
       $this->$setProperty($value);
     else
       throw new sfException('Property '.$name.' can not be set.');
-  } 
-    
+  }
+
   /**
-   * Initializes a new writable instance of the sfDateTimeFormatInfo class 
-   * that is dependent on the ICU data for date time formatting 
+   * Initializes a new writable instance of the sfDateTimeFormatInfo class
+   * that is dependent on the ICU data for date time formatting
    * information. <b>N.B.</b>You should not initialize this class directly
-   * unless you know what you are doing. Please use use 
+   * unless you know what you are doing. Please use use
    * sfDateTimeFormatInfo::getInstance() to create an instance.
    * @param array ICU data for date time formatting.
    * @see getInstance()
    */
   function __construct($data=array())
   {
-    $this->properties = get_class_methods($this); 
-      
+    $this->properties = get_class_methods($this);
+
     if(empty($data))
       throw new sfException('Please provide the ICU data to initialize.');
-    
+
     $this->data = $data;
   }
 
@@ -140,9 +140,9 @@ class sfDateTimeFormatInfo
   }
 
   /**
-   * Gets the default sfDateTimeFormatInfo that is culture-independent 
+   * Gets the default sfDateTimeFormatInfo that is culture-independent
    * (invariant).
-   * @return sfDateTimeFormatInfo default sfDateTimeFormatInfo. 
+   * @return sfDateTimeFormatInfo default sfDateTimeFormatInfo.
    */
     static function getInvariantInfo()
     {
@@ -158,12 +158,12 @@ class sfDateTimeFormatInfo
     /**
      * Returns the sfDateTimeFormatInfo associated with the specified culture.
      * @param sfCultureInfo the culture that gets the sfDateTimeFormat property.
-     * @return sfDateTimeFormatInfo sfDateTimeFormatInfo for the specified 
-     * culture. 
+     * @return sfDateTimeFormatInfo sfDateTimeFormatInfo for the specified
+     * culture.
      */
     static function getInstance($culture=null)
     {
-      
+
         if ($culture instanceof sfCultureInfo)
             return $culture->DateTimeFormat;
         else if(is_string($culture))
@@ -174,7 +174,7 @@ class sfDateTimeFormatInfo
         else
         {
       $cultureInfo = sfCultureInfo::getInvariantCulture();
-            return $cultureInfo->DateTimeFormat;          
+            return $cultureInfo->DateTimeFormat;
         }
     }
 
@@ -278,9 +278,9 @@ class sfDateTimeFormatInfo
     }
 
   /**
-   * A one-dimensional array of type String containing the 
-   * culture-specific abbreviated names of the months. The array 
-   * for InvariantInfo contains "Jan", "Feb", "Mar", "Apr", "May", 
+   * A one-dimensional array of type String containing the
+   * culture-specific abbreviated names of the months. The array
+   * for InvariantInfo contains "Jan", "Feb", "Mar", "Apr", "May",
    * "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", and "Dec".
    * @return array abbreviated month names.
    */
@@ -303,8 +303,8 @@ class sfDateTimeFormatInfo
     }
 
   /**
-   * A one-dimensional array of type String containing the 
-   * culture-specific full names of the months. The array for 
+   * A one-dimensional array of type String containing the
+   * culture-specific full names of the months. The array for
    * InvariantInfo contains "January", "February", "March", "April",
    * "May", "June", "July", "August", "September", "October", "November",
    * and "December"
@@ -330,7 +330,7 @@ class sfDateTimeFormatInfo
 
   /**
    * A string containing the name of the era.
-   * @param int era The integer representing the era. 
+   * @param int era The integer representing the era.
    * @return string the era name.
    */
   function getEra($era)
@@ -428,7 +428,7 @@ class sfDateTimeFormatInfo
      * This is culture sensitive.
      * @return string pattern "HH:mm:ss".
    */
-  function getMediumTimePattern() 
+  function getMediumTimePattern()
   {
     return $this->data['DateTimePatterns'][2];
   }
@@ -438,7 +438,7 @@ class sfDateTimeFormatInfo
      * This is culture sensitive.
      * @return string pattern "HH:mm".
    */
-  function getShortTimePattern() 
+  function getShortTimePattern()
   {
     return $this->data['DateTimePatterns'][3];
   }
@@ -448,7 +448,7 @@ class sfDateTimeFormatInfo
      * This is culture sensitive.
      * @return string pattern "EEEE, yyyy MMMM dd".
    */
-  function getFullDatePattern() 
+  function getFullDatePattern()
   {
     return $this->data['DateTimePatterns'][4];
   }
@@ -458,7 +458,7 @@ class sfDateTimeFormatInfo
      * This is culture sensitive.
      * @return string pattern "yyyy MMMM d".
    */
-  function getLongDatePattern() 
+  function getLongDatePattern()
   {
     return $this->data['DateTimePatterns'][5];
   }
@@ -468,7 +468,7 @@ class sfDateTimeFormatInfo
      * This is culture sensitive.
      * @return string pattern "yyyy MMM d".
    */
-  function getMediumDatePattern() 
+  function getMediumDatePattern()
   {
     return $this->data['DateTimePatterns'][6];
   }
@@ -478,7 +478,7 @@ class sfDateTimeFormatInfo
      * This is culture sensitive.
      * @return string pattern "yy/MM/dd".
    */
-  function getShortDatePattern() 
+  function getShortDatePattern()
   {
     return $this->data['DateTimePatterns'][7];
   }
@@ -505,4 +505,3 @@ class sfDateTimeFormatInfo
   }
 
 }
-?>

@@ -74,7 +74,7 @@ abstract class sfOutputEscaper
    */
   public static function escape($escapingMethod, $value)
   {
-    if (is_null($value) || ($value === false))
+    if (is_null($value) || ($value === false) || ($escapingMethod === 'esc_raw'))
     {
       return $value;
     }
@@ -92,7 +92,16 @@ abstract class sfOutputEscaper
 
     if (is_object($value))
     {
-      if ($value instanceof Traversable)
+      if ($value instanceof sfOutputEscaper)
+      {
+        // avoid double decoration when passing values from action template to component/partial
+        $copy = clone $value;
+
+        $copy->escapingMethod = $escapingMethod;
+
+        return $copy;
+      }
+      elseif ($value instanceof Traversable)
       {
         return new sfOutputEscaperIteratorDecorator($escapingMethod, $value);
       }
@@ -105,6 +114,17 @@ abstract class sfOutputEscaper
     // it must be a resource; cannot escape that.
     throw new sfException(sprintf('Unable to escape value "%s"', print_r($value, true)));
   }
-}
 
-?>
+  /**
+   * Return the raw value associated with this instance.
+   *
+   * Concrete instances of sfOutputEscaper classes decorate a value which is
+   * stored by the constructor. This returns that original, unescaped, value.
+   *
+   * @return mixed the original value used to construct the decorator
+   */
+  public function getRawValue()
+  {
+    return $this->value;
+  }
+}

@@ -44,7 +44,7 @@ class sfMailView extends sfPHPView
    * Render the presentation and send the email to the client.
    *
    */
-  public function &render()
+  public function &render($templateVars = null)
   {
     $template         = $this->getDirectory().'/'.$this->getTemplate();
     $actionStackEntry = $this->getContext()->getActionStack()->getLastEntry();
@@ -67,7 +67,7 @@ class sfMailView extends sfPHPView
     $mail = $actionInstance->getVarHolder()->get('mail');
     if (!$mail)
     {
-      $error = 'You must define a sfMail object named $action in your action to be able to use a sfMailView.';
+      $error = 'You must define a sfMail object named $mail ($this->mail) in your action to be able to use a sfMailView.';
       throw new sfActionException($error);
     }
 
@@ -85,7 +85,7 @@ class sfMailView extends sfPHPView
     $all_retvals = array();
     foreach ($all_templates as $templateFile)
     {
-      if (preg_match('/\.(.+?)\.php$/', $templateFile, $matches))
+      if (preg_match('/\.([^.]+?)\.php$/', $templateFile, $matches))
       {
         $all_retvals[$matches[1]] = $this->renderFile($templateFile);
       }
@@ -146,5 +146,3 @@ class sfMailView extends sfPHPView
     return $retval;
   }
 }
-
-?>

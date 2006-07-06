@@ -648,11 +648,11 @@ class BasePeer
 			$whereClause[] = $sb;
 
 		}
-		
+
 		// handle RIGHT (straight) joins
-		// Loop through the joins, 
+		// Loop through the joins,
 		// joins with a null join type will be added to the FROM clause and the condition added to the WHERE clause.
-		// joins of a specified type: the LEFT side will be added to the fromClause and the RIGHT to the joinClause 
+		// joins of a specified type: the LEFT side will be added to the fromClause and the RIGHT to the joinClause
 		// New Code.
 		foreach ((array) $criteria->getJoins() as $join) { // we'll only loop if there's actually something here
 
@@ -664,14 +664,14 @@ class BasePeer
 				$leftTableAlias = " $leftTable";
 				$leftTable = $realTable;
 			}
-			
+
 			$rightTable = $join->getRightTableName();
 			$rightTableAlias = '';
 			if ($realTable = $criteria->getTableForAlias($rightTable)) {
 				$rightTableAlias = " $rightTable";
 				$rightTable = $realTable;
 			}
-					
+
 			// determine if casing is relevant.
 			if ($ignoreCase = $criteria->isIgnoreCase()) {
 				$leftColType = $dbMap->getTable($leftTable)->getColumn($join->getLeftColumnName())->getType();
@@ -685,24 +685,24 @@ class BasePeer
 			} else {
 				$condition = $join->getLeftColumn() . '=' . $join->getRightColumn();
 			}
-					
-			// add 'em to the queues..  
-			if ($joinType = $join->getJoinType()) { 
+
+			// add 'em to the queues..
+			if ($joinType = $join->getJoinType()) {
 				if (!$fromClause) {
 					$fromClause[] = $leftTable . $leftTableAlias;
 				}
 				$joinTables[] = $rightTable . $rightTableAlias;
 				$joinClause[] = $join->getJoinType() . ' ' . $rightTable . $rightTableAlias . " ON ($condition)";
-			} else { 
+			} else {
 				$fromClause[] = $leftTable . $leftTableAlias;
 				$fromClause[] = $rightTable . $rightTableAlias;
 				$whereClause[] = $condition;
 			}
 		}
-		
+
 		// Unique from clause elements
 		$fromClause = array_unique($fromClause);
-				
+
 		// tables should not exist in both the from and join clauses
 		if ($joinTables && $fromClause) {
 			foreach ($fromClause as $fi => $ftable) {
@@ -760,7 +760,7 @@ class BasePeer
 					} // Join for loop
 				} // If Joins
 */
-		
+
 		// Add the GROUP BY columns
 		$groupByClause = $groupBy;
 
@@ -775,14 +775,14 @@ class BasePeer
 		 if (!empty($orderBy)) {
 
 			foreach($orderBy as $orderByColumn) {
-				
+
 				// Add function expression as-is.
-				
+
 				if (strpos($orderByColumn, '(') !== false) {
 					$orderByClause[] = $orderByColumn;
 					continue;
 				}
-				
+
 				// Split orderByColumn (i.e. "table.column DESC")
 
 				$dotPos = strpos($orderByColumn, '.');
@@ -832,7 +832,7 @@ class BasePeer
 		$sql =  "SELECT "
 				.($selectModifiers ? implode(" ", $selectModifiers) . " " : "")
 				.implode(", ", $selectClause)
-				." FROM ".implode(", ", $fromClause)
+				." FROM ".((substr(get_class($db), 0, 7) == 'DBMySQL') ? (count($fromClause) > 1 ? "(".implode(", ", $fromClause).")" : implode(", ", $fromClause)) : implode(", ", $fromClause))
 								.($joinClause ? ' ' . implode(' ', $joinClause) : '')
 				.($whereClause ? " WHERE ".implode(" AND ", $whereClause) : "")
 				.($groupByClause ? " GROUP BY ".implode(",", $groupByClause) : "")

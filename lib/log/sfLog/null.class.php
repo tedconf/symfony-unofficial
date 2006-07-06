@@ -9,7 +9,7 @@
 /**
  * The sfLog_null class is a concrete implementation of the sfLog:: abstract
  * class.  It simply consumes log events.
- * 
+ *
  * @author  Jon Parise <jon@php.net>
  * @since   sfLog 1.8.2
  * @package sfLog
@@ -18,7 +18,7 @@ class sfLog_null extends sfLog
 {
     /**
      * Constructs a new sfLog_null object.
-     * 
+     *
      * @param string $name     Ignored.
      * @param string $ident    The identity string.
      * @param array  $conf     The configuration array.
@@ -36,7 +36,7 @@ class sfLog_null extends sfLog
     /**
      * Simply consumes the log event.  The message will still be passed
      * along to any sfLog_observer instances that are observing this sfLog.
-     * 
+     *
      * @param mixed  $message    String or object containing the message to log.
      * @param string $priority The priority of the message.  Valid
      *                  values are: SF_PEAR_LOG_EMERG, SF_PEAR_LOG_ALERT,
@@ -62,5 +62,3 @@ class sfLog_null extends sfLog
         return true;
     }
 }
-
-?>

@@ -9,7 +9,7 @@
 /**
  * The sfLog_error_log class is a concrete implementation of the sfLog abstract
  * class that logs messages using PHP's error_log() function.
- * 
+ *
  * @author  Jon Parise <jon@php.net>
  * @since   sfLog 1.7.0
  * @package sfLog
@@ -40,7 +40,7 @@ class sfLog_error_log extends sfLog
 
     /**
      * Constructs a new sfLog_error_log object.
-     * 
+     *
      * @param string $name     Ignored.
      * @param string $ident    The identity string.
      * @param array  $conf     The configuration array.
@@ -66,7 +66,7 @@ class sfLog_error_log extends sfLog
     /**
      * sfLogs $message using PHP's error_log() function.  The message is also
      * passed along to any sfLog_observer instances that are observing this sfLog.
-     * 
+     *
      * @param mixed  $message   String or object containing the message to log.
      * @param string $priority The priority of the message.  Valid
      *                  values are: SF_PEAR_LOG_EMERG, SF_PEAR_LOG_ALERT,
@@ -98,5 +98,3 @@ class sfLog_error_log extends sfLog
         return $success;
     }
 }
-
-?>

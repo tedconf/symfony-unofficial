@@ -110,7 +110,7 @@ abstract class sfController
         require_once($module_file);
 
         // action is defined in this class?
-        $defined = in_array(strtolower('execute'.$controllerName), array_map('strtolower', get_class_methods($moduleName.$classSuffix.'s')));
+        $defined = in_array('execute'.ucfirst($controllerName), get_class_methods($moduleName.$classSuffix.'s'));
         if ($defined)
         {
           $this->controllerClasses[$moduleName.'_'.$controllerName.'_'.$classSuffix] = $moduleName.$classSuffix.'s';
@@ -465,19 +465,16 @@ abstract class sfController
       {
         $class = $moduleClass;
       }
-
-      return new $class();
     }
-
-    // view class (as configured in module.yml or defined in action)
-    $viewName = $this->getContext()->getRequest()->getAttribute($moduleName.'_'.$actionName.'_view_name', '', 'symfony/action/view') ? $this->getContext()->getRequest()->getAttribute($moduleName.'_'.$actionName.'_view_name', '', 'symfony/action/view') : sfConfig::get('mod_'.strtolower($moduleName).'_view_class');
-    $file     = sfConfig::get('sf_symfony_lib_dir').'/view/'.$viewName.'View.class.php';
-    if (is_readable($file))
+    else
     {
-      $class = $viewName.'View';
-
-      return new $class();
+      // view class (as configured in module.yml or defined in action)
+      $viewName = $this->getContext()->getRequest()->getAttribute($moduleName.'_'.$actionName.'_view_name', '', 'symfony/action/view') ? $this->getContext()->getRequest()->getAttribute($moduleName.'_'.$actionName.'_view_name', '', 'symfony/action/view') : sfConfig::get('mod_'.strtolower($moduleName).'_view_class');
+      $file     = sfConfig::get('sf_symfony_lib_dir').'/view/'.$viewName.'View.class.php';
+      $class    = is_readable($file) ? $viewName.'View' : 'sfPHPView';
     }
+
+    return new $class();
   }
 
   /**
@@ -552,7 +549,7 @@ abstract class sfController
     $config     = sfConfig::get('sf_app_config_dir').'/filters.yml';
     $moduleName = 'global';
 
-    if (!isset($list[$moduleName]) && is_readable($config))
+    if (!isset($list[$moduleName]))
     {
       // load global filters
       require_once(sfConfigCache::getInstance()->checkConfig(sfConfig::get('sf_app_config_dir_name').'/filters.yml'));
@@ -671,5 +668,3 @@ abstract class sfController
     return 'cli' == php_sapi_name();
   }
 }
-
-?>

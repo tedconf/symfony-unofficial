@@ -37,10 +37,11 @@ class PgSQLDatabaseInfo extends DatabaseInfo {
     protected function initTables()
     {
         include_once 'creole/drivers/pgsql/metadata/PgSQLTableInfo.php';
-        
+
         // Get Database Version
-        $result = pg_exec ($this->conn->getResource(), "SELECT version() as ver");
-        
+	// TODO: www.php.net/pg_version
+        $result = pg_query ($this->conn->getResource(), "SELECT version() as ver");
+
         if (!$result)
         {
         	throw new SQLException ("Failed to select database version");
@@ -54,7 +55,7 @@ class PgSQLDatabaseInfo extends DatabaseInfo {
         pg_free_result ($result);
         $result = null;
 
-        $result = pg_exec($this->conn->getResource(), "SELECT oid, relname FROM pg_class
+        $result = pg_query($this->conn->getResource(), "SELECT oid, relname FROM pg_class
 										WHERE relkind = 'r' AND relnamespace = (SELECT oid
 										FROM pg_namespace
 										WHERE
@@ -71,7 +72,7 @@ class PgSQLDatabaseInfo extends DatabaseInfo {
         while ($row = pg_fetch_assoc($result)) {
             $this->tables[strtoupper($row['relname'])] = new PgSQLTableInfo($this, $row['relname'], $version, $row['oid']);
         }
-		
+
 		$this->tablesLoaded = true;
     }
 
@@ -83,10 +84,10 @@ class PgSQLDatabaseInfo extends DatabaseInfo {
      */
     protected function initSequences()
     {
-     
+
 	 	$this->sequences = array();
-		   
-        $result = pg_exec($this->conn->getResource(), "SELECT oid, relname FROM pg_class
+
+        $result = pg_query($this->conn->getResource(), "SELECT oid, relname FROM pg_class
 										WHERE relkind = 'S' AND relnamespace = (SELECT oid
 										FROM pg_namespace
 										WHERE
@@ -99,7 +100,7 @@ class PgSQLDatabaseInfo extends DatabaseInfo {
         if (!$result) {
             throw new SQLException("Could not list sequences", pg_last_error($this->dblink));
         }
-		
+
 		while ($row = pg_fetch_assoc($result)) {
 			// FIXME -- decide what info we need for sequences & then create a SequenceInfo object (if needed)
 			$obj = new stdClass;
@@ -107,7 +108,7 @@ class PgSQLDatabaseInfo extends DatabaseInfo {
 			$obj->oid = $row['oid'];
             $this->sequences[strtoupper($row['relname'])] = $obj;
         }
-		
+
     }
 
 }

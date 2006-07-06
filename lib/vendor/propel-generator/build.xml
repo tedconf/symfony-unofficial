@@ -22,21 +22,28 @@
      property here.  If it wasn't set, then this will be bogus, but it will
      be overridden by the "set-project-dir" target. -->
 <property name="propel.project.dir" value="${project.dir}"/>
+<resolvepath propertyName="propel.project.dir" file="${propel.project.dir}" dir="${application.startdir}"/>
 
 <!-- set a default target if none provided -->
 <property name="target" value="main"/>
 
+<!-- Set a default name for the build.properties file.
+		This allows for overriding the name of the build.properties file; however,
+		Propel still expects to find the file in the ${propel.project.dir}.
+ -->
+<property name="build.properties" value="build.properties"/>
+
 <target name="check-buildprops-exists">
-  <available file="${propel.project.dir}/${propel.buildProperties}" property="projBuildPopertiesExists"/>
+  <available file="${propel.project.dir}/${build.properties}" property="projBuildPopertiesExists"/>
 </target>
 
 <target name="check-buildprops" unless="projBuildPopertiesExists" depends="check-buildprops-exists">
 		<echo message="====================================================="/>
-		<echo message="Could not open ${propel.buildProperties} file:"/>
-		<echo message="		${propel.project.dir}/${propel.buildProperties}"/>
+		<echo message="Could not open ${build.properties} file:"/>
+		<echo message="		${propel.project.dir}/${build.properties}"/>
 		<echo message=" "/>
 		<echo message="Make sure that '${propel.project.dir}' is a valid path"/>
-		<echo message="and that it contains a ${propel.buildProperties} file."/>
+		<echo message="and that it contains a ${build.properties} file."/>
 		<echo message="====================================================="/>
 
 		<fail message="Missing configuration file (see description above)."/>
@@ -53,12 +60,12 @@
 
 <target name="check-buildprops-for-propel-gen" if="using.propel-gen" unless="projBuildPopertiesExists" depends="check-buildprops-exists">
 	<echo message="=========================================================="/>
-	<echo message="Could not open ${propel.buildProperties} file:"/>
-	<echo message="		${propel.project.dir}/${propel.buildProperties}"/>
+	<echo message="Could not open ${build.properties} file:"/>
+	<echo message="		${propel.project.dir}/${build.properties}"/>
 	<echo message=" "/>
 	<echo message="Project directory not specified or invalid. You must "/>
-	<echo message="specify the ABSOLUTE path to your project directory and "/>
-	<echo message="your project directory must contain your ${propel.buildProperties} "/>
+	<echo message="specify the path to your project directory and your "/>
+	<echo message="project directory must contain your ${build.properties} "/>
 	<echo message="and schema.xml files.                                "/>
 	<echo message=" "/>
 	<echo message="Usage: "/>
@@ -66,7 +73,7 @@
 	<echo message="$&gt; propel-gen /path/to/projectdir [target]"/>
 	<echo message=" "/>
 	<echo message="=========================================================="/>
-	<fail message="No project directory specified (did you specify a relative path instead of absolute?)."/>
+	<fail message="No project directory specified."/>
 </target>
 
 <target name="check-project-set" unless="projectOrDirSet" depends="check-project-or-dir-set">
@@ -94,13 +101,12 @@
 </target>
 
 <target name="configure" depends="set-project-dir,check-buildprops-for-propel-gen,check-buildprops">
-	<echo msg="Loading project-specific props from ${propel.project.dir}/${propel.buildProperties}"/>
-	<property file="${propel.project.dir}/${propel.buildProperties}"/>
+	<echo msg="Loading project-specific props from ${propel.project.dir}/${build.properties}"/>
+	<property file="${propel.project.dir}/${build.properties}"/>
 </target>
 
-<target name="main" depends="configure" description="The main target. Includes project-specific ${propel.buildProperties} and calls the build-propel.xml script">
+<target name="main" depends="configure" description="The main target. Includes project-specific build.properties and calls the build-propel.xml script">
 
- <!--<property file="${project.dir}/${propel.buildProperties}"/>-->
  <phing phingfile="./build-propel.xml" target="${target}"/>
 
 </target>

@@ -23,19 +23,18 @@
  * Optimized iterator for PostgreSQL, based off of SQLite iterator.
  * Testing with SeekableIterator, no idea if it will keep this
  * functionality or what uses it or even how to use it as yet.
- * 
+ *
  * @author    Cameron Brunner <webmaster@animetorrents.com>
  * @version   $Revision: 1.1 $
  * @package   creole.drivers.pgsql
  */
-class PgSQLResultSetIterator implements SeekableIterator {
+class PgSQLResultSetIterator implements SeekableIterator, Countable {
 
     private $result;
     private $pos = 0;
     private $fetchmode;
-    private $row;
     private $row_count;
-    
+
     /**
      * Construct the iterator.
      * @param PgSQLResultSet $rs
@@ -46,20 +45,20 @@ class PgSQLResultSetIterator implements SeekableIterator {
         $this->fetchmode = $rs->getFetchmode();
 	$this->row_count = $rs->getRecordCount();
     }
-    
+
     /**
      * This method actually has no effect, since we do not rewind ResultSet for iteration.
      */
     function rewind()
-    {        
+    {
         $this->pos = 0;
     }
-    
+
     function valid()
     {
 	return ( $this->pos < $this->row_count );
     }
-    
+
     /**
      * Returns the cursor position.  Note that this will not necessarily
      * be 1 for the first row, since no rewind is performed at beginning
@@ -70,7 +69,7 @@ class PgSQLResultSetIterator implements SeekableIterator {
     {
         return $this->pos;
     }
-    
+
     /**
      * Returns the row (assoc array) at current cursor pos.
      * @return array
@@ -79,7 +78,7 @@ class PgSQLResultSetIterator implements SeekableIterator {
     {
        return pg_fetch_array($this->result, $this->pos, $this->fetchmode);
     }
-    
+
     /**
      * Advances internal cursor pos.
      */
@@ -93,9 +92,16 @@ class PgSQLResultSetIterator implements SeekableIterator {
      */
     function seek ( $index )
     {
+    	if ( ! is_int ( $index ) ) {
+		throw new InvalidArgumentException ( 'Invalid arguement to seek' );
+	}
 	if ( $index < 0 || $index > $this->row_count ) {
-		throw new Exception('Seeking to an unavailable index.');
+		throw new OutOfBoundsException ( 'Invalid seek position' );
 	}
 	$this->pos = $index;
+    }
+
+    function count ( ) {
+	return $this->row_count;
     }
 }

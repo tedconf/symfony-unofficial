@@ -11,13 +11,13 @@
  * which sends log messages to a mailbox.
  * The mail is actually sent when you close() the logger, or when the destructor
  * is called (when the script is terminated).
- * 
+ *
  * PLEASE NOTE that you must create a sfLog_mail object using =&, like this :
  *  $logger =& sfLog::factory("mail", "recipient@example.com", ...)
- * 
+ *
  * This is a PEAR requirement for destructors to work properly.
  * See http://pear.php.net/manual/en/class.pear.php
- * 
+ *
  * @author  Ronnie Garcia <ronnie@mk2.net>
  * @author  Jon Parise <jon@php.net>
  * @since   sfLog 1.3
@@ -25,21 +25,21 @@
  */
 class sfLog_mail extends sfLog
 {
-    /** 
+    /**
      * String holding the recipient's email address.
      * @var string
      * @access private
      */
     var $_recipient = '';
 
-    /** 
+    /**
      * String holding the sender's email address.
      * @var string
      * @access private
      */
     var $_from = '';
 
-    /** 
+    /**
      * String holding the email's subject.
      * @var string
      * @access private
@@ -63,11 +63,11 @@ class sfLog_mail extends sfLog
 
     /**
      * Constructs a new sfLog_mail object.
-     * 
+     *
      * Here is how you can customize the mail driver with the conf[] hash :
      *   $conf['from']    : the mail's "From" header line,
      *   $conf['subject'] : the mail's "Subject" line.
-     * 
+     *
      * @param string $name      The filename of the logfile.
      * @param string $ident     The identity string.
      * @param array  $conf      The configuration array.
@@ -87,7 +87,7 @@ class sfLog_mail extends sfLog
         } else {
             $this->_from = ini_get('sendmail_from');
         }
-        
+
         if (!empty($conf['subject'])) {
             $this->_subject = $conf['subject'];
         }
@@ -95,11 +95,11 @@ class sfLog_mail extends sfLog
         if (!empty($conf['preamble'])) {
             $this->_preamble = $conf['preamble'];
         }
-        
+
         /* register the destructor */
         register_shutdown_function(array(&$this, '_sfLog_mail'));
     }
-    
+
     /**
      * Destructor. Calls close().
      *
@@ -113,7 +113,7 @@ class sfLog_mail extends sfLog
     /**
      * Starts a new mail message.
      * This is implicitly called by log(), if necessary.
-     * 
+     *
      * @access public
      */
     function open()
@@ -131,7 +131,7 @@ class sfLog_mail extends sfLog
     /**
      * Closes the message, if it is open, and sends the mail.
      * This is implicitly called by the destructor, if necessary.
-     * 
+     *
      * @access public
      */
     function close()
@@ -176,7 +176,7 @@ class sfLog_mail extends sfLog
     /**
      * Writes $message to the currently open mail message.
      * Calls open(), if necessary.
-     * 
+     *
      * @param mixed  $message  String or object containing the message to log.
      * @param string $priority The priority of the message.  Valid
      *                  values are: SF_PEAR_LOG_EMERG, SF_PEAR_LOG_ALERT,
@@ -216,5 +216,3 @@ class sfLog_mail extends sfLog
         return true;
     }
 }
-
-?>

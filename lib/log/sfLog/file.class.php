@@ -9,7 +9,7 @@
 /**
  * The sfLog_file class is a concrete implementation of the sfLog abstract
  * class that logs messages to a text file.
- * 
+ *
  * @author  Jon Parise <jon@php.net>
  * @author  Roman Neuhauser <neuhauser@bellavista.cz>
  * @since   sfLog 1.0
@@ -51,7 +51,7 @@ class sfLog_file extends sfLog
      * @var string
      * @access private
      */
-    private $_lineFormat = '%1$s %2$s [%3$s] %4$s';
+    private $_lineFormat = '%1$s %2$s [%3$ -5s] %4$s';
 
     /**
      * String containing the timestamp format.  It will be passed directly to
@@ -70,7 +70,7 @@ class sfLog_file extends sfLog
      */
     private $_formatMap = array('%{timestamp}'  => '%1$s',
                             '%{ident}'      => '%2$s',
-                            '%{priority}'   => '%3$s',
+                            '%{priority}'   => '%3$ -5s',
                             '%{message}'    => '%4$s',
                             '%\{'           => '%%{');
 
@@ -280,5 +280,3 @@ class sfLog_file extends sfLog
         return $success;
     }
 }
-
-?>

@@ -25,10 +25,10 @@ require_once(dirname(__FILE__).'/util.php');
 
 /**
  * sfMessageFormat class.
- * 
- * Format a message, that is, for a particular message find the 
- * translated message. The following is an example using 
- * a SQLite database to store the translation message. 
+ *
+ * Format a message, that is, for a particular message find the
+ * translated message. The following is an example using
+ * a SQLite database to store the translation message.
  * Create a new message format instance and echo "Hello"
  * in simplified Chinese. This assumes that the world "Hello"
  * is translated in the database.
@@ -38,8 +38,8 @@ require_once(dirname(__FILE__).'/util.php');
  *  $source->setCulture('zh_CN');
  *  $source->setCache(new sfMessageCache('./tmp'));
  *
- *  $formatter = new sfMessageFormat($source); 
- *  
+ *  $formatter = new sfMessageFormat($source);
+ *
  *  echo $formatter->format('Hello');
  * </code>
  *
@@ -51,37 +51,37 @@ class sfMessageFormat
 {
   /**
    * The message source.
-   * @var MessageSource 
+   * @var MessageSource
    */
   protected $source;
-  
+
   /**
    * A list of loaded message catalogues.
-   * @var array 
+   * @var array
    */
   protected $catagloues = array();
-  
+
   /**
    * The translation messages.
-   * @var array 
+   * @var array
    */
   protected $messages = array();
-  
+
   /**
    * A list of untranslated messages.
-   * @var array 
+   * @var array
    */
   protected $untranslated = array();
-  
+
   /**
    * The prefix and suffix to append to untranslated messages.
-   * @var array 
+   * @var array
    */
   protected $postscript = array('','');
-  
+
   /**
    * Set the default catalogue.
-   * @var string 
+   * @var string
    */
   public $Catalogue;
 
@@ -89,7 +89,7 @@ class sfMessageFormat
    * Output encoding charset
    * @var string
    */
-  protected $charset = 'UTF-8'; 
+  protected $charset = 'UTF-8';
 
   /**
    * Constructor.
@@ -100,11 +100,11 @@ class sfMessageFormat
    */
   function __construct(sfIMessageSource $source, $charset='UTF-8')
   {
-    $this->source = $source;  
+    $this->source = $source;
     $this->setCharset($charset);
   }
 
-  /** 
+  /**
    * Sets the charset for message output.
    * @param string charset, default is UTF-8
    */
@@ -121,7 +121,7 @@ class sfMessageFormat
   {
     return $this->charset;
   }
-  
+
   /**
    * Load the message from a particular catalogue. A listed
    * loaded catalogues is kept to prevent reload of the same
@@ -133,11 +133,11 @@ class sfMessageFormat
   {
     if(in_array($catalogue,$this->catagloues))
       return;
-      
+
     if($this->source->load($catalogue))
     {
       $this->messages[$catalogue] = $this->source->read();
-      $this->catagloues[] = $catalogue;           
+      $this->catagloues[] = $catalogue;
     }
   }
 
@@ -269,16 +269,16 @@ class sfMessageFormat
 
   /**
    * Get the message source.
-   * @return MessageSource 
+   * @return MessageSource
    */
   function getSource()
   {
     return $this->source;
   }
-  
+
   /**
    * Set the prefix and suffix to append to untranslated messages.
-   * e.g. $postscript=array('[T]','[/T]'); will output 
+   * e.g. $postscript=array('[T]','[/T]'); will output
    * "[T]Hello[/T]" if the translation for "Hello" can not be determined.
    * @param array first element is the prefix, second element the suffix.
    */
@@ -291,5 +291,3 @@ class sfMessageFormat
     }
   }
 }
-
-?>

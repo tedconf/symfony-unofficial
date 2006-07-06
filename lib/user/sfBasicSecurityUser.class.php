@@ -4,7 +4,7 @@
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
  * (c) 2004-2006 Sean Kerr.
- * 
+ *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -56,13 +56,13 @@ class sfBasicSecurityUser extends sfUser implements sfSecurityUser
   {
     if ($this->hasCredential($credential))
     {
-      for ($i = 0, $z = count($this->credentials); $i < $z; $i++)
+      foreach ($this->credentials as $key => $value)
       {
-        if ($credential == $this->credentials[$i])
+        if ($credential == $value)
         {
           if (sfConfig::get('sf_logging_active')) $this->getContext()->getLogger()->info('{sfUser} remove credential "'.$credential.'"');
 
-          unset($this->credentials[$i]);
+          unset($this->credentials[$key]);
           return;
         }
       }
@@ -176,6 +176,16 @@ class sfBasicSecurityUser extends sfUser implements sfSecurityUser
     }
   }
 
+  /**
+   * Returns the timestamp of the last user request.
+   *
+   * @param  integer
+   */
+  public function getLastRequestTime()
+  {
+    return $this->lastRequest;
+  }
+
   public function initialize($context, $parameters = null)
   {
     // initialize parent
@@ -219,5 +229,3 @@ class sfBasicSecurityUser extends sfUser implements sfSecurityUser
     parent::shutdown();
   }
 }
-
-?>

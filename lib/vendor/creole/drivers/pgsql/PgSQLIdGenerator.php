@@ -18,7 +18,7 @@
  * and is licensed under the LGPL. For more information please see
  * <http://creole.phpdb.org>.
  */
- 
+
 require_once 'creole/IdGenerator.php';
 
 /**
@@ -29,7 +29,7 @@ require_once 'creole/IdGenerator.php';
  * @package   creole.drivers.pgsql
  */
 class PgSQLIdGenerator implements IdGenerator {
-    
+
     /** Connection object that instantiated this class */
     private $conn;
 
@@ -42,15 +42,15 @@ class PgSQLIdGenerator implements IdGenerator {
     {
         $this->conn = $conn;
     }
-    
+
     /**
      * @see IdGenerator::isBeforeInsert()
      */
     public function isBeforeInsert()
     {
         return true;
-    }    
-    
+    }
+
     /**
      * @see IdGenerator::isAfterInsert()
      */
@@ -58,7 +58,7 @@ class PgSQLIdGenerator implements IdGenerator {
     {
         return false;
     }
-        
+
     /**
      * @see IdGenerator::getIdMethod()
      */
@@ -66,7 +66,7 @@ class PgSQLIdGenerator implements IdGenerator {
     {
         return self::SEQUENCE;
     }
-    
+
     /**
      * @see IdGenerator::getId()
      */
@@ -75,10 +75,10 @@ class PgSQLIdGenerator implements IdGenerator {
         if ($name === null) {
             throw new SQLException("You must specify the sequence name when calling getId() method.");
         }
-        $rs = $this->conn->executeQuery("select nextval('" . $name . "')", ResultSet::FETCHMODE_NUM);
+        $rs = $this->conn->executeQuery("SELECT nextval('" . pg_escape_string ( $name ) . "')", ResultSet::FETCHMODE_NUM);
         $rs->next();
         return $rs->getInt(1);
     }
-    
+
 }
 

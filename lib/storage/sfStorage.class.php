@@ -4,7 +4,7 @@
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
  * (c) 2004-2006 Sean Kerr.
- * 
+ *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -129,7 +129,7 @@ abstract class sfStorage
    * @throws <b>sfStorageException</b> If an error occurs while writing to this storage.
    */
   abstract function write ($key, &$data);
-  
+
   public function getParameterHolder()
   {
     return $this->parameter_holder;
@@ -150,5 +150,3 @@ abstract class sfStorage
     return $this->parameter_holder->set($name, $value, $ns);
   }
 }
-
-?>

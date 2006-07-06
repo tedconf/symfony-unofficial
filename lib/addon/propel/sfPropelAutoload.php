@@ -9,7 +9,8 @@
  */
 
 /**
- * @package    symfony.runtime.addon
+ * @package    symfony
+ * @subpackage addon
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  * @version    SVN: $Id$
  */
@@ -29,5 +30,3 @@ if (sfConfig::get('sf_debug') && sfConfig::get('sf_logging_active'))
 // propel initialization
 Propel::setConfiguration(sfPropelDatabase::getConfiguration());
 Propel::initialize();
-
-?>

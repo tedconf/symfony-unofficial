@@ -20,7 +20,7 @@
 class sfLog_syslog extends sfLog
 {
     /**
-    * Integer holding the log facility to use. 
+    * Integer holding the log facility to use.
     * @var string
     * @access private
     */
@@ -155,4 +155,3 @@ class sfLog_syslog extends sfLog
         return $priorities[$priority];
     }
 }
-?>

@@ -3,7 +3,7 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- * 
+ *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -86,7 +86,7 @@ class sfFileCache extends sfCache
   * @var int $automaticCleaning
   */
   protected $automaticCleaningFactor = 500;
-  
+
   /**
   * Nested directory level
   *
@@ -214,7 +214,7 @@ class sfFileCache extends sfCache
 
     return 0;
   }
-  
+
   /**
   * Save some data in a cache file
   *
@@ -326,7 +326,7 @@ class sfFileCache extends sfCache
 
   /**
   * Remove a file
-  * 
+  *
   * @param string $file complete file path and name
   * @return boolean true if no problem
   */
@@ -405,7 +405,7 @@ class sfFileCache extends sfCache
       {
         $hashControl = @fread($fp, 32);
         $length = $length - 32;
-      } 
+      }
       $data = ($length) ? @fread($fp, $length) : '';
       set_magic_quotes_runtime($mqr);
       if ($this->fileLocking)
@@ -487,7 +487,7 @@ class sfFileCache extends sfCache
 
     throw new sfCacheException('Unable to write cache file "'.$path.$file.'"');
   }
-  
+
   /**
   * Write the given data in the cache file and control it just after to avoir corrupted cache entries
   *
@@ -501,7 +501,7 @@ class sfFileCache extends sfCache
 
     return ($dataRead == $data);
   }
-  
+
   /**
   * Make a control key with the string containing datas
   *
@@ -513,5 +513,3 @@ class sfFileCache extends sfCache
     return sprintf('% 32d', crc32($data));
   }
 }
-
-?>

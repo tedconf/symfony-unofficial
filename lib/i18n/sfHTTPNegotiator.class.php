@@ -20,7 +20,7 @@
 
 /**
  * sfHTTPNegotiator class.
- * 
+ *
  * Get the language and charset information from the client browser.
  *
  * @author Xiang Wei Zhuo <weizhuo[at]gmail[dot]com>
@@ -31,19 +31,19 @@ class sfHTTPNegotiator
 {
   /**
    * A list of languages accepted by the browser.
-   * @var array 
+   * @var array
    */
   protected $languages;
 
   /**
    * A list of charsets accepted by the browser
-   * @var array 
+   * @var array
    */
   protected $charsets;
 
   /**
    * Get a list of languages acceptable by the client browser
-   * @return array languages ordered in the user browser preferences. 
+   * @return array languages ordered in the user browser preferences.
    */
   function getLanguages()
   {
@@ -58,13 +58,13 @@ class sfHTTPNegotiator
     //$basedir = sfCultureInfo::dataDir();
     //$ext = sfCultureInfo::fileExt();
 
-    foreach(explode(',', $_SERVER['HTTP_ACCEPT_LANGUAGE']) as $lang) 
+    foreach(explode(',', $_SERVER['HTTP_ACCEPT_LANGUAGE']) as $lang)
     {
             // Cut off any q-value that might come after a semi-colon
             if ($pos = strpos($lang, ';'))
                 $lang = trim(substr($lang, 0, $pos));
 
-      if (strstr($lang, '-')) 
+      if (strstr($lang, '-'))
       {
         $codes = explode('-',$lang);
         if($codes[0] == 'i')
@@ -90,13 +90,13 @@ class sfHTTPNegotiator
       if(sfCultureInfo::validCulture($lang))
         $this->languages[] = $lang;
         }
-    
+
     return $this->languages;
   }
 
   /**
    * Get a list of charsets acceptable by the client browser.
-   * @return array list of charsets in preferable order. 
+   * @return array list of charsets in preferable order.
    */
   function getCharsets()
   {
@@ -108,14 +108,12 @@ class sfHTTPNegotiator
     if (!isset($_SERVER['HTTP_ACCEPT_CHARSET']))
             return $this->charsets;
 
-    foreach (explode(',', $_SERVER['HTTP_ACCEPT_CHARSET']) as $charset) 
+    foreach (explode(',', $_SERVER['HTTP_ACCEPT_CHARSET']) as $charset)
     {
-            if (!empty($charset)) 
+            if (!empty($charset))
                 $this->charsets[] = preg_replace('/;.*/', '', $charset);
         }
 
     return $this->charsets;
   }
 }
-
-?>
