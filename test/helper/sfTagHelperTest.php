@@ -45,5 +45,3 @@ class sfTagHelperTest extends UnitTestCase
       escape_javascript("alert('foo');\nalert(\"bar\");"));
   }
 }
-
-?>

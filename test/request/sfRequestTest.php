@@ -173,5 +173,3 @@ class sfRequestTest extends UnitTestCase
     }
   }
 }
-
-?>

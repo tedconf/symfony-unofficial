@@ -9,7 +9,7 @@ The implementation of the [MVC][1] View paradigm in symfony uses templates, poss
 Templating
 ----------
 
-The result of an action execution is a View. In symfony, a View is the combination of a **template** described by a classic PHP file, and a configuration file describing the way this template will fit with other interface elements. 
+The result of an action execution is a View. In symfony, a View is the combination of a **template** described by a classic PHP file, and a configuration file describing the way this template will fit with other interface elements.
 
 Here is a typical template, typically named `indexSuccess.php`:
 
@@ -21,7 +21,7 @@ Here is a typical template, typically named `indexSuccess.php`:
       <li><?php echo link_to('Start writing a new one', 'article/write/') ?></li>
     </ul>
 
-It contains some HTML code and some basic PHP code, usually calls to variables defined in the action and helpers. 
+It contains some HTML code and some basic PHP code, usually calls to variables defined in the action and helpers.
 
 The variables called in the templates must be either one of the usual shortcuts (see below) or attributes of the action object defined in the related action file. For instance, to define a value for the `$name` variable used here, the action must contain such a line:
 
@@ -37,7 +37,7 @@ Symfony provides the templates with a few useful pre-defined variables, or **sho
 
     [php]
     $sf_context        //the whole context object
-    $sf_request        //the origin request 
+    $sf_request        //the origin request
     $sf_params         //parameters of the origin request
     $sf_user           //the current sfUser object
     $sf_view           //the calling sfView object
@@ -71,7 +71,7 @@ Helpers
 
     This includes all the HTML tags that handle URLs: they are replaced by symfony shortcuts to allow the routing.
 
-*   The standard optional helpers, that use less code than classic HTML for the same purpose. 
+*   The standard optional helpers, that use less code than classic HTML for the same purpose.
 
     In addition, they take advantage of the symfony architecture : by using these helpers, you make sure that your code will even work after any subsequent change in the file tree structure.
 
@@ -79,7 +79,7 @@ Helpers
 
 Using helpers speeds up the template development; they are described in detail in the following chapters.
 
-In order to use helper functions, the file that contains this helper has to be loaded. 
+In order to use helper functions, the file that contains this helper has to be loaded.
 
 A few helpers are loaded for every application:
 
@@ -107,7 +107,7 @@ If you need to use a helper that is not loaded by default, the template that wil
     <?php echo use_helper('Date') ?>
     ...
     <?php echo format_date($date, 'd', 'en') ?>
-    
+
     // you can call more than one helper at once
     <?php echo use_helpers('Date', 'I18N') ?>
 
@@ -120,22 +120,22 @@ All the templates can be included into a **global template**, or **layout**, loc
     <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/2000/REC-xhtml1-200000126/DTD/xhtml1-transitional.dtd">
     <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
     <head>
-    
+
     <?php echo include_http_metas() ?>
     <?php echo include_metas() ?>
-    
+
     <?php echo include_title() ?>
-    
+
     <?php echo include_stylesheets() ?>
     <?php echo include_javascripts() ?>
-    
+
     <link rel="shortcut icon" href="/favicon.ico">
-    
+
     </head>
     <body>
-    
+
     <?php echo $content ?>
-    
+
     </body>
     </html>
 
@@ -154,25 +154,25 @@ The content of the `<head>` tag might be a little cryptic for now, but if will b
     <link rel="shortcut icon" href="/favicon.ico">
     </head>
     <body>
-    
+
     <h1>Welcome</h1>
     <p>Welcome back, <?php echo $name ?> !</p>
     <ul>What would you like to do ?
       <li><?php echo link_to('Read the last articles', 'article/read/') ?></li>
       <li><?php echo link_to('Start writing a new one', 'article/write/') ?></li>
     </ul>
-    
+
     </body>
     </html>
 
 This is an application of the [decorator design pattern][2]: the content of the template called by the action is integrated into the global template with the help of the `$content` variable.
 
-The global template can be entirely customized for each application. 
+The global template can be entirely customized for each application.
 
 Naming conventions
 ------------------
 
-Now you may wonder how symfony links actions with templates.  To avoid repeated explicit call of templates when the name of the template can be easily deduced from the one of the action, symfony has a few naming conventions. 
+Now you may wonder how symfony links actions with templates.  To avoid repeated explicit call of templates when the name of the template can be easily deduced from the one of the action, symfony has a few naming conventions.
 
 A template name is made of two parts: the first part is related to the action, the second to is result. For instance, the typical template of an action called `index` that executed successfully is `indexSuccess.php`.
 
@@ -209,8 +209,8 @@ An action can also set an alternate template:
     [php]
     $this->setTemplate('myCustomTemplate');
 
-According to the value returned by the action, the template called can be `myCustomTemplateSuccess.php` or `myCustomTemplateError.php`. 
-    
+According to the value returned by the action, the template called can be `myCustomTemplateSuccess.php` or `myCustomTemplateError.php`.
+
 Now let's see all these possibilities in action:
 
     [php]
@@ -218,11 +218,11 @@ Now let's see all these possibilities in action:
     {
       public function executeIndex()
       {
-        if ($test == 1) 
+        if ($test == 1)
         {
           ...
           return sfView::SUCCESS;
-        } 
+        }
         else if ($test == 2)
         {
           ...
@@ -234,7 +234,7 @@ Now let's see all these possibilities in action:
           $this->setTemplate('myCustomTemplate');
           return sfView::SUCCESS;
         }
-        else 
+        else
         {
           return sfView::ERROR;
         }
@@ -276,7 +276,7 @@ If the content type is static HTML, you can use a classic `include()` PHP statem
 
     [php]
     // include some HTML code into the current template
-    <?php include('myfile.html') ?> 
+    <?php include('myfile.html') ?>
 
 The most common need is to include a piece of PHP code. If this code doesn't require the symfony objects and methods, the `include()` statement is still enough. For instance, if many of the templates of your `test` module use a fragment of code showing the current time, save this piece of code in a file called `time.php` in the global template directory (`myproject/apps/myapp/templates`). Now, when you need this piece of code in a template, just call the `include()` function:
 
@@ -313,7 +313,7 @@ If your need is not restricted to one module, save your fragment in the main tem
 
 ### Components
 
-In the previous example, the logic of the partial is light and doesn't require an action. If you need a partial with a logic behind, you should use a component. A component is like an action, it can pass variables to a template partial - except it's much faster than an action. The logic is kept in a `components.class.php` file in the `actions/` directory, and the template is a regular partial. 
+In the previous example, the logic of the partial is light and doesn't require an action. If you need a partial with a logic behind, you should use a component. A component is like an action, it can pass variables to a template partial - except it's much faster than an action. The logic is kept in a `components.class.php` file in the `actions/` directory, and the template is a regular partial.
 
 For instance, a news component could display in a sidebar the latest news headlines for a given subject, depending on the user's profile. The queries necessary to get the news headlines are too complex to appear in a simple partial, so they have to be moved to an action-like file.
 
@@ -321,7 +321,7 @@ In a `news` module, create a file called `components.class.php` in the `actions/
 
     [php]
     <?php
-    
+
     class newsComponents extends sfComponents
     {
       public function executeHeadlines()
@@ -332,7 +332,7 @@ In a `news` module, create a file called `components.class.php` in the `actions/
         $this->news = NewsPeer::doSelect($c);
       }
     }
-    
+
     ?>
 
 In the same `news` module, create a `_headlines.php` partial in the `templates/` directory:
@@ -353,9 +353,19 @@ In the same `news` module, create a `_headlines.php` partial in the `templates/`
 Now, every time you need the component in a template, just call it by:
 
     [php]
-    <?php echo include_component('news', 'headlines') ?>
-    
-Just like the partials, components accept additional parameters in the shape of an associative array.
+    <?php include_component('news', 'headlines') ?>
+
+Just like the partials, components accept additional parameters in the shape of an associative array. The parameters are available to the partial under their name, and in the component via the `$this` object:
+
+    [php]
+    // call to the component
+    <?php include_component('news', 'headlines', array('foo' => 'bar')) ?>
+
+    // in the component itself,
+    echo $this->foo;          => 'bar'
+
+    // in the _headlines.php partial,
+    echo $foo;                => 'bar'
 
 You can include components in components, or in the global layout, as in any regular template. Like actions, components `execute` methods can pass variables to the related partial and have access to the same shortcuts. But the similarities stop there: A partial doesn't handle security, doesn't have various `return` possibilities, and is much faster than an action to execute.
 
@@ -369,9 +379,9 @@ For instance, let's imagine that the `layout.php` of the application contains:
 
     [php]
     ...
-    <div id="#sidebar">
-      <?php echo include_component_slot('sidebar') ?>
-    </div> 
+    <div id="sidebar">
+      <?php include_component_slot('sidebar') ?>
+    </div>
 
 In the main `view.yml` configuration file (located in the `myapp/config/` directory), you define the default value for this slot:
 
@@ -384,7 +394,7 @@ By default, this sidebar will call the `executeDefault()` method of the `barComp
     all:
       components:
         sidebar:  [bar, user]
-        
+
 >**Note**: The `config/view.yml` file for your module is not automatically generated by the module initialization. You will need to create this file manually.
 
 In the `modules/bar/actions/components.class.php`, add this new method:

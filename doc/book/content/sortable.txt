@@ -13,17 +13,14 @@ What you need
 
 ### Data structure
 
-For this article, the example used will be an undefined `Item` table - name it according to your needs. In order to be sortable, records need at least a `rank` field - no need for a [heap](http://en.wikipedia.org/wiki/Heap_%28data_structure%29) here since the sorting will be done by the user, not by the computer. So the data structure (to be written in the [`schema.xml`](model.txt)) is simply:
+For this article, the example used will be an undefined `Item` table - name it according to your needs. In order to be sortable, records need at least a `rank` field - no need for a [heap](http://en.wikipedia.org/wiki/Heap_%28data_structure%29) here since the sorting will be done by the user, not by the computer. So the data structure (to be written in the [`schema.yml`](model.txt)) is simply:
 
-    [xml]
-    <?xml version="1.0" encoding="UTF-8"?>
-    <database name="propel" defaultIdMethod="native" noxsd="true">
-      <table name="test_item" phpName="Item">
-        <column name="id" type="integer" required="true" primaryKey="true" autoIncrement="true" />
-        <column name="name" type="varchar" size="255" />
-        <column name="rank" type="integer" required="true" />
-      </table>
-    </database>
+    propel:
+      test_item:
+        _attributes: { phpName: Item }
+        id:
+        name:        varchar(255)
+        rank:        { type: integer, required: true }
 
 Make sure you build your model once the data structure is defined by typing in a command line interface:
 
@@ -43,27 +40,27 @@ Before thinking about the user interactions, make sure you have a way to retriev
     {
       $c = new Criteria;
       $c->add(self::RANK, $rank);
-      return self::doSelectOne($c); 
+      return self::doSelectOne($c);
     }
-    
+
     static function getAllByRank()
     {
       $c = new Criteria;
       $c->addAscendingOrderByColumn(self::RANK);
-      return self::doSelect($c); 
+      return self::doSelect($c);
     }
 
     static function getMaxRank()
     {
       $con = Propel::getConnection(self::DATABASE_NAME);
-      $sql = 'SELECT MAX('.self::RANK.') AS max FROM '.self::TABLE_NAME; 
+      $sql = 'SELECT MAX('.self::RANK.') AS max FROM '.self::TABLE_NAME;
       $stmt = $con->prepareStatement($sql);
       $rs = $stmt->executeQuery();
-    
+
       $rs->next();
       return $rs->getInt('max');
     }
-    
+
 These methods will be of great use for both sorting interfaces. If you need more information about the way the Object Model handles database queries in symfony, check out the [basic CRUD chapter](http://propel.phpdb.org/trac/wiki/Users/Documentation/BasicCRUD) of the Propel user guide.
 
 There are two more method that needs to be added to the `lib/model/Item.php` class. They won't be needed here, but you will probably need them in a real world application, where you will also add and delete items to your table:
@@ -78,10 +75,10 @@ There are two more method that needs to be added to the `lib/model/Item.php` cla
         try
         {
           $con->begin();
-       
+
           $this->setRank(ItemPeer::getMaxRank()+1);
           parent::save();
-       
+
           $con->commit();
         }
         catch (Exception $e)
@@ -92,23 +89,23 @@ There are two more method that needs to be added to the `lib/model/Item.php` cla
       }
       else
       {
-        parent::save(); 
+        parent::save();
       }
-    } 
-  
+    }
+
     public function delete($con = null)
-    {  
+    {
       $con = Propel::getConnection(PagePeer::DATABASE_NAME);
       try
       {
         $con->begin();
-  
-        // decrease all the ranks of the page records of the same category with higher rank 
+
+        // decrease all the ranks of the page records of the same category with higher rank
         $sql = 'UPDATE '.ItemPeer::TABLE_NAME.' SET '.ItemPeer::RANK.' = '.ItemPeer::RANK.' - 1 WHERE '.ItemPeer::RANK.' > '.$this->getRank();
         $con->executeQuery($sql);
         // delete the item
         parent::delete();
-  
+
         $con->commit();
       }
       catch (Exception $e)
@@ -146,16 +143,16 @@ A classic sortable list is a list for which each item has a control to change it
       $this->items = ItemPeer::getAllByRank();
       $this->max_rank = ItemPeer::getMaxRank();
     }
-    
+
     // create a template listSuccess.php in modules/item/templates/
     <h1>Ordered list of items</h1>
     <ul>
     <?php foreach($items as $item): ?>
       <li>
-        <?php 
+        <?php
           echo $item->getName().' ';
-          if($item->getRank() > 0): 
-            echo link_to('Move up ', 'item/up?id='.$item->getId()); 
+          if($item->getRank() > 0):
+            echo link_to('Move up ', 'item/up?id='.$item->getId());
           endif;
           if($item->getRank() != $max_rank):
             echo link_to('Move down', 'item/down?id='.$item->getId());
@@ -164,12 +161,12 @@ A classic sortable list is a list for which each item has a control to change it
       </li>
     <?php endforeach ?>
     </ul>
-    
+
 The links to move an item up or down are displayed only when the reordering is possible. This means that the first item cannot be moved further up, and the last item cannot be moved further down. Check that the page displays correctly:
 
     http://localhost/sf_sandbox/web/frontend_dev.php/item/list
 
-Now, it's time to look into the `item/up` and `item/down` action. The `up` action is supposed to decrease the rank of the page given as a parameter, and to increase the rank of the previous page. The `down` action is supposed to increase the rank of the page given as parameter, and to decrease the rank of the following page. As they both do two write operations in the database, these actions should use a transaction. 
+Now, it's time to look into the `item/up` and `item/down` action. The `up` action is supposed to decrease the rank of the page given as a parameter, and to increase the rank of the previous page. The `down` action is supposed to increase the rank of the page given as parameter, and to decrease the rank of the following page. As they both do two write operations in the database, these actions should use a transaction.
 
 The two actions have a very similar logic, and if you want to keep [D.R.Y.](http://c2.com/cgi/wiki?DontRepeatYourself), you'd better find a smart way to write them without repeating any code. This is done by adding a `swapWith()` method to the `Item.php` model class:
 
@@ -181,12 +178,12 @@ The two actions have a very similar logic, and if you want to keep [D.R.Y.](http
       {
         $con->begin();
 
-        $rank = $this->getRank();  
+        $rank = $this->getRank();
         $this->setRank($item->getRank());
         $this->save();
         $item->setRank($rank);
         $item->save();
-     
+
         $con->commit();
       }
       catch (Exception $e)
@@ -194,7 +191,7 @@ The two actions have a very similar logic, and if you want to keep [D.R.Y.](http
         $con->rollback();
         throw $e;
       }
-    } 
+    }
 
 Then, the `up` and `down` actions become pretty simple:
 
@@ -206,9 +203,9 @@ Then, the `up` and `down` actions become pretty simple:
       $previous_item = ItemPeer::retrieveByRank($item->getRank() - 1);
       $this->forward404Unless($previous_item);
       $item->swapWith($previous_item);
-  
+
       $this->redirect('item/list');
-    }  
+    }
 
     public function executeDown()
     {
@@ -217,10 +214,10 @@ Then, the `up` and `down` actions become pretty simple:
       $next_item = ItemPeer::retrieveByRank($item->getRank() + 1);
       $this->forward404Unless($next_item);
       $item->swapWith($next_item);
-  
+
       $this->redirect('item/list');
     }
-    
+
 If not for the security checks made by the calls to `forward404Unless()`, these actions could be even simpler, but you have to protect your application against wrong requests - the ones that could be done by typing an URL directly.
 
 The list is now fully functional. Try it by moving items up and down in the list.
@@ -238,7 +235,7 @@ Developing a basic AJAX sortable list is not harder than developing a classic on
     {
       $this->items = ItemPeer::getAllByRank();
     }
-    
+
     // create a template ajaxListSuccess.php in modules/item/templates/
     <?php use_helper('Javascript') ?>
     <style>
@@ -288,11 +285,11 @@ The ability to reorder the whole list is part of the model, that's why it is imp
     static function doSort($order)
     {
       $con = Propel::getConnection(self::DATABASE_NAME);
-      try 
+      try
       {
         $con->begin();
 
-        foreach ($order as $rank => $id) 
+        foreach ($order as $rank => $id)
         {
           $item = ItemPeer::retrieveByPk($id);
           if($item->getRank() != $rank)
@@ -303,7 +300,7 @@ The ability to reorder the whole list is part of the model, that's why it is imp
         }
 
         $con->commit();
-        return true;    
+        return true;
       }
       catch (Exception $e)
       {
@@ -317,10 +314,10 @@ The value returned by this method will determine which template the action will 
     [php]
     // sortSuccess.php
     Ok
-    
+
     // sortError.php
     <strong>A problem occurred. Please refresh and try again.</strong>
-    
+
 Test the server handling by pressing F5 after rearranging the list. The ordering shouldn't change, proving that the server understood and saved correctly what the AJAX request sent to it.
 
 ### Focus on the `sortable_element()` options
@@ -392,7 +389,7 @@ For all AJAX actions, it is good to have a **visual feedback** of background act
 
     [php]
     <div id="feedback"></div>
-    <div id="indicator"><img src="/images/activity_indicator.gif" style="display:none;"/></div>
+    <div id="indicator" style="display:none;"><img src="/images/activity_indicator.gif" style="display:none;"/></div>
     <?php echo sortable_element('order', array(
       'url'      => 'item/sort',
       'update'   => 'feedback',
@@ -412,7 +409,7 @@ For large arrays of items, you will probably need a paginated list. The classic 
 
 The AJAX action is not as well protected against wrong requests as the classic one. In order to avoid any risk of database incoherence, you should add a `validateSort()` method to the `itemActions` class. This method would check that all the items `id`, and only them, are present once and only once in the received array.
 
-One drawback of the `ItemPeer::doSort()` method used in the AJAX sorting is the number of queries it needs to reorder the list. Each movement in a list of n items makes at least n+2 queries to the database. AJAX list are not adapted to long lists, so this may not be a major problem, but if performance is a concern for you, you should refactor this method to have it update the ranks with only one query - for instance using the `UPDATE table SET CASE/WHEN` SQL syntax. 
+One drawback of the `ItemPeer::doSort()` method used in the AJAX sorting is the number of queries it needs to reorder the list. Each movement in a list of n items makes at least n+2 queries to the database. AJAX list are not adapted to long lists, so this may not be a major problem, but if performance is a concern for you, you should refactor this method to have it update the ranks with only one query - for instance using the `UPDATE table SET CASE/WHEN` SQL syntax.
 
 The AJAX interface is definitely more user friendly, especially for long ordering tasks, since there is no obligation of a server refresh between two operations. But the ability to drag elements is new in web interfaces, and users not used to it might find it surprising. Moreover, if you choose the AJAX interface, you will have to think about the size of the draggable elements (they need to be large enough to be grabbed), their aspect, their freedom of movement... A lot of Human-Computer Interaction issues that wouldn't need solving with the classic method.
 

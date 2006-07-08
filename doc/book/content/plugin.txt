@@ -26,7 +26,7 @@ Installing a plug-in
 The symfony command line makes it easy to install a plug-in. For instance, to install the `sfShoppingCart` plug-in of the `symfony` channel for the current project, type:
 
     $ symfony plugin-install local symfony/sfShoppingCart
-    
+
 This will install the shopping cart classes in the project `lib/` directory, and they will be available to the whole project without the need to require them manually (classes located in the the `lib/` directory are [autoloaded](configuration_practice.html#autoload).
 
 >**Note**: As the symfony plug-in system relies on PEAR, the `plugin-install` will only work if you have PEAR 1.4.0 or higher installed.
@@ -38,14 +38,14 @@ If you know that you will need the plug-in for various projects, it is better to
 In this case, the library will be installed in the `PEAR_LIB` directory. The command is equivalent to:
 
     $ pear install symfony/sfShoppingCart
-    
+
 >**Note**: The `global` installation of a plug-in can only work if you installed symfony itself via PEAR (not if you installed symfony from a SVN export or a downloaded archive). This is because the plug-ins specify a minimum version for the symfony framework, and this version is given by PEAR.
 
 The plug-in location is not limited to a PEAR channel. You can also use a local .tgz archive or point directly to a web URL:
 
     $ symfony plugin-install global /home/production/downloads/sfShoppingCart.tgz
     $ symfony plugin-install global http://pear.symfony-project.com/get/sfShoppingCart-1.0.0.tgz
-    
+
 The symfony command line also provides other commands:
 
   Command name          | Effect
@@ -142,7 +142,7 @@ A plug-in is a set of files that can contain several types of data. According to
 
         $ pear config-show
 
-The `baseinstalldir` attribute tells to PEAR where to copy the content referenced in the `<content>` tag. 
+The `baseinstalldir` attribute tells to PEAR where to copy the content referenced in the `<content>` tag.
 
 For instance, the 2 files of the `sfShoppingCart` plug-in are installed as follow:
 
@@ -205,18 +205,18 @@ If you want to learn more about the PEAR post-install scripts, refer to the [PEA
 
 If your plug-in is a module, it has to embed all the necessary configuration files with it. Use the classical file structure of a module to include a `module.yml` file for instance, and all i18n materials should definitely go into a `i18n/` directory.
 
-If your module has a specific data model, written in a `schema.xml`, you will need a post install script to copy it to the project `config/` directory for local installation. For global installations, your README file will have to specify that the `schema.xml` is to be copied manually in the `config/` directory of each project using the plug-in. In both cases, you must not override any existing `schema.xml` in the projects of the user, so it is best to call your schema `pluginName_schema.xml` (as soon as the name ends with `schema.xml`, the `propel-build-model` command will take it into account).
+If your module has a specific data model, written in a `schema.yml`, you will need a post install script to copy it to the project `config/` directory for local installation. For global installations, your README file will have to specify that the `schema.yml` is to be copied manually in the `config/` directory of each project using the plug-in. In both cases, you must not override any existing `schema.yml` in the projects of the user, so it is best to call your schema `pluginName_schema.yml` (as soon as the name ends with `schema.yml`, the `propel-build-model` command will take it into account).
 
 If your plug-in includes media files (images, css, javascripts, etc.), you should declare them with a `data` role and specify a base install directory like `symfony/web/sf/MEDIA_TYPE/pluginName/`. For instance, to store a `myimage.jpg` images for the `sfMyPlugin` plug-in, write the `<content>` tag as follows:
 
     [xml]
     <file baseinstalldir="symfony/web/sf/img/sfMyPlugin" install-as="myimage.jpg" name="img/myimage.jpg" role="data" />
-    
+
 Once you do a global install of the plug-in, as you already have a `sf/` symbolic link to `symfony/web/sf/` in your server configuration, the image can be addressed to as:
 
     [php]
     <?php echo image_tag('/sf/img/sfMyPlugin/myimage.jpg') ?>
-    
+
 The trouble is for local install. The image will be installed in `myproject/data/symfony/web/sf/img/sfMyPlugin/myimage.jpg`, and this path is not accessible to the web server. The other problem is that you cannot copy the files to a local `web/sf/` directory, since the server already has an alias for that.
 
 The solution is to add a post install script to your PEAR package that will copy manually the media files to a `web/img/sfMyPlugin/` directory and remove the reference to the `sf/` directory in the case of a local install.
@@ -232,7 +232,7 @@ We also recommend that you add a maximum version of symfony for your plug-in. Th
 The PEAR component has a command that creates the .tgz archive of the package, provided you call the following command from a directory containing a `package.xml`:
 
     $ pear package
-    
+
 Couldn't be easier.
 
 Once you built your plug-in, check that it works by installing it yourself.
@@ -248,4 +248,4 @@ The main advantages of being hosted by symfony are that your plug-in will be vis
 [1]: http://pear.php.net/                                                           "PEAR website"
 [2]: http://pear.php.net/manual/en/                                                 "PEAR manual"
 [3]: http://en.wikipedia.org/wiki/CamelCase                                         "camelCase definition at Wikipedia"
-[4]: http://pear.php.net/manual/fr/html/guide.migrating.postinstall.structure.html  "post install for PEAR documentation" 
+[4]: http://pear.php.net/manual/fr/html/guide.migrating.postinstall.structure.html  "post install for PEAR documentation"

@@ -23,7 +23,7 @@ To get the installed version of the symfony package, type:
 To get the full list of the available administration operations, use:
 
     $ symfony -T
-    
+
 The symfony command expects tasks, and some tasks require additional parameters. The general syntax is:
 
     $ symfony <TASK> [parameters]
@@ -44,7 +44,7 @@ CLI tasks
     $ symfony init-project <PROJECT_NAME>
 
 `init-app`: Initialize a new symfony application (shortcut: `app`)
-          
+
     $ symfony init-app <APPLICATION_NAME>
 
 `init-module`: Initialize a new symfony module (shortcut: `module`)
@@ -55,28 +55,28 @@ Find more about these commands in the [project creation chapter](project_creatio
 
 ### Model generation
 
-`propel-build-model`: Create Propel classes for the current model, based on the `schema.xml` file. If you have several files ending with `schema.xml` in your `config/` directory, they are all taken into account.
+`propel-build-model`: Create Propel classes for the current model, based on the `schema.yml` file. If you have several files ending with `schema.yml` in your `config/` directory, they are all taken into account.
 
     $ symfony propel-build-model
 
 The connection settings used by the following commands are taken from the `config/propel.ini` configuration.
-    
+
 `propel-build-schema`: Create `schema.xml` from an existing database
 
     $ symfony propel-build-schema
-    
-`propel-build-sql`: Create the SQL code to create the tables described in the `schema.xml`, in a `data/schema.sql` file.
+
+`propel-build-sql`: Create the SQL code to create the tables described in the `schema.yml`, in a `data/schema.sql` file.
 
     $ symfony propel-build-sql
-    
+
 `propel-build-db`: Create an empty database
 
     $ symfony propel-build-db
 
-`propel-insert-sql`: Insert the SQL code from `data/schema.xml` into the database
+`propel-insert-sql`: Insert the SQL code from `data/schema.sql` into the database
 
     $ symfony propel-insert-sql
-    
+
 If you want to learn more about the model and the effect of these commands, refer to the [model chapter](model.txt).
 
 ### Development tools
@@ -88,11 +88,11 @@ If you want to learn more about the model and the effect of these commands, refe
 `fix-perms`: Fix directories permissions, to change to `777` the directories that need to be writable. The permission can be broken if you use a checkout from a SVN repository.
 
     $ symfony fix-perms
-    
+
 `test`: Launch the test suite for an application (find more in the [unit test chapter](test_unit_testing.txt))
 
     $ symfony test <APPLICATION_NAME>
-    
+
 `sync`: Synchronise the current project with another machine (find more in the [deployment chapter](deployment.txt))
 
     $ symfony sync <ENVIRONMENT_NAME> [go]
@@ -102,7 +102,7 @@ If you want to learn more about the model and the effect of these commands, refe
 `propel-generate-crud`: Generate a new Propel CRUD module based on a class from the model
 
     $ symfony propel-generate-crud <APPLICATION_NAME> <MODULE_NAME> <CLASS_NAME>
-    
+
 `propel-init-crud`: Same as `propel-generate-crud`, except that the generated code is visible only in the `cache/` folder (the generated actions and templates inherit from the framework)
 
 `propel-init-admin`: Initialize a new Propel admin module based on a class from the model
@@ -116,7 +116,7 @@ You will find a lot of details about scaffolding and generated administrations i
 `plugin-install`: Install a new plugin
 
     $ symfony plugin-install [local|global] <CHANNEL_NAME>/<PLUGIN_NAME>
-    
+
 `plugin-upgrade`: Upgrade a plugin
 
     $ symfony plugin-upgrade [local|global] <CHANNEL_NAME>/<PLUGIN_NAME>
@@ -140,11 +140,11 @@ The `server` command launches a fast web server written in PHP to serve a symfon
 For instance, if you want to test a symfony application called `myapp` without changing your server configuration, type:
 
     $ symfony server myapp
-    
+
 You can now browse your app in the `dev` environment by requesting
 
     http://localhost:8000/
-    
+
 Symfony uses [nanoserv][3] for this purpose, in order to bypass completely the web server. This results in a very fast access to the development environment - without any control over the server configuration nor access to its log files. This tool is to be used for debug, not in a production environment.
 
 >**Note**: This feature is still at an early stage
@@ -155,7 +155,7 @@ Automatic completion
 The symfony wiki contains user-contributed configuration files to allow automatic completion of symfony commands. Check out the one that fits your CLI:
 
 * [Bash completion](http://www.symfony-project.com/trac/wiki/BashCompletion)
-* [Zsh completion](http://www.symfony-project.com/trac/wiki/ZshCompletion) 
+* [Zsh completion](http://www.symfony-project.com/trac/wiki/ZshCompletion)
 
 [1]: http://www.pake-project.org/    "Pake"
 [2]: http://rake.rubyforge.org/      "Rake"

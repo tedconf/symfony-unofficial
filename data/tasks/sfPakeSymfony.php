@@ -23,15 +23,15 @@ function run_freeze($task, $args)
   // PEAR release or subversion revision?
   if ($version == 'stable')
   {
-    
+
   }
   else if ($version == 'beta')
   {
-    
+
   }
   else if ($version)
   {
-    
+
   }
   else
   {
@@ -43,5 +43,3 @@ function run_unfreeze($task, $args)
 {
   // remove lib/symfony and data/symfony directories
 }
-
-?>

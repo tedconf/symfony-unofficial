@@ -13,16 +13,16 @@ All web requests are handled by a single **front controller**, which is the uniq
 
     [php]
     <?php
-    
+
     define('SF_ROOT_DIR',    realpath(dirname(__FILE__).'/..'));
     define('SF_APP',         '##APP_NAME##');
     define('SF_ENVIRONMENT', 'prod');
     define('SF_DEBUG',       false);
-    
+
     require_once(SF_ROOT_DIR.DIRECTORY_SEPARATOR.'apps'.DIRECTORY_SEPARATOR.SF_APP.DIRECTORY_SEPARATOR.'config'.DIRECTORY_SEPARATOR.'config.php');
-    
+
     sfContext::getInstance()->getController()->dispatch();
-    
+
     ?>
 
 There is one front controller by environment. As a matter of fact, it is the very existence of a front controller that defines an environment. The name of the environment is set in the `SF_ENVIRONMENT` constant, after setting the root path of the application and its name.
@@ -36,7 +36,7 @@ The call to the `->dispatch()` method of the Controller object does several thin
 *   inscription of filters for the request (for instance if the request needs authentication)
 *   execution of the selected action
 
->**Note**: for your information, the [singleton][2] `sfContext::getInstance()` stores the main elements of the request: 
+>**Note**: for your information, the [singleton][2] `sfContext::getInstance()` stores the main elements of the request:
 >
 >* the controller object (given by the method `->getController()`)
 >* the request object (given by the method `->getRequest()`)
@@ -65,13 +65,13 @@ So let's imagine that you created a module called `mymodule` in your `myapp` app
     {
       public function executeIndex()
       {
-      
+
       }
     }
 
 >**Note**: If you happen to look at an actual `actions.class.php` file, you will find more than these few lines, including a lot of comments. This is because symfony recommends to use PHP comments to document your project and prepares each class file to be compatible with the [phpdoc][3] tool. You will learn more about documentation in the [related chapter](documentation.txt)
 
-In order to call an action you need pass the parameter 'module/action' to the front controller: 
+In order to call an action you need pass the parameter 'module/action' to the front controller:
 
     http://myapp.example.com/index.php/module_name/action_name
 
@@ -128,12 +128,19 @@ Various behaviors are possible at the end of the execution of an action:
         return 'MyResult';
 
 *   if there is no view to call, for instance in the case of an action executed in a batch process:
- 
+
         [php]
-        return sfView::NONE; 
+        return sfView::NONE;
+
+*   for escaping view rendering but send the header content (specially
+[X-JSON header](http://www.symfony-project.com/trac/wiki/AjaxAndJSON)),
+you can use:
+
+        [php]
+        return sfView::HEADER_ONLY;
 
 *   if there is no view to call, but a value to return:
- 
+
         [php]
         return sfView::VAR;
 

@@ -3,22 +3,22 @@
 #
 # PHP Markdown Extra  -  A text-to-HTML conversion tool for web writers
 #
-# Copyright (c) 2004-2005 Michel Fortin  
+# Copyright (c) 2004-2005 Michel Fortin
 # <http://www.michelf.com/projects/php-markdown/>
 #
-# Based on Markdown  
-# Copyright (c) 2004-2005 John Gruber  
+# Based on Markdown
+# Copyright (c) 2004-2005 John Gruber
 # <http://daringfireball.net/projects/markdown/>
 #
 
 
 global	$MarkdownPHPVersion, $MarkdownSyntaxVersion,
 		$md_empty_element_suffix, $md_tab_width,
-		$md_nested_brackets_depth, $md_nested_brackets, 
-		$md_escape_table, $md_backslash_escape_table, 
+		$md_nested_brackets_depth, $md_nested_brackets,
+		$md_escape_table, $md_backslash_escape_table,
 		$md_list_level;
 
-$MarkdownPHPVersion    = 'Extra 1.0'; # Mon 5 Sep 2005
+$MarkdownPHPVersion    = 'Extra 1.0.1'; # Fri 9 Dec 2005
 $MarkdownSyntaxVersion = '1.0.1';  # Sun 12 Dec 2004
 
 
@@ -40,14 +40,14 @@ $md_wp_comments = true;  # Set to false to remove Markdown from comments.
 Plugin Name: PHP Markdown Extra
 Plugin URI: http://www.michelf.com/projects/php-markdown/
 Description: <a href="http://daringfireball.net/projects/markdown/syntax">Markdown syntax</a> allows you to write using an easy-to-read, easy-to-write plain text format. Based on the original Perl version by <a href="http://daringfireball.net/">John Gruber</a>. <a href="http://www.michelf.com/projects/php-markdown/">More...</a>
-Version: Extra 1.0
+Version: Extra 1.0.1
 Author: Michel Fortin
 Author URI: http://www.michelf.com/
 */
 if (isset($wp_version)) {
 	# More details about how it works here:
 	# <http://www.michelf.com/weblog/2005/wordpress-text-flow-vs-markdown/>
-	
+
 	# Post content and excerpts
 	if ($md_wp_posts) {
 		remove_filter('the_content',  'wpautop');
@@ -57,12 +57,12 @@ if (isset($wp_version)) {
 		add_filter('get_the_excerpt', 'trim', 7);
 		add_filter('the_excerpt',     'md_add_p');
 		add_filter('the_excerpt_rss', 'md_strip_p');
-		
+
 		remove_filter('content_save_pre',  'balanceTags', 50);
 		remove_filter('excerpt_save_pre',  'balanceTags', 50);
 		add_filter('the_content',  	  'balanceTags', 50);
 		add_filter('get_the_excerpt', 'balanceTags', 9);
-		
+
 		function md_add_p($text) {
 			if (strlen($text) == 0) return;
 			if (strcasecmp(substr($text, -3), '<p>') == 0) return $text;
@@ -70,7 +70,7 @@ if (isset($wp_version)) {
 		}
 		function md_strip_p($t) { return preg_replace('{</?[pP]>}', '', $t); }
 	}
-	
+
 	# Comments
 	if ($md_wp_comments) {
 		remove_filter('comment_text', 'wpautop');
@@ -81,7 +81,7 @@ if (isset($wp_version)) {
 		add_filter('get_comment_text',    'Markdown', 6);
 		add_filter('get_comment_excerpt', 'Markdown', 6);
 		add_filter('get_comment_excerpt', 'md_strip_p', 7);
-	
+
 		global $md_hidden_tags;
 		$md_hidden_tags = array(
 			'<p>'	=> md5('<p>'),		'</p>'	=> md5('</p>'),
@@ -90,15 +90,15 @@ if (isset($wp_version)) {
 			'<ul>'	=> md5('<ul>'),		'</ul>'	=> md5('</ul>'),
 			'<li>'	=> md5('<li>'),		'</li>'	=> md5('</li>'),
 			);
-		
+
 		function md_hide_tags($text) {
 			global $md_hidden_tags;
-			return str_replace(array_keys($md_hidden_tags), 
+			return str_replace(array_keys($md_hidden_tags),
 								array_values($md_hidden_tags), $text);
 		}
 		function md_show_tags($text) {
 			global $md_hidden_tags;
-			return str_replace(array_values($md_hidden_tags), 
+			return str_replace(array_values($md_hidden_tags),
 								array_keys($md_hidden_tags), $text);
 		}
 	}
@@ -149,7 +149,7 @@ if (strcasecmp(substr(__FILE__, -16), "classTextile.php") == 0) {
 # Regex to match balanced [brackets].
 # Needed to insert a maximum bracked depth while converting to PHP.
 $md_nested_brackets_depth = 6;
-$md_nested_brackets = 
+$md_nested_brackets =
 	str_repeat('(?>[^\[\]]+|\[', $md_nested_brackets_depth).
 	str_repeat('\])*', $md_nested_brackets_depth);
 
@@ -280,31 +280,31 @@ function _HashHTMLBlocks($text) {
 # hard-coded.
 #
 # This works by calling _HashHTMLBlocks_InMarkdown, which then calls
-# _HashHTMLBlocks_InHTML when it encounter block tags. When the markdown="1" 
+# _HashHTMLBlocks_InHTML when it encounter block tags. When the markdown="1"
 # attribute is found whitin a tag, _HashHTMLBlocks_InHTML calls back
 #  _HashHTMLBlocks_InMarkdown to handle the Markdown syntax within the tag.
 # These two functions are calling each other. It's recursive!
-# 
-	global	$block_tags, $context_block_tags, $contain_span_tags, 
+#
+	global	$block_tags, $context_block_tags, $contain_span_tags,
 			$clean_tags, $auto_close_tags;
-	
+
 	# Tags that are always treated as block tags:
 	$block_tags = 'p|div|h[1-6]|blockquote|pre|table|dl|ol|ul|'.
 					'form|fieldset|iframe|hr|legend';
-	
+
 	# Tags treated as block tags only if the opening tag is alone on it's line:
 	$context_block_tags = 'script|noscript|math|ins|del';
-	
+
 	# Tags where markdown="1" default to span mode:
 	$contain_span_tags = 'p|h[1-6]|li|dd|dt|td|th|legend';
-	
-	# Tags which must not have their contents modified, no matter where 
+
+	# Tags which must not have their contents modified, no matter where
 	# they appear:
 	$clean_tags = 'script|math';
-	
+
 	# Tags that do not need to be closed.
 	$auto_close_tags = 'hr|img';
-	
+
 	# Regex to match any tag.
 	global $tag_match;
 	$tag_match =
@@ -327,22 +327,22 @@ function _HashHTMLBlocks($text) {
 				<!\[CDATA\[.*?\]\]>	# CData Block
 			)
 		}xs';
-	
+
 	#
 	# Call the HTML-in-Markdown hasher.
 	#
 	list($text, ) = _HashHTMLBlocks_InMarkdown($text);
-	
+
 	return $text;
 }
-function _HashHTMLBlocks_InMarkdown($text, $indent = 0, 
+function _HashHTMLBlocks_InMarkdown($text, $indent = 0,
 									$enclosing_tag = '', $md_span = false)
 {
 #
 # Parse markdown text, calling _HashHTMLBlocks_InHTML for block tags.
 #
-# *   $indent is the number of space to be ignored when checking for code 
-#     blocks. This is important because if we don't take the indent into 
+# *   $indent is the number of space to be ignored when checking for code
+#     blocks. This is important because if we don't take the indent into
 #     account, something like this (which looks right) won't work as expected:
 #
 #     <div>
@@ -354,29 +354,29 @@ function _HashHTMLBlocks_InMarkdown($text, $indent = 0,
 #     If you don't like this, just don't indent the tag on which
 #     you apply the markdown="1" attribute.
 #
-# *   If $enclosing_tag is not empty, stops at the first unmatched closing 
+# *   If $enclosing_tag is not empty, stops at the first unmatched closing
 #     tag with that name. Nested tags supported.
 #
-# *   If $md_span is true, text inside must treated as span. So any double 
-#     newline will be replaced by a single newline so that it does not create 
+# *   If $md_span is true, text inside must treated as span. So any double
+#     newline will be replaced by a single newline so that it does not create
 #     paragraphs.
 #
 # Returns an array of that form: ( processed text , remaining text )
 #
 	global	$block_tags, $context_block_tags, $clean_tags, $auto_close_tags,
 			$tag_match;
-	
+
 	if ($text === '') return array('', '');
 
 	# Regex to check for the presense of newlines around a block tag.
 	$newline_match_before = "/(?:^\n?|\n\n) *$/";
-	$newline_match_after = 
+	$newline_match_after =
 		'{
 			^						# Start of text following the tag.
 			(?:[ ]*<!--.*?-->)?		# Optional comment.
 			[ ]*\n					# Must be followed by newline.
 		}xs';
-	
+
 	# Regex to match any tag.
 	$block_tag_match =
 		'{
@@ -404,7 +404,7 @@ function _HashHTMLBlocks_InMarkdown($text, $indent = 0,
 			)
 		}xs';
 
-	
+
 	$depth = 0;		# Current depth inside the tag tree.
 	$parsed = "";	# Parsed text that will be returned.
 
@@ -416,29 +416,29 @@ function _HashHTMLBlocks_InMarkdown($text, $indent = 0,
 		#
 		# Split the text using the first $tag_match pattern found.
 		# Text before  pattern will be first in the array, text after
-		# pattern will be at the end, and between will be any catches made 
+		# pattern will be at the end, and between will be any catches made
 		# by the pattern.
 		#
-		$parts = preg_split($block_tag_match, $text, 2, 
+		$parts = preg_split($block_tag_match, $text, 2,
 							PREG_SPLIT_DELIM_CAPTURE);
-		
-		# If in Markdown span mode, replace any multiple newlines that would 
+
+		# If in Markdown span mode, replace any multiple newlines that would
 		# trigger a new paragraph.
 		if ($md_span) {
 			$parts[0] = preg_replace('/\n\n/', "\n", $parts[0]);
 		}
-		
+
 		$parsed .= $parts[0]; # Text before current tag.
-		
+
 		# If end of $text has been reached. Stop loop.
 		if (count($parts) < 3) {
 			$text = "";
 			break;
 		}
-		
+
 		$tag  = $parts[1]; # Tag to handle.
 		$text = $parts[2]; # Remaining text after current tag.
-		
+
 		#
 		# Check for: Tag inside code block or span
 		#
@@ -460,7 +460,7 @@ function _HashHTMLBlocks_InMarkdown($text, $indent = 0,
 		}
 		#
 		# Check for: Opening Block level tag or
-		#            Opening Content Block tag (like ins and del) 
+		#            Opening Content Block tag (like ins and del)
 		#               used as a block tag (tag is alone on it's line).
 		#
 		else if (preg_match("{^<(?:$block_tags)\b}", $tag) ||
@@ -470,10 +470,10 @@ function _HashHTMLBlocks_InMarkdown($text, $indent = 0,
 			)
 		{
 			# Need to parse tag and following text using the HTML parser.
-			list($block_text, $text) = 
+			list($block_text, $text) =
 				_HashHTMLBlocks_InHTML($tag . $text,
 									"_HashHTMLBlocks_HashBlock", TRUE);
-			
+
 			# Make sure it stays outside of any paragraph by adding newlines.
 			$parsed .= "\n\n$block_text\n\n";
 		}
@@ -486,10 +486,10 @@ function _HashHTMLBlocks_InMarkdown($text, $indent = 0,
 		{
 			# Need to parse tag and following text using the HTML parser.
 			# (don't check for markdown attribute)
-			list($block_text, $text) = 
-				_HashHTMLBlocks_InHTML($tag . $text, 
+			list($block_text, $text) =
+				_HashHTMLBlocks_InHTML($tag . $text,
 									"_HashHTMLBlocks_HashClean", FALSE);
-			
+
 			$parsed .= $block_text;
 		}
 		#
@@ -513,14 +513,14 @@ function _HashHTMLBlocks_InMarkdown($text, $indent = 0,
 				$text = $tag . $text;
 				break;
 			}
-			
+
 			$parsed .= $tag;
 		}
 		else {
 			$parsed .= $tag;
 		}
 	} while ($depth >= 0);
-	
+
 	return array($parsed, $text);
 }
 function _HashHTMLBlocks_InHTML($text, $hash_function, $md_attr) {
@@ -535,22 +535,22 @@ function _HashHTMLBlocks_InHTML($text, $hash_function, $md_attr) {
 # Returns an array of that form: ( processed text , remaining text )
 #
 	global $auto_close_tags, $contain_span_tags, $tag_match;
-	
+
 	if ($text === '') return array('', '');
-	
+
 	# Regex to match `markdown` attribute inside of a tag.
 	$markdown_attr_match = '
 		{
 			\s*			# Eat whitespace before the `markdown` attribute
 			markdown
 			\s*=\s*
-			(["\'])		# $1: quote delimiter		
+			(["\'])		# $1: quote delimiter
 			(.*?)		# $2: attribute value
-			\1			# matching delimiter	
+			\1			# matching delimiter
 		}xs';
-	
+
 	$original_text = $text;		# Save original text in case of faliure.
-	
+
 	$depth		= 0;	# Current depth inside the tag tree.
 	$block_text	= "";	# Temporary text holder for current text.
 	$parsed		= "";	# Parsed text that will be returned.
@@ -568,25 +568,25 @@ function _HashHTMLBlocks_InHTML($text, $hash_function, $md_attr) {
 		#
 		# Split the text using the first $tag_match pattern found.
 		# Text before  pattern will be first in the array, text after
-		# pattern will be at the end, and between will be any catches made 
+		# pattern will be at the end, and between will be any catches made
 		# by the pattern.
 		#
 		$parts = preg_split($tag_match, $text, 2, PREG_SPLIT_DELIM_CAPTURE);
-		
+
 		if (count($parts) < 3) {
 			#
 			# End of $text reached with unbalenced tag(s).
 			# In that case, we return original text unchanged and pass the
-			# first character as filtered to prevent an infinite loop in the 
+			# first character as filtered to prevent an infinite loop in the
 			# parent function.
 			#
 			return array($original_text{0}, substr($original_text, 1));
 		}
-		
+
 		$block_text .= $parts[0]; # Text before current tag.
 		$tag         = $parts[1]; # Tag to handle.
 		$text        = $parts[2]; # Remaining text after current tag.
-		
+
 		#
 		# Check for: Auto-close tag (like <hr/>)
 		#			 Comments and Processing Instructions.
@@ -606,62 +606,62 @@ function _HashHTMLBlocks_InHTML($text, $hash_function, $md_attr) {
 				if ($tag{1} == '/')						$depth--;
 				else if ($tag{strlen($tag)-2} != '/')	$depth++;
 			}
-			
+
 			#
 			# Check for `markdown="1"` attribute and handle it.
 			#
-			if ($md_attr && 
+			if ($md_attr &&
 				preg_match($markdown_attr_match, $tag, $attr_matches) &&
 				preg_match('/^(?:1|block|span)$/', $attr_matches[2]))
 			{
 				# Remove `markdown` attribute from opening tag.
 				$tag = preg_replace($markdown_attr_match, '', $tag);
-				
+
 				# Check if text inside this tag must be parsed in span mode.
 				$md_mode = $attr_matches[2];
 				$span_mode = $md_mode == 'span' || $md_mode != 'block' &&
 							preg_match("{^<(?:$contain_span_tags)\b}", $tag);
-				
+
 				# Calculate indent before tag.
 				preg_match('/(?:^|\n)( *?)(?! ).*?$/', $block_text, $matches);
 				$indent = strlen($matches[1]);
-				
+
 				# End preceding block with this tag.
 				$block_text .= $tag;
 				$parsed .= $hash_function($block_text, $span_mode);
-				
+
 				# Get enclosing tag name for the ParseMarkdown function.
 				preg_match('/^<([\w:$]*)\b/', $tag, $matches);
 				$tag_name = $matches[1];
-				
+
 				# Parse the content using the HTML-in-Markdown parser.
 				list ($block_text, $text)
-					= _HashHTMLBlocks_InMarkdown($text, $indent, 
+					= _HashHTMLBlocks_InMarkdown($text, $indent,
 													$tag_name, $span_mode);
-				
+
 				# Outdent markdown text.
 				if ($indent > 0) {
-					$block_text = preg_replace("/^[ ]{1,$indent}/m", "", 
+					$block_text = preg_replace("/^[ ]{1,$indent}/m", "",
 												$block_text);
 				}
-				
+
 				# Append tag content to parsed text.
 				if (!$span_mode)	$parsed .= "\n\n$block_text\n\n";
 				else				$parsed .= "$block_text";
-				
+
 				# Start over a new block.
 				$block_text = "";
 			}
 			else $block_text .= $tag;
 		}
-		
+
 	} while ($depth > 0);
-	
+
 	#
 	# Hash last block text that wasn't processed inside the loop.
 	#
 	$parsed .= $hash_function($block_text);
-	
+
 	return array($parsed, $text);
 }
 function _HashHTMLBlocks_HashBlock($text) {
@@ -681,14 +681,14 @@ function _HashHTMLBlocks_HashClean($text) {
 
 function _HashBlock($text) {
 #
-# Called whenever a tag must be hashed. When a function insert a block-level 
-# tag in $text, it pass through this function and is automaticaly escaped, 
+# Called whenever a tag must be hashed. When a function insert a block-level
+# tag in $text, it pass through this function and is automaticaly escaped,
 # which remove the need to call _HashHTMLBlocks at every step.
 #
 	# Swap back any tag hash found in $text so we do not have to _UnhashTags
-	# multiple times at the end. Must do this because of 
+	# multiple times at the end. Must do this because of
 	$text = _UnhashTags($text);
-	
+
 	# Then hash the block as normal.
 	return _HashHTMLBlocks_HashBlock($text);
 }
@@ -700,10 +700,10 @@ function _RunBlockGamut($text, $hash_html_blocks = TRUE) {
 # tags like paragraphs, headers, and list items.
 #
 	if ($hash_html_blocks) {
-		# We need to escape raw HTML in Markdown source before doing anything 
-		# else. This need to be done for each block, and not only at the 
+		# We need to escape raw HTML in Markdown source before doing anything
+		# else. This need to be done for each block, and not only at the
 		# begining in the Markdown function since hashed blocks can be part of
-		# a list item and could have been indented. Indented blocks would have 
+		# a list item and could have been indented. Indented blocks would have
 		# been seen as a code block in previous pass of _HashHTMLBlocks.
 		$text = _HashHTMLBlocks($text);
 	}
@@ -717,7 +717,7 @@ function _RunBlockGamut($text, $hash_html_blocks = TRUE) {
 		array('{^[ ]{0,2}([ ]?\*[ ]?){3,}[ \t]*$}emx',
 			  '{^[ ]{0,2}([ ]? -[ ]?){3,}[ \t]*$}emx',
 			  '{^[ ]{0,2}([ ]? _[ ]?){3,}[ \t]*$}emx'),
-		"_HashBlock('\n<hr$md_empty_element_suffix\n')", 
+		"_HashBlock('\n<hr$md_empty_element_suffix\n')",
 		$text);
 
 	$text = _DoLists($text);
@@ -858,7 +858,7 @@ function _DoAnchors_reference_callback($matches) {
 		if ( isset( $md_titles[$link_id] ) ) {
 			$title = $md_titles[$link_id];
 			$title = str_replace(array('*',     '_'),
-								 array($md_escape_table['*'], 
+								 array($md_escape_table['*'],
 									   $md_escape_table['_']), $title);
 			$result .=  " title=\"$title\"";
 		}
@@ -878,7 +878,7 @@ function _DoAnchors_inline_callback($matches) {
 
 	# We've got to encode these to avoid conflicting with italics/bold.
 	$url = str_replace(array('*', '_'),
-					   array($md_escape_table['*'], $md_escape_table['_']), 
+					   array($md_escape_table['*'], $md_escape_table['_']),
 					   $url);
 	$result = "<a href=\"$url\"";
 	if (isset($title)) {
@@ -888,7 +888,7 @@ function _DoAnchors_inline_callback($matches) {
 							 $title);
 		$result .=  " title=\"$title\"";
 	}
-	
+
 	$result .= ">$link_text</a>";
 
 	return $result;
@@ -918,7 +918,7 @@ function _DoImages($text) {
 		  \]
 
 		)
-		}xs', 
+		}xs',
 		'_DoImages_reference_callback', $text);
 
 	#
@@ -968,7 +968,7 @@ function _DoImages_reference_callback($matches) {
 		if (isset($md_titles[$link_id])) {
 			$title = $md_titles[$link_id];
 			$title = str_replace(array('*', '_'),
-								 array($md_escape_table['*'], 
+								 array($md_escape_table['*'],
 									   $md_escape_table['_']), $title);
 			$result .=  " title=\"$title\"";
 		}
@@ -1014,7 +1014,7 @@ function _DoHeaders($text) {
 	# Setext-style headers:
 	#	  Header 1
 	#	  ========
-	#  
+	#
 	#	  Header 2
 	#	  --------
 	#
@@ -1076,10 +1076,10 @@ function _DoTables($text) {
 			[ ]{0,'.$less_than_tab.'}	# Allowed whitespace.
 			[|]							# Optional leading pipe (present)
 			(.+) \n						# $1: Header row (at least one pipe)
-			
+
 			[ ]{0,'.$less_than_tab.'}	# Allowed whitespace.
 			[|] ([ ]*[-:]+[-| :]*) \n	# $2: Header underline
-			
+
 			(							# $3: Cells
 				(?:
 					[ ]*				# Allowed whitespace.
@@ -1089,7 +1089,7 @@ function _DoTables($text) {
 			(?=\n|\Z)					# Stop at final double newline.
 		}xm',
 		'_DoTable_LeadingPipe_callback', $text);
-	
+
 	#
 	# Find tables without leading pipe.
 	#
@@ -1103,10 +1103,10 @@ function _DoTables($text) {
 			^							# Start of a line
 			[ ]{0,'.$less_than_tab.'}	# Allowed whitespace.
 			(\S.*[|].*) \n				# $1: Header row (at least one pipe)
-			
+
 			[ ]{0,'.$less_than_tab.'}	# Allowed whitespace.
 			([-:]+[ ]*[|][-| :]*) \n	# $2: Header underline
-			
+
 			(							# $3: Cells
 				(?:
 					.* [|] .* \n		# Row content
@@ -1122,10 +1122,10 @@ function _DoTable_LeadingPipe_callback($matches) {
 	$head		= $matches[1];
 	$underline	= $matches[2];
 	$content	= $matches[3];
-	
+
 	# Remove leading pipe for each row.
 	$content	= preg_replace('/^ *[|]/m', '', $content);
-	
+
 	return _DoTable_callback(array($matches[0], $head, $underline, $content));
 }
 function _DoTable_callback($matches) {
@@ -1137,7 +1137,7 @@ function _DoTable_callback($matches) {
 	$head		= preg_replace('/[|] *$/m', '', $head);
 	$underline	= preg_replace('/[|] *$/m', '', $underline);
 	$content	= preg_replace('/[|] *$/m', '', $content);
-	
+
 	# Reading alignement from header underline.
 	$separators	= preg_split('/ *[|] */', $underline);
 	foreach ($separators as $n => $s) {
@@ -1146,13 +1146,13 @@ function _DoTable_callback($matches) {
 		else if (preg_match('/^ *:-+ *$/', $s))	$attr[$n] = ' align="left"';
 		else									$attr[$n] = '';
 	}
-	
-	# Creating code spans before splitting the row is an easy way to 
+
+	# Creating code spans before splitting the row is an easy way to
 	# handle a code span containg pipes.
 	$head	= _DoCodeSpans($head);
 	$headers	= preg_split('/ *[|] */', $head);
 	$col_count	= count($headers);
-	
+
 	# Write column headers.
 	$text = "<table>\n";
 	$text .= "<thead>\n";
@@ -1161,20 +1161,20 @@ function _DoTable_callback($matches) {
 		$text .= "  <th$attr[$n]>"._RunSpanGamut(trim($header))."</th>\n";
 	$text .= "</tr>\n";
 	$text .= "</thead>\n";
-	
+
 	# Split content by row.
 	$rows = explode("\n", trim($content, "\n"));
-	
+
 	$text .= "<tbody>\n";
 	foreach ($rows as $row) {
-		# Creating code spans before splitting the row is an easy way to 
+		# Creating code spans before splitting the row is an easy way to
 		# handle a code span containg pipes.
 		$row = _DoCodeSpans($row);
-		
+
 		# Split row by cell.
 		$row_cells = preg_split('/ *[|] */', $row, $col_count);
 		$row_cells = array_pad($row_cells, $col_count, '');
-		
+
 		$text .= "<tr>\n";
 		foreach ($row_cells as $n => $cell)
 			$text .= "  <td$attr[$n]>"._RunSpanGamut(trim($cell))."</td>\n";
@@ -1182,7 +1182,7 @@ function _DoTable_callback($matches) {
 	}
 	$text .= "</tbody>\n";
 	$text .= "</table>";
-	
+
 	return _HashBlock($text) . "\n";
 }
 
@@ -1223,10 +1223,10 @@ function _DoLists($text) {
 			  )
 			)
 		'; // mx
-		
+
 		# We use a different prefix before nested lists than top-level lists.
 		# See extended comment in _ProcessListItems().
-	
+
 		if ($md_list_level) {
 			$text = preg_replace_callback('{
 					^
@@ -1250,12 +1250,12 @@ function _DoLists_callback($matches) {
 	$marker_ul  = '[*+-]';
 	$marker_ol  = '\d+[.]';
 	$marker_any = "(?:$marker_ul|$marker_ol)";
-	
+
 	$list = $matches[1];
 	$list_type = preg_match("/$marker_ul/", $matches[3]) ? "ul" : "ol";
-	
+
 	$marker_any = ( $list_type == "ul" ? $marker_ul : $marker_ol );
-	
+
 	# Turn double returns into triple returns, so that we can make a
 	# paragraph for the last item in a list, if necessary:
 	$list = preg_replace("/\n{2,}/", "\n\n\n", $list);
@@ -1271,7 +1271,7 @@ function _ProcessListItems($list_str, $marker_any) {
 #	into individual list items.
 #
 	global $md_list_level;
-	
+
 	# The $md_list_level global keeps track of when we're inside a list.
 	# Each time we enter a list, we increment it; when we leave a list,
 	# we decrement. If it's zero, we're not in a list anymore.
@@ -1292,7 +1292,7 @@ function _ProcessListItems($list_str, $marker_any) {
 	# without resorting to mind-reading. Perhaps the solution is to
 	# change the syntax rules such that sub-lists must start with a
 	# starting cardinal number; e.g. "1." or "a.".
-	
+
 	$md_list_level++;
 
 	# trim trailing blank lines:
@@ -1378,7 +1378,7 @@ function _DoDefLists($text) {
 function _DoDefLists_callback($matches) {
 	# Re-usable patterns to match list item bullets and number markers:
 	$list = $matches[1];
-	
+
 	# Turn double returns into triple returns, so that we can make a
 	# paragraph for the last item in a list, if necessary:
 	$result = trim(_ProcessDefListItems($list));
@@ -1394,7 +1394,7 @@ function _ProcessDefListItems($list_str) {
 #
 	global $md_tab_width;
 	$less_than_tab = $md_tab_width - 1;
-	
+
 	# trim trailing blank lines:
 	$list_str = preg_replace("/\n{2,}\\z/", "\n", $list_str);
 
@@ -1403,11 +1403,11 @@ function _ProcessDefListItems($list_str) {
 		(?:\n\n+|\A\n?)					# leading line
 		(								# definition terms = $1
 			[ ]{0,'.$less_than_tab.'}	# leading whitespace
-			(?![:][ ]|[ ])				# negative lookahead for a definition 
+			(?![:][ ]|[ ])				# negative lookahead for a definition
 										#   mark (colon) or more whitespace.
-			(?: \S.* \n)+?				# actual term (not whitespace).	
-		)			
-		(?=\n?[ ]{0,3}:[ ])				# lookahead for following line feed 
+			(?: \S.* \n)+?				# actual term (not whitespace).
+		)
+		(?=\n?[ ]{0,3}:[ ])				# lookahead for following line feed
 										#   with a definition mark.
 		}xm',
 		'_ProcessDefListItems_callback_dt', $list_str);
@@ -1422,8 +1422,8 @@ function _ProcessDefListItems($list_str) {
 			(?:							# next term or end of text
 				[ ]{0,'.$less_than_tab.'} [:][ ]	|
 				<dt> | \z
-			)						
-		)					
+			)
+		)
 		}xm',
 		'_ProcessDefListItems_callback_dd', $list_str);
 
@@ -1460,16 +1460,16 @@ function _DoCodeBlocks($text) {
 #	Process Markdown `<pre><code>` blocks.
 #
 	global $md_tab_width;
-	$text = preg_replace_callback("{
-			(?:\\n\\n|\\A)
+	$text = preg_replace_callback('{
+			(?:\n\n|\A)
 			(	            # $1 = the code block -- one or more lines, starting with a space/tab
 			  (?:
-				(?:[ ]\{$md_tab_width} | \\t)  # Lines must start with a tab or a tab-width of spaces
-				.*\\n+
+				(?:[ ]{'.$md_tab_width.'} | \t)  # Lines must start with a tab or a tab-width of spaces
+				.*\n+
 			  )+
 			)
-			((?=^[ ]{0,$md_tab_width}\\S)|\\Z)	# Lookahead for non-space at line-start, or end of doc
-		}xm",
+			((?=^[ ]{0,'.$md_tab_width.'}\S)|\Z)	# Lookahead for non-space at line-start, or end of doc
+		}xm',
 		'_DoCodeBlocks_callback', $text);
 
 	return $text;
@@ -1547,11 +1547,11 @@ function _EncodeCode($_) {
 	$_ = str_replace('&', '&amp;', $_);
 
 	# Do the angle bracket song and dance:
-	$_ = str_replace(array('<',    '>'), 
+	$_ = str_replace(array('<',    '>'),
 					 array('&lt;', '&gt;'), $_);
 
 	# Now, escape characters that are magic in Markdown:
-	$_ = str_replace(array_keys($md_escape_table), 
+	$_ = str_replace(array_keys($md_escape_table),
 					 array_values($md_escape_table), $_);
 
 	return $_;
@@ -1563,14 +1563,14 @@ function _DoItalicsAndBold($text) {
 	$text = preg_replace(array(
 		'{
 			( (?<!\w) __ )			# $1: Marker (not preceded by alphanum)
-			(?=\S) 					# Not followed by whitespace 
+			(?=\S) 					# Not followed by whitespace
 			(?!__)					#   or two others marker chars.
 			(						# $2: Content
 				(?>
 					[^_]+?			# Anthing not em markers.
 				|
 									# Balence any regular _ emphasis inside.
-					(?<![a-zA-Z0-9])_ (?=\S) (?! _) (.+?) 
+					(?<![a-zA-Z0-9])_ (?=\S) (?! _) (.+?)
 					(?<=\S) _ (?![a-zA-Z0-9])
 				)+?
 			)
@@ -1579,7 +1579,7 @@ function _DoItalicsAndBold($text) {
 		}sx',
 		'{
 			( (?<!\*\*) \*\* )		# $1: Marker (not preceded by two *)
-			(?=\S) 					# Not followed by whitespace 
+			(?=\S) 					# Not followed by whitespace
 			(?!\1)					#   or two others marker chars.
 			(						# $2: Content
 				(?>
@@ -1627,7 +1627,7 @@ function _DoBlockQuotes_callback($matches) {
 
 	$bq = preg_replace('/^/m', "  ", $bq);
 	# These leading spaces screw with <pre> content, so we need to fix that:
-	$bq = preg_replace_callback('{(\s*<pre>.+?</pre>)}sx', 
+	$bq = preg_replace_callback('{(\s*<pre>.+?</pre>)}sx',
 								'_DoBlockQuotes_callback2', $bq);
 
 	return _HashBlock("<blockquote>\n$bq\n</blockquote>") . "\n\n";
@@ -1648,7 +1648,7 @@ function _FormParagraphs($text) {
 
 	# Strip leading and trailing lines:
 	$text = preg_replace(array('/\A\n+/', '/\n+\z/'), '', $text);
-	
+
 	$grafs = preg_split('/\n{2,}/', $text, -1, PREG_SPLIT_NO_EMPTY);
 
 	#
@@ -1656,28 +1656,28 @@ function _FormParagraphs($text) {
 	#
 	foreach ($grafs as $key => $value) {
 		$value = trim(_RunSpanGamut($value));
-		
+
 		# Check if this should be enclosed in a paragraph.
 		# Text equaling to a clean tag hash are not enclosed.
 		# Text starting with a block tag hash are not either.
 		$clean_key = $value;
 		$block_key = substr($value, 0, 32);
-		
-		$is_p = (!isset($md_html_blocks[$block_key]) && 
+
+		$is_p = (!isset($md_html_blocks[$block_key]) &&
 				 !isset($md_html_hashes[$clean_key]));
-		
+
 		if ($is_p) {
 			$value = "<p>$value</p>";
 		}
 		$grafs[$key] = $value;
 	}
-	
-	# Join grafs in one text, then unhash HTML tags. 
+
+	# Join grafs in one text, then unhash HTML tags.
 	$text = implode("\n\n", $grafs);
-	
+
 	# Finish by removing any tag hashes still present in $text.
 	$text = _UnhashTags($text);
-	
+
 	return $text;
 }
 
@@ -1687,7 +1687,7 @@ function _EncodeAmpsAndAngles($text) {
 
 	# Ampersand-encoding based entirely on Nat Irons's Amputator MT plugin:
 	#   http://bumppo.net/projects/amputator/
-	$text = preg_replace('/&(?!#?[xX]?(?:[0-9a-fA-F]+|\w+);)/', 
+	$text = preg_replace('/&(?!#?[xX]?(?:[0-9a-fA-F]+|\w+);)/',
 						 '&amp;', $text);;
 
 	# Encode naked <'s
@@ -1711,7 +1711,7 @@ function _EncodeBackslashEscapes($text) {
 
 
 function _DoAutoLinks($text) {
-	$text = preg_replace("!<((https?|ftp):[^'\">\\s]+)>!", 
+	$text = preg_replace("!<((https?|ftp):[^'\">\\s]+)>!",
 						 '<a href="\1">\1</a>', $text);
 
 	# Email addresses: <address@domain.foo>
@@ -1751,7 +1751,7 @@ function _EncodeEmailAddress($addr) {
 	$length = strlen($addr);
 
 	# leave ':' alone (to spot mailto: later)
-	$addr = preg_replace_callback('/([^\:])/', 
+	$addr = preg_replace_callback('/([^\:])/',
 								  '_EncodeEmailAddress_callback', $addr);
 
 	$addr = "<a href=\"$addr\">$addr</a>";
@@ -1776,7 +1776,7 @@ function _UnescapeSpecialChars($text) {
 # Swap back in all the special characters we've hidden.
 #
 	global $md_escape_table;
-	return str_replace(array_values($md_escape_table), 
+	return str_replace(array_values($md_escape_table),
 					   array_keys($md_escape_table), $text);
 }
 
@@ -1786,7 +1786,7 @@ function _UnhashTags($text) {
 # Swap back in all the tags hashed by _HashHTMLBlocks.
 #
 	global $md_html_hashes;
-	return str_replace(array_keys($md_html_hashes), 
+	return str_replace(array_keys($md_html_hashes),
 					   array_values($md_html_hashes), $text);
 }
 
@@ -1805,7 +1805,7 @@ function _TokenizeHTML($str) {
 #               the second is the actual value.
 #
 #
-#   Regular expression derived from the _tokenize() subroutine in 
+#   Regular expression derived from the _tokenize() subroutine in
 #   Brad Choate's MTRegex plugin.
 #   <http://www.bradchoate.com/past/mtregex.php>
 #
@@ -1815,12 +1815,12 @@ function _TokenizeHTML($str) {
 	$match = '(?s:<!(?:--.*?--\s*)+>)|'.	# comment
 			 '(?s:<\?.*?\?>)|'.				# processing instruction
 			 								# regular tags
-			 '(?:<[/!$]?[-a-zA-Z0-9:]+\b(?>[^"\'>]+|"[^"]*"|\'[^\']*\')*>)'; 
+			 '(?:<[/!$]?[-a-zA-Z0-9:]+\b(?>[^"\'>]+|"[^"]*"|\'[^\']*\')*>)';
 
 	$parts = preg_split("{($match)}", $str, -1, PREG_SPLIT_DELIM_CAPTURE);
 
 	foreach ($parts as $part) {
-		if (++$index % 2 && $part != '') 
+		if (++$index % 2 && $part != '')
 			$tokens[] = array('text', $part);
 		else
 			$tokens[] = array('tag', $part);
@@ -1847,12 +1847,12 @@ function _Detab($text) {
 	global $md_tab_width;
 
 	# For each line we separate the line in blocks delemited by
-	# tab characters. Then we reconstruct every line by adding the 
+	# tab characters. Then we reconstruct every line by adding the
 	# appropriate number of space between each blocks.
-	
+
 	$lines = explode("\n", $text);
 	$text = "";
-	
+
 	foreach ($lines as $line) {
 		# Split in blocks.
 		$blocks = explode("\t", $line);
@@ -1891,7 +1891,7 @@ Description
 -----------
 
 This is a PHP translation of the original Markdown formatter written in
-Perl by John Gruber. This special version of PHP Markdown also include 
+Perl by John Gruber. This special version of PHP Markdown also include
 syntax additions by myself.
 
 Markdown is a text-to-HTML filter; it translates an easy-to-read /
@@ -1921,9 +1921,11 @@ expected; (3) the output Markdown actually produced.
 
 
 Version History
---------------- 
+---------------
 
 See Readme file for details.
+
+Extra 1.0.1 - 9 December 2005
 
 Extra 1.0 - 5 September 2005
 
@@ -1939,23 +1941,23 @@ Extra 1.0b1 - 25 July 2005
 Author & Contributors
 ---------------------
 
-Original Markdown in Perl by John Gruber  
+Original Markdown in Perl by John Gruber
 <http://daringfireball.net/>
 
-PHP port and extras by Michel Fortin  
+PHP port and extras by Michel Fortin
 <http://www.michelf.com/>
 
 
 Copyright and License
 ---------------------
 
-Copyright (c) 2004-2005 Michel Fortin  
-<http://www.michelf.com/>  
+Copyright (c) 2004-2005 Michel Fortin
+<http://www.michelf.com/>
 All rights reserved.
 
-Based on Markdown  
-Copyright (c) 2003-2004 John Gruber   
-<http://daringfireball.net/>   
+Based on Markdown
+Copyright (c) 2003-2004 John Gruber
+<http://daringfireball.net/>
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without

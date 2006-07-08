@@ -11,7 +11,7 @@ Introduction
 
 The symfony framework is a set of files written in PHP. A project based on symfony uses these files, so installing symfony means getting these files and making them available for your project.
 
-Symfony can be used for one or many projects. If you work on a single project, you may want to embed the framework within the application you develop. On the other hand, if you choose to use symfony for more than one project, you will prefer to keep all the symfony files in one single place to make the upgrade easier. 
+Symfony can be used for one or many projects. If you work on a single project, you may want to embed the framework within the application you develop. On the other hand, if you choose to use symfony for more than one project, you will prefer to keep all the symfony files in one single place to make the upgrade easier.
 
 In addition, when developing an application, you will probably need to install symfony twice: Once for your development environment, and once for the host server (unless your hosts already has symfony installed).
 
@@ -26,7 +26,7 @@ Note that the symfony framework evolves quickly, and that a new stable version c
 Prerequisites
 -------------
 
-In order to use symfony, you need to have PHP5 and a web server installed. If you want to use the PEAR install, you will also need [PEAR][1]. If you plan on using persistent data, a database will be needed. Symfony is compatible with MySQL, PostgreSQL, Oracle, MSSQL, and any other database having a [Creole](http://creole.phpdb.org/wiki/) driver.
+In order to use symfony, you need to have PHP5 and a web server installed. If you want to use the PEAR install, you will also need [PEAR][1]. If you plan on using persistent data, a database will be needed. Symfony is compatible with MySQL, PostgreSQL, Oracle, MSSQL, and any other database having a [Creole](http://creole.phpdb.org/trac/) driver.
 
 >**Note**: You can find many [LAMP](http://en.wikipedia.org/wiki/LAMP_%28software_bundle%29) packages offered for download, which contain the Apache server, the MySQL database and PHP all bundled together and configured for a given platform ([XAMPP](http://www.apachefriends.org/en/xampp.html) for many platforms, [MAMP](http://www.mamp.info/en/home/) for Macintosh, [WAMP](http://en.wikipedia.org/wiki/WAMP) for Windows, etc.). If you don't have PHP5 installed, they are probably the best option for you to start.
 
@@ -45,20 +45,20 @@ The sandbox is a simple archive of files. It contains an empty symfony project w
 The sandbox is intended for you to practice with symfony in a local computer, not really to develop complex applications that may end up on the web. However, the version of symfony shipped with the sandbox is fully functional and equivalent to the one you can install via PEAR. Beware that the sandbox is not easily upgradeable.
 
 Get the sandbox here: [http://www.symfony-project.com/get/sf_sandbox.tgz](http://www.symfony-project.com/get/sf_sandbox.tgz). After unpacking the archive, test the sandbox by requesting the following URL:
-    
+
     http://localhost/sf_sandbox/web/
-    
+
 You should see a congratulations page.
 
 f you are in the `sf_sandbox/` directory, you can use the command line to do usual site management operations. For instance, to clear the cache, type:
 
     $ ./symfony.sh clear-cache                      (*nix)
     symfony clear-cache                             (Windows)
-    
+
 To discover all the available actions of the symfony command line, type:
 
     $ ./symfony.sh -T                               (*nix)
-    symfony -T            
+    symfony -T
 
 Refer to the included README file for more information.
 
@@ -80,7 +80,7 @@ The first thing to do is to add the 'symfony' channel:
 To see the libraries available in this channel:
 
     $ pear remote-list -c symfony
-    
+
 ### Symfony installation
 
 Now you are ready to install the latest stable version of symfony and all its dependencies with:
@@ -96,7 +96,7 @@ Symfony needs a few other packages to run; some are included in the installation
 * [propel](http://propel.phpdb.org/trac/): installed automatically (used for object/relational mapping)
 * [phing](http://phing.info/wiki/index.php): requires manual installation
 
-    $ pear install http://phing.info/pear/phing-current.tgz 
+    $ pear install http://phing.info/pear/phing-current.tgz
 
 To have a glimpse of all the tasks that you can perform directly with the command-line tool, type:
 
@@ -137,8 +137,8 @@ If you already have a beta version installed, get the latest build with:
 
     $ pear upgrade symfony/symfony-beta
 
->**Note**: in some Windows platforms, it appears that the PEAR utility uses its own web cache and doesn't actually require the symfony channel to check the latest version. Make sure you empty your PEAR cache before you ask for an upgrade (use `pear config-show` to get the location of the cache folder).   
- 
+>**Note**: in some Windows platforms, it appears that the PEAR utility uses its own web cache and doesn't actually require the symfony channel to check the latest version. Make sure you empty your PEAR cache before you ask for an upgrade (use `pear config-show` to get the location of the cache folder).
+
 When upgrading your symfony installation, don't forget to clear the cache of all the applications using it:
 
     $ cd myproject
@@ -211,11 +211,11 @@ Now you need to copy some files from the symfony package into your project direc
 -    | local          | -  | distant
 ---- | -------------- | -- | -----------------------
 copy | symfony/data/* | to | myproject/data/symfony/
-copy | symfony/lib/*  | to | myproject/lib/symfony/  
-    
+copy | symfony/lib/*  | to | myproject/lib/symfony/
+
 If you're unsure of what to expect, you can [download the sandbox](http://www.symfony-project.com/get/sf_sandbox.tgz) to see how a project embedded with the framework should look like. In addition, the [sandox creation script](http://www.symfony-project.com/trac/browser/trunk/bin/create_quickstart.sh) details all the operations needed to built a project able to run on its own.
 
->**Hint**: some hosting providers won't run scripts in php5 unless their suffix is `.php5`. If this is the case of your distant server, you will need to rename the `index.php` file found in `myproject/web/` into `index.php5`. Don't bother to rename the other files : since symfony uses a front controller, only the `index.php` file will have to be declared as a php5 script (learn more about the front controller feature in the [controller chapter](controller.txt))       
+>**Hint**: some hosting providers won't run scripts in php5 unless their suffix is `.php5`. If this is the case of your distant server, you will need to rename the `index.php` file found in `myproject/web/` into `index.php5`. Don't bother to rename the other files : since symfony uses a front controller, only the `index.php` file will have to be declared as a php5 script (learn more about the front controller feature in the [controller chapter](controller.txt))
 
 User-contributed guides
 -----------------------

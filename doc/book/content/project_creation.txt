@@ -9,7 +9,7 @@ This chapter describes the logical structure of a Symfony project, and details t
 Introduction
 ------------
 
-In symfony, a **project** is a set of services and operations available under a given domain name, sharing the same object model. 
+In symfony, a **project** is a set of services and operations available under a given domain name, sharing the same object model.
 
 Inside a project, the operations are grouped logically into **applications**; an application can normally run independently of the other applications of the same project.
 
@@ -36,7 +36,7 @@ To get the full list of the available administration operations, simply type fro
 
     $ symfony -T
 
-The description of the most common administration operations follows.
+The description of the CLI tasks used during the early stage of a project follows. A full reference of the CLI tasks is available in the [CLI chapter](cli.txt).
 
 Project setup
 -------------
@@ -63,7 +63,9 @@ Here is an overview of the file structure created:
     test/
     web/
 
-The `symfony` command should always be called from this directory to apply to the current project.
+>**Note**: If you have specific requirements for your project, symfony can adapt to any custom file structure. All the paths in the symfony scripts use a set of special parameters defined in a file called `constants.php`, which can be customized as described in the [file structure chapter](file_structure.txt).
+
+The `symfony` command must always be called from a project root directory (`myproject/` in the example above), because all the tasks perfomed by this command are project specific. If called from one of the project subdirectories, the command will raise an error.
 
 Application Setup
 -----------------
@@ -72,7 +74,7 @@ The project is not yet ready to be seen; it requires at least one application. T
 
     $ symfony init-app myapp
 
-This will create a `myapp` directory in the `apps/` folder of the project root, with a default application configuration and a set of directories ready to host the file of your website: 
+This will create a `myapp` directory in the `apps/` folder of the project root, with a default application configuration and a set of directories ready to host the file of your website:
 
     apps/
       myapp/
@@ -88,9 +90,9 @@ Some php files corresponding to the front controllers of each default environmen
       index.php
       myapp_dev.php
 
-`index.php` is the *production* front controller of the new application. Because you created the first application of the project, Symfony created a file called `index.php` instead of `myapp.php` (if you now add a new application called `mynewapp`, the new production front controller will be named `mynewapp.php`). To run your application in the *development* environment, call the front controller `myapp_dev.php`. 
+`index.php` is the *production* front controller of the new application. Because you created the first application of the project, Symfony created a file called `index.php` instead of `myapp.php` (if you now add a new application called `mynewapp`, the new production front controller will be named `mynewapp.php`). To run your application in the *development* environment, call the front controller `myapp_dev.php`.
 
->**Note**: if you carefully read the introduction, you may wonder where the `myapp_test.php` file is located. As a matter of fact, the *test* environment is used to do unit testing of your applications components and doesn't require a front controller. Refer to the [unit testing chapter](test_unit_testing.txt) to learn more about it.
+>**Note**: If you carefully read the introduction, you may wonder where the `myapp_test.php` file is located. As a matter of fact, the *test* environment is used to do unit testing of your applications components and doesn't require a front controller. Refer to the [unit testing chapter](test_unit_testing.txt) to learn more about it.
 
 From now on, the `/home/steve/myproject/` directory will be considered as the root of your project. The root path is stored in a constant called `SF_ROOT_DIR`, defined in the file `index.php`, and we will use this name instead of the real path to avoid confusing the readers who aren't named Steve.
 
@@ -99,6 +101,10 @@ Web server setup
 
 To be able to access and test the new application, the web server has to be configured. Here is an example for Apache, where a new VirtualHost is added in the `httpd.conf` file:
 
+    <Directory "/$data_dir/symfony/web/sf">
+      AllowOverride All
+      Allow from All
+    </Directory>
     <VirtualHost *:80>
       ServerName myapp.example.com
       DocumentRoot "/home/steve/myproject/web"
@@ -106,11 +112,12 @@ To be able to access and test the new application, the web server has to be conf
       Alias /sf /$data_dir/symfony/web/sf
 
       <Directory "/home/steve/myproject/web">
-       AllowOverride All
+        AllowOverride All
+        Allow from All
       </Directory>
     </VirtualHost>
 
->**Note**: In the above configuration, the `$data_dir` in the `Alias` line has to be replaced by your PEAR data directory. For example, for *nix, you should type:
+>**Note**: In the above configuration, the `$data_dir` placeholders has to be replaced by your PEAR data directory. For example, for *nix, you should type:
 >
 >         Alias /sf /usr/local/lib/php/data/symfony/web/sf
 >
@@ -153,7 +160,7 @@ The created tree structure is:
 The new module is ready to be used:
 
     http://myapp.example.com/index.php/mymodule
-    
+
 Since you need to start getting to work right away, edit the file `myapp/modules/mymodule/templates/indexSuccess.php` and type in:
 
     Hello, world !
@@ -167,7 +174,7 @@ Once the setup of the application is done, it is recommended to start a source v
 
 The example below assumes that $SVNREP_DIR is defined as an environment variable.  If you don't have it defined, you will need to substitute the actual location of the repository in place of $SVNREP_DIR.
 
-So lets **create** the new repository for the `myproject` project:
+So let's **create** the new repository for the `myproject` project:
 
     $ svnadmin create $SVNREP_DIR/myproject
 
@@ -202,7 +209,7 @@ There is one remaining thing to setup. If you commit your working directory to t
     $ chmod 777 cache
     $ chmod 777 log
 
-The default text editor configured for SVN should launch. If this doesn't happen, make subversion use your preferred editor by typing 
+The default text editor configured for SVN should launch. If this doesn't happen, make subversion use your preferred editor by typing
 
     $ export SVN_EDITOR=<name of editor>
     $ svn propedit svn:ignore .

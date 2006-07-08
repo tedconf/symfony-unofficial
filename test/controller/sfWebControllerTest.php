@@ -61,5 +61,3 @@ class sfWebControllerTest extends UnitTestCase
       $c->convertUrlStringToParameters('@test?id=12&foo=bar'));
   }
 }
-
-?>

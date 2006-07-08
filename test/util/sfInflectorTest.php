@@ -73,5 +73,3 @@ class sfInflectorTest extends UnitTestCase
     $this->assertEqual('Underground', sfInflector::humanize('underground'));
   }
 }
-
-?>

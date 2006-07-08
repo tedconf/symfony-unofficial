@@ -42,5 +42,3 @@ class sfConfigTest extends UnitTestCase
     $this->assertNull(sfConfig::get('foo1'));
   }
 }
-
-?>

@@ -111,5 +111,3 @@ class sfFormTagHelperTest extends UnitTestCase
   }
 
 }
-
-?>

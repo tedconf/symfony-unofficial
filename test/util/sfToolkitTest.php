@@ -35,5 +35,3 @@ class sfToolkitTest extends UnitTestCase
     $this->assertEqual(array('foo_1' => 'bar_1'), sfToolkit::stringToArray('foo_1=bar_1'));
   }
 }
-
-?>

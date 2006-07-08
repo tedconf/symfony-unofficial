@@ -24,7 +24,7 @@ $book = <<<EOF
 ]>
 
 <book id="symfony" lang="en">
- 
+
 <bookinfo>
 <title>&product;</title>
 <subtitle>Guide de référence</subtitle>
@@ -171,5 +171,3 @@ $book .= '
 ';
 
 file_put_contents(dirname(__FILE__).'/book.xml', $book);
-
-?>
