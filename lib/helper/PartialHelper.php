@@ -53,11 +53,12 @@ function get_component($moduleName, $componentName, $vars = array())
 {
   $context      = sfContext::getInstance();
   $cacheManager = $context->getViewCacheManager();
+  $cacheKey     = '';
 
   if (sfConfig::get('sf_cache'))
   {
     $actionName = '_'.$componentName;
-    $cacheKey = md5(serialize($vars));
+    $cacheKey = md5(serialize($vars)).'_'.sfContext::getInstance()->getUser()->getCulture();
     $uri = $moduleName.'/'.$actionName.'?key='.$cacheKey;
 
     // register our cache configuration
@@ -137,7 +138,7 @@ function get_component($moduleName, $componentName, $vars = array())
     $componentVars = $componentInstance->getVarHolder()->getAll();
 
     // include partial
-    return get_partial($moduleName.'/'.$componentName, $componentVars);
+    return get_partial($moduleName.'/'.$componentName, $componentVars, $cacheKey);
   }
 }
 
@@ -146,7 +147,7 @@ function include_partial($templateName, $vars = array())
   echo get_partial($templateName, $vars);
 }
 
-function get_partial($templateName, $vars = array())
+function get_partial($templateName, $vars = array(), $cacheKey = '')
 {
   $context      = sfContext::getInstance();
   $cacheManager = $context->getViewCacheManager();
@@ -166,7 +167,10 @@ function get_partial($templateName, $vars = array())
 
   if (sfConfig::get('sf_cache'))
   {
-    $cacheKey = md5(serialize($vars));
+    if ($cacheKey == '')
+    {
+      $cacheKey = md5(serialize($vars)).'_'.sfContext::getInstance()->getUser()->getCulture();
+    }
     $uri = $moduleName.'/'.$actionName.'?key='.$cacheKey;
 
     // register our cache configuration

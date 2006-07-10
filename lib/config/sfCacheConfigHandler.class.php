@@ -53,6 +53,7 @@ class sfCacheConfigHandler extends sfYamlConfigHandler
     // iterate through all action names
     $data  = array();
     $first = true;
+
     foreach ($this->yamlConfig as $actionName => $values)
     {
       if ($actionName == 'all')
@@ -63,7 +64,14 @@ class sfCacheConfigHandler extends sfYamlConfigHandler
       $data[] = ($first ? '' : 'else ')."if (\$actionName == '$actionName')\n".
                 "{\n";
 
-      $data[] = $this->addCache($actionName);
+      if ($this->getConfigValue('module', $actionName))
+      {
+        $data[] = $this->addCache($actionName, $this->getConfigValue('module', $actionName));
+      }
+      else
+      {
+        $data[] = $this->addCache($actionName);
+      }
 
       $data[] = "}\n";
 
@@ -84,7 +92,7 @@ class sfCacheConfigHandler extends sfYamlConfigHandler
     return $retval;
   }
 
-  private function addCache($actionName = '')
+  private function addCache($actionName = '', $moduleName = '')
   {
     $data = array();
 
@@ -108,8 +116,16 @@ class sfCacheConfigHandler extends sfYamlConfigHandler
     }
 
     // add cache information to cache manager
-    $data[] = sprintf("  \$cacheManager->addCache(\$context->getModuleName(), '%s', '%s', %s, '%s', %s);\n\n",
-                      $actionName, $type, $lifeTime, $clientLifetime, var_export($vary, true));
+    if ($moduleName != '')
+    {
+      $data[] = sprintf("  \$cacheManager->addCache('%s', '%s', '%s', %s, '%s', %s);\n\n",
+                        $moduleName, $actionName, $type, $lifeTime, $clientLifetime, var_export($vary, true));
+    }
+    else
+    {
+      $data[] = sprintf("  \$cacheManager->addCache(\$context->getModuleName(), '%s', '%s', %s, '%s', %s);\n\n",
+                        $actionName, $type, $lifeTime, $clientLifetime, var_export($vary, true));
+    }
 
     return implode("\n", $data);
   }
