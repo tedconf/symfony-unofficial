@@ -68,13 +68,16 @@ class sfMessageSource_XLIFF extends sfMessageSource
 
     $XML = simplexml_load_file($filename);
 
-    if(!$XML) return false;
+    if (!$XML)
+    {
+      return false;
+    }
 
     $translationUnit = $XML->xpath('//trans-unit');
 
     $translations = array();
 
-    foreach($translationUnit as $unit)
+    foreach ($translationUnit as $unit)
     {
       $source = (string)$unit->source;
       $translations[$source][] = (string)$unit->target;
@@ -92,10 +95,14 @@ class sfMessageSource_XLIFF extends sfMessageSource
    */
   protected function getLastModified($source)
   {
-    if(is_file($source))
+    if (is_file($source))
+    {
       return filemtime($source);
+    }
     else
+    {
       return 0;
+    }
   }
 
   /**
@@ -126,16 +133,16 @@ class sfMessageSource_XLIFF extends sfMessageSource
    */
   protected function getCatalogueList($catalogue)
   {
-    $variants = explode('_',$this->culture);
+    $variants = explode('_', $this->culture);
     $source = $catalogue.$this->dataExt;
 
     $catalogues = array($source);
 
     $variant = null;
 
-    for($i = 0; $i < count($variants); $i++)
+    for ($i = 0, $k = count($variants); $i < $k; ++$i)
     {
-      if(strlen($variants[$i])>0)
+      if (isset($variants[$i]{0}))
       {
         $variant .= ($variant)?'_'.$variants[$i]:$variants[$i];
         $catalogues[] = $catalogue.$this->dataSeparator.
@@ -144,7 +151,7 @@ class sfMessageSource_XLIFF extends sfMessageSource
     }
 
     $byDir = $this->getCatalogueByDir($catalogue);
-    $catalogues = array_merge($byDir,array_reverse($catalogues));
+    $catalogues = array_merge($byDir, array_reverse($catalogues));
     return $catalogues;
   }
 
@@ -157,14 +164,14 @@ class sfMessageSource_XLIFF extends sfMessageSource
    */
   private function getCatalogueByDir($catalogue)
   {
-    $variants = explode('_',$this->culture);
+    $variants = explode('_', $this->culture);
     $catalogues = array();
 
     $variant = null;
 
-    for($i = 0; $i < count($variants); $i++)
+    for ($i = 0, $k = count($variants); $i < $k; ++$i)
     {
-      if(strlen($variants[$i])>0)
+      if (isset($variants[$i]{0}))
       {
         $variant .= ($variant)?'_'.$variants[$i]:$variants[$i];
         $catalogues[] = $variant.'/'.$catalogue.$this->dataExt;
@@ -175,7 +182,7 @@ class sfMessageSource_XLIFF extends sfMessageSource
 
   /**
    * Returns a list of catalogue and its culture ID.
-   * E.g. array('messages','en_AU')
+   * E.g. array('messages', 'en_AU')
    * @return array list of catalogues
    * @see getCatalogues()
    */
@@ -187,37 +194,37 @@ class sfMessageSource_XLIFF extends sfMessageSource
   /**
    * Returns a list of catalogue and its culture ID. This takes care
    * of directory structures.
-   * E.g. array('messages','en_AU')
+   * E.g. array('messages', 'en_AU')
    * @return array list of catalogues
    */
-  protected function getCatalogues($dir=null,$variant=null)
+  protected function getCatalogues($dir=null, $variant=null)
   {
     $dir = $dir?$dir:$this->source;
     $files = scandir($dir);
 
     $catalogue = array();
 
-    foreach($files as $file)
+    foreach ($files as $file)
     {
-      if(is_dir($dir.'/'.$file)
-        && preg_match('/^[a-z]{2}(_[A-Z]{2,3})?$/',$file))
+      if (is_dir($dir.'/'.$file)
+        && preg_match('/^[a-z]{2}(_[A-Z]{2,3})?$/', $file))
       {
         $catalogue = array_merge($catalogue,
                 $this->getCatalogues($dir.'/'.$file, $file));
       }
 
-      $pos = strpos($file,$this->dataExt);
-      if($pos >0
+      $pos = strpos($file, $this->dataExt);
+      if ($pos >0
         && substr($file,-1*strlen($this->dataExt)) == $this->dataExt)
       {
-        $name = substr($file,0,$pos);
-        $dot = strrpos($name,$this->dataSeparator);
+        $name = substr($file, 0, $pos);
+        $dot = strrpos($name, $this->dataSeparator);
         $culture = $variant;
         $cat = $name;
-        if(is_int($dot))
+        if (is_int($dot))
         {
-          $culture = substr($name, $dot+1,strlen($name));
-          $cat = substr($name,0,$dot);
+          $culture = substr($name, $dot+1, strlen($name));
+          $cat = substr($name, 0, $dot);
         }
         $details[0] = $cat;
         $details[1] = $culture;
@@ -240,14 +247,18 @@ class sfMessageSource_XLIFF extends sfMessageSource
    */
   private function getVariants($catalogue='messages')
   {
-    if(is_null($catalogue))
+    if (is_null($catalogue))
+    {
       $catalogue = 'messages';
+    }
 
-    foreach($this->getCatalogueList($catalogue) as $variant)
+    foreach ($this->getCatalogueList($catalogue) as $variant)
     {
       $file = $this->getSource($variant);
-      if(is_file($file))
+      if (is_file($file))
+      {
         return array($variant, $file);
+      }
     }
     return false;
   }
@@ -262,33 +273,44 @@ class sfMessageSource_XLIFF extends sfMessageSource
   public function save($catalogue='messages')
   {
     $messages = $this->untranslated;
-    if(count($messages) <= 0) return false;
+    if (count($messages) <= 0)
+    {
+      return false;
+    }
 
     $variants = $this->getVariants($catalogue);
-    if($variants)
+
+    if ($variants)
+    {
       list($variant, $filename) = $variants;
+    }
     else
-      return false;
-    if(is_writable($filename) == false)
+    {
+      list($variant, $filename) = $this->createMessageTemplate($catalogue);
+    }
+
+    if (is_writable($filename) == false)
+    {
       throw new sfException("Unable to save to file {$filename}, file must be writable.");
+    }
 
     //create a new dom, import the existing xml
     $dom = DOMDocument::load($filename);
 
     //find the body element
     $xpath = new DomXPath($dom);
-      $body = $xpath->query('//body')->item(0);
+    $body = $xpath->query('//body')->item(0);
 
     $count = $xpath->query('//trans-unit')->length;
 
     //for each message add it to the XML file using DOM
-      foreach($messages as $message)
-      {
+    foreach ($messages as $message)
+    {
       $unit = $dom->createElement('trans-unit');
       $unit->setAttribute('id',++$count);
 
       $source = $dom->createElement('source', $message);
-      $target = $dom->createElement('target','');
+      $target = $dom->createElement('target', '');
 
       $unit->appendChild($dom->createTextNode("\n"));
       $unit->appendChild($source);
@@ -299,17 +321,18 @@ class sfMessageSource_XLIFF extends sfMessageSource
       $body->appendChild($dom->createTextNode("\n"));
       $body->appendChild($unit);
       $body->appendChild($dom->createTextNode("\n"));
-      }
+    }
 
 
-      $fileNode = $xpath->query('//file')->item(0);
-      $fileNode->setAttribute('date', @date('Y-m-d\TH:i:s\Z'));
+    $fileNode = $xpath->query('//file')->item(0);
+    $fileNode->setAttribute('date', @date('Y-m-d\TH:i:s\Z'));
 
-      //save it and clear the cache for this variant
-      $dom->save($filename);
-    if(!empty($this->cache))
-        $this->cache->clean($variant, $this->culture);
-
+    //save it and clear the cache for this variant
+    $dom->save($filename);
+    if (!empty($this->cache))
+    {
+      $this->cache->clean($variant, $this->culture);
+    }
       return true;
   }
 
@@ -324,13 +347,19 @@ class sfMessageSource_XLIFF extends sfMessageSource
   public function update($text, $target, $comments, $catalogue='messages')
   {
     $variants = $this->getVariants($catalogue);
-    if($variants)
+    if ($variants)
+    {
       list($variant, $filename) = $variants;
+    }
     else
+    {
       return false;
+    }
 
-    if(is_writable($filename) == false)
+    if (is_writable($filename) == false)
+    {
       throw new sfException("Unable to update file {$filename}, file must be writable.");
+    }
 
     //create a new dom, import the existing xml
     $dom = DOMDocument::load($filename);
@@ -340,7 +369,7 @@ class sfMessageSource_XLIFF extends sfMessageSource
     $units = $xpath->query('//trans-unit');
 
     //for each of the existin units
-    foreach($units as $unit)
+    foreach ($units as $unit)
     {
       $found = false;
       $targetted = false;
@@ -348,26 +377,26 @@ class sfMessageSource_XLIFF extends sfMessageSource
 
       //in each unit, need to find the source, target and comment nodes
       //it will assume that the source is before the target.
-      foreach($unit->childNodes as $node)
+      foreach ($unit->childNodes as $node)
       {
         //source node
-        if($node->nodeName == 'source'
+        if ($node->nodeName == 'source'
           && $node->firstChild->wholeText == $text)
         {
             $found = true;
         }
 
         //found source, get the target and notes
-        if($found)
+        if ($found)
         {
           //set the new translated string
-          if($node->nodeName == 'target')
+          if ($node->nodeName == 'target')
           {
             $node->nodeValue = $target;
             $targetted = true;
           }
           //set the notes
-          if(!empty($comments) && $node->nodeName == 'note')
+          if (!empty($comments) && $node->nodeName == 'note')
           {
             $node->nodeValue = $comments;
             $commented = true;
@@ -376,24 +405,33 @@ class sfMessageSource_XLIFF extends sfMessageSource
       }
 
       //append a target
-      if($found && !$targetted)
-        $unit->appendChild($dom->createElement('target',$target));
+      if ($found && !$targetted)
+      {
+        $unit->appendChild($dom->createElement('target', $target));
+      }
 
       //append a note
-      if($found && !$commented && !empty($comments))
-        $unit->appendChild($dom->createElement('note',$comments));
+      if ($found && !$commented && !empty($comments))
+      {
+        $unit->appendChild($dom->createElement('note', $comments));
+      }
 
       //finished searching
-      if($found) break;
+      if ($found)
+      {
+        break;
+      }
     }
 
       $fileNode = $xpath->query('//file')->item(0);
       $fileNode->setAttribute('date', @date('Y-m-d\TH:i:s\Z'));
 
-    if($dom->save($filename) >0)
+    if ($dom->save($filename) >0)
     {
-      if(!empty($this->cache))
+      if (!empty($this->cache))
+      {
         $this->cache->clean($variant, $this->culture);
+      }
       return true;
     }
 
@@ -409,13 +447,19 @@ class sfMessageSource_XLIFF extends sfMessageSource
   public function delete($message, $catalogue='messages')
   {
     $variants = $this->getVariants($catalogue);
-    if($variants)
+    if ($variants)
+    {
       list($variant, $filename) = $variants;
+    }
     else
+    {
       return false;
+    }
 
-    if(is_writable($filename) == false)
+    if (is_writable($filename) == false)
+    {
       throw new sfException("Unable to modify file {$filename}, file must be writable.");
+    }
 
     //create a new dom, import the existing xml
     $dom = DOMDocument::load($filename);
@@ -425,14 +469,14 @@ class sfMessageSource_XLIFF extends sfMessageSource
     $units = $xpath->query('//trans-unit');
 
     //for each of the existin units
-    foreach($units as $unit)
+    foreach ($units as $unit)
     {
       //in each unit, need to find the source, target and comment nodes
       //it will assume that the source is before the target.
-      foreach($unit->childNodes as $node)
+      foreach ($unit->childNodes as $node)
       {
         //source node
-        if($node->nodeName == 'source'
+        if ($node->nodeName == 'source'
           && $node->firstChild->wholeText == $message)
         {
 
@@ -442,19 +486,67 @@ class sfMessageSource_XLIFF extends sfMessageSource
             $fileNode = $xpath->query('//file')->item(0);
             $fileNode->setAttribute('date', @date('Y-m-d\TH:i:s\Z'));
 
-          if($dom->save($filename) >0)
+          if ($dom->save($filename) >0)
           {
-            if(!empty($this->cache))
+            if (!empty($this->cache))
+            {
               $this->cache->clean($variant, $this->culture);
+            }
+
             return true;
           }
-          else return false;
-
+          else
+          {
+          return false;
+          }
         }
       }
-
     }
 
     return false;
+  }
+
+  protected function createMessageTemplate($catalogue)
+  {
+    if (is_null($catalogue))
+    {
+      $catalogue = 'messages';
+    }
+    $variants = $this->getCatalogueList($catalogue);
+    $variant = array_shift($variants);
+    $file = $this->getSource($variant);
+    $dir = dirname($file);
+    if (!is_dir($dir))
+    {
+    @mkdir($dir);
+    }
+    if (!is_dir($dir))
+    {
+      throw new TException("Unable to create directory $dir");
+    }
+    file_put_contents($file, $this->getTemplate($catalogue));
+
+    return array($variant, $file);
+  }
+
+  protected function getTemplate($catalogue)
+  {
+    $date = @date('c');
+$xml = <<<EOD
+<?xml version="1.0"?>
+<xliff version="1.0">
+ <file
+  source-language="EN"
+  target-language="{$this->culture}"
+  datatype="plaintext"
+  original="$catalogue"
+  date="$date"
+  product-name="$catalogue">
+  <body>
+  </body>
+ </file>
+</xliff>
+EOD;
+    return $xml;
   }
 }

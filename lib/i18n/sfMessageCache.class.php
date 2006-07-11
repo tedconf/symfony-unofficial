@@ -116,14 +116,18 @@ class sfMessageCache
 
     $cache = $this->cache->getCacheFile();
 
-    if(is_file($cache) == false)
+    if (is_file($cache) == false)
+    {
       return false;
+    }
 
 
     $lastmodified = intval($lastmodified);
 
-    if($lastmodified <= 0 || $lastmodified > filemtime($cache))
+    if ($lastmodified <= 0 || $lastmodified > filemtime($cache))
+    {
       return false;
+    }
 
     //echo '@@ Cache hit: "'.$ID.'" : "'.$group.'"';
     //echo "<br>\n";

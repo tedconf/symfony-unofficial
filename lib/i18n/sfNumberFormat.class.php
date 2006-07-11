@@ -47,7 +47,7 @@ require_once(dirname(__FILE__).'/util.php');
  * or as a percentage. For example
  * <code>
  * $format->format(1234.5); //Decimal number "1234.5"
- * $format->format(1234.5,'c'); //Default currency "$1234.50"
+ * $format->format(1234.5, 'c'); //Default currency "$1234.50"
  * $format->format(0.25, 'p') //Percent "25%"
  * </code>
  *
@@ -57,7 +57,7 @@ require_once(dirname(__FILE__).'/util.php');
  *  $ja = new sfNumberFormat('ja_JP');
  *
  *  //Japanese currency pattern, and using Japanese Yen symbol
- *  $ja->format(123.14,'c','JPY'); //ï¿?123 (Yen 123)
+ *  $ja->format(123.14, 'c', 'JPY'); //ï¿?123 (Yen 123)
  * </code>
  * For each culture, the symbol for each currency may be different.
  *
@@ -87,11 +87,11 @@ class sfNumberFormat
     {
       $this->formatInfo = sfNumberFormatInfo::getInvariantInfo();
     }
-    else if ($formatInfo instanceof sfCultureInfo)
+    elseif ($formatInfo instanceof sfCultureInfo)
     {
       $this->formatInfo = $formatInfo->sfNumberFormat;
     }
-    else if ($formatInfo instanceof sfNumberFormatInfo)
+    elseif ($formatInfo instanceof sfNumberFormatInfo)
     {
       $this->formatInfo = $formatInfo;
     }
@@ -124,17 +124,24 @@ class sfNumberFormat
 
     $string = (string)$number;
 
-    list($number, $decimal) = $this->formatDecimal($string);
+    $decimal = $this->formatDecimal($string);
     $integer = $this->formatInteger(abs($number));
 
-    $result = (strlen($decimal) > 0) ? $integer.$decimal : $integer;
+    if (strlen($decimal)>0)
+    {
+      $result = $integer.$decimal;
+    }
+    else
+    {
+      $result = $integer;
+    }
 
     // get the suffix
     if ($number >= 0)
     {
       $suffix = $this->formatInfo->PositivePattern;
     }
-    else if ($number < 0)
+    elseif ($number < 0)
     {
       $suffix = $this->formatInfo->NegativePattern;
     }
@@ -175,6 +182,10 @@ class sfNumberFormat
 
     $integer = '';
 
+    $digitSize = $this->formatInfo->getDigitSize();
+
+    $string = str_pad($string, $digitSize, '0', STR_PAD_LEFT);
+
     $len = strlen($string);
 
     $groupSeparator = $this->formatInfo->GroupSeparator;
@@ -189,7 +200,7 @@ class sfNumberFormat
       // now for the integer groupings
       for ($i = 0; $i < $len; $i++)
       {
-        $char = $string{$len - $i - 1};
+        $char = $string[$len - $i - 1];
 
         if ($multiGroup && $count == 0)
         {
@@ -199,7 +210,7 @@ class sfNumberFormat
             $count++;
           }
         }
-        else if ($multiGroup && $count >= 1)
+        elseif ($multiGroup && $count >= 1)
         {
           if ($i != 0 && ($i-$groupSize[0])%$groupSize[1] == 0)
           {
@@ -220,7 +231,9 @@ class sfNumberFormat
       }
     }
     else
+    {
       $integer = $string;
+    }
 
     return $integer;
   }
@@ -244,16 +257,16 @@ class sfNumberFormat
       {
         $decimal = substr($string, $dp + 1);
       }
-      else if (is_int($decimalDigits))
+      elseif (is_int($decimalDigits))
       {
-        $string = $float = round((float)$string, $decimalDigits);
+        $float = round((float)$string, $decimalDigits);
         if (strpos((string)$float, '.') === false)
         {
           $decimal = str_pad($decimal, $decimalDigits, '0');
         }
         else
         {
-          $decimal = substr($float, strpos($float,'.') + 1);
+          $decimal = substr($float, strpos($float, '.') + 1);
           if (strlen($decimal)<$decimalDigits)
           {
             $decimal = str_pad($decimal, $decimalDigits, '0');
@@ -262,17 +275,17 @@ class sfNumberFormat
       }
       else
       {
-        return array($string, $decimal);
+        return $decimal;
       }
 
-      return array($string, $decimalSeparator.$decimal);
+      return $decimalSeparator.$decimal;
     }
-    else if ($decimalDigits > 0)
+    elseif ($decimalDigits > 0)
     {
-      return array($string, $decimalSeparator.str_pad($decimal, $decimalDigits, '0'));
+      return $decimalSeparator.str_pad($decimal, $decimalDigits, '0');
     }
 
-    return array($string, $decimal);
+    return $decimal;
   }
 
   /**
@@ -283,7 +296,7 @@ class sfNumberFormat
    */
   protected function setPattern($pattern)
   {
-    switch($pattern)
+    switch ($pattern)
     {
       case 'c':
       case 'C':

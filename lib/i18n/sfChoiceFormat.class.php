@@ -31,7 +31,7 @@
  * grammatically correct plurals such as "There are 2 files."
  *
  * <code>
- *  $string = '[0] are no files |[1] is one file |(1,Inf] are {number} files';
+ *  $string = '[0] are no files |[1] is one file |(1, Inf] are {number} files';
  *
  *  $formatter = new sfMessageFormat(...); //init for a source
  *  $translated = $formatter->format($string);
@@ -42,10 +42,10 @@
  *
  * The message/string choices are separated by the pipe "|" followed
  * by a set notation of the form
- *  # <t>[1,2]</t> -- accepts values between 1 and 2, inclusive.
- *  # <t>(1,2)</t> -- accepts values between 1 and 2, excluding 1 and 2.
- *  # <t>{1,2,3,4}</t> -- only values defined in the set are accepted.
- *  # <t>[-Inf,0)</t> -- accepts value greater or equal to negative infinity
+ *  # <t>[1, 2]</t> -- accepts values between 1 and 2, inclusive.
+ *  # <t>(1, 2)</t> -- accepts values between 1 and 2, excluding 1 and 2.
+ *  # <t>{1, 2, 3, 4}</t> -- only values defined in the set are accepted.
+ *  # <t>[-Inf, 0)</t> -- accepts value greater or equal to negative infinity
  *                       and strictly less than 0
  * Any non-empty combinations of the delimiters of square and round brackets
  * are acceptable.
@@ -94,8 +94,7 @@ class sfChoiceFormat
 
     if ($n < 3)
     {
-      $error = 'Invalid set "%s"';
-      $error = sprintf($error, $set);
+      $error = sprintf('Invalid set "%s"', $set);
       throw new sfException($error);
     }
 
@@ -114,7 +113,7 @@ class sfChoiceFormat
         {
           $elements[] = -1 * $this->inf;
         }
-        else if ($string == '+Inf' || $string == 'Inf')
+        elseif ($string == '+Inf' || $string == 'Inf')
         {
           $elements[] = $this->inf;
         }
@@ -123,7 +122,7 @@ class sfChoiceFormat
           $elements[] = floatval($string);
         }
       }
-      $i++;
+      ++$i;
     }
     $total = count($elements);
     $number = floatval($number);
@@ -138,17 +137,17 @@ class sfChoiceFormat
     {
       $left = $number >= $elements[0];
     }
-    else if ($leftBracket == '(')
+    elseif ($leftBracket == '(')
     {
       $left = $number > $elements[0];
     }
 
     $right = false;
-    if($rightBracket==']')
-    {
+  if ($rightBracket==']')
+  {
       $right = $number <= $elements[$total-1];
-    }
-    else if($rightBracket == ')')
+  }
+  elseif ($rightBracket == ')')
     {
       $right = $number < $elements[$total-1];
     }
@@ -178,7 +177,7 @@ class sfChoiceFormat
 
     $offset = $matches[0];
     $strings = array();
-    for ($i = 0; $i < $n; $i++)
+    for ($i = 0; $i < $n; ++$i)
     {
       $len = strlen($offset[$i][0]);
       $begin = $i == 0 ? $len : $offset[$i][1] + $len;
@@ -199,8 +198,7 @@ class sfChoiceFormat
   public function format($string, $number)
   {
     list($sets, $strings) = $this->parse($string);
-    $total = count($sets);
-    for ($i = 0; $i < $total; $i++)
+    for ($i = 0, $k = count($sets); $i < $k; ++$i)
     {
       if ($this->isValid($number, $sets[$i]))
       {

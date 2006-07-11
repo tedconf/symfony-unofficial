@@ -170,7 +170,10 @@ class sfI18N
     ksort($tmp);
     $i = 0;
     $c = array();
-    foreach ($tmp as $value) $c[++$i] = $value;
+    foreach ($tmp as $value)
+    {
+      $c[++$i] = $value;
+    }
     $datePositions = array_flip($c);
 
     // We find all elements

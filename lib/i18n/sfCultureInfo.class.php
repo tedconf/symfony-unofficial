@@ -138,10 +138,14 @@ class sfCultureInfo
   function __get($name)
   {
     $getProperty = 'get'.$name;
-    if(in_array($getProperty, $this->properties))
+  if (in_array($getProperty, $this->properties))
+  {
       return $this->$getProperty();
+  }
     else
+  {
       throw new sfException('Property '.$name.' does not exists.');
+  }
   }
 
   /**
@@ -151,10 +155,14 @@ class sfCultureInfo
   function __set($name, $value)
   {
     $setProperty = 'set'.$name;
-    if(in_array($setProperty, $this->properties))
+    if (in_array($setProperty, $this->properties))
+    {
       $this->$setProperty($value);
+    }
     else
+    {
       throw new sfException('Property '.$name.' can not be set.');
+    }
   }
 
 
@@ -162,7 +170,7 @@ class sfCultureInfo
    * Initializes a new instance of the sfCultureInfo class based on the
    * culture specified by name. E.g. <code>new sfCultureInfo('en_AU');</code>
    * The culture indentifier must be of the form
-   * "<language>_(country/region/variant)".
+   * "language_(country/region/variant)".
    * @param string a culture name, e.g. "en_AU".
    * @return return new sfCultureInfo.
    */
@@ -170,8 +178,10 @@ class sfCultureInfo
   {
     $this->properties = get_class_methods($this);
 
-    if(empty($culture))
+    if (empty($culture))
+    {
       $culture = 'en';
+    }
 
     $this->dataDir = $this->dataDir();
     $this->dataFileExt = $this->fileExt();
@@ -209,8 +219,10 @@ class sfCultureInfo
    */
   public function validCulture($culture)
   {
-    if(preg_match('/^[a-z]{2}(_[A-Z]{2,5}){0,2}$/', $culture))
+    if (preg_match('/^[a-z]{2}(_[A-Z]{2,5}){0,2}$/', $culture))
+    {
       return is_file(self::dataDir().$culture.self::fileExt());
+    }
 
     return false;
   }
@@ -222,10 +234,12 @@ class sfCultureInfo
    */
   protected function setCulture($culture)
   {
-    if(!empty($culture))
+    if (!empty($culture))
     {
       if (!preg_match('/^[a-z]{2}(_[A-Z]{2,5}){0,2}$/', $culture))
+      {
         throw new sfException('Invalid culture supplied: ' . $culture);
+      }
     }
 
     $this->culture = $culture;
@@ -237,33 +251,37 @@ class sfCultureInfo
    */
   protected function loadCultureData($culture)
   {
-    $file_parts = explode('_',$culture);
+    $file_parts = explode('_', $culture);
     $current_part = $file_parts[0];
 
     $files = array($current_part);
 
-    for($i = 1; $i < count($file_parts); $i++)
+    for ($i = 1, $k = count($file_parts); $i < $k; ++$i)
     {
       $current_part .= '_'.$file_parts[$i];
       $files[] = $current_part;
     }
 
-    foreach($files as $file)
+    foreach ($files as $file)
     {
       $filename = $this->dataDir.$file.$this->dataFileExt;
 
-      if(is_file($filename) == false)
+      if (is_file($filename) == false)
+      {
         throw new sfException('Data file for "'.$file.'" was not found.');
+      }
 
-      if(in_array($filename, $this->dataFiles) == false)
+      if (in_array($filename, $this->dataFiles) === false)
       {
         array_unshift($this->dataFiles, $file);
 
         $data = &$this->getData($filename);
         $this->data[$file] = &$data;
 
-        if(isset($data['__ALIAS']))
+        if (isset($data['__ALIAS']))
+        {
           $this->loadCultureData($data['__ALIAS'][0]);
+        }
         unset($data);
       }
     }
@@ -281,7 +299,7 @@ class sfCultureInfo
     static $data = array();
     static $files = array();
 
-    if(!in_array($filename, $files))
+    if (!in_array($filename, $files))
     {
       $data[$filename] = unserialize(file_get_contents($filename));
       $files[] = $filename;
@@ -299,7 +317,7 @@ class sfCultureInfo
    * E.g. The currency data for a variant, say "en_AU" contains one
    * entry, the currency for AUD, the other currency data are stored
    * in the "en" data file. Thus to retrieve all the data regarding
-   * currency for "en_AU", you need to use findInfo("Currencies,true);.
+   * currency for "en_AU", you need to use findInfo("Currencies, true);.
    * @param string the data you want to find.
    * @param boolean merge the data from its parents.
    * @return mixed the specific ICU data.
@@ -307,16 +325,20 @@ class sfCultureInfo
   protected function findInfo($path='/', $merge=false)
   {
     $result = array();
-    foreach($this->dataFiles as $section)
+    foreach ($this->dataFiles as $section)
     {
       $info = $this->searchArray($this->data[$section], $path);
 
-      if($info)
+      if ($info)
       {
-        if($merge)
-          $result = array_merge($info,$result);
+        if ($merge)
+        {
+          $result = array_merge($info, $result);
+        }
         else
+        {
           return $info;
+        }
       }
     }
 
@@ -333,17 +355,21 @@ class sfCultureInfo
    */
   private function searchArray($info, $path='/')
   {
-    $index = explode('/',$path);
+    $index = explode('/', $path);
 
     $array = $info;
 
-    for($i = 0; $i < count($index); $i++)
+    for ($i = 0, $k = count($index); $i < $k; ++$i)
     {
-      $k = $index[$i];
-      if($i < count($index)-1 && isset($array[$k]))
-        $array = $array[$k];
-      else if ($i == count($index)-1 && isset($array[$k]))
-        return $array[$k];
+      $value = $index[$i];
+      if ($i < $k-1 && isset($array[$value]))
+      {
+        $array = $array[$value];
+      }
+      elseif ($i == $k-1 && isset($array[$value]))
+      {
+        return $array[$value];
+      }
     }
   }
 
@@ -364,7 +390,7 @@ class sfCultureInfo
    */
   function getDateTimeFormat()
   {
-    if(is_null($this->dateTimeFormat))
+    if (is_null($this->dateTimeFormat))
     {
       $calendar = $this->getCalendar();
       $info = $this->findInfo("calendar/{$calendar}", true);
@@ -395,40 +421,48 @@ class sfCultureInfo
 
   /**
    * Gets the culture name in the language that the culture is set
-   * to display. Returns <code>array('Language','Country');</code>
+   * to display. Returns <code>array('Language', 'Country');</code>
    * 'Country' is omitted if the culture is neutral.
    * @return array array with language and country as elements, localized.
    */
   function getNativeName()
   {
-    $lang = substr($this->culture,0,2);
-    $reg = substr($this->culture,3,2);
+    $lang = substr($this->culture, 0, 2);
+    $reg = substr($this->culture, 3, 2);
     $language = $this->findInfo("Languages/{$lang}");
     $region = $this->findInfo("Countries/{$reg}");
-    if($region)
+    if ($region)
+    {
       return $language[0].' ('.$region[0].')';
+    }
     else
+    {
       return $language[0];
+    }
   }
 
   /**
    * Gets the culture name in English.
-   * Returns <code>array('Language','Country');</code>
+   * Returns <code>array('Language', 'Country');</code>
    * 'Country' is omitted if the culture is neutral.
    * @return array array with language and country as elements.
    */
   function getEnglishName()
   {
-    $lang = substr($this->culture,0,2);
-    $reg = substr($this->culture,3,2);
+    $lang = substr($this->culture, 0, 2);
+    $reg = substr($this->culture, 3, 2);
     $culture = $this->getInvariantCulture();
 
     $language = $culture->findInfo("Languages/{$lang}");
     $region = $culture->findInfo("Countries/{$reg}");
-    if($region)
+    if ($region)
+    {
       return $language[0].' ('.$region[0].')';
+    }
     else
+    {
       return $language[0];
+    }
   }
 
   /**
@@ -441,8 +475,11 @@ class sfCultureInfo
   static function getInvariantCulture()
   {
     static $invariant;
-    if(is_null($invariant))
+    if (is_null($invariant))
+    {
       $invariant = new sfCultureInfo();
+    }
+
     return $invariant;
   }
 
@@ -464,7 +501,7 @@ class sfCultureInfo
    */
   function getNumberFormat()
   {
-    if(is_null($this->numberFormat))
+    if (is_null($this->numberFormat))
     {
       $elements = $this->findInfo('NumberElements');
       $patterns = $this->findInfo('NumberPatterns');
@@ -475,6 +512,7 @@ class sfCultureInfo
 
       $this->setNumberFormat(new sfNumberFormatInfo($data));
     }
+
     return $this->numberFormat;
   }
 
@@ -494,11 +532,14 @@ class sfCultureInfo
    */
   function getParent()
   {
-    if(strlen($this->culture) == 2)
+    if (strlen($this->culture) == 2)
+    {
       return $this->getInvariantCulture();
+    }
 
-    $lang = substr($this->culture,0,2);
-      return new sfCultureInfo($lang);
+    $lang = substr($this->culture, 0, 2);
+
+    return new sfCultureInfo($lang);
   }
 
   /**
@@ -521,20 +562,24 @@ class sfCultureInfo
 
     while (false !== ($entry = $dir->read()))
     {
-      if(is_file($dataDir.$entry)
+      if (is_file($dataDir.$entry)
         && substr($entry,-4) == $dataExt
         && $entry != 'root'.$dataExt)
       {
-        $culture = substr($entry,0,-4);
-        if(strlen($culture) == 2)
+        $culture = substr($entry, 0, -4);
+        if (strlen($culture) == 2)
+        {
           $neutral[] = $culture;
+        }
         else
+        {
           $specific[] = $culture;
+        }
       }
     }
     $dir->close();
 
-    switch($type)
+    switch ($type)
     {
       case sfCultureInfo::ALL :
         $all =  array_merge($neutral, $specific);
@@ -559,14 +604,16 @@ class sfCultureInfo
    */
   private function simplify($array)
   {
-    for($i = 0; $i<count($array); $i++)
+    for ($i = 0, $k = count($array); $i < $k; ++$i)
     {
       $key = key($array);
-      if(is_array($array[$key])
-        && count($array[$key]) == 1)
+      if (is_array($array[$key]) && count($array[$key]) == 1)
+    {
         $array[$key] = $array[$key][0];
+    }
       next($array);
     }
+
     return $array;
   }
 
@@ -576,7 +623,7 @@ class sfCultureInfo
    */
   function getCountries()
   {
-    return $this->simplify($this->findInfo('Countries',true));
+    return $this->simplify($this->findInfo('Countries', true));
   }
 
   /**
@@ -585,7 +632,7 @@ class sfCultureInfo
    */
   function getCurrencies()
   {
-    return $this->findInfo('Currencies',true);
+    return $this->findInfo('Currencies', true);
   }
 
   /**
@@ -594,7 +641,7 @@ class sfCultureInfo
    */
   function getLanguages()
   {
-    return $this->simplify($this->findInfo('Languages',true));
+    return $this->simplify($this->findInfo('Languages', true));
   }
 
   /**
@@ -603,7 +650,7 @@ class sfCultureInfo
    */
   function getScripts()
   {
-    return $this->simplify($this->findInfo('Scripts',true));
+    return $this->simplify($this->findInfo('Scripts', true));
   }
 
   /**
@@ -612,6 +659,6 @@ class sfCultureInfo
    */
   function getTimeZones()
   {
-    return $this->simplify($this->findInfo('zoneStrings',true));
+    return $this->simplify($this->findInfo('zoneStrings', true));
   }
 }

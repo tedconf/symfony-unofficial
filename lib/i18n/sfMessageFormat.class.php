@@ -77,7 +77,7 @@ class sfMessageFormat
    * The prefix and suffix to append to untranslated messages.
    * @var array
    */
-  protected $postscript = array('','');
+  protected $postscript = array('', '');
 
   /**
    * Set the default catalogue.
@@ -131,10 +131,12 @@ class sfMessageFormat
    */
   protected function loadCatalogue($catalogue)
   {
-    if(in_array($catalogue,$this->catagloues))
+    if (in_array($catalogue, $this->catagloues))
+    {
       return;
+    }
 
-    if($this->source->load($catalogue))
+    if ($this->source->load($catalogue))
     {
       $this->messages[$catalogue] = $this->source->read();
       $this->catagloues[] = $catalogue;
@@ -160,21 +162,7 @@ class sfMessageFormat
     {
       $charset = $this->getCharset();
     }
-
     $s = $this->formatString(I18N_toUTF8($string, $charset), $args, $catalogue);
-
-    return I18N_toEncoding($s, $charset);
-  }
-
-  public function formatExists($string, $args = array(), $catalogue = null, $charset = null)
-  {
-    if (empty($charset))
-    {
-      $charset = $this->getCharset();
-    }
-
-    $s = $this->getFormattedString(I18N_toUTF8($string, $charset), $args, $catalogue);
-
     return I18N_toEncoding($s, $charset);
   }
 
@@ -190,34 +178,22 @@ class sfMessageFormat
   {
     if (empty($args))
     {
-      $args = array();
+      if (empty($this->Catalogue))
+      {
+        $catalogue = 'messages';
+      }
+      else
+      {
+        $catalogue = $this->Catalogue;
+      }
     }
 
-    $target = $this->getFormattedString($string, $args, $catalogue);
-
-    // well we did not find the translation string.
-    if (!$target)
-    {
-      $this->source->append($string);
-      $target = $this->postscript[0].$this->replaceArgs($string, $args).$this->postscript[1];
-    }
-
-    return $target;
-  }
-
-  protected function getFormattedString($string, $args = array(), $catalogue = null)
-  {
-    if (empty($catalogue))
-    {
-      $catalogue = empty($this->Catalogue) ? 'messages' : $this->Catalogue;
-    }
+    $this->loadCatalogue($catalogue);
 
     if (empty($args))
     {
       $args = array();
     }
-
-    $this->loadCatalogue($catalogue);
 
     foreach ($this->messages[$catalogue] as $variant)
     {
@@ -227,7 +203,7 @@ class sfMessageFormat
         // we found it, so return the target translation
         if ($source == $string)
         {
-          // check if it contains only strings.
+          //check if it contains only strings.
           if (is_string($result))
           {
             $target = $result;
@@ -236,35 +212,27 @@ class sfMessageFormat
           {
             $target = $result[0];
           }
-
-          // found, but untranslated
+          //found, but untranslated
           if (empty($target))
           {
-            return $this->postscript[0].$this->replaceArgs($string, $args).$this->postscript[1];
+            return $this->postscript[0].
+                strtr($string, $args).
+                $this->postscript[1];
           }
           else
           {
-            return $this->replaceArgs($target, $args);
+            return strtr($target, $args);
           }
         }
       }
     }
 
-    return null;
-  }
+    // well we did not find the translation string.
+    $this->source->append($string);
 
-  private function replaceArgs($string, $args)
-  {
-    // replace object with strings
-    foreach ($args as $key => $value)
-    {
-      if (is_object($value) && method_exists($value, '__toString'))
-      {
-        $args[$key] = $value->__toString();
-      }
-    }
-
-    return strtr($string, $args);
+    return $this->postscript[0].
+        strtr($string, $args).
+        $this->postscript[1];
   }
 
   /**
@@ -278,13 +246,13 @@ class sfMessageFormat
 
   /**
    * Set the prefix and suffix to append to untranslated messages.
-   * e.g. $postscript=array('[T]','[/T]'); will output
+   * e.g. $postscript=array('[T]', '[/T]'); will output
    * "[T]Hello[/T]" if the translation for "Hello" can not be determined.
    * @param array first element is the prefix, second element the suffix.
    */
   function setUntranslatedPS($postscript)
   {
-    if(is_array($postscript) && count($postscript)>=2)
+    if (is_array($postscript) && count($postscript)>=2)
     {
       $this->postscript[0] = $postscript[0];
       $this->postscript[1] = $postscript[1];

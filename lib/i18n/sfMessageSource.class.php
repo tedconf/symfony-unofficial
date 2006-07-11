@@ -167,34 +167,39 @@ abstract class sfMessageSource implements sfIMessageSource
 
     $this->messages = array();
 
-    foreach($variants as $variant)
+    foreach ($variants as $variant)
     {
       $source = $this->getSource($variant);
 
-      if($this->isValidSource($source) == false) continue;
+      if ($this->isValidSource($source) == false)
+      {
+      continue;
+      }
 
       $loadData = true;
 
-      if($this->cache)
+      if ($this->cache)
       {
         $data = $this->cache->get($variant,
-          $this->culture, $this->getLastModified($source));
+        $this->culture, $this->getLastModified($source));
 
-        if(is_array($data))
+        if (is_array($data))
         {
           $this->messages[$variant] = $data;
           $loadData = false;
         }
         unset($data);
       }
-      if($loadData)
+      if ($loadData)
       {
         $data = &$this->loadData($source);
-        if(is_array($data))
+        if (is_array($data))
         {
           $this->messages[$variant] = $data;
-          if($this->cache)
+          if ($this->cache)
+          {
             $this->cache->save($data, $variant, $this->culture);
+          }
         }
         unset($data);
       }
@@ -238,8 +243,10 @@ abstract class sfMessageSource implements sfIMessageSource
    */
   public function append($message)
   {
-    if(!in_array($message, $this->untranslated))
+    if (!in_array($message, $this->untranslated))
+    {
       $this->untranslated[] = $message;
+    }
   }
 
   /**
@@ -311,4 +318,18 @@ abstract class sfMessageSource implements sfIMessageSource
   {
     return array();
   }
+}
+
+
+/**
+ * TMessageSourceIOException thrown when unable to modify message source
+ * data.
+ *
+ * @author Wei Zhuo<weizhuo[at]gmail[dot]com>
+ * @version $Revision$  $Date${DATE} ${TIME} $
+ * @package System.I18N.core
+ */
+class TMessageSourceIOException extends TException
+{
+
 }

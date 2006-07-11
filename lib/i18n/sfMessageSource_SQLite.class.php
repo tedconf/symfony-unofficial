@@ -76,7 +76,7 @@ class sfMessageSource_SQLite extends sfMessageSource
 
     $result = array();
 
-    while($row = sqlite_fetch_array($rs,SQLITE_NUM))
+    while ($row = sqlite_fetch_array($rs, SQLITE_NUM))
     {
       $source = $row[1];
       $result[$source][] = $row[2]; //target
@@ -138,15 +138,15 @@ class sfMessageSource_SQLite extends sfMessageSource
    */
   protected function getCatalogueList($catalogue)
   {
-    $variants = explode('_',$this->culture);
+    $variants = explode('_', $this->culture);
 
     $catalogues = array($catalogue);
 
     $variant = null;
 
-    for($i = 0; $i < count($variants); $i++)
+    for ($i = 0, $k = count($variants); $i < $k; ++$i)
     {
-      if(strlen($variants[$i])>0)
+      if (isset($variants[$i]{0}))
       {
         $variant .= ($variant)?'_'.$variants[$i]:$variants[$i];
         $catalogues[] = $catalogue.'.'.$variant;
@@ -162,8 +162,10 @@ class sfMessageSource_SQLite extends sfMessageSource
    */
   private function getCatalogueDetails($catalogue='messages')
   {
-    if(empty($catalogue))
+    if (empty($catalogue))
+    {
       $catalogue = 'messages';
+    }
 
     $variant = $catalogue.'.'.$this->culture;
 
@@ -174,8 +176,10 @@ class sfMessageSource_SQLite extends sfMessageSource
     $rs = sqlite_query("SELECT cat_id
           FROM catalogue WHERE name = '{$name}'", $db);
 
-    if(sqlite_num_rows($rs) != 1)
+    if (sqlite_num_rows($rs) != 1)
+    {
       return false;
+    }
 
     $cat_id = intval(sqlite_fetch_single($rs));
 
@@ -204,8 +208,10 @@ class sfMessageSource_SQLite extends sfMessageSource
               SET date_modified = {$time}
               WHERE cat_id = {$cat_id}", $db);
 
-    if(!empty($this->cache))
+    if (!empty($this->cache))
+    {
       $this->cache->clean($variant, $this->culture);
+    }
 
     return $result;
   }
@@ -221,34 +227,46 @@ class sfMessageSource_SQLite extends sfMessageSource
   {
     $messages = $this->untranslated;
 
-    if(count($messages) <= 0) return false;
+    if (count($messages) <= 0)
+    {
+      return false;
+    }
 
     $details = $this->getCatalogueDetails($catalogue);
 
-    if($details)
+    if ($details)
+    {
       list($cat_id, $variant, $count) = $details;
+    }
     else
+    {
       return false;
+    }
 
-    if($cat_id <= 0) return false;
+    if ($cat_id <= 0)
+    {
+      return false;
+    }
     $inserted = 0;
 
     $db = sqlite_open($this->source);
     $time = time();
 
-    foreach($messages as $message)
+    foreach ($messages as $message)
     {
       $message = sqlite_escape_string($message);
       $statement = "INSERT INTO trans_unit
-        (cat_id,id,source,date_added) VALUES
-        ({$cat_id}, {$count},'{$message}',$time)";
-      if(sqlite_query($statement, $db))
+        (cat_id, id, source, date_added) VALUES
+        ({$cat_id}, {$count}, '{$message}', $time)";
+      if (sqlite_query($statement, $db))
       {
         $count++; $inserted++;
       }
     }
-    if($inserted > 0)
+    if ($inserted > 0)
+    {
       $this->updateCatalogueTime($cat_id, $variant, $db);
+    }
 
     sqlite_close($db);
 
@@ -266,10 +284,14 @@ class sfMessageSource_SQLite extends sfMessageSource
   function update($text, $target, $comments, $catalogue='messages')
   {
     $details = $this->getCatalogueDetails($catalogue);
-    if($details)
+    if ($details)
+    {
       list($cat_id, $variant, $count) = $details;
+    }
     else
+    {
       return false;
+    }
 
     $comments = sqlite_escape_string($comments);
     $target = sqlite_escape_string($target);
@@ -288,8 +310,10 @@ class sfMessageSource_SQLite extends sfMessageSource
 
     $updated = false;
 
-    if(sqlite_query($statement, $db))
+    if (sqlite_query($statement, $db))
+    {
       $updated = $this->updateCatalogueTime($cat_id, $variant, $db);
+    }
 
     sqlite_close($db);
 
@@ -305,10 +329,14 @@ class sfMessageSource_SQLite extends sfMessageSource
   function delete($message, $catalogue='messages')
   {
     $details = $this->getCatalogueDetails($catalogue);
-    if($details)
+    if ($details)
+    {
       list($cat_id, $variant, $count) = $details;
+    }
     else
+    {
       return false;
+    }
 
     $db = sqlite_open($this->source);
     $text = sqlite_escape_string($message);
@@ -317,8 +345,10 @@ class sfMessageSource_SQLite extends sfMessageSource
             cat_id = {$cat_id} AND source = '{$message}'";
     $deleted = false;
 
-    if(sqlite_query($statement, $db))
+    if (sqlite_query($statement, $db))
+    {
       $deleted = $this->updateCatalogueTime($cat_id, $variant, $db);
+    }
 
     sqlite_close($db);
 
@@ -335,10 +365,13 @@ class sfMessageSource_SQLite extends sfMessageSource
     $statement = 'SELECT name FROM catalogue ORDER BY name';
     $rs = sqlite_query($statement, $db);
     $result = array();
-    while($row = sqlite_fetch_array($rs,SQLITE_NUM))
+    while ($row = sqlite_fetch_array($rs, SQLITE_NUM))
     {
-      $details = explode('.',$row[0]);
-      if(!isset($details[1])) $details[1] = null;
+      $details = explode('.', $row[0]);
+      if (!isset($details[1]))
+      {
+        $details[1] = null;
+      }
 
       $result[] = $details;
     }

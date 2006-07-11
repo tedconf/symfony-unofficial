@@ -63,13 +63,13 @@ class sfMessageSource_gettext extends sfMessageSource
    */
   protected function &loadData($filename)
   {
-    $mo = TGettext::factory('MO',$filename);
+    $mo = TGettext::factory('MO', $filename);
     $mo->load();
     $result = $mo->toArray();
 
     $results = array();
     $count=0;
-    foreach($result['strings'] as $source => $target)
+    foreach ($result['strings'] as $source => $target)
     {
       $results[$source][] = $target; //target
       $results[$source][] = $count++; //id
@@ -107,10 +107,14 @@ class sfMessageSource_gettext extends sfMessageSource
    */
   protected function getLastModified($source)
   {
-    if(is_file($source))
+    if (is_file($source))
+    {
       return filemtime($source);
+    }
     else
+    {
       return 0;
+    }
   }
 
   /**
@@ -120,16 +124,16 @@ class sfMessageSource_gettext extends sfMessageSource
    */
   protected function getCatalogueList($catalogue)
   {
-    $variants = explode('_',$this->culture);
+    $variants = explode('_', $this->culture);
     $source = $catalogue.$this->dataExt;
 
     $catalogues = array($source);
 
     $variant = null;
 
-    for($i = 0; $i < count($variants); $i++)
+    for ($i = 0, $k = count($variants); $i < $k; ++$i)
     {
-      if(strlen($variants[$i])>0)
+      if (isset($variants[$i]{0}))
       {
         $variant .= ($variant)?'_'.$variants[$i]:$variants[$i];
         $catalogues[] = $catalogue.$this->dataSeparator.
@@ -137,7 +141,8 @@ class sfMessageSource_gettext extends sfMessageSource
       }
     }
     $byDir = $this->getCatalogueByDir($catalogue);
-    $catalogues = array_merge($byDir,array_reverse($catalogues));
+    $catalogues = array_merge($byDir, array_reverse($catalogues));
+
     return $catalogues;
   }
 
@@ -151,19 +156,20 @@ class sfMessageSource_gettext extends sfMessageSource
    */
   private function getCatalogueByDir($catalogue)
   {
-    $variants = explode('_',$this->culture);
+    $variants = explode('_', $this->culture);
     $catalogues = array();
 
     $variant = null;
 
-    for($i = 0; $i < count($variants); $i++)
+    for ($i = 0, $k = count($variants); $i < $k; ++$i)
     {
-      if(strlen($variants[$i])>0)
+      if (isset($variants[$i]{0}))
       {
         $variant .= ($variant)?'_'.$variants[$i]:$variants[$i];
         $catalogues[] = $variant.'/'.$catalogue.$this->dataExt;
       }
     }
+
     return array_reverse($catalogues);
   }
 
@@ -177,15 +183,19 @@ class sfMessageSource_gettext extends sfMessageSource
    */
   private function getVariants($catalogue='messages')
   {
-    if(is_null($catalogue))
+    if (is_null($catalogue))
+    {
       $catalogue = 'messages';
+    }
 
-    foreach($this->getCatalogueList($catalogue) as $variant)
+    foreach ($this->getCatalogueList($catalogue) as $variant)
     {
       $file = $this->getSource($variant);
       $po = $this->getPOFile($file);
-      if(is_file($file) || is_file($po))
+      if (is_file($file) || is_file($po))
+      {
         return array($variant, $file, $po);
+      }
     }
     return false;
   }
@@ -207,52 +217,69 @@ class sfMessageSource_gettext extends sfMessageSource
   {
     $messages = $this->untranslated;
 
-    if(count($messages) <= 0) return false;
+    if (count($messages) <= 0)
+    {
+    return false;
+    }
 
     $variants = $this->getVariants($catalogue);
 
-    if($variants)
+    if ($variants)
+    {
       list($variant, $MOFile, $POFile) = $variants;
+    }
     else
-      return false;
+    {
+      list($variant, $MOFile, $POFile) = $this->createMessageTemplate($catalogue);
+    }
 
-    if(is_writable($MOFile) == false)
+    if (is_writable($MOFile) == false)
+    {
       throw new sfException("Unable to save to file {$MOFile}, file must be writable.");
-    if(is_writable($POFile) == false)
+    }
+    if (is_writable($POFile) == false)
+    {
       throw new sfException("Unable to save to file {$POFile}, file must be writable.");
+    }
 
     //set the strings as untranslated.
     $strings = array();
-    foreach($messages as $message)
+    foreach ($messages as $message)
+    {
       $strings[$message] = '';
+    }
 
     //load the PO
-    $po = TGettext::factory('PO',$POFile);
+    $po = TGettext::factory('PO', $POFile);
     $po->load();
     $result = $po->toArray();
 
     $existing = count($result['strings']);
 
     //add to strings to the existing message list
-    $result['strings'] = array_merge($result['strings'],$strings);
+    $result['strings'] = array_merge($result['strings'], $strings);
 
     $new = count($result['strings']);
 
-    if($new > $existing)
+    if ($new > $existing)
     {
       //change the date 2004-12-25 12:26
       $result['meta']['PO-Revision-Date'] = @date('Y-m-d H:i:s');
 
       $po->fromArray($result);
       $mo = $po->toMO();
-      if($po->save() && $mo->save($MOFile))
+      if ($po->save() && $mo->save($MOFile))
       {
-        if(!empty($this->cache))
+        if (!empty($this->cache))
+        {
           $this->cache->clean($variant, $this->culture);
+        }
         return true;
       }
       else
+      {
         return false;
+      }
     }
     return false;
   }
@@ -266,37 +293,49 @@ class sfMessageSource_gettext extends sfMessageSource
   function delete($message, $catalogue='messages')
   {
     $variants = $this->getVariants($catalogue);
-    if($variants)
+    if ($variants)
+    {
       list($variant, $MOFile, $POFile) = $variants;
+    }
     else
+    {
       return false;
+    }
 
-    if(is_writable($MOFile) == false)
+    if (is_writable($MOFile) == false)
+    {
       throw new sfException("Unable to modify file {$MOFile}, file must be writable.");
-    if(is_writable($POFile) == false)
+    }
+    if (is_writable($POFile) == false)
+    {
       throw new sfException("Unable to modify file {$POFile}, file must be writable.");
+    }
 
-    $po = TGettext::factory('PO',$POFile);
+    $po = TGettext::factory('PO', $POFile);
     $po->load();
     $result = $po->toArray();
 
-    foreach($result['strings'] as $string => $value)
+    foreach ($result['strings'] as $string => $value)
     {
-      if($string == $message)
+      if ($string == $message)
       {
         $result['meta']['PO-Revision-Date'] = @date('Y-m-d H:i:s');
         unset($result['strings'][$string]);
 
         $po->fromArray($result);
         $mo = $po->toMO();
-        if($po->save() && $mo->save($MOFile))
+        if ($po->save() && $mo->save($MOFile))
         {
-          if(!empty($this->cache))
+          if (!empty($this->cache))
+          {
             $this->cache->clean($variant, $this->culture);
+          }
           return true;
         }
         else
+        {
           return false;
+        }
       }
     }
 
@@ -314,22 +353,30 @@ class sfMessageSource_gettext extends sfMessageSource
   function update($text, $target, $comments, $catalogue='messages')
   {
     $variants = $this->getVariants($catalogue);
-    if($variants)
+    if ($variants)
+    {
       list($variant, $MOFile, $POFile) = $variants;
+    }
     else
+    {
       return false;
+    }
 
-    if(is_writable($MOFile) == false)
+    if (is_writable($MOFile) == false)
+    {
       throw new sfException("Unable to update file {$MOFile}, file must be writable.");
-    if(is_writable($POFile) == false)
+    }
+    if (is_writable($POFile) == false)
+    {
       throw new sfException("Unable to update file {$POFile}, file must be writable.");
+    }
 
 
-    $po = TGettext::factory('PO',$POFile);
+    $po = TGettext::factory('PO', $POFile);
     $po->load();
     $result = $po->toArray();
 
-    foreach($result['strings'] as $string => $value)
+    foreach ($result['strings'] as $string => $value)
     {
       if($string == $text)
       {
@@ -339,14 +386,18 @@ class sfMessageSource_gettext extends sfMessageSource
         $po->fromArray($result);
         $mo = $po->toMO();
 
-        if($po->save() && $mo->save($MOFile))
+        if ($po->save() && $mo->save($MOFile))
         {
-          if(!empty($this->cache))
+          if (!empty($this->cache))
+          {
             $this->cache->clean($variant, $this->culture);
+          }
           return true;
         }
         else
+        {
           return false;
+        }
       }
     }
 
@@ -366,39 +417,39 @@ class sfMessageSource_gettext extends sfMessageSource
   /**
    * Returns a list of catalogue and its culture ID. This takes care
    * of directory structures.
-   * E.g. array('messages','en_AU')
+   * E.g. array('messages', 'en_AU')
    * @return array list of catalogues
    */
-  protected function getCatalogues($dir=null,$variant=null)
+  protected function getCatalogues($dir=null, $variant=null)
   {
     $dir = $dir?$dir:$this->source;
     $files = scandir($dir);
 
     $catalogue = array();
 
-    foreach($files as $file)
+    foreach ($files as $file)
     {
-      if(is_dir($dir.'/'.$file)
-        && preg_match('/^[a-z]{2}(_[A-Z]{2,3})?$/',$file))
+      if (is_dir($dir.'/'.$file)
+        && preg_match('/^[a-z]{2}(_[A-Z]{2,3})?$/', $file))
       {
 
         $catalogue = array_merge($catalogue,
                 $this->getCatalogues($dir.'/'.$file, $file));
       }
 
-      $pos = strpos($file,$this->dataExt);
+      $pos = strpos($file, $this->dataExt);
 
-      if($pos >0
+      if ($pos >0
         && substr($file,-1*strlen($this->dataExt)) == $this->dataExt)
       {
-        $name = substr($file,0,$pos);
-        $dot = strrpos($name,$this->dataSeparator);
+        $name = substr($file, 0, $pos);
+        $dot = strrpos($name, $this->dataSeparator);
         $culture = $variant;
         $cat = $name;
-        if(is_int($dot))
+        if (is_int($dot))
         {
-          $culture = substr($name, $dot+1,strlen($name));
-          $cat = substr($name,0,$dot);
+          $culture = substr($name, $dot+1, strlen($name));
+          $cat = substr($name, 0, $dot);
         }
         $details[0] = $cat;
         $details[1] = $culture;
@@ -410,5 +461,42 @@ class sfMessageSource_gettext extends sfMessageSource
     sort($catalogue);
 
     return $catalogue;
+  }
+
+  protected function createMessageTemplate($catalogue)
+  {
+    if (is_null($catalogue))
+    {
+      $catalogue = 'messages';
+    }
+    $variants = $this->getCatalogueList($catalogue);
+    $variant = array_shift($variants);
+    $mo_file = $this->getSource($variant);
+    $po_file = $this->getPOFile($mo_file);
+
+    $dir = dirname($mo_file);
+    if (!is_dir($dir))
+    {
+      @mkdir($dir);
+    }
+    if (!is_dir($dir))
+    {
+      throw new TException("Unable to create directory $dir");
+    }
+
+    $po = TGettext::factory('PO', $po_file);
+    $result['meta']['PO-Revision-Date'] = @date('Y-m-d H:i:s');
+    $result['strings'] = array();
+
+    $po->fromArray($result);
+    $mo = $po->toMO();
+    if ($po->save() && $mo->save($mo_file))
+    {
+      return array($variant, $mo_file, $po_file);
+    }
+    else
+    {
+      throw TException("Unable to create file $po_file and $mo_file");
+    }
   }
 }

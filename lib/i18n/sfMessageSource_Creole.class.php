@@ -148,7 +148,7 @@ class sfMessageSource_Creole extends sfMessageSource
 
     $variant = null;
 
-    for($i = 0; $i < count($variants); $i++)
+    for($i = 0, $k = count($variants); $i < $k; ++$i)
     {
       if (strlen($variants[$i])>0)
       {
@@ -167,7 +167,9 @@ class sfMessageSource_Creole extends sfMessageSource
   private function getCatalogueDetails($catalogue='messages')
   {
     if (empty($catalogue))
+    {
       $catalogue = 'messages';
+    }
 
     $variant = $catalogue.'.'.$this->culture;
 
@@ -234,16 +236,26 @@ class sfMessageSource_Creole extends sfMessageSource
   {
     $messages = $this->untranslated;
 
-    if (count($messages) <= 0) return false;
+    if (count($messages) <= 0)
+    {
+    return false;
+    }
 
     $details = $this->getCatalogueDetails($catalogue);
 
     if ($details)
+    {
       list($cat_id, $variant, $count) = $details;
+    }
     else
+    {
       return false;
+    }
 
-    if ($cat_id <= 0) return false;
+    if ($cat_id <= 0)
+    {
+      return false;
+    }
     $inserted = 0;
 
     $time = time();
@@ -258,7 +270,7 @@ class sfMessageSource_Creole extends sfMessageSource
 
         $stmt = $this->db->prepareStatement($sql);
 
-      foreach($messages as $message)
+      foreach ($messages as $message)
       {
         $stmt->executeUpdate(array($cat_id, $count, $message, $time, $time));
 
@@ -273,7 +285,9 @@ class sfMessageSource_Creole extends sfMessageSource
     }
 
     if ($inserted > 0)
+    {
       $this->updateCatalogueTime($cat_id, $variant);
+    }
 
     return $inserted > 0;
   }
@@ -288,9 +302,13 @@ class sfMessageSource_Creole extends sfMessageSource
   {
     $details = $this->getCatalogueDetails($catalogue);
     if ($details)
+    {
       list($cat_id, $variant, $count) = $details;
+    }
     else
+    {
       return false;
+    }
 
     $deleted = false;
 
