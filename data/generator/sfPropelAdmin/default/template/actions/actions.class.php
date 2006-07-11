@@ -83,15 +83,26 @@ class <?php echo $this->getGeneratedModuleName() ?>Actions extends sfActions
       // add javascripts
       $this->getResponse()->addJavascript('/sf/js/prototype/prototype');
       $this->getResponse()->addJavascript('/sf/js/sf_admin/collapse');
+      $this->getResponse()->addJavascript('/sf/js/sf_admin/double_list');
     }
   }
 
   public function executeDelete ()
   {
     $this-><?php echo $this->getSingularName() ?> = <?php echo $this->getClassName() ?>Peer::retrieveByPk(<?php echo $this->getRetrieveByPkParamsForAction(40) ?>);
-    $this->forward404Unless($this-><?php echo $this->getSingularName() ?>);
-
-    $this->delete<?php echo $this->getClassName() ?>($this-><?php echo $this->getSingularName() ?>);
+    if (!$this-><?php echo $this->getSingularName() ?>)
+      return $this->forward404();
+		
+    try
+    {
+      $this->delete<?php echo $this->getClassName() ?>($this-><?php echo $this->getSingularName() ?>);
+      return $this->redirect('<?php echo $this->getSingularName() ?>/list');
+    }
+    catch (PropelException $e)
+    {
+      $this->getRequest()->setError('delete', 'Could not delete the selected <?php echo sfInflector::humanize($this->getSingularName()) ?>. Make sure it does not have any associated items.');
+      return $this->forward('<?php echo $this->getSingularName() ?>', 'list');
+    }
 
 <?php foreach ($this->getColumnCategories('edit.display') as $category): ?>
 <?php foreach ($this->getColumns('edit.display', $category) as $name => $column): ?>
@@ -122,6 +133,77 @@ class <?php echo $this->getGeneratedModuleName() ?>Actions extends sfActions
   protected function save<?php echo $this->getClassName() ?>($<?php echo $this->getSingularName() ?>)
   {
     $<?php echo $this->getSingularName() ?>->save();
+    
+<?php foreach ($this->getColumnCategories('edit.display') as $category): ?>
+<?php foreach ($this->getColumns('edit.display', $category) as $name => $column): $type = $column->getCreoleType(); ?>
+<?php $name = $column->getName() ?>
+<?php if ($column->isPrimaryKey()) continue ?>
+<?php $credentials = $this->getParameterValue('edit.fields.'.$column->getName().'.credentials') ?>
+<?php $input_type = $this->getParameterValue('edit.fields.'.$column->getName().'.type') ?>
+<?php
+
+$user_params = $this->getParameterValue('edit.fields.'.$column->getName().'.params');
+$user_params = is_array($user_params) ? $user_params : sfToolkit::stringToArray($user_params); 
+$class = $this->getSingularName();
+$related_class = isset($user_params['related_class']) ? $user_params['related_class'] : '';
+$middle_class = isset($user_params['middle_class']) ? $user_params['middle_class'] : '';
+
+?>
+<?php if ($middle_class): ?>
+<?php
+
+eval('
+$related_table = '.$related_class.'Peer::TABLE_NAME;
+$middle_table = '.$middle_class.'Peer::TABLE_NAME;
+$this_table = '.$class.'Peer::TABLE_NAME;
+');
+
+$related_column = isset($user_params['related_column']) ? $user_params['related_column'] : $related_table.'_id';
+$this_column = isset($user_params['this_column']) ? $user_params['this_column'] : $this_table.'_id';
+$primary_key = isset($user_params['primary_key']) ? $user_params['primary_key'] : 'id';
+
+?>
+<?php if ($input_type == 'admin_double_list' || $input_type == 'admin_checklist'): ?>
+<?php if ($credentials): $credentials = str_replace("\n", ' ', var_export($credentials, true)) ?>
+    if ($this->getUser()->hasCredential(<?php echo $credentials ?>))
+    {
+<?php endif; ?>
+      // Update many-to-many for <?php echo $name ?> 
+      $c = new Criteria();
+      $c->add(<?php echo $middle_class ?>Peer::<?php echo strtoupper($this_column) ?>, $<?php echo $this->getSingularName() ?>->getId());
+			<?php echo $middle_class ?>Peer::doDelete($c);
+			
+			$ids = $this->getRequestParameter('associated_<?php echo $name ?>');
+			if (is_array($ids))
+			{
+      	$con = Propel::getConnection(null);
+    	  $query = 'INSERT INTO %s (%s, %s) VALUES ';
+  	    $query = sprintf($query,
+	      	<?php echo $middle_class ?>Peer::TABLE_NAME,
+      		<?php echo $middle_class ?>Peer::<?php echo strtoupper($this_column) ?>,
+      		<?php echo $middle_class ?>Peer::<?php echo strtoupper($related_column) ?> 
+    	  );
+  	    $query .= rtrim(str_repeat('(?, ?), ', count($ids)), ', ');
+	      $stmt = $con->prepareStatement($query);
+      	
+	      // Insert unique ID values
+      	$object_id = $<?php echo $this->getSingularName() ?>->getId();
+    	  $i = 0;
+  	    foreach ($ids as $id)
+	      {
+        	$stmt->setInt(++$i, $object_id);
+      	  $stmt->setInt(++$i, $id);
+    	  }
+  	    $stmt->executeQuery();
+      }
+      
+<?php if ($credentials): ?>
+    }
+<?php endif; ?>
+<?php endif; ?>
+<?php endif; ?>
+<?php endforeach; ?>
+<?php endforeach; ?>
   }
 
   protected function delete<?php echo $this->getClassName() ?>($<?php echo $this->getSingularName() ?>)
@@ -178,7 +260,10 @@ class <?php echo $this->getGeneratedModuleName() ?>Actions extends sfActions
       if ($<?php echo $this->getSingularName() ?>['<?php echo $name ?>'])
       {
         list($d, $m, $y) = sfI18N::getDateForCulture($<?php echo $this->getSingularName() ?>['<?php echo $name ?>'], $this->getUser()->getCulture());
-        $this-><?php echo $this->getSingularName() ?>->set<?php echo $column->getPhpName() ?>("$y-$m-$d");
+        if ($d && $m && $y)
+        {
+          $this-><?php echo $this->getSingularName() ?>->set<?php echo $column->getPhpName() ?>("$y-$m-$d");
+        }
       }
       else
       {
