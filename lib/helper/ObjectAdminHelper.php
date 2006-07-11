@@ -164,7 +164,7 @@ function object_admin_checklist($object, $method, $options = array())
 
   if (!empty($objects))
   {
-  	// which method to call?
+    // which method to call?
     $methodToCall = '';
     foreach (array('toString', '__toString', 'getPrimaryKey') as $method)
     {
