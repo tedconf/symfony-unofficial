@@ -219,6 +219,22 @@ abstract class sfMessageSource implements sfIMessageSource
   }
 
   /**
+   * Save the list of untranslated blocks in each specifique catalogue file
+   */
+  function saveAll()
+  {
+    if (!count($this->untranslated))
+    {
+      return false;
+    }
+
+    foreach (array_keys($this->untranslated) as $catalogue)
+    {
+      $this->save($catalogue);
+    }
+  }
+
+  /**
    * Get the cache handler for this source.
    * @return sfMessageCache cache handler
    */
@@ -241,11 +257,11 @@ abstract class sfMessageSource implements sfIMessageSource
    * to save the messages to source.
    * @param string message to add
    */
-  public function append($message)
+  public function append($message, $catalogue)
   {
-    if (!in_array($message, $this->untranslated))
+    if (!array_key_exists($catalogue, $this->untranslated) || !in_array($message, $this->untranslated[$catalogue]))
     {
-      $this->untranslated[] = $message;
+      $this->untranslated[$catalogue][] = $message;
     }
   }
 
@@ -318,18 +334,4 @@ abstract class sfMessageSource implements sfIMessageSource
   {
     return array();
   }
-}
-
-
-/**
- * TMessageSourceIOException thrown when unable to modify message source
- * data.
- *
- * @author Wei Zhuo<weizhuo[at]gmail[dot]com>
- * @version $Revision$  $Date${DATE} ${TIME} $
- * @package System.I18N.core
- */
-class TMessageSourceIOException extends TException
-{
-
 }

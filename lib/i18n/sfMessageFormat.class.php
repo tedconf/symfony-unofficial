@@ -80,12 +80,6 @@ class sfMessageFormat
   protected $postscript = array('', '');
 
   /**
-   * Set the default catalogue.
-   * @var string
-   */
-  public $Catalogue;
-
-  /**
    * Output encoding charset
    * @var string
    */
@@ -167,6 +161,37 @@ class sfMessageFormat
   }
 
   /**
+   * Check if translation already exists
+   *
+   * @param string the string to translate.
+   * @param string get the translation from a particular message catalogue.
+   * @return bool found translated string.
+   */
+  public function formatExists($string, $catalogue = null)
+  {
+    if (empty($catalogue))
+    {
+      $catalogue = 'messages';
+    }
+
+    $this->loadCatalogue($catalogue);
+
+    foreach ($this->messages[$catalogue] as $variant)
+    {
+      // foreach of the translation units
+      foreach ($variant as $source => $result)
+      {
+        // we found it, so return the target translation
+        if ($source == $string)
+        {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  /**
    * Do string translation.
    * @param string the string to translate.
    * @param array a list of string to substitute.
@@ -178,13 +203,9 @@ class sfMessageFormat
   {
     if (empty($args))
     {
-      if (empty($this->Catalogue))
+      if (empty($catalogue))
       {
         $catalogue = 'messages';
-      }
-      else
-      {
-        $catalogue = $this->Catalogue;
       }
     }
 
@@ -228,7 +249,7 @@ class sfMessageFormat
     }
 
     // well we did not find the translation string.
-    $this->source->append($string);
+    $this->source->append($string, $catalogue);
 
     return $this->postscript[0].
         strtr($string, $args).

@@ -32,6 +32,9 @@ class sfI18N
     $this->globalMessageSource = $this->createMessageSource(sfConfig::get('sf_app_i18n_dir'));
 
     $this->globalMessageFormat = $this->createMessageFormat($this->globalMessageSource);
+
+    // register our shutdown function
+    register_shutdown_function(array($this, 'saveMessages'));
   }
 
   public function setMessageSourceDir($dir, $culture)
@@ -118,9 +121,12 @@ class sfI18N
 
   public function __($string, $args = array(), $catalogue = 'messages')
   {
-    $retval = $this->messageFormat->formatExists($string, $args, $catalogue);
-
-    if (!$retval)
+    // check for module specific match first
+    if ($this->messageFormat->formatExists($string, $catalogue))
+    {
+      $retval = $this->messageFormat->format($string, $args, $catalogue);
+    }
+    else
     {
       $retval = $this->globalMessageFormat->format($string, $args, $catalogue);
     }
@@ -152,7 +158,10 @@ class sfI18N
   // Return a d, m and y from a date formatted with a given culture
   public static function getDateForCulture($date, $culture)
   {
-    if (!$date) return 0;
+    if (!$date)
+    {
+      return 0;
+    }
 
     $dateFormatInfo = @sfDateTimeFormatInfo::getInstance($culture);
     $dateFormat = $dateFormatInfo->getShortDatePattern();
@@ -185,6 +194,41 @@ class sfI18N
     else
     {
       return null;
+    }
+  }
+
+  public static function saveMessages()
+  {
+    static $onceonly = true;
+
+    $formater = sfConfig::get('sf_i18n_instance')->getMessageFormat();
+    $globalFormater = sfConfig::get('sf_i18n_instance')->getGlobalMessageFormat();
+
+    if($onceonly && !is_null($formater))
+    {
+      if($autosave = sfConfig::get('sf_i18n_autosave', false))
+      {
+        // save all
+        $formater->getSource()->saveAll();
+        $globalFormater->getSource()->saveAll();
+      }
+      else
+      {
+        // save one or more
+        if (!is_array($autosave) {
+          $formater->getSource()->save($autosave);
+          $globalFormater->getSource()->save($autosave);
+        }
+        else
+        {
+          foreach ($autosave as $catalogue)
+          {
+            $formater->getSource()->save($catalogue);
+            $globalFormater->getSource()->save($catalogue);
+          }
+        }  
+      }
+      $onceonly = false;
     }
   }
 }

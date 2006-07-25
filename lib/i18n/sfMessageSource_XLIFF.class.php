@@ -272,7 +272,7 @@ class sfMessageSource_XLIFF extends sfMessageSource
    */
   public function save($catalogue='messages')
   {
-    $messages = $this->untranslated;
+    $messages = $this->untranslated[$catalogue];
     if (count($messages) <= 0)
     {
       return false;
@@ -295,7 +295,8 @@ class sfMessageSource_XLIFF extends sfMessageSource
     }
 
     //create a new dom, import the existing xml
-    $dom = DOMDocument::load($filename);
+    $dom = new DOMDocument();
+    $dom->load($filename);
 
     //find the body element
     $xpath = new DomXPath($dom);
@@ -307,7 +308,7 @@ class sfMessageSource_XLIFF extends sfMessageSource
     foreach ($messages as $message)
     {
       $unit = $dom->createElement('trans-unit');
-      $unit->setAttribute('id',++$count);
+      $unit->setAttribute('id', ++$count);
 
       $source = $dom->createElement('source', $message);
       $target = $dom->createElement('target', '');
@@ -333,7 +334,8 @@ class sfMessageSource_XLIFF extends sfMessageSource
     {
       $this->cache->clean($variant, $this->culture);
     }
-      return true;
+
+    return true;
   }
 
   /**
@@ -458,11 +460,12 @@ class sfMessageSource_XLIFF extends sfMessageSource
 
     if (is_writable($filename) == false)
     {
-      throw new sfException("Unable to modify file {$filename}, file must be writable.");
+      throw new sfFileException("Unable to modify file {$filename}, file must be writable.");
     }
 
     //create a new dom, import the existing xml
-    $dom = DOMDocument::load($filename);
+    $dom = new DOMDocument();
+    $dom->load($filename);
 
     //find the body element
     $xpath = new DomXPath($dom);
@@ -518,11 +521,11 @@ class sfMessageSource_XLIFF extends sfMessageSource
     $dir = dirname($file);
     if (!is_dir($dir))
     {
-    @mkdir($dir);
+      @mkdir(strtr($dir, array('/' => DIRECTORY_SEPARATOR)), 0777, true);
     }
     if (!is_dir($dir))
     {
-      throw new TException("Unable to create directory $dir");
+      throw new sfFileException("Unable to create directory $dir");
     }
     file_put_contents($file, $this->getTemplate($catalogue));
 

@@ -81,7 +81,7 @@ interface sfIMessageSource
    * @param string message to add
    * @return void
    */
-  function append($message);
+  function append($message, $catalogue);
 
   /**
    * Delete a particular message from the specified catalogue.

@@ -215,11 +215,11 @@ class sfMessageSource_gettext extends sfMessageSource
    */
   function save($catalogue='messages')
   {
-    $messages = $this->untranslated;
+    $messages = $this->untranslated[$catalogue];
 
     if (count($messages) <= 0)
     {
-    return false;
+      return false;
     }
 
     $variants = $this->getVariants($catalogue);
@@ -481,7 +481,7 @@ class sfMessageSource_gettext extends sfMessageSource
     }
     if (!is_dir($dir))
     {
-      throw new TException("Unable to create directory $dir");
+      throw new sfException("Unable to create directory $dir");
     }
 
     $po = TGettext::factory('PO', $po_file);
@@ -496,7 +496,7 @@ class sfMessageSource_gettext extends sfMessageSource
     }
     else
     {
-      throw TException("Unable to create file $po_file and $mo_file");
+      throw sfFileException("Unable to create file $po_file and $mo_file");
     }
   }
 }

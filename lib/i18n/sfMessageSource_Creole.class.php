@@ -234,7 +234,7 @@ class sfMessageSource_Creole extends sfMessageSource
    */
   function save($catalogue='messages')
   {
-    $messages = $this->untranslated;
+    $messages = $this->untranslated[$catalogue];
 
     if (count($messages) <= 0)
     {
