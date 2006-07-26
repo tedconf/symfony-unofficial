@@ -1,5 +1,7 @@
 [?php use_helpers('Object', 'Validation', 'ObjectAdmin', 'I18N', 'Date') ?]
 
+<div id="sf_admin_container">
+
 <h1><?php echo $this->getI18NString('edit.title', 'edit '.$this->getModuleName()) ?></h1>
 
 <div id="sf_admin_header">
@@ -53,13 +55,13 @@
     [?php if ($sf_user->hasCredential(<?php echo $credentials ?>)): ?]
 <?php endif; ?>
 <div class="form-row">
-  [?php echo label_for('<?php echo $this->getSingularName() ?>[<?php echo $column->getName() ?>]', __('<?php echo str_replace("'", "\\'", $this->getParameterValue('edit.fields.'.$column->getName().'.name')) ?>:'), '<?php if ($column->isNotNull()): ?>class="required" <?php endif; ?>') ?]
+  [?php echo label_for('<?php echo $this->getParameterValue("edit.fields.".$column->getName().".label_for", $this->getSingularName()."[".$column->getName()."]") ?>', __('<?php echo str_replace("'", "\\'", $this->getParameterValue('edit.fields.'.$column->getName().'.name')) ?>:'), '<?php if ($column->isNotNull()): ?>class="required" <?php endif; ?>') ?]
   <div class="content[?php if ($sf_request->hasError('<?php echo $this->getSingularName() ?>{<?php echo $column->getName() ?>}')): ?] form-error[?php endif; ?]">
   [?php if ($sf_request->hasError('<?php echo $this->getSingularName() ?>{<?php echo $column->getName() ?>}')): ?]
     [?php echo form_error('<?php echo $this->getSingularName() ?>{<?php echo $column->getName() ?>}', array('class' => 'form-error-msg')) ?]
   [?php endif; ?]
 
-  [?php echo <?php echo $this->getColumnEditTag($column) ?> ?]
+  [?php $value = <?php echo $this->getColumnEditTag($column); ?>; echo $value ? $value : '&nbsp;' ?]
   <?php echo $this->getHelp($column, 'edit') ?>
   </div>
 </div>
@@ -71,7 +73,7 @@
 </fieldset>
 <?php endforeach; ?>
 
-[?php echo include_partial('edit_actions', array('<?php echo $this->getSingularName() ?>' => $<?php echo $this->getSingularName() ?>)) ?]
+[?php include_partial('edit_actions', array('<?php echo $this->getSingularName() ?>' => $<?php echo $this->getSingularName() ?>)) ?]
 
 </form>
 
@@ -91,4 +93,6 @@
 
 <div id="sf_admin_footer">
 [?php include_partial('<?php echo $this->getModuleName() ?>/edit_footer', array('<?php echo $this->getSingularName() ?>' => $<?php echo $this->getSingularName() ?>)) ?]
+</div>
+
 </div>

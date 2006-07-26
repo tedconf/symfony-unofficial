@@ -145,7 +145,7 @@ function run_init_batch($task, $args)
   $batch = $args[1];
 
   // handling two optional arguments (environment and debug)
-  $env = isset($args[2]) && in_array($args[2], array('prod', 'dev')) ? $args[2] : 'dev';
+  $env   = isset($args[2]) && in_array($args[2], array('prod', 'dev')) ? $args[2] : 'dev';
   $debug = isset($args[3]) && in_array($args[3], array(true, false)) ? $args[3] : true;
 
   $constants = array(

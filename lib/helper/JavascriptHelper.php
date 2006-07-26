@@ -86,7 +86,7 @@
   {
     $html_options = _parse_attributes($html_options);
 
-    $html_options['href'] = '#';
+    $html_options['href'] = isset($html_options['href']) ? $html_options['href'] : '#';
     $html_options['onclick'] = $function.'; return false;';
 
     return content_tag('a', $name, $html_options);
@@ -107,7 +107,7 @@
     $html_options['type']    = 'button';
     $html_options['value']   = $name;
 
-    return content_tag('input', '', $html_options);
+    return tag('input', $html_options);
   }
 
   /**
@@ -734,7 +734,7 @@
     }
 
     $javascript  = input_tag($name, $value, $tag_options);
-    $javascript .= content_tag('div', '' , array('id' => "{$name}_auto_complete", 'class' => 'auto_complete'));
+    $javascript .= content_tag('div', '' , array('id' => (isset($tag_options['id']) ? $tag_options['id'] : $name).'_auto_complete', 'class' => 'auto_complete'));
     $javascript .= _auto_complete_field($name, $url, $comp_options);
 
     return $javascript;
@@ -759,6 +759,26 @@
     $default_options = array('tag' => 'span', 'id' => '\''.$name.'_in_place_editor', 'class' => 'in_place_editor_field');
 
     return _in_place_editor($name, $url, array_merge($default_options, $editor_options));
+  }
+
+  /**
+   * Mark the start of a block that should only be shown in the browser if JavaScript
+   * is switched on.
+   */
+  function if_javascript()
+  {
+    ob_start();
+  }
+
+  /**
+   * Mark the end of a block that should only be shown in the browser if JavaScript
+   * is switched on.
+   */
+  function end_if_javascript()
+  {
+    $content = ob_get_clean();
+
+    echo javascript_tag("document.write('" . esc_js_no_entities($content) . "');");
   }
 
   /*

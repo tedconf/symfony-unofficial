@@ -3,11 +3,6 @@
 // symfony directories
 if (isset($sf_symfony_lib_dir) && isset($sf_symfony_data_dir))
 {
-  $sf_version          = '@DEV@';
-}
-else if (is_readable(SF_ROOT_DIR.'/lib/symfony/symfony.php'))
-{
-  // symlink exists
   $sf_symfony_lib_dir  = SF_ROOT_DIR.'/lib/symfony';
   $sf_symfony_data_dir = SF_ROOT_DIR.'/data/symfony';
   $sf_version          = '@DEV@';
