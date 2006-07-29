@@ -140,7 +140,7 @@ class sfPHPView extends sfView
    *
    * @return null
    */
-  public function &getEngine()
+  public function getEngine()
   {
     return null;
   }
@@ -224,7 +224,7 @@ class sfPHPView extends sfView
    *
    * @return string A decorated template.
    */
-  protected function &decorate(&$content)
+  protected function decorate(&$content)
   {
     $template = $this->getDecoratorDirectory().'/'.$this->getDecoratorTemplate();
 
@@ -233,8 +233,11 @@ class sfPHPView extends sfView
       $this->getContext()->getLogger()->info('{sfPHPView} decorate content with "'.$template.'"');
     }
 
-    // call our parent decorate() method
-    parent::decorate($content);
+    // set the decorator content as an attribute
+    $this->attribute_holder->setByRef('sf_content', $content);
+
+    // for backwards compatibility with old layouts; remove at 0.8.0?
+    $this->attribute_holder->setByRef('content', $content);
 
     // render the decorator template and return the result
     $retval = $this->renderFile($template);
@@ -299,12 +302,6 @@ class sfPHPView extends sfView
         $template = $this->getDirectory().'/'.$this->getTemplate();
         $retval = $this->renderFile($template);
 
-        // tidy our cache content
-        if (sfConfig::get('sf_tidy'))
-        {
-          $retval = sfTidy::tidy($retval, $template);
-        }
-
         if (sfConfig::get('sf_cache') && $key !== null)
         {
           $cache = array(
@@ -325,7 +322,7 @@ class sfPHPView extends sfView
       // now render decorator template, if one exists
       if ($this->isDecorator())
       {
-        $retval =& $this->decorate($retval);
+        $retval = $this->decorate($retval);
       }
 
       // render to client
