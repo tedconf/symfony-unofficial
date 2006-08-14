@@ -130,7 +130,7 @@ class sfWebDebug
     }
 
     // escape HTML
-    $log_line = htmlentities($log_line);
+    $log_line = htmlentities($log_line, ENT_QUOTES, 'UTF-8');
 
     // replace constants value with constant name
     $log_line = strtr($log_line, $constants);
@@ -345,8 +345,8 @@ class sfWebDebug
       'cache'        => sfConfig::get('sf_cache')             ? 'on' : 'off',
       'eaccelerator' => (extension_loaded('eaccelerator') && ini_get('eaccelerator.enable')) ? 'on' : 'off',
       'apc'          => (extension_loaded('apc') && ini_get('apc.enabled')) ? 'on' : 'off',
+      'xcache'       => (extension_loaded('xcache') && ini_get('xcache.cacher')) ? 'on' : 'off',
       'compression'  => sfConfig::get('sf_compressed')        ? 'on' : 'off',
-      'tidy'         => (extension_loaded('tidy'))            ? 'on' : 'off',
       'syck'         => (extension_loaded('syck'))            ? 'on' : 'off',
     );
 
@@ -372,7 +372,7 @@ class sfWebDebug
     $id = ucfirst(strtolower($id));
     $content = '
     <h2>'.$id.' <a href="#" onclick="sfWebDebugToggle(\'sfWebDebug'.$id.'\'); return false;"><img src="'.$this->base_image_path.'/toggle.gif" alt="" /></a></h2>
-    <div id="sfWebDebug'.$id.'" style="display: none"><pre>'.htmlentities(@sfYaml::Dump($values)).'</pre></div>
+    <div id="sfWebDebug'.$id.'" style="display: none"><pre>'.htmlentities(@sfYaml::Dump($values), ENT_QUOTES, 'UTF-8').'</pre></div>
     ';
 
     return $content;
@@ -380,7 +380,7 @@ class sfWebDebug
 
   public function getDatabaseRequestNumber()
   {
-    if (sfConfig::get('sf_debug'))
+    if (sfConfig::get('sf_debug') && sfConfig::get('sf_use_database'))
     {
       // get Propel statistics if available (user created a model and a db)
       // we require Propel here to avoid autoloading and automatic connection
