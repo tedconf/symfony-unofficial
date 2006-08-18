@@ -15,6 +15,12 @@ pake_task('build-schema');
 pake_desc('create schema.xml from schema.yml');
 pake_task('propel-convert-yml-schema', 'project_exists');
 
+pake_desc('create schema.yml from schema.xml');
+pake_task('propel-convert-xml-schema', 'project_exists');
+
+pake_desc('load data from fixtures directory');
+pake_task('propel-load-data', 'project_exists');
+
 pake_desc('create database for current model');
 pake_task('propel-build-db', 'project_exists');
 pake_task('build-db');
@@ -56,6 +62,11 @@ function run_propel_convert_yml_schema($task, $args)
   _propel_convert_yml_schema(true);
 }
 
+function run_propel_convert_xml_schema($task, $args)
+{
+  _propel_convert_xml_schema(true);
+}
+
 function _propel_convert_yml_schema($check_schema = true, $prefix = '')
 {
   $schemas = pakeFinder::type('file')->name('*schema.yml')->relative()->in('config');
@@ -81,6 +92,34 @@ function _propel_convert_yml_schema($check_schema = true, $prefix = '')
     if ($verbose) echo '>> schema    '.pakeApp::excerpt('converting "'.$schema.'"'.' to XML')."\n";
 
     file_put_contents('config/'.$prefix.str_replace('.yml', '.xml', $schema), $db_schema->asXML());
+  }
+}
+
+function _propel_convert_xml_schema($check_schema = true, $prefix = '')
+{
+  $schemas = pakeFinder::type('file')->name('*schema.xml')->relative()->in('config');
+  if ($check_schema && !count($schemas))
+  {
+    throw new Exception('You must create a schema.xml file.');
+  }
+
+  $sf_symfony_lib_dir = sfConfig::get('sf_symfony_lib_dir');
+  require_once($sf_symfony_lib_dir.'/util/Spyc.class.php');
+  require_once($sf_symfony_lib_dir.'/util/sfYaml.class.php');
+  require_once($sf_symfony_lib_dir.'/util/sfToolkit.class.php');
+  require_once($sf_symfony_lib_dir.'/util/sfInflector.class.php');
+  require_once($sf_symfony_lib_dir.'/exception/sfException.class.php');
+  require_once($sf_symfony_lib_dir.'/addon/propel/sfPropelDatabaseSchema.class.php');
+
+  $verbose = pakeApp::get_instance()->get_verbose();
+  $db_schema = new sfPropelDatabaseSchema();
+  foreach ($schemas as $schema)
+  {
+    $db_schema->loadXML('config/'.$schema);
+
+    if ($verbose) echo '>> schema    '.pakeApp::excerpt('converting "'.$schema.'"'.' to YAML')."\n";
+
+    file_put_contents('config/'.$prefix.str_replace('.xml', '.yml', $schema), $db_schema->asYAML());
   }
 }
 
@@ -125,6 +164,64 @@ function run_propel_build_schema($task, $args)
     $schema = preg_replace('/<database\s+name="[^"]+"/s', '<database name="propel"', $schema);
     file_put_contents('config/schema.xml', $schema);
   }
+
+  if (!isset($args[0]) || $args[0] != 'xml')
+  {
+    _propel_convert_xml_schema(false, '');
+    $finder = pakeFinder::type('file')->name('schema.xml');
+    pake_remove($finder, 'config');
+  }
+}
+
+/**
+ * loads yml data from fixtures directory and inserts into database
+ *
+ * @example symfony load-data frontend
+ * @example symfony load-data frontend dev fixtures append
+ *
+ * @todo replace delete argument with flag -d
+ *
+ * @param object $task
+ * @param array $args
+ */
+function run_propel_load_data($task, $args)
+{
+  if (!count($args))
+  {
+    throw new Exception('You must provide the app.');
+  }
+
+  $app = $args[0];
+
+  if (!is_dir(sfConfig::get('sf_app_dir').DIRECTORY_SEPARATOR.$app))
+  {
+    throw new Exception('The app "'.$app.'" does not exist.');
+  }
+
+  $env = empty($args[1]) ? 'dev' : $args[1];
+
+  // define constants
+  define('SF_ROOT_DIR',    sfConfig::get('sf_root_dir'));
+  define('SF_APP',         $app);
+  define('SF_ENVIRONMENT', $env);
+  define('SF_DEBUG',       true);
+
+  // get configuration
+  require_once SF_ROOT_DIR.DIRECTORY_SEPARATOR.'apps'.DIRECTORY_SEPARATOR.SF_APP.DIRECTORY_SEPARATOR.'config'.DIRECTORY_SEPARATOR.'config.php';
+
+  $fixtures_dir = empty($args[2]) ? 'fixtures' : $args[2];
+  $fixtures_dir = sfConfig::get('sf_data_dir').DIRECTORY_SEPARATOR.$fixtures_dir;
+  if (!is_readable($fixtures_dir))
+  {
+    throw new Exception(sprintf('Fixture directory "%s" does not exist.', $fixtures_dir));
+  }
+
+  $databaseManager = new sfDatabaseManager();
+  $databaseManager->initialize();
+
+  $data = new sfPropelData();
+  $data->setDeleteCurrentData(!empty($args[3]) && $args[3] == 'append' ? false : true);
+  $data->loadData($fixtures_dir);
 }
 
 function _call_phing($task, $task_name, $check_schema = true)

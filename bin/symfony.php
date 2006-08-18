@@ -6,8 +6,8 @@ if (ini_get('zend.ze1_compatibility_mode'))
 }
 
 // define some PEAR directory constants
-define('PAKEFILE_LIB_DIR',  '@PEAR-DIR@');
-define('PAKEFILE_DATA_DIR', '@DATA-DIR@');
+define('PAKEFILE_LIB_DIR',  '/Applications/MAMP/bin/php5/lib/php');
+define('PAKEFILE_DATA_DIR', '/Applications/MAMP/bin/php5/lib/php/data');
 define('PAKEFILE_SYMLINK',  false);
 define('SYMFONY_VERSION',   '@SYMFONY-VERSION@');
 

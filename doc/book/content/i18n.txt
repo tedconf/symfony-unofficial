@@ -155,7 +155,7 @@ Symfony stores the user interface translations in XML configuration files in the
       </file>
     </xliff>
 
-If additional translations need to be done, simply add a new `messages.XX.xml` translation file. These files must be stored in the `app/i18n` directory.
+If additional translations need to be done, simply add a new `messages.XX.xml` translation file. These files must be stored in the `apps/myapp/i18n` directory.
 
 The use of the XLIFF format allows you to use common translation tools to reference all text in your website and translate it, without the need of a specific tool to build for translators.
 
@@ -163,11 +163,17 @@ Lets say you want to have a website in English and French, with English being th
 
 For this to work you need to:
 
-1. Activate the I18N helper by adding `,I18N` to `standard_helpers:` in the `settings.yml` file. Alternatively, you can put `<?php use_helper('I18N') ?>` at the top of the template where you want to use internationalisation.
+1. Activate the i18N interface translation in the application `settings.yml`
+
+        all:
+          .settings:
+            i18n: on
+        
+2. Activate the I18N helper by adding `,I18N` to `standard_helpers:` in the `settings.yml` file. Alternatively, you can put `<?php use_helper('I18N') ?>` at the top of the template where you want to use internationalisation.
 
   The same goes for the 'Date' helper to make sure the date is being formatted right.
 
-2. In the template, enclose all the texts in calls to the `__()` function. So, to have an internationalized template displaying:
+3. In the template, enclose all the texts in calls to the `__()` function. So, to have an internationalized template displaying:
 
         [php]
         Welcome to our website. Today's date is
@@ -180,7 +186,7 @@ For this to work you need to:
         <?php echo __('Today's date is ') ?>            // (this matches the second trans-unit's source node)
         <?php echo format_date(date()) ?>
 
-3. Make a `messages.fr.xml` file in the `app/i18n` directory, according to the XLIFF format, containing one `trans-unit` node for eah call to the `__()` function:
+4. Make a `messages.fr.xml` file in the `app/i18n` directory, according to the XLIFF format, containing one `trans-unit` node for eah call to the `__()` function:
 
         [xml]
         <?xml version="1.0" ?>
@@ -229,3 +235,34 @@ But with this template, your translation file would be totally incomprehensible 
     <?php echo __('There are %1% persons logged', array('%1%' => count_logged())) ?>
 
 The syntax of the last lines illustrates the ability to do a simple substitution within the `__()` function, to avoid unnecessary chunking of text.
+
+One of the common problems with translation is the use of the plural form. According to the number of results, the text changes, such as in:
+
+    [php]
+    <?php echo __('There are %1% persons logged', array('%1%' => count_logged())) ?>
+
+What if there is only one person logged? The message would be:
+
+    [php]
+    <?php echo __('There is 1 person logged') ?>
+    
+To avoid multiple tests, symfony provides a special translation helper called `format_number_choice()`. Use it like this:
+
+    [php]
+    <?php echo format_number_choice(
+      '[0]Nobody is logged|[1]There is 1 person logged|(1,+Inf] There are %1% persons logged', 
+      array('%1%' => count_logged()),
+      count_logged()
+    ) ?>
+    
+The first argument is the multiple possibilities of text. The second argument is the replacement pattern (as for the `__()` helper) and is optional. The third argument is the number on which the test is made to determine which text is taken.
+
+The message/string choices are separated by the pipe "|" followed by a set notation of the form
+
+* `[1,2]`: accepts values between 1 and 2, inclusive.
+* `(1,2)`: accepts values between 1 and 2, excluding 1 and 2.
+* `{1,2,3,4}`: only values defined in the set are accepted.
+* `[-Inf,0)`: accepts value greater or equal to negative infinity and strictly less than 0
+
+Any non-empty combinations of the delimiters of square and round brackets are acceptable.
+
