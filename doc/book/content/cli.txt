@@ -87,7 +87,7 @@ The connection settings used by the following commands are taken from the `confi
 
 `propel-build-all-load`: Executes `propel-build-all` then `propel-load-data`. Accepts same arguments as `propel-load-data`.
 
-    $ symfony propel-load-data  <APPLICATION_NAME> [<ENVIRONMENT_NAME>] [<FIXTURES_DIR_OR_FILE>]
+    $ symfony propel-build-all-load  <APPLICATION_NAME> [<ENVIRONMENT_NAME>] [<FIXTURES_DIR_OR_FILE>]
 
 If you want to learn more about the model and the effect of these commands, refer to the [model chapter](model.txt).
 
