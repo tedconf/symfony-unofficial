@@ -10,12 +10,6 @@ pake_task('clear-controllers', 'project_exists');
 pake_desc('fix directories permissions');
 pake_task('fix-perms', 'project_exists');
 
-pake_desc('rotates an applications log files');
-pake_task('rotate-log', 'project_exists');
-
-pake_desc('purges an applications log files');
-pake_task('purge-log', 'project_exists');
-
 /**
  * fixes permissions in a symfony project
  *
