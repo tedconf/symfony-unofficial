@@ -1,0 +1,1 @@
+<p>Your IP has been added to our banned list. Please contact us to discuss this matter further.</p>

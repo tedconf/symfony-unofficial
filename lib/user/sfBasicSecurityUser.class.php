@@ -28,6 +28,8 @@ class sfBasicSecurityUser extends sfUser implements sfSecurityUser
 
   private $credentials = null;
   private $authenticated = null;
+	private $banned			= false;
+	private $trusted   	= false;
 
   /**
    * Clears all credentials.
@@ -156,6 +158,29 @@ class sfBasicSecurityUser extends sfUser implements sfSecurityUser
     return $this->authenticated;
   }
 
+
+	/**
+	 * Returns true if user is trusted
+	 *
+	 * @return boolean
+	 * @author Joe Simms
+	 **/
+	public function isTrusted()
+	{
+		return $this->trusted;
+	}
+
+	/**
+	 * Returns true if user is banned
+	 *
+	 * @return boolean
+	 * @author Joe Simms
+	 **/
+	public function isBanned()
+	{
+		return $this->banned;
+	}
+
   /**
    * Sets authentication for user.
    *
@@ -203,6 +228,21 @@ class sfBasicSecurityUser extends sfUser implements sfSecurityUser
       $this->authenticated = false;
       $this->credentials   = array();
     }
+
+		if(sfConfig::get('sf_check_ip'))
+		{
+			$sf_app_config_dir_name = sfConfig::get('sf_app_config_dir_name');
+			$configCache = sfConfigCache::getInstance();	
+			$remote_addr = $this->getContext()->getRequest()->getRemoteAddr();
+			
+			// check if user is banned
+			include($configCache->checkConfig($sf_app_config_dir_name.'/ip_banned.yml'));
+			if(in_array($remote_addr, $BANNED_IPS)) $this->banned = true;
+						
+			// check if user is trusted
+			include($configCache->checkConfig($sf_app_config_dir_name.'/ip_trusted.yml'));
+			if(in_array($remote_addr, $TRUSTED_IPS)) $this->trusted = true;
+		}
 
     // Automatic logout if no request for more than [sf_timeout]
     if ((time() - $this->lastRequest) > sfConfig::get('sf_timeout'))

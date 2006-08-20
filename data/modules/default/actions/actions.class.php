@@ -41,4 +41,8 @@ class defaultActions extends sfActions
   public function executeSecure()
   {
   }
+
+	public function executeBanned()
+	{
+	}
 }

@@ -17,6 +17,9 @@ default:
 
     unavailable_module:     default
     unavailable_action:     unavailable
+    
+    banned_module:          default
+    banned_action:          banned
 
   .settings:
     available:              on
@@ -29,6 +32,7 @@ default:
     use_database:           on
 
     use_security:           on
+    check_ip:               on
 
     compressed:             off
 

@@ -42,6 +42,16 @@ config/i18n.yml:
   param:
     prefix: sf_i18n_
 
+config/ip_trusted.yml:
+  class:    sfIpCheckConfigHandler
+  param:
+    prefix:   TRUSTED_IPS
+
+config/ip_banned.yml:
+  class:    sfIpCheckConfigHandler
+  param:
+    prefix:   BANNED_IPS
+
 modules/*/config/generator.yml:
   class:    sfGeneratorConfigHandler
 

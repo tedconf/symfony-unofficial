@@ -534,6 +534,16 @@ class sfWebRequest extends sfRequest
     return isset($pathArray['SCRIPT_NAME']) ? $pathArray['SCRIPT_NAME'] : '';
   }
 
+	/**
+	 * Returns IP address of request
+	 *
+	 * @return void
+	 * @author Joe Simms
+	 **/
+	public function getRemoteAddr()
+	{
+		return $_SERVER['REMOTE_ADDR'];
+	}
   /**
    * Returns request method.
    *

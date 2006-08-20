@@ -168,6 +168,21 @@ abstract class sfController
       }
     }
 
+		if(sfConfig::get('sf_check_ip') && $this->getContext()->getUser()->isBanned())
+		{
+			$moduleName = sfConfig::get('sf_banned_module');
+			$actionName = sfConfig::get('sf_banned_action');
+			
+			if (!$this->actionExists($moduleName, $actionName))
+      {
+        // cannot find unavailable module/action
+        $error = 'Invalid configuration settings: [sf_banned_module] "%s", [sf_banned_action] "%s"';
+        $error = sprintf($error, $moduleName, $actionName);
+
+        throw new sfConfigurationException($error);
+      }
+		}
+
     // check for a module generator config file
     sfConfigCache::getInstance()->import(sfConfig::get('sf_app_module_dir_name').'/'.$moduleName.'/'.sfConfig::get('sf_app_module_config_dir_name').'/generator.yml', true, true);
 
