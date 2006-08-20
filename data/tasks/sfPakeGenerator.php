@@ -178,7 +178,7 @@ function _batch_default($task, $args)
 
   $sf_bin_dir = sfConfig::get('sf_bin_dir');
 
-  pake_copy(sfConfig::get('sf_symfony_data_dir').'/skeleton/batch/batch.php', $sf_bin_dir.'/'.$batch.'.php');
+  pake_copy(sfConfig::get('sf_symfony_data_dir').'/skeleton/batch/default.php', $sf_bin_dir.'/'.$batch.'.php');
   pake_replace_tokens($batch.'.php', $sf_bin_dir, '##', '##', $constants);	
 }
 
