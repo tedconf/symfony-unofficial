@@ -8,9 +8,6 @@
  **/
 class sfLogManager
 {
-	/** the default meta file name for this log manager */
-	const META_FILENAME = 'log.meta';
-
 	/** the default period to rotate logs in days */
 	const DEF_PERIOD 		= 7;
 
@@ -28,29 +25,41 @@ class sfLogManager
 		$logfile = $app.'_'.$env;
 		$logdir = sfConfig::get('sf_log_dir');
 
+    // set history and period values if not passed to default values
 		$period = isset($period) ? $period : self::DEF_PERIOD;
-		$metafile = $logdir.'/'.self::META_FILENAME;
-		 
-		$meta = file_exists($metafile) ? sfIni::load($metafile, true) : array();
-	
-		// set history, default to value passed, then to previous value, the to default	
-		$meta_history = isset($meta[$logfile]['history']) ? $meta[$logfile]['history'] : self::DEF_HISTORY;
-		$history = isset($history) ? $history : $meta_history;
+		$history = isset($history) ? $history : self::DEF_HISTORY;
 		
+		// get todays date
 		$today = date('Ymd');
-		$rotate_log_on = isset($meta[$logfile]['rotate_on']) ? $meta[$logfile]['rotate_on'] : null;
+
+		// check history folder exists
+		if(!is_dir($logdir.'/history'))
+		{
+			mkdir($logdir.'/history', 0777);			
+		}
+
+    // determine date of last rotation
+		$logs = sfFinder::type('file')->prune('.svn')->discard('.svn')->maxdepth(1)->name($logfile.'_*.log')->in($logdir.'/history/');
+		$recentlog = is_array($logs) ? array_pop($logs) : null;
 		
+		if($recentlog)
+		{
+		  // calculate date to rotate logs on
+		  $last_rotated_on = filemtime($recentlog);
+		  $rotate_on = date('Ymd', strtotime('+ '.$period.' days', $last_rotated_on)); 	  
+		}
+		else
+		{
+		  // no rotation has occured yet
+		  $rotate_on = null;
+		}
+
 		$src_log = $logdir.'/'.$logfile.'.log';
 		$dest_log = $logdir.'/history/'.$logfile.'_'.$today.'.log';
 		
 		// if rotate log on date doesn't exist, or that date is today, then rotate the log
-		if(!isset($rotate_log_on) || ($rotate_log_on == $today) || $override)
+		if(!$rotate_on || ($rotate_on == $today) || $override)
 		{						
-			// check history folder exists
-			if(!is_dir($logdir.'/history'))
-			{
-				mkdir($logdir.'/history', 0777);			
-			}
 			// create a lock file
 			$lock_name = $app.'_'.$env.'.lck';
 			touch(sfConfig::get('sf_root_dir').'/'.$lock_name);
@@ -75,22 +84,15 @@ class sfLogManager
 				// remove the log file
 				unlink($src_log);
 			
-				// get all log files for this application and environment
-				$logs = sfFinder::type('file')->prune('.svn')->discard('.svn')->maxdepth(1)->name($logfile.'_*.log')->in($logdir.'/history/');
-			
+				// get all log history files for this application and environment
+		    $new_logs = sfFinder::type('file')->prune('.svn')->discard('.svn')->maxdepth(1)->name($logfile.'_*.log')->in($logdir.'/history/');
+
 				// if the number of logs in history exceeds history then remove the oldest log
-				if(count($logs) > $history)
+				if(count($new_logs) > $history)
 				{
-					unlink($logs[0]);
+					unlink($new_logs[0]);
 				}	
-				// schedule the next rotation
-				$meta[$logfile]['rotate_on'] = date('Ymd', strtotime('+ '.$period.' days'));
-				
-				// remember history incase the rotation is missed and you need to manually call a rotation with override
-				$meta[$logfile]['history'] = $history;				
-				
-				// update the ini file
-				sfIni::write($meta, $metafile, true);			
+	
 			}
 		}
 	}
