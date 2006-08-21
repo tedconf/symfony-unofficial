@@ -1,0 +1,85 @@
+Rotating Log Files
+
+### Log Rotation
+
+Log rotation is simply an administration task of keeping a history of your applications logs activity, but spread over a number of files to ensure that the filesize of the log files doesn't become unmanageable, and it is easier to locate log information for a given period in time.
+
+Log rotation uses the following params:
+
+* rotate - on/off, must be on for log rotation to occur
+* period - period of a rotation (in days, default 7)
+* history - number of periods to retain rotated logs
+
+You must add these settings to your applications logging.yml file
+
+    prod:
+      level:    err
+      rotate:   on
+      period:   30
+      history:  2
+
+    dev:
+
+    test:
+
+    all:
+    #  active:  on
+    #  level:   debug
+    #  rotate:  off
+    #  period:  7
+    #  history: 10
+
+### Creating Batch Script for Rotations
+
+To use log rotation a batch script is required, you can auto generate this with the following command:
+
+    $ symfony init-batch rotate_log <application> <env>
+    $ symfony init-batch rotate_log frontend prod
+
+This will generate a batch file - rotate_log_frontend_prod.php in your project's batch directory. If you do not have access to the command line you can copy the script in $symfony_data_dir/skeleton/batch/rotate_log.php to your batch directory and replace the tokens.
+
+To rotate the log, simply call this script manually, or as it should be done set a crontab to call this script daily.
+
+### Forcing Log Rotations
+
+If for whatever reason a rotation failed or you need to force a rotation, this can be done with the following command:
+
+  $ symfony rotate-log <application> <env>
+  $ symfony rotate-log frontend prod
+
+This will override your current period settings, and initialize a new period from today.
+
+If you rotate a log more than once in the same day, then symfony detects this and will append the log to the already rotated log rather than delete it.
+
+### Purging Log Files
+
+Purging is just a posh word for cleaning or clearing. Purging is important during development and also if you are running a production environment but for some reason must initliase another environment temporarily, in this case logs may be generated for this other environment. So to keep the log directory tidy, and prevent you from having to manually delete these files and making an error, you can specify which logs can be purged in the logging.yml file as follows:
+
+    prod:
+      level:    err
+      rotate:   on
+      period:   30
+      history:  2
+      purge:    no
+
+    dev:
+
+    test:
+
+    all:
+    #  active:  on
+    #  level:   debug
+    #  rotate:  off
+    #  period:  7
+    #  history: 10
+    #  purge:   yes
+
+As you can see purging is on as default for all environments except for production.
+
+So to purge the log directory, you can use the following symfony command:
+
+  $ symfony purge-logs
+
+And your log directory is cleaned accordingly.
+
+NOTE: Purging will not remove any log history. 
