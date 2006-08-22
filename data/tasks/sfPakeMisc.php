@@ -16,6 +16,12 @@ pake_task('rotate-log', 'app_exists');
 pake_desc('purges an applications log files');
 pake_task('purge-logs', 'project_exists');
 
+pake_desc('enables an application in a given environment');
+pake_task('enable', 'app_exists'); 
+
+pake_desc('disables an application in a given environment');
+pake_task('disable', 'app_exists'); 
+
 /**
  * fixes permissions in a symfony project
  *
@@ -268,3 +274,57 @@ function run_purge_logs($task, $args)
 	}
 	
 }
+
+function run_enable($task, $args)
+{
+  // handling two required arguments (application and environment)
+  if (count($args) < 2)
+  {
+    throw new Exception('You must provide an environment for the application');
+  }
+  $app = $args[0];
+	$env = $args[1];
+
+  $lockFile = $app.'_'.$env.'.clilock';
+
+	$locks = pakeFinder::type('file')->prune('.svn')->discard('.svn')->maxdepth(0)->name($lockFile)->relative()->in('./');
+
+  $verbose = pakeApp::get_instance()->get_verbose();
+	
+  if(file_exists(sfConfig::get('sf_root_dir').'/'.$lockFile))
+  {
+    pake_remove($lockFile); 
+    run_clear_cache($task, array()); 
+	  if($verbose) echo ">> $app [$env] has been ENABLED\n";
+	  return;  
+  }
+	if($verbose) echo ">> $app [$env] is currently ENABLED\n";  
+}
+
+function run_disable($task, $args)
+{
+  // handling two required arguments (application and environment)
+  if (count($args) < 2)
+  {
+    throw new Exception('You must provide an environment for the application');
+  }
+  
+  $app = $args[0];
+	$env = $args[1];
+  
+  $lockFile = $app.'_'.$env.'.clilock';
+  
+  $verbose = pakeApp::get_instance()->get_verbose();
+
+  if(!file_exists(sfConfig::get('sf_root_dir').'/'.$lockFile))
+  {
+ 	  pake_touch(sfConfig::get('sf_root_dir').'/'.$lockFile, '777');
+
+  	if($verbose) echo ">> $app [$env] has been DISABLED\n"; 	  
+    return;
+  }
+  
+  if($verbose) echo ">> $app [$env] is currently DISABLED\n"; 	  
+  return;
+}
+
