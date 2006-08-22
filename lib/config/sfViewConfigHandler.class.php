@@ -46,7 +46,11 @@ class sfViewConfigHandler extends sfYamlConfigHandler
     // merge javascripts and stylesheets
     $myConfig['all']['stylesheets'] = array_merge(isset($myConfig['default']['stylesheets']) && is_array($myConfig['default']['stylesheets']) ? $myConfig['default']['stylesheets'] : array(), isset($myConfig['all']['stylesheets']) && is_array($myConfig['all']['stylesheets']) ? $myConfig['all']['stylesheets'] : array());
     $myConfig['all']['javascripts'] = array_merge(isset($myConfig['default']['javascripts']) && is_array($myConfig['default']['javascripts']) ? $myConfig['default']['javascripts'] : array(), isset($myConfig['all']['javascripts']) && is_array($myConfig['all']['javascripts']) ? $myConfig['all']['javascripts'] : array());
-
+    
+    // merge body classes and onloads
+    $myConfig['all']['body_classes'] = array_merge(isset($myConfig['default']['body_classes']) && is_array($myConfig['default']['body_classes']) ? $myConfig['default']['body_classes'] : array(), isset($myConfig['all']['body_classes']) && is_array($myConfig['all']['body_classes']) ? $myConfig['all']['body_classes'] : array());
+    $myConfig['all']['body_onloads'] = array_merge(isset($myConfig['default']['body_onloads']) && is_array($myConfig['default']['body_onloads']) ? $myConfig['default']['body_onloads'] : array(), isset($myConfig['all']['body_onloads']) && is_array($myConfig['all']['body_onloads']) ? $myConfig['all']['body_onloads'] : array());
+    
     unset($myConfig['default']);
 
     $this->yamlConfig = $myConfig;
@@ -85,8 +89,9 @@ class sfViewConfigHandler extends sfYamlConfigHandler
       $data[] = $this->addLayout($viewName);
       $data[] = $this->addComponentSlots($viewName);
       $data[] = $this->addHtmlHead($viewName);
+      $data[] = $this->addBodyAttributes($viewName);
       $data[] = $this->addEscaping($viewName);
-
+      
       $data[] = "  }\n";
 
       $data[] = $this->addHtmlAsset($viewName);
@@ -114,7 +119,9 @@ class sfViewConfigHandler extends sfYamlConfigHandler
     $data[] = $this->addLayout();
     $data[] = $this->addComponentSlots();
     $data[] = $this->addHtmlHead();
+    $data[] = $this->addBodyAttributes($viewName);
     $data[] = $this->addEscaping();
+
 
     $data[] = "  }\n";
 
@@ -338,14 +345,112 @@ class sfViewConfigHandler extends sfYamlConfigHandler
 
     if(isset($escaping['strategy']))
     {
-      $data[] = sprintf("  \$this->setEscaping(%s);", var_export($escaping['strategy'], true));
+      $data[] = sprintf("    \$this->setEscaping(%s);", var_export($escaping['strategy'], true));
     }
 
     if(isset($escaping['method']))
     {
-      $data[] = sprintf("  \$this->setEscapingMethod(%s);", var_export($escaping['method'], true));
+      $data[] = sprintf("    \$this->setEscapingMethod(%s);", var_export($escaping['method'], true));
     }
 
+    return implode("\n", $data)."\n";
+  }
+  
+  private function addBodyAttributes($viewName = '')
+  {
+    $data = array();
+    $omit = array();
+    $delete_all = false;
+
+    // Populate $body_classes with the values from ONLY the current view
+    $body_classes = $this->getConfigValue('body_classes', $viewName);
+
+    // If we find results from the view, check to see if there is a '-*'
+    // This indicates that we will remove ALL javascripts EXCEPT for those passed in the current view
+    if (is_array($body_classes) AND in_array('-*', $body_classes))
+    {
+      $delete_all = true;
+      foreach ($body_classes as $body_class)
+      {     
+        if (substr($body_class, 0, 1) != '-')
+        {
+          $omit[] = $body_class;
+        }
+      }
+    }
+
+    $body_classes = $this->mergeConfigValue('body_classes', $viewName);
+    if (is_array($body_classes))
+    {
+      // remove body_classes marked with a beginning '-'
+      // We exclude any body_classes that were omitted above
+      $delete = array();
+
+      foreach ($body_classes as $body_class)
+      {
+        if (!in_array($body_class, $omit) && (substr($body_class, 0, 1) == '-' || $delete_all == true))
+        {
+          $delete[] = $body_class;
+          $delete[] = substr($body_class, 1);
+        }
+      }
+      $body_classes = array_diff($body_classes, $delete);
+      $body_classes = array_unique($body_classes);
+      foreach ($body_classes as $body_class)
+      {
+        if ($body_class)
+        {
+          $data[] = sprintf("    \$response->addBodyClass('%s');", $body_class);
+        }
+      }
+    }
+
+    // Populate $body_onloads with the values from ONLY the current view
+    $body_onloads = $this->getConfigValue('body_onloads', $viewName);
+
+    // If we find results from the view, check to see if there is a '-*'
+    // This indicates that we will remove ALL javascripts EXCEPT for those passed in the current view
+    if (is_array($body_onloads) AND in_array('-*', $body_onloads))
+    {
+      $delete_all = true;
+      foreach ($body_onloads as $body_onload)
+      {     
+        if (substr($body_onload, 0, 1) != '-')
+        {
+          $omit[] = $body_onload;
+        }
+      }
+    }
+
+    $body_onloads = $this->mergeConfigValue('body_onloads', $viewName);
+    if (is_array($body_onloads))
+    {
+      // remove body_onloads marked with a beginning '-'
+      // We exclude any body_onloads that were omitted above
+      $delete = array();
+
+      foreach ($body_onloads as $body_onload)
+      {
+        if (!in_array($body_onload, $omit) && (substr($body_onload, 0, 1) == '-' || $delete_all == true))
+        {
+          $delete[] = $body_onload;
+          $delete[] = substr($body_onload, 1);
+        }
+      }
+      $body_onloads = array_diff($body_onloads, $delete);
+      $body_onloads = array_unique($body_onloads);
+      foreach ($body_onloads as $body_onload)
+      {
+        if ($body_onload)
+        {
+          $data[] = sprintf("    \$response->addBodyOnload('%s');", $body_onload);
+        }
+      }
+    }
+
+    $id = $this->getconfigValue('body_id', $viewName);
+    $data[] = "    \$response->setBodyId('$id', false);";
+    
     return implode("\n", $data)."\n";
   }
 }

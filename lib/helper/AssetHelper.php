@@ -230,6 +230,33 @@ function include_http_metas()
   }
 }
 
+function body_tag($options = array())
+{
+	$opts = $options;
+	$response = sfContext::getInstance()->getResponse();
+	
+	// set body class attribute, response classes are merged with layout classes
+	$responseClasses = $response->getBodyClasses();
+	$layoutClasses = isset($options['class']) ? explode(' ',$options['class']) : array();
+	$classes = array_merge($responseClasses, $layoutClasses);
+	// if not empty, set body class attribute
+	if(!empty($classes)) $options['class'] = implode($classes, ' ');
+	
+	// set body id attribute, response id will overwrite layout id
+	$responseId = $response->getBodyId();
+	$layoutId = isset($options['id']) ? $options['id'] : null;
+	$id = isset($responseId) ? $responseId : $layoutId;
+	if(!empty($id)) $options['id'] = $id;
+	
+	// set body onLoad attribute, response events will be merged with template events
+	$responseOnLoad = $response->getBodyOnLoads();
+	$layoutOnLoad = isset($options['onload']) ? explode(';', $options['onload']) : array();
+	$onLoad = array_merge($responseOnLoad, $layoutOnLoad);
+	if(!empty($onLoad)) $options['onload'] = implode($onLoad, ';');
+
+	return tag('body', $options, true);
+}
+
 function include_title()
 {
   $title = sfContext::getInstance()->getResponse()->getTitle();

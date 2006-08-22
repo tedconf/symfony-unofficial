@@ -417,7 +417,12 @@ class sfWebResponse extends sfResponse
 
     return $this->parameter_holder->getAll('helper/asset/auto/javascript'.$position);
   }
-
+	
+	/**
+	 * Add a javascript file to the response
+	 *
+	 * @return void
+	 **/
   public function addJavascript($js, $position = '')
   {
     if ($position)
@@ -428,6 +433,11 @@ class sfWebResponse extends sfResponse
     $this->setParameter($js, $js, 'helper/asset/auto/javascript'.$position);
   }
 
+	/**
+	 * Get cookies.
+	 *
+	 * @return array
+	 **/
   public function getCookies()
   {
     $cookies = array();
@@ -439,6 +449,11 @@ class sfWebResponse extends sfResponse
     return $cookies;
   }
 
+	/**
+	 * Get http headers.
+	 *
+	 * @return array
+	 **/
   public function getHttpHeaders()
   {
     return $this->headers;
@@ -467,7 +482,77 @@ class sfWebResponse extends sfResponse
       }
     }
   }
+	
+	/**
+	 * Add a class to the body tag
+	 *
+	 * @return void
+	 **/
+	public function addBodyClass($class)
+	{
+		$classes = $this->getParameter('classes', array(), 'helper/asset/auto/body');
+		$classes[] = $class;
+		$this->setParameter('classes', $classes, 'helper/asset/auto/body');
+	}
 
+	/**
+	 * Gets classes for body tag
+	 *
+	 * @return array
+	 **/
+	public function getBodyClasses()
+	{
+	   return $this->getParameter('classes', array(), 'helper/asset/auto/body');		
+	}
+	
+	/**
+	 * Set id attribute for body tag
+	 *
+	 * @return void
+	 **/
+	public function setBodyId($id, $replace = true)
+	{
+	  $exists = $this->getParameter('id', false, 'helper/asset/auto/body');
+	  if ($exists && !$replace)
+    {
+      return;
+    }
+		$this->setParameter('id', $id, 'helper/asset/auto/body');			    
+	}
+
+	/**
+	 * Get id attribute for body tag
+	 *
+	 * @return string
+	 **/
+	public function getBodyId()
+	{
+	  return $this->getParameter('id', null, 'helper/asset/auto/body');		
+	}
+
+	/**
+	 * Add onLoad event to body tag
+	 *
+	 * @return void
+	 **/
+	public function addBodyOnLoad($command)
+	{
+		$onLoad = $this->getParameter('onload', array(), 'helper/asset/auto/body');
+		$onLoad[] = $command;
+		$this->setParameter('onload', $onLoad, 'helper/asset/auto/body');		
+	}
+
+
+	/**
+	 * Get onLoad events for body tag
+	 *
+	 * @return array
+	 **/
+	public function getBodyOnLoads()
+	{
+	  return $this->getParameter('onload', array(), 'helper/asset/auto/body');		
+	}
+	
   /**
    * Execute the shutdown procedure.
    *

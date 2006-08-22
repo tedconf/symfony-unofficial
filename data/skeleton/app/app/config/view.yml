@@ -13,5 +13,9 @@ default:
 
   javascripts:    [ ]
 
+  body_id:        symfony
+  body_classes:   []
+  body_onloads:   []
+
   has_layout:     on
   layout:         layout
