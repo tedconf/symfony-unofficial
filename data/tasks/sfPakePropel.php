@@ -96,31 +96,22 @@ function _propel_convert_xml_schema($check_schema = true, $prefix = '')
 
 function run_propel_build_all($task, $args)
 {
-  run_propel_build_model($task, $args);
-  run_propel_build_sql($task, $args);
-  run_propel_insert_sql($task, $args);
+  _call_phing($task, 'build-all');
 }
 
 function run_propel_build_all_load($task, $args)
 {
-  run_propel_build_all($task, $args);
   run_propel_load_data($task, $args);
 }
 
 function run_propel_build_model($task, $args)
 {
-  _propel_convert_yml_schema(false, 'generated-');
   _call_phing($task, 'build-om');
-  $finder = pakeFinder::type('file')->name('generated-*schema.xml');
-  pake_remove($finder, 'config');
 }
 
 function run_propel_build_sql($task, $args)
 {
-  _propel_convert_yml_schema(false, 'generated-');
   _call_phing($task, 'build-sql');
-  $finder = pakeFinder::type('file')->name('generated-*schema.xml');
-  pake_remove($finder, 'config');
 }
 
 function run_propel_build_db($task, $args)
@@ -130,10 +121,7 @@ function run_propel_build_db($task, $args)
 
 function run_propel_insert_sql($task, $args)
 {
-  _propel_convert_yml_schema(false, 'generated-');
   _call_phing($task, 'insert-sql');
-  $finder = pakeFinder::type('file')->name('generated-*schema.xml');
-  pake_remove($finder, 'config');
 }
 
 function run_propel_build_schema($task, $args)
@@ -209,6 +197,8 @@ function run_propel_load_data($task, $args)
 
 function _call_phing($task, $task_name, $check_schema = true)
 {
+  _propel_convert_yml_schema(false, 'generated-');
+
   $schemas = pakeFinder::type('file')->name('*schema.xml')->relative()->in('config');
   if ($check_schema && !$schemas)
   {
@@ -249,4 +239,7 @@ function _call_phing($task, $task_name, $check_schema = true)
   pake_remove($propelIniFileName, '');
 
   chdir(sfConfig::get('sf_root_dir'));
+
+  $finder = pakeFinder::type('file')->name('generated-*schema.xml');
+  pake_remove($finder, 'config');
 }
