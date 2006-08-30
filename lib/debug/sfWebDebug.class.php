@@ -232,7 +232,7 @@ class sfWebDebug
 
     // ignore cache link
     $cacheLink = '';
-    if (sfConfig::get('sf_debug') && sfConfig::get('sf_cache'))
+    if ($sfDebug = sfConfig::get('sf_debug') && sfConfig::get('sf_cache'))
     {
       $self_url = $_SERVER['PHP_SELF'].((strpos($_SERVER['PHP_SELF'], 'sf_ignore_cache') === false) ? '?sf_ignore_cache=1' : '');
       $cacheLink = '<a href="'.$self_url.'" title="reload and ignore cache"><img src="'.$this->base_image_path.'/reload.png" alt=""/></a>';
@@ -261,15 +261,24 @@ class sfWebDebug
 
     // memory used
     $memoryInfo = '';
-    if (sfConfig::get('sf_debug') && function_exists('memory_get_usage'))
+    $total_memory = 0;
+    if ($sfDebug && function_exists('memory_get_peak_usage'))
     {
-      $total_memory = sprintf('%.1f', (memory_get_usage() / 1024));
+      $total_memory = memory_get_peak_usage();
+    }
+    else if ($sfDebug && function_exists('memory_get_usage'))
+    {
+      $total_memory = memory_get_usage();
+    }
+    if ($total_memory)
+    {
+      $total_memory = sprintf('%.1f', ($total_memory / 1024));
       $memoryInfo = '<li><img src="'.$this->base_image_path.'/memory.png" alt=""/> '.$total_memory.' KB</li>';
     }
 
     // total time elapsed
     $timeInfo = '';
-    if (sfConfig::get('sf_debug'))
+    if ($sfDebug)
     {
       $total_time = (microtime(true) - sfConfig::get('sf_timer_start')) * 1000;
       $total_time = sprintf(($total_time <= 1) ? '%.2f' : '%.0f', $total_time);
