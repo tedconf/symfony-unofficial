@@ -175,6 +175,13 @@ class sfNumberFormat
     $string = (string)$string;
     $dp = strpos($string, '.');
 
+    $decimalDigits = $this->formatInfo->getDecimalDigits();
+    //if not decimal digits, assume 0 decimal points.
+    if(is_int($decimalDigits) && $decimalDigits > 0)
+    {
+      $string = (string)round(floatval($string),$decimalDigits);
+    }
+
     if (is_int($dp))
     {
       $string = substr($string, 0, $dp);

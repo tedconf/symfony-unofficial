@@ -528,6 +528,7 @@ class sfMessageSource_XLIFF extends sfMessageSource
       throw new sfFileException("Unable to create directory $dir");
     }
     file_put_contents($file, $this->getTemplate($catalogue));
+    chmod($file, 0777);
 
     return array($variant, $file);
   }

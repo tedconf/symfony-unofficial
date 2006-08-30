@@ -156,6 +156,12 @@ class sfMessageFormat
     {
       $charset = $this->getCharset();
     }
+
+    //force args as UTF-8
+    foreach($args as $k => $v)
+    {
+      $args[$k] = I18N_toUTF8($v, $charset);
+    }
     $s = $this->formatString(I18N_toUTF8($string, $charset), $args, $catalogue);
     return I18N_toEncoding($s, $charset);
   }

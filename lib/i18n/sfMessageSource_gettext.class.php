@@ -477,7 +477,7 @@ class sfMessageSource_gettext extends sfMessageSource
     $dir = dirname($mo_file);
     if (!is_dir($dir))
     {
-      @mkdir($dir);
+      @mkdir($dir, 0777, true);
     }
     if (!is_dir($dir))
     {
