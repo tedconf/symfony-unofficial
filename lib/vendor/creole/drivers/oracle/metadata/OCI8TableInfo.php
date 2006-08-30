@@ -18,47 +18,47 @@
  * and is licensed under the LGPL. For more information please see
  * <http://creole.phpdb.org>.
  */
- 
+
 require_once 'creole/metadata/TableInfo.php';
 
 /**
  * Oracle (OCI8) implementation of TableInfo.
- * 
+ *
  * @author    David Giffin <david@giffin.org>
  * @author    Hans Lellelid <hans@xmpl.org>
  * @version   $Revision: 1.14 $
  * @package   creole.drivers.oracle.metadata
  */
 class OCI8TableInfo extends TableInfo {
-    
+
     private $schema;
-        
+
     public function __construct(OCI8DatabaseInfo $database, $name)
     {
         $this->schema = strtoupper( $database->getSchema() );
         parent::__construct($database, $name);
 		$this->name = strtoupper( $this->name );
     }
-    
+
     /** Loads the columns for this table. */
-    protected function initColumns() 
+    protected function initColumns()
     {
-        
+
         include_once 'creole/metadata/ColumnInfo.php';
         include_once 'creole/drivers/oracle/OCI8Types.php';
-        
 
-        // To get all of the attributes we need, we'll actually do 
+
+        // To get all of the attributes we need, we'll actually do
         // two separate queries.  The first gets names and default values
         // the second will fill in some more details.
-        
+
         $sql = "
 			SELECT column_name
 				, data_type
 				, data_precision
 				, data_length
 				, data_default
-				, nullable 
+				, nullable
 				, data_scale
             FROM  all_tab_columns
             WHERE table_name = '{$this->name}'
@@ -83,18 +83,18 @@ class OCI8TableInfo extends TableInfo {
 				, $row['data_default']
 			);
         }
-                
+
         $this->colsLoaded = true;
     }
-    
+
     /** Loads the primary key information for this table. */
     protected function initPrimaryKey()
     {
         include_once 'creole/metadata/PrimaryKeyInfo.php';
-        
+
         // columns have to be loaded first
         if (!$this->colsLoaded) $this->initColumns();
-        
+
 
         // Primary Keys Query
         $sql = "SELECT a.owner, a.table_name,
@@ -124,17 +124,17 @@ class OCI8TableInfo extends TableInfo {
 
             $this->primaryKey->addColumn($this->columns[$name]);
         }
-        
+
         $this->pkLoaded = true;
     }
-    
+
     /** Loads the indexes for this table. */
     protected function initIndexes() {
-    
-        include_once 'creole/metadata/IndexInfo.php';    
+
+        include_once 'creole/metadata/IndexInfo.php';
 
         // columns have to be loaded first
-        if (!$this->colsLoaded) $this->initColumns();        
+        if (!$this->colsLoaded) $this->initColumns();
 
         // Indexes
         $sql = "SELECT
@@ -177,19 +177,19 @@ class OCI8TableInfo extends TableInfo {
 
             $this->indexes[$name]->addColumn($this->columns[ $index_col_name ]);
         }
-        
-                
+
+
         $this->indexesLoaded = true;
     }
-    
+
     /** Load foreign keys */
     protected function initForeignKeys() {
-        
-        include_once 'creole/metadata/ForeignKeyInfo.php';    
+
+        include_once 'creole/metadata/ForeignKeyInfo.php';
 
         // columns have to be loaded first
-        if (!$this->colsLoaded) $this->initColumns();        
-        
+        if (!$this->colsLoaded) $this->initColumns();
+
         // Foreign keys
 		// TODO resolve cross schema references
 		// use all_cons... to do so, however, very slow queries then
@@ -204,14 +204,17 @@ class OCI8TableInfo extends TableInfo {
 				, d.column_name AS foreign_column
 				, b.constraint_name AS foreign_constraint_name
 				, a.delete_rule AS on_delete
-            FROM user_constraints a
-				, user_constraints b
-				, user_cons_columns c
-				, user_cons_columns d
+            FROM all_constraints a
+				, all_constraints b
+				, all_cons_columns c
+				, all_cons_columns d
             WHERE a.r_constraint_name = b.constraint_name
                 AND c.constraint_name = a.constraint_name
                 AND d.constraint_name = b.constraint_name
                 AND a.r_owner = b.owner
+		AND c.owner = a.owner
+		AND d.owner = b.owner
+		AND c.position = d.position
                 AND a.constraint_type='R'
 				AND a.table_name = '{$this->name}'
 				AND a.owner = '{$this->schema}'
@@ -229,12 +232,12 @@ class OCI8TableInfo extends TableInfo {
         while ( $statement && $row = oci_fetch_assoc( $statement )) {
             $row = array_change_key_case($row,CASE_LOWER);
 
-            $name = $row['foreign_key_name'];            
+            $name = $row['foreign_key_name'];
 
             $foreignTable = $this->database->getTable($row['foreign_table']);
             $foreignColumn = $foreignTable->getColumn($row['foreign_column']);
 
-            $localTable   = $this->database->getTable($row['local_table']);    
+            $localTable   = $this->database->getTable($row['local_table']);
             $localColumn   = $localTable->getColumn($row['local_column']);
 
             if (!isset($this->foreignKeys[$name])) {
@@ -265,8 +268,8 @@ class OCI8TableInfo extends TableInfo {
 				, $onDelete
 			);
         }
-        
+
         $this->fksLoaded = true;
     }
-    
+
 }

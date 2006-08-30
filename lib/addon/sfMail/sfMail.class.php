@@ -93,12 +93,13 @@ class sfMail
     return $this->mailer->Body;
   }
 
-  public function setMailer($type = 'mail')
+  public function setMailer($type = 'mail', $options = array())
   {
     switch($type)
     {
       case 'smtp':
         $this->mailer->IsSMTP();
+        if (isset($options['keep_alive'])) $this->mailer->SMTPKeepAlive = true;
         break;
       case 'sendmail':
         $this->mailer->IsSendmail();
@@ -315,6 +316,11 @@ class sfMail
     {
       throw new sfException($this->mailer->ErrorInfo);
     }
+  }
+
+  public function smtpClose()
+  {
+    $this->mailer->SmtpClose();
   }
 
   public function getRawHeader()

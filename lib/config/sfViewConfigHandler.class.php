@@ -65,19 +65,10 @@ class sfViewConfigHandler extends sfYamlConfigHandler
         continue;
       }
 
-      $data[] = ($first ? '' : 'else ')."if (\$this->viewName == '$viewName')\n".
+      $data[] = ($first ? '' : 'else ')."if (\$this->actionName.\$this->viewName == '$viewName')\n".
                 "{\n";
 
-      // template name
-      $templateName = $this->getConfigValue('template', $viewName);
-      if ($templateName)
-      {
-        $data[] = "  \$templateName = \$action->getTemplate() ? \$action->getTemplate() : '$templateName';\n";
-      }
-      else
-      {
-        $data[] = "  \$templateName = \$action->getTemplate() ? \$action->getTemplate() : \$this->getContext()->getActionName();\n";
-      }
+      $data[] = $this->addTemplate($viewName);
 
       $data[] = "  if (!\$actionStackEntry->isSlot())\n";
       $data[] = "  {\n";
@@ -98,15 +89,8 @@ class sfViewConfigHandler extends sfYamlConfigHandler
 
     // general view configuration
     $data[] = ($first ? '' : "else\n{")."\n";
-    $templateName = $this->getConfigValue('template', 'all');
-    if ($templateName)
-    {
-      $data[] = "  \$templateName = \$action->getTemplate() ? \$action->getTemplate() : '$templateName';\n";
-    }
-    else
-    {
-      $data[] = "  \$templateName = \$action->getTemplate() ? \$action->getTemplate() : \$this->getContext()->getActionName();\n";
-    }
+
+    $data[] = $this->addTemplate();
 
     $data[] = "  if (!\$actionStackEntry->isSlot())\n";
     $data[] = "  {\n";
@@ -149,17 +133,38 @@ class sfViewConfigHandler extends sfYamlConfigHandler
     return $data;
   }
 
+  private function addTemplate($viewName = 'all')
+  {
+    $data = '';
+
+    $templateName = $this->getConfigValue('template', $viewName);
+    $defaultTemplateName = $templateName ? "'$templateName'" : '$this->getContext()->getActionName()';
+    $data .= "  \$templateName = null !== \$action->getTemplate() ? \$action->getTemplate() : $defaultTemplateName;\n";
+
+    return $data;
+  }
+
   private function addLayout($viewName = '')
   {
     $data = '';
 
-    $has_layout = $this->getConfigValue('has_layout', $viewName);
-    if ($has_layout)
-    {
-      $layout = $this->getconfigValue('layout', $viewName);
-      $data .= "    \$this->setDecoratorDirectory(sfConfig::get('sf_app_template_dir'));\n".
-               "    \$this->setDecoratorTemplate('$layout.php');\n";
-    }
+    $layoutNameFromView = $this->getConfigValue('layout', $viewName);
+    $hasLayout = $this->getConfigValue('has_layout', $viewName) && $layoutNameFromView != false ? 1 : 0;
+    $localHasLayout = isset($this->yamlConfig[$viewName]['layout']) && $this->yamlConfig[$viewName]['layout'] ? 1 : 0;
+    // if a layout specified for this view, no need to check if a layout name is specified by the action
+    $cond1 = $hasLayout ? '' : "&& null !== \$layoutNameFromAction";
+    // if a layout is specified especially for this view, no need to test if the request is AJAX
+    $cond2 = $localHasLayout ? '' : "&& (!\$action->getRequest()->isXmlHttpRequest() || null !== \$layoutNameFromAction)";
+    $data .= <<<EOF
+     \$layoutNameFromAction = \$action->getLayout();
+     if (false !== \$layoutNameFromAction $cond1 $cond2)
+     {
+       \$layoutName = \$layoutNameFromAction ? \$layoutNameFromAction : '$layoutNameFromView';
+       \$this->setDecoratorDirectory(sfConfig::get('sf_app_template_dir'));
+       \$this->setDecoratorTemplate(\$layoutName.'.php');
+     }
+
+EOF;
 
     return $data;
   }
@@ -175,7 +180,7 @@ class sfViewConfigHandler extends sfYamlConfigHandler
 
     foreach ($this->mergeConfigValue('metas', $viewName) as $name => $content)
     {
-      $data[] = sprintf("    \$response->addMeta('%s', '%s', false, true);", $name, str_replace('\'', '\\\'', preg_replace('/&amp;(?=\w+;)/', '&', htmlentities($content, ENT_QUOTES, 'UTF-8'))));
+      $data[] = sprintf("    \$response->addMeta('%s', '%s', false, true);", $name, str_replace('\'', '\\\'', preg_replace('/&amp;(?=\w+;)/', '&', htmlentities($content, ENT_QUOTES, sfConfig::get('sf_charset')))));
     }
 
     return implode("\n", $data)."\n";

@@ -2,15 +2,12 @@
 
 pake_desc('create classes for current model');
 pake_task('propel-build-model', 'project_exists');
-pake_task('build-model');
 
 pake_desc('create sql for current model');
 pake_task('propel-build-sql', 'project_exists');
-pake_task('build-sql');
 
 pake_desc('create schema.xml from existing database');
 pake_task('propel-build-schema', 'project_exists');
-pake_task('build-schema');
 
 pake_desc('create schema.xml from schema.yml');
 pake_task('propel-convert-yml-schema', 'project_exists');
@@ -23,39 +20,15 @@ pake_task('propel-load-data', 'project_exists');
 
 pake_desc('create database for current model');
 pake_task('propel-build-db', 'project_exists');
-pake_task('build-db');
 
 pake_desc('insert sql for current model');
 pake_task('propel-insert-sql', 'project_exists');
-pake_task('insert-sql');
 
 pake_desc('generate propel model and sql and initialize database');
-pake_task('propel-build-all', 'project_exists', 'propel-build-model', 'propel-build-sql', 'propel-insert-sql');
+pake_task('propel-build-all', 'project_exists');
 
-function run_build_model($task, $args)
-{
-  throw new Exception('This task is deprecated. Please use "propel-build-model".');
-}
-
-function run_build_sql($task, $args)
-{
-  throw new Exception('This task is deprecated. Please use "propel-build-sql".');
-}
-
-function run_build_schema($task, $args)
-{
-  throw new Exception('This task is deprecated. Please use "propel-build-schema".');
-}
-
-function run_build_db($task, $args)
-{
-  throw new Exception('This task is deprecated. Please use "propel-build-db".');
-}
-
-function run_insert_sql($task, $args)
-{
-  throw new Exception('This task is deprecated. Please use "propel-insert-sql".');
-}
+pake_desc('generate propel model and sql and initialize database, and load data');
+pake_task('propel-build-all-load', 'propel-build-all');
 
 function run_propel_convert_yml_schema($task, $args)
 {
@@ -83,13 +56,12 @@ function _propel_convert_yml_schema($check_schema = true, $prefix = '')
   require_once($sf_symfony_lib_dir.'/exception/sfException.class.php');
   require_once($sf_symfony_lib_dir.'/addon/propel/sfPropelDatabaseSchema.class.php');
 
-  $verbose = pakeApp::get_instance()->get_verbose();
   $db_schema = new sfPropelDatabaseSchema();
   foreach ($schemas as $schema)
   {
     $db_schema->loadYAML('config/'.$schema);
 
-    if ($verbose) echo '>> schema    '.pakeApp::excerpt('converting "'.$schema.'"'.' to XML')."\n";
+    pake_echo_action('schema', 'converting "'.$schema.'"'.' to XML');
 
     file_put_contents('config/'.$prefix.str_replace('.yml', '.xml', $schema), $db_schema->asXML());
   }
@@ -111,20 +83,28 @@ function _propel_convert_xml_schema($check_schema = true, $prefix = '')
   require_once($sf_symfony_lib_dir.'/exception/sfException.class.php');
   require_once($sf_symfony_lib_dir.'/addon/propel/sfPropelDatabaseSchema.class.php');
 
-  $verbose = pakeApp::get_instance()->get_verbose();
   $db_schema = new sfPropelDatabaseSchema();
   foreach ($schemas as $schema)
   {
     $db_schema->loadXML('config/'.$schema);
 
-    if ($verbose) echo '>> schema    '.pakeApp::excerpt('converting "'.$schema.'"'.' to YAML')."\n";
+    pake_echo_action('schema', 'converting "'.$schema.'"'.' to YAML');
 
     file_put_contents('config/'.$prefix.str_replace('.xml', '.yml', $schema), $db_schema->asYAML());
   }
 }
 
-function run_build_all($task, $args)
+function run_propel_build_all($task, $args)
 {
+  run_propel_build_model($task, $args);
+  run_propel_build_sql($task, $args);
+  run_propel_insert_sql($task, $args);
+}
+
+function run_propel_build_all_load($task, $args)
+{
+  run_propel_build_all($task, $args);
+  run_propel_load_data($task, $args);
 }
 
 function run_propel_build_model($task, $args)
@@ -150,7 +130,10 @@ function run_propel_build_db($task, $args)
 
 function run_propel_insert_sql($task, $args)
 {
+  _propel_convert_yml_schema(false, 'generated-');
   _call_phing($task, 'insert-sql');
+  $finder = pakeFinder::type('file')->name('generated-*schema.xml');
+  pake_remove($finder, 'config');
 }
 
 function run_propel_build_schema($task, $args)
@@ -257,6 +240,10 @@ function _call_phing($task, $task_name, $check_schema = true)
 
   // call phing targets
   pake_import('Phing', false);
+  if (false === strpos('propel-generator', get_include_path()))
+  {
+    set_include_path(sfConfig::get('sf_symfony_lib_dir').'/vendor/propel-generator/classes'.PATH_SEPARATOR.get_include_path());
+  }
   pakePhingTask::call_phing($task, array($task_name), sfConfig::get('sf_symfony_data_dir').'/bin/build.xml', $options);
 
   pake_remove($propelIniFileName, '');

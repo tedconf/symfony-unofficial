@@ -152,6 +152,14 @@ class sfWebResponse extends sfResponse
   public function setHttpHeader ($name, $value, $replace = true)
   {
     $name = $this->normalizeHeaderName($name);
+
+    if ('Content-Type' == $name)
+    {
+      $this->setContentType($value);
+
+      return;
+    }
+
     $exists = isset($this->headers[$name]);
 
     if ($exists && !$replace)
@@ -193,7 +201,18 @@ class sfWebResponse extends sfResponse
    */
   public function setContentType ($value)
   {
-    $this->setHttpHeader('Content-Type', $value, true);
+    // add charset if needed
+    if (false === stripos($value, 'charset'))
+    {
+      $value .= '; charset='.sfConfig::get('sf_charset');
+    }
+
+    if (isset($this->headers['Content-Type']))
+    {
+      $this->headers['Content-Type'] = array();
+    }
+
+    $this->headers['Content-Type'][] = $value;
   }
 
   /**
@@ -227,6 +246,15 @@ class sfWebResponse extends sfResponse
   {
     // status
     $status = 'HTTP/1.0 '.$this->statusCode.' '.$this->statusText;
+    if (substr(php_sapi_name(), 0, 3) == 'cgi')
+    {
+      $status = 'Status: '.$this->statusCode.' '.$this->statusText;
+    }
+    else
+    {
+      $status = 'HTTP/1.0 '.$this->statusCode.' '.$this->statusText;
+    }
+
     header($status);
 
     if (sfConfig::get('sf_logging_active'))
@@ -251,7 +279,14 @@ class sfWebResponse extends sfResponse
     // cookies
     foreach ($this->cookies as $cookie)
     {
-      setrawcookie($cookie['name'], $cookie['value'], $cookie['expire'], $cookie['path'], $cookie['domain'], $cookie['secure'], $cookie['httpOnly']);
+      if (version_compare(phpversion(), '5.2', '>='))
+      {
+        setrawcookie($cookie['name'], $cookie['value'], $cookie['expire'], $cookie['path'], $cookie['domain'], $cookie['secure'], $cookie['httpOnly']);
+      }
+      else
+      {
+        setrawcookie($cookie['name'], $cookie['value'], $cookie['expire'], $cookie['path'], $cookie['domain'], $cookie['secure']);
+      }
 
       if (sfConfig::get('sf_logging_active'))
       {
@@ -337,10 +372,15 @@ class sfWebResponse extends sfResponse
   {
     if ($override || !$this->hasParameter($key, 'helper/asset/auto/httpmeta'))
     {
-      $this->setParameter($key, $value, 'helper/asset/auto/httpmeta');
-
       // set HTTP header
       $this->setHttpHeader($key, $value, false);
+
+      if ('Content-Type' == $this->normalizeHeaderName($key))
+      {
+        $value = $this->getContentType();
+      }
+
+      $this->setParameter($key, $value, 'helper/asset/auto/httpmeta');
     }
   }
 
@@ -360,7 +400,7 @@ class sfWebResponse extends sfResponse
 
       if (!$doNotEscape)
       {
-        $value = htmlentities($value, ENT_QUOTES, 'UTF-8');
+        $value = htmlentities($value, ENT_QUOTES, sfConfig::get('sf_charset'));
       }
 
       $this->setParameter($key, $value, 'helper/asset/auto/meta');
@@ -383,7 +423,7 @@ class sfWebResponse extends sfResponse
         $title = sfConfig::get('sf_i18n_instance')->__($title);
       }
 
-      $title = htmlentities($title, ENT_QUOTES, 'UTF-8');
+      $title = htmlentities($title, ENT_QUOTES, sfConfig::get('sf_charset'));
     }
 
     $this->setParameter('title', $title, 'helper/asset/auto/meta');

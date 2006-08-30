@@ -107,12 +107,12 @@ final class Symfony
  *
  * @return void
  */
-if(function_exists('spl_autoload_register'))
+if (function_exists('spl_autoload_register'))
 {
   ini_set('unserialize_callback_func', 'spl_autoload_call');
 
   // load functions and methods that can autoload classes
-  $functions = (array)sfConfig::get('sf_autoloading_functions', array());
+  $functions = (array) sfConfig::get('sf_autoloading_functions', array());
   array_unshift($functions, array('Symfony', '__autoload'));
 
   foreach ($functions as $function)
@@ -133,11 +133,11 @@ elseif (!function_exists('__autoload'))
     if (null === $functions)
     {
       // load functions and methods that can autoload classes
-      $functions = (array)sfConfig::get('sf_autoloading_functions', array());
+      $functions = (array) sfConfig::get('sf_autoloading_functions', array());
       array_unshift($functions, array('Symfony', '__autoload'));
     }
 
-    foreach (self::$functions as $function)
+    foreach ($functions as $function)
     {
       if (call_user_func($function, $class))
       {

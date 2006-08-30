@@ -152,7 +152,11 @@ abstract class sfController
       throw new sfForwardException($error);
     }
 
-    if (!sfConfig::get('sf_available'))
+    $rootDir = sfConfig::get('sf_root_dir');
+    $app     = sfConfig::get('sf_app');
+    $env     = sfConfig::get('sf_environment');
+
+    if (!sfConfig::get('sf_available') || sfToolkit::hasLockFile($rootDir.'/'.$app.'_'.$env.'.clilock'))
     {
       // application is unavailable
       $moduleName = sfConfig::get('sf_unavailable_module');
@@ -229,6 +233,14 @@ abstract class sfController
         // create a new filter chain
         $filterChain = new sfFilterChain();
 
+        if (sfConfig::get('sf_web_debug'))
+        {
+          // register web debug toolbar filter
+          $webDebugFilter = new sfWebDebugFilter();
+          $webDebugFilter->initialize($this->context);
+          $filterChain->register($webDebugFilter);
+        }
+
         if (sfConfig::get('sf_available'))
         {
           // the application is available so we'll register
@@ -252,14 +264,6 @@ abstract class sfController
           // load filters
           $this->loadGlobalFilters($filterChain);
           $this->loadModuleFilters($filterChain);
-        }
-
-        if (sfConfig::get('sf_web_debug'))
-        {
-          // register web debug toolbar filter
-          $webDebugFilter = new sfWebDebugFilter();
-          $webDebugFilter->initialize($this->context);
-          $filterChain->register($webDebugFilter);
         }
 
         // register common HTTP filter
@@ -404,29 +408,6 @@ abstract class sfController
   }
 
   /**
-   * Retrieve the singleton instance of this class.
-   *
-   * @return sfController A sfController implementation instance.
-   *
-   * @throws sfControllerException If a controller implementation instance has not been created.
-   */
-  public static function getInstance ()
-  {
-    $error = 'sfController::getInstance deprecated, use newInstance method instead.';
-    throw new sfControllerException($error);
-
-    if (isset(self::$instance))
-    {
-      return self::$instance;
-    }
-
-    // an instance of the controller has not been created
-    $error = 'A sfController implementation instance has not been created';
-
-    throw new sfControllerException($error);
-  }
-
-  /**
    * Retrieve the presentation rendering mode.
    *
    * @return int One of the following:
@@ -450,13 +431,13 @@ abstract class sfController
   public function getView ($moduleName, $actionName, $viewName)
   {
     // user view exists?
-    $file = sfConfig::get('sf_app_module_dir').'/'.$moduleName.'/'.sfConfig::get('sf_app_module_view_dir_name').'/'.$viewName.'View.class.php';
+    $file = sfConfig::get('sf_app_module_dir').'/'.$moduleName.'/'.sfConfig::get('sf_app_module_view_dir_name').'/'.$actionName.$viewName.'View.class.php';
 
     if (is_readable($file))
     {
       require_once($file);
 
-      $class = $viewName.'View';
+      $class = $actionName.$viewName.'View';
 
       // fix for same name classes
       $moduleClass = $moduleName.'_'.$class;
@@ -469,7 +450,7 @@ abstract class sfController
     else
     {
       // view class (as configured in module.yml or defined in action)
-      $viewName = $this->getContext()->getRequest()->getAttribute($moduleName.'_'.$actionName.'_view_name', '', 'symfony/action/view') ? $this->getContext()->getRequest()->getAttribute($moduleName.'_'.$actionName.'_view_name', '', 'symfony/action/view') : sfConfig::get('mod_'.strtolower($moduleName).'_view_class');
+      $viewName = $this->getContext()->getRequest()->getAttribute($moduleName.'_'.$actionName.'_view_name', sfConfig::get('mod_'.strtolower($moduleName).'_view_class'), 'symfony/action/view');
       $file     = sfConfig::get('sf_symfony_lib_dir').'/view/'.$viewName.'View.class.php';
       $class    = is_readable($file) ? $viewName.'View' : 'sfPHPView';
     }

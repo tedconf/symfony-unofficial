@@ -1,7 +1,7 @@
-// Copyright (c) 2005 Marty Haught, Thomas Fuchs 
+// Copyright (c) 2005 Marty Haught, Thomas Fuchs
 //
 // See http://script.aculo.us for more info
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining
 // a copy of this software and associated documentation files (the
 // "Software"), to deal in the Software without restriction, including
@@ -9,7 +9,7 @@
 // distribute, sublicense, and/or sell copies of the Software, and to
 // permit persons to whom the Software is furnished to do so, subject to
 // the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be
 // included in all copies or substantial portions of the Software.
 //
@@ -33,13 +33,13 @@ Control.Slider = Class.create();
 Control.Slider.prototype = {
   initialize: function(handle, track, options) {
     var slider = this;
-    
+
     if(handle instanceof Array) {
       this.handles = handle.collect( function(e) { return $(e) });
     } else {
       this.handles = [$(handle)];
     }
-    
+
     this.track   = $(track);
     this.options = options || {};
 
@@ -47,7 +47,7 @@ Control.Slider.prototype = {
     this.increment = this.options.increment || 1;
     this.step      = parseInt(this.options.step || '1');
     this.range     = this.options.range || $R(0,1);
-    
+
     this.value     = 0; // assure backwards compat
     this.values    = this.handles.map( function() { return 0 });
     this.spans     = this.options.spans ? this.options.spans.map(function(s){ return $(s) }) : false;
@@ -62,9 +62,14 @@ Control.Slider.prototype = {
     // Will be used to align the handle onto the track, if necessary
     this.alignX = parseInt(this.options.alignX || '0');
     this.alignY = parseInt(this.options.alignY || '0');
-    
+
     this.trackLength = this.maximumOffset() - this.minimumOffset();
-    this.handleLength = this.isVertical() ? this.handles[0].offsetHeight : this.handles[0].offsetWidth;
+
+    this.handleLength = this.isVertical() ?
+      (this.handles[0].offsetHeight != 0 ?
+        this.handles[0].offsetHeight : this.handles[0].style.height.replace(/px$/,"")) :
+      (this.handles[0].offsetWidth != 0 ? this.handles[0].offsetWidth :
+        this.handles[0].style.width.replace(/px$/,""));
 
     this.active   = false;
     this.dragging = false;
@@ -87,21 +92,21 @@ Control.Slider.prototype = {
     this.handles.each( function(h,i) {
       i = slider.handles.length-1-i;
       slider.setValue(parseFloat(
-        (slider.options.sliderValue instanceof Array ? 
-          slider.options.sliderValue[i] : slider.options.sliderValue) || 
+        (slider.options.sliderValue instanceof Array ?
+          slider.options.sliderValue[i] : slider.options.sliderValue) ||
          slider.range.start), i);
       Element.makePositioned(h); // fix IE
       Event.observe(h, "mousedown", slider.eventMouseDown);
     });
-    
+
     Event.observe(this.track, "mousedown", this.eventMouseDown);
     Event.observe(document, "mouseup", this.eventMouseUp);
     Event.observe(document, "mousemove", this.eventMouseMove);
-    
+
     this.initialized = true;
   },
   dispose: function() {
-    var slider = this;    
+    var slider = this;
     Event.stopObserving(this.track, "mousedown", this.eventMouseDown);
     Event.stopObserving(document, "mouseup", this.eventMouseUp);
     Event.stopObserving(document, "mousemove", this.eventMouseMove);
@@ -114,12 +119,12 @@ Control.Slider.prototype = {
   },
   setEnabled: function(){
     this.disabled = false;
-  },  
+  },
   getNearestValue: function(value){
     if(this.allowedValues){
       if(value >= this.allowedValues.max()) return(this.allowedValues.max());
       if(value <= this.allowedValues.min()) return(this.allowedValues.min());
-      
+
       var offset = Math.abs(this.allowedValues[0] - value);
       var newValue = this.allowedValues[0];
       this.allowedValues.each( function(v) {
@@ -127,7 +132,7 @@ Control.Slider.prototype = {
         if(currentOffset <= offset){
           newValue = v;
           offset = currentOffset;
-        } 
+        }
       });
       return newValue;
     }
@@ -137,8 +142,8 @@ Control.Slider.prototype = {
   },
   setValue: function(sliderValue, handleIdx){
     if(!this.active) {
-      this.activeHandle    = this.handles[handleIdx];
-      this.activeHandleIdx = handleIdx;
+      this.activeHandleIdx = handleIdx || 0;
+      this.activeHandle    = this.handles[this.activeHandleIdx];
       this.updateStyles();
     }
     handleIdx = handleIdx || this.activeHandleIdx || 0;
@@ -151,28 +156,28 @@ Control.Slider.prototype = {
     sliderValue = this.getNearestValue(sliderValue);
     this.values[handleIdx] = sliderValue;
     this.value = this.values[0]; // assure backwards compat
-    
-    this.handles[handleIdx].style[this.isVertical() ? 'top' : 'left'] = 
+
+    this.handles[handleIdx].style[this.isVertical() ? 'top' : 'left'] =
       this.translateToPx(sliderValue);
-    
+
     this.drawSpans();
     if(!this.dragging || !this.event) this.updateFinished();
   },
   setValueBy: function(delta, handleIdx) {
-    this.setValue(this.values[handleIdx || this.activeHandleIdx || 0] + delta, 
+    this.setValue(this.values[handleIdx || this.activeHandleIdx || 0] + delta,
       handleIdx || this.activeHandleIdx || 0);
   },
   translateToPx: function(value) {
     return Math.round(
-      ((this.trackLength-this.handleLength)/(this.range.end-this.range.start)) * 
+      ((this.trackLength-this.handleLength)/(this.range.end-this.range.start)) *
       (value - this.range.start)) + "px";
   },
   translateToValue: function(offset) {
-    return ((offset/(this.trackLength-this.handleLength) * 
+    return ((offset/(this.trackLength-this.handleLength) *
       (this.range.end-this.range.start)) + this.range.start);
   },
   getRange: function(range) {
-    var v = this.values.sortBy(Prototype.K); 
+    var v = this.values.sortBy(Prototype.K);
     range = range || 0;
     return $R(v[range],v[range+1]);
   },
@@ -181,8 +186,11 @@ Control.Slider.prototype = {
   },
   maximumOffset: function(){
     return(this.isVertical() ?
-      this.track.offsetHeight - this.alignY : this.track.offsetWidth - this.alignX);
-  },  
+      (this.track.offsetHeight != 0 ? this.track.offsetHeight :
+        this.track.style.height.replace(/px$/,"")) - this.alignY :
+      (this.track.offsetWidth != 0 ? this.track.offsetWidth :
+        this.track.style.width.replace(/px$/,"")) - this.alignY);
+  },
   isVertical:  function(){
     return (this.axis == 'vertical');
   },
@@ -194,7 +202,7 @@ Control.Slider.prototype = {
       this.setSpan(this.options.startSpan,
         $R(0, this.values.length>1 ? this.getRange(0).min() : this.value ));
     if(this.options.endSpan)
-      this.setSpan(this.options.endSpan, 
+      this.setSpan(this.options.endSpan,
         $R(this.values.length>1 ? this.getRange(this.spans.length-1).max() : this.value, this.maximum));
   },
   setSpan: function(span, range) {
@@ -214,13 +222,14 @@ Control.Slider.prototype = {
     if(Event.isLeftClick(event)) {
       if(!this.disabled){
         this.active = true;
-        
+
         var handle = Event.element(event);
         var pointer  = [Event.pointerX(event), Event.pointerY(event)];
-        if(handle==this.track) {
-          var offsets  = Position.cumulativeOffset(this.track); 
+        var track = handle;
+        if(track==this.track) {
+          var offsets  = Position.cumulativeOffset(this.track);
           this.event = event;
-          this.setValue(this.translateToValue( 
+          this.setValue(this.translateToValue(
            (this.isVertical() ? pointer[1]-offsets[1] : pointer[0]-offsets[0])-(this.handleLength/2)
           ));
           var offsets  = Position.cumulativeOffset(this.activeHandle);
@@ -228,13 +237,13 @@ Control.Slider.prototype = {
           this.offsetY = (pointer[1] - offsets[1]);
         } else {
           // find the handle (prevents issues with Safari)
-          while((this.handles.indexOf(handle) == -1) && handle.parentNode) 
+          while((this.handles.indexOf(handle) == -1) && handle.parentNode)
             handle = handle.parentNode;
-        
+
           this.activeHandle    = handle;
           this.activeHandleIdx = this.handles.indexOf(this.activeHandle);
           this.updateStyles();
-        
+
           var offsets  = Position.cumulativeOffset(this.activeHandle);
           this.offsetX = (pointer[0] - offsets[0]);
           this.offsetY = (pointer[1] - offsets[1]);
@@ -269,14 +278,14 @@ Control.Slider.prototype = {
     }
     this.active = false;
     this.dragging = false;
-  },  
+  },
   finishDrag: function(event, success) {
     this.active = false;
     this.dragging = false;
     this.updateFinished();
   },
   updateFinished: function() {
-    if(this.initialized && this.options.onChange) 
+    if(this.initialized && this.options.onChange)
       this.options.onChange(this.values.length>1 ? this.values : this.value, this);
     this.event = null;
   }

@@ -16,7 +16,7 @@ rem   - if not found set it using SYMFONY_HOME/lib
 if "%OS%"=="Windows_NT" @setlocal
 
 rem %~dp0 is expanded pathname of the current script under NT
-set DEFAULT_SYMFONY_HOME=%~dp0..
+set DEFAULT_SYMFONY_HOME=%~dp0
 
 goto init
 goto cleanup
@@ -34,9 +34,9 @@ goto cleanup
 
 :run
 IF EXIST "@PEAR-DIR@" (
-  %PHP_COMMAND% -d html_errors=off -qC "@PEAR-DIR@\symfony.php" %1 %2 %3 %4 %5 %6 %7 %8 %9
+  %PHP_COMMAND% -d html_errors=off -qC "@DATA-DIR@\symfony\bin\symfony.php" %1 %2 %3 %4 %5 %6 %7 %8 %9
 ) ELSE (
-  %PHP_COMMAND% -d html_errors=off -qC "%SYMFONY_HOME%\bin\symfony.php" %1 %2 %3 %4 %5 %6 %7 %8 %9
+  %PHP_COMMAND% -d html_errors=off -qC "%SYMFONY_HOME%\data\symfony\bin\symfony.php" %1 %2 %3 %4 %5 %6 %7 %8 %9
 )
 goto cleanup
 
