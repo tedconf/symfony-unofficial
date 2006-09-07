@@ -318,3 +318,14 @@ body, #sf_admin_container td
 {
   padding: 0px;
 }
+
+select.sf_admin_multiple, select.sf_admin_multiple-selected
+{
+  width: 12em;
+}
+
+ul.sf_admin_checklist li
+{
+  list-style: none;
+  line-height: 1.5em;
+}

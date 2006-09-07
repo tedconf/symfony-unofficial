@@ -38,8 +38,8 @@ function run_fix_perms($task, $args)
   pake_chmod(sfConfig::get('sf_log_dir_name'), $sf_root_dir, 0777);
 
   $dirs = array('cache', 'upload', 'log');
-  $dir_finder = pakeFinder::type('dir')->prune('.svn')->discard('.svn');
-  $file_finder = pakeFinder::type('file')->prune('.svn')->discard('.svn');
+  $dir_finder = pakeFinder::type('dir')->ignore_version_control();
+  $file_finder = pakeFinder::type('file')->ignore_version_control();
   foreach ($dirs as $dir)
   {
     pake_chmod($dir_finder, sfConfig::get('sf_'.$dir.'_dir'), 0777);
@@ -83,10 +83,10 @@ function run_clear_cache($task, $args)
   $safe_types = array(sfConfig::get('sf_app_config_dir_name'), sfConfig::get('sf_app_i18n_dir_name'));
 
   // finder to remove all files in a cache directory
-  $finder = pakeFinder::type('file')->prune('.svn')->discard('.svn', '.sf');
+  $finder = pakeFinder::type('file')->ignore_version_control()->discard('.sf');
 
   // finder to find directories (1 level) in a directory
-  $dir_finder = pakeFinder::type('dir')->prune('.svn')->discard('.svn', '.sf')->maxdepth(0)->relative();
+  $dir_finder = pakeFinder::type('dir')->ignore_version_control()->discard('.sf')->maxdepth(0)->relative();
 
   // iterate through applications
   $apps = array();
@@ -156,25 +156,25 @@ function run_clear_cache($task, $args)
 function run_clear_controllers($task, $args)
 {
   $web_dir = sfConfig::get('sf_web_dir');
-	$app_dir = sfConfig::get('sf_app_dir');
-	
-	$apps = count($args) > 1 ? $args : null;
-	
-	// get controller
-	$controllers = pakeFinder::type('file')->prune('.svn')->discard('.svn')->maxdepth(1)->name('*.php')->in($web_dir);
+  $app_dir = sfConfig::get('sf_app_dir');
 
-	foreach ($controllers as $controller)
-	{
-		$contents = file_get_contents($controller);
-		preg_match('/\'SF_APP\',[\s]*\'(.*)\'\)/', $contents, $found_app);
-		preg_match('/\'SF_ENVIRONMENT\',[\s]*\'(.*)\'\)/', $contents, $env);
-		
-		// remove file if it has found an application and the environment is not production
-		if (isset($found_app[1]) && isset($env[1]) && $env[1] != 'prod')
-		{
-  		pake_remove($controller, '');
-		}
-	}
+  $apps = count($args) > 1 ? $args : null;
+
+  // get controller
+  $controllers = pakeFinder::type('file')->ignore_version_control()->maxdepth(1)->name('*.php')->in($web_dir);
+
+  foreach ($controllers as $controller)
+  {
+    $contents = file_get_contents($controller);
+    preg_match('/\'SF_APP\',[\s]*\'(.*)\'\)/', $contents, $found_app);
+    preg_match('/\'SF_ENVIRONMENT\',[\s]*\'(.*)\'\)/', $contents, $env);
+
+    // remove file if it has found an application and the environment is not production
+    if (isset($found_app[1]) && isset($env[1]) && $env[1] != 'prod')
+    {
+      pake_remove($controller, '');
+    }
+  }
 }
 
 /**
@@ -217,7 +217,7 @@ function run_rotate_log($task, $args)
     throw new Exception('You must provide the environment of the log to rotate');
   }
   $app = $args[0];
-	$env = $args[1];
+  $env = $args[1];
 
   // define constants
   define('SF_ROOT_DIR',    sfConfig::get('sf_root_dir'));
@@ -228,7 +228,7 @@ function run_rotate_log($task, $args)
   // get configuration
   require_once SF_ROOT_DIR.DIRECTORY_SEPARATOR.'apps'.DIRECTORY_SEPARATOR.SF_APP.DIRECTORY_SEPARATOR.'config'.DIRECTORY_SEPARATOR.'config.php';
 
-	sfLogManager::rotate($app, $env, sfConfig::get('sf_logging_period'), sfConfig::get('sf_logging_history'), true);
+  sfLogManager::rotate($app, $env, sfConfig::get('sf_logging_period'), sfConfig::get('sf_logging_history'), true);
 }
 
 /**
@@ -241,38 +241,41 @@ function run_rotate_log($task, $args)
  */
 function run_purge_logs($task, $args)
 {
-	$sf_symfony_data_dir = sfConfig::get('sf_symfony_data_dir');
+  $sf_symfony_data_dir = sfConfig::get('sf_symfony_data_dir');
   $sf_symfony_lib_dir = sfConfig::get('sf_symfony_lib_dir');
   require_once($sf_symfony_lib_dir.'/util/Spyc.class.php');
   require_once($sf_symfony_lib_dir.'/util/sfYaml.class.php');
   require_once($sf_symfony_lib_dir.'/util/sfToolkit.class.php');
-	
-	$default_logging = sfYaml::load($sf_symfony_data_dir.'/config/logging.yml');
-	$app_dir = sfConfig::get('sf_app_dir');
-	$apps = pakeFinder::type('dir')->maxdepth(0)->relative()->prune('.svn')->discard('.svn')->in('apps');
-	$ignore = array('all', 'default');
-		
-	foreach($apps as $app)
-	{
-		$logging = sfYaml::load($app_dir.'/'.$app.'/config/logging.yml');
-		$logging = array_merge($default_logging, $logging);
 
-		foreach($logging as $env => $config)
-		{
-			if(in_array($env, $ignore))
-				continue;
-			$props = array_merge($default_logging['default'], is_array($config) ? $config : array());
-			$active = isset($props['active']) ? $props['active'] : true;
-			$purge  = isset($props['purge']) ? $props['purge'] : true;
-			if($active && $purge)
-			{
-				$filename = sfConfig::get('sf_log_dir').'/'.$app.'_'.$env.'.log';
-				if(file_exists($filename))
-					pake_remove($filename);
-			}
-		}
-	}
-	
+  $default_logging = sfYaml::load($sf_symfony_data_dir.'/config/logging.yml');
+  $app_dir = sfConfig::get('sf_app_dir');
+  $apps = pakeFinder::type('dir')->maxdepth(0)->relative()->ignore_version_control()->in('apps');
+  $ignore = array('all', 'default');
+
+  foreach($apps as $app)
+  {
+    $logging = sfYaml::load($app_dir.'/'.$app.'/config/logging.yml');
+    $logging = array_merge($default_logging, $logging);
+
+    foreach($logging as $env => $config)
+    {
+      if (in_array($env, $ignore))
+      {
+        continue;
+      }
+      $props = array_merge($default_logging['default'], is_array($config) ? $config : array());
+      $active = isset($props['active']) ? $props['active'] : true;
+      $purge  = isset($props['purge']) ? $props['purge'] : true;
+      if ($active && $purge)
+      {
+        $filename = sfConfig::get('sf_log_dir').'/'.$app.'_'.$env.'.log';
+        if (file_exists($filename))
+        {
+          pake_remove($filename);
+        }
+      }
+    }
+  }
 }
 
 function run_enable($task, $args)
@@ -280,25 +283,25 @@ function run_enable($task, $args)
   // handling two required arguments (application and environment)
   if (count($args) < 2)
   {
-    throw new Exception('You must provide an environment for the application');
+    throw new Exception('You must provide an environment for the application.');
   }
+
   $app = $args[0];
-	$env = $args[1];
+  $env = $args[1];
 
   $lockFile = $app.'_'.$env.'.clilock';
+  $locks = pakeFinder::type('file')->prune('.svn')->discard('.svn')->maxdepth(0)->name($lockFile)->relative()->in('./');
 
-	$locks = pakeFinder::type('file')->prune('.svn')->discard('.svn')->maxdepth(0)->name($lockFile)->relative()->in('./');
-
-  $verbose = pakeApp::get_instance()->get_verbose();
-	
-  if(file_exists(sfConfig::get('sf_root_dir').'/'.$lockFile))
+  if (file_exists(sfConfig::get('sf_root_dir').'/'.$lockFile))
   {
-    pake_remove($lockFile); 
+    pake_remove($lockFile, '');
     run_clear_cache($task, array()); 
-	  if($verbose) echo ">> $app [$env] has been ENABLED\n";
-	  return;  
+    pake_echo_action('enable', "$app [$env] has been ENABLED");
+
+    return;
   }
-	if($verbose) echo ">> $app [$env] is currently ENABLED\n";  
+
+  pake_echo_action('enable', "$app [$env] is currently ENABLED");
 }
 
 function run_disable($task, $args)
@@ -306,25 +309,24 @@ function run_disable($task, $args)
   // handling two required arguments (application and environment)
   if (count($args) < 2)
   {
-    throw new Exception('You must provide an environment for the application');
+    throw new Exception('You must provide an environment for the application.');
   }
-  
+
   $app = $args[0];
-	$env = $args[1];
-  
+  $env = $args[1];
+
   $lockFile = $app.'_'.$env.'.clilock';
-  
-  $verbose = pakeApp::get_instance()->get_verbose();
 
   if(!file_exists(sfConfig::get('sf_root_dir').'/'.$lockFile))
   {
- 	  pake_touch(sfConfig::get('sf_root_dir').'/'.$lockFile, '777');
+    pake_touch(sfConfig::get('sf_root_dir').'/'.$lockFile, '777');
 
-  	if($verbose) echo ">> $app [$env] has been DISABLED\n"; 	  
+    pake_echo_action('enable', "$app [$env] has been DISABLED");
+
     return;
   }
-  
-  if($verbose) echo ">> $app [$env] is currently DISABLED\n"; 	  
+
+  pake_echo_action('enable', "$app [$env] is currently DISABLED");
+
   return;
 }
-

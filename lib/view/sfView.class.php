@@ -86,6 +86,7 @@ abstract class sfView
   private
     $context            = null,
     $decorator          = false,
+    $configurable       = true,
     $decoratorDirectory = null,
     $decoratorTemplate  = null,
     $directory          = null,
@@ -98,6 +99,7 @@ abstract class sfView
     $attribute_holder   = null,
     $parameter_holder   = null,
     $moduleName         = '',
+    $actionName         = '',
     $viewName           = '',
     $extension          = '.php';
 
@@ -183,7 +185,7 @@ abstract class sfView
    */
   public function getEscaping()
   {
-    return $this->escaping;
+    return null === $this->escaping ? sfConfig::get('sf_escaping_strategy') : $this->escaping;
   }
 
   /**
@@ -198,17 +200,19 @@ abstract class sfView
    */
   public function getEscapingMethod()
   {
-    if (empty($this->escapingMethod))
+    $method = null === $this->escapingMethod ? sfConfig::get('sf_escaping_method') : $this->escapingMethod;
+
+    if (empty($method))
     {
-      return $this->escapingMethod;
+      return $method;
     }
 
-    if (!defined($this->escapingMethod))
+    if (!defined($method))
     {
-      throw new sfException(sprintf('Escaping method "%s" is not available; perhaps another helper needs to be loaded in?', $this->escapingMethod));
+      throw new sfException(sprintf('Escaping method "%s" is not available; perhaps another helper needs to be loaded in?', $method));
     }
 
-    return constant($this->escapingMethod);
+    return constant($method);
   }
 
   /**
@@ -310,13 +314,20 @@ abstract class sfView
    *
    * @param Context The current application context.
    * @param string The module name for this view.
+   * @param string The action name for this view.
    * @param string The view name.
    *
    * @return bool true, if initialization completes successfully, otherwise false.
    */
-  public function initialize ($context, $moduleName, $viewName)
+  public function initialize ($context, $moduleName, $actionName, $viewName)
   {
+    if (sfConfig::get('sf_logging_active'))
+    {
+      $context->getLogger()->info(sprintf('{sfPHPView} initialize view for "%s/%s"', $moduleName, $actionName));
+    }
+
     $this->moduleName = $moduleName;
+    $this->actionName = $actionName;
     $this->viewName   = $viewName;
 
     $this->context = $context;
@@ -329,8 +340,21 @@ abstract class sfView
     $this->decoratorDirectory = sfConfig::get('sf_app_module_dir').'/'.$moduleName.'/'.sfConfig::get('sf_app_module_template_dir_name');
     $this->directory          = $this->decoratorDirectory;
 
+    // store our current view
+    $actionStackEntry = $context->getController()->getActionStack()->getLastEntry();
+    if (!$actionStackEntry->getViewInstance())
+    {
+      $actionStackEntry->setViewInstance($this);
+    }
+
     // include view configuration
-    $this->configure();
+    if ($this->isConfigurable())
+    {
+      $this->configure();
+    }
+
+    // set template directory
+    $this->setDirectory(sfLoader::getTemplateDir($this->directory, $moduleName, $this->getTemplate()));
 
     return true;
   }
@@ -413,10 +437,7 @@ abstract class sfView
     if (!is_readable($template))
     {
       // the template isn't readable
-      $error = 'The template "%s" does not exist or is unreadable';
-      $error = sprintf($error, $template);
-
-      throw new sfRenderException($error);
+      throw new sfRenderException(sprintf('The template "%s" does not exist in: %s', $template, $this->directory));
     }
 
     // check to see if this is a decorator template
@@ -446,7 +467,7 @@ abstract class sfView
    * @return string A string representing the rendered presentation, if
    *                the controller render mode is sfView::RENDER_VAR, otherwise null.
    */
-  abstract function & render ($templateVars = null);
+  abstract function render ($templateVars = null);
 
   /**
    * Set the decorator template directory for this view.
@@ -494,7 +515,7 @@ abstract class sfView
 
     if (!strpos($this->decoratorTemplate, '.')) 
     {
-      $this->decoratorTemplate .= $this->extension;
+      $this->decoratorTemplate .= $this->getExtension();
     }
 
     // set decorator status
@@ -578,5 +599,30 @@ abstract class sfView
     {
       $this->template = $template;
     }
+  }
+
+  /**
+   * Indicates that this view is configurable.
+   *
+   * @return bool true, if this view is configurable, otherwise false.
+   */
+  public function isConfigurable ()
+  {
+    return $this->configurable;
+  }
+
+  public function setConfigurable ($boolean)
+  {
+    $this->configurable = (boolean) $boolean;
+  }
+
+  public function getExtension ()
+  {
+    return $this->extension;
+  }
+
+  public function setExtension ($ext)
+  {
+    $this->extension = $ext;
   }
 }

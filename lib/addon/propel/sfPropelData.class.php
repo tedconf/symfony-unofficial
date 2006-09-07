@@ -20,8 +20,16 @@ class sfPropelData
   private
     $deleteCurrentData = true,
     $maps              = array(),
-    $object_references = array();
+    $object_references = array(),
+    $params            = array(),
+    $format            = 'yml';
 
+  public function __construct($format = null, $params = null)
+  {
+    if($format) $this->format = $format;
+    if($params) $this->params = $params;
+  }
+     
   public function setDeleteCurrentData($boolean)
   {
     $this->deleteCurrentData = $boolean;
@@ -57,9 +65,8 @@ class sfPropelData
   }
 
   protected function doLoadDataFromFile($fixture_file)
-  {
-    // import new datas
-    $main_datas = sfYaml::load($fixture_file);
+  { 
+    $main_datas = $this->loadDataByFormat($fixture_file);
 
     if ($main_datas === null)
     {
@@ -147,6 +154,7 @@ class sfPropelData
     sort($fixture_files);
     foreach ($fixture_files as $fixture_file)
     {
+      
       $this->doLoadDataFromFile($fixture_file);
     }
   }
@@ -159,7 +167,7 @@ class sfPropelData
       rsort($fixture_files);
       foreach ($fixture_files as $fixture_file)
       {
-        $main_datas = sfYaml::load($fixture_file);
+        $main_datas = $this->loadDataByFormat($fixture_file);
 
         if ($main_datas === null)
         {
@@ -173,7 +181,12 @@ class sfPropelData
         {
           $peer_class = trim($class.'Peer');
 
-          require_once(sfConfig::get('sf_model_lib_dir').'/'.$peer_class.'.php');
+          if (!$classPath = Symfony::getClassPath($peer_class))
+          {
+            throw new sfException(sprintf('Unable to find path for class "%s".', $peer_class));
+          }
+
+          require_once($classPath);
 
           call_user_func(array($peer_class, 'doDeleteAll'));
         }
@@ -196,7 +209,7 @@ class sfPropelData
     }
     else if (is_dir($directory_or_file))
     {
-      $fixture_files = sfFinder::type('file')->name('*.yml')->in($directory_or_file);
+      $fixture_files = sfFinder::type('file')->name('*.'.$this->format)->in($directory_or_file);
     }
     else
     {
@@ -211,7 +224,12 @@ class sfPropelData
     $class_map_builder = $class.'MapBuilder';
     if (!isset($this->maps[$class]))
     {
-      require_once(sfConfig::get('sf_model_lib_dir').'/map/'.$class_map_builder.'.php');
+      if (!$classPath = Symfony::getClassPath($class_map_builder))
+      {
+        throw new sfException(sprintf('Unable to find path for class "%s".', $class_map_builder));
+      }
+
+      require_once($classPath);
       $this->maps[$class] = new $class_map_builder();
       $this->maps[$class]->doBuild();
     }
@@ -226,8 +244,42 @@ class sfPropelData
    */
   public function dumpData($directory_or_file = null, $tables = 'all', $connectionName = 'propel')
   {
+    $this->dumpDataByFormat($directory_or_file, $tables, $connectionName);
+  }
+  
+  private function loadDataByFormat($fixture_file)
+  {
+     // import new datas depending on format
+    $loadFormat = 'load'.ucfirst($this->format);
+
+    if(!method_exists($this, $loadFormat))
+      throw new sfException('PropelData doesn\'t support the requested file format');
+    
+    $main_datas = $this->$loadFormat($fixture_file); 
+    return $main_datas;  
+  }
+
+  private function dumpDataByFormat($directory_or_file, $tables, $connectionName)
+  {
+     // import new datas depending on format
+    $dumpFormat = 'dump'.ucfirst($this->format);
+
+    if(!method_exists($this, $dumpFormat))
+      throw new sfException('PropelData doesn\'t support the requested file format');
+    
+    $this->$dumpFormat($directory_or_file, $tables, $connectionName);    
+  }
+
+  private function loadYml($file)
+  {
+    return sfYaml::load($file);
+  }
+
+  private function dumpYml($file, $data)
+  {
+
     $sameFile = true;
-    if (is_dir($directory_or_file) && 'all' === $tables ||  (is_array($tables) && 1 < count($tables)))
+    if (is_dir($directory_or_file))
     {
       // multi files
       $sameFile = false;
@@ -296,16 +348,122 @@ class sfPropelData
     // save to file(s)
     if ($sameFile)
     {
-      $yaml = Spyc::YAMLDump($dumpData);
-      file_put_contents($directory_or_file, $yaml);
+        $yaml = Spyc::YAMLDump($data);
+        file_put_contents($directory_or_file, $yaml);
     }
     else
     {
       foreach ($dumpData as $table => $data)
       {
         $yaml = Spyc::YAMLDump($data);
-        file_put_contents($directory_or_file."/$table.yml", $yaml);
+        file_put_contents($directory_or_file."/$table.{$this->format}", $yaml);
       }
     }
+  }
+
+  private function loadCsv($file)
+  {
+    $main_datas = array();
+    $maxRows = isset($this->params['maxRows']) ? $this->params['maxRows'] : null;
+    $data = sfCsv::load($file, $useHeaders = true, $usePrimaryKey = true, $maxRows);
+    
+    // add name class form file name
+    $class = ucfirst(basename($file, '.csv'));
+    $main_datas[$class] = $data;
+    return $main_datas;
+  }
+
+  private function dumpCsv($file, $data)
+  {
+
+    $sameFile = true;
+    if (is_dir($directory_or_file) && 'all' === $tables ||  (is_array($tables) && 1 < count($tables)))
+    {
+      // multi files
+      $sameFile = false;
+    }
+    else
+    {
+      // same file
+      // delete file
+    }
+
+    $con = sfContext::getInstance()->getDatabaseConnection($connectionName);
+
+    // get tables
+    if ('all' === $tables || null === $tables)
+    {
+      $tables = sfFinder::type('file')->name('/(?<!Peer)\.php$/')->maxdepth(0)->in(sfConfig::get('sf_model_lib_dir'));
+      foreach ($tables as &$table)
+      {
+        $table = basename($table, '.php');
+      }
+    }
+    else if (!is_array($tables))
+    {
+      $tables = array($tables);
+    }
+
+    $dumpData = array();
+
+    // load map classes
+    array_walk($tables, array($this, 'loadMapBuilder'));
+
+    foreach ($tables as $table)
+    {
+      $tableMap = $this->maps[$table]->getDatabaseMap()->getTable(constant($table.'Peer::TABLE_NAME'));
+
+      // get db info
+      $rs = $con->executeQuery('SELECT * FROM '.constant($table.'Peer::TABLE_NAME'));
+
+      $dumpData[$table] = array();
+
+      while ($rs->next()) {
+        foreach ($tableMap->getColumns() as $column)
+        {
+          $col = strtolower($column->getColumnName());
+
+          if ($column->isPrimaryKey())
+          {
+            $pk .= '_' .$rs->get($col);
+            continue;
+          }
+          else if ($column->isForeignKey())
+          {
+            $relatedTable = $this->maps[$table]->getDatabaseMap()->getTable($column->getRelatedTableName());
+
+            $dumpData[$table][$table.$pk][$col] = $relatedTable->getPhpName().'_'.$rs->get($col);
+          }
+          else
+          {
+            $dumpData[$table][$table.$pk][$col] = $rs->get($col);
+          }
+        } // foreach
+      } // while
+    }
+
+    // save to file(s)
+    if ($sameFile)
+    {
+        $delimiter = isset($this->params['delimiter']) ? $this->params['delimiter'] : ',';
+        $enclosure = isset($this->params['enclosure']) ? $this->params['enclosure'] : "\"";
+        $csv = sfCsv::dump($data, $delimiter, $enclosure);
+        file_put_contents($directory_or_file,   $csv);
+    }
+    else
+    {
+      foreach ($dumpData as $table => $data)
+      {
+        $delimiter = isset($this->params['delimiter']) ? $this->params['delimiter'] : ',';
+        $enclosure = isset($this->params['enclosure']) ? $this->params['enclosure'] : "\"";
+        $csv = sfCsv::dump($data, $delimiter, $enclosure);
+        file_put_contents($directory_or_file."/$table.{$this->format}",   $csv);
+      }
+    }
+
+    $delimiter = isset($this->params['delimiter']) ? $this->params['delimiter'] : ',';
+    $enclosure = isset($this->params['enclosure']) ? $this->params['enclosure'] : "\"";
+    $csv = sfCsv::dump($data, $delimiter, $enclosure);
+    file_put_contents($file,   $csv);
   }
 }

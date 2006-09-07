@@ -18,14 +18,10 @@
  * @package    symfony
  * @subpackage view
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
- * @copyright  2004-2005 Fabien Potencier <fabien.potencier@symfony-project.com>
  * @version    SVN: $Id$
  */
 class sfViewCacheManager
 {
-  const
-    CURRENT_URI         = 1;
-
   private
     $cache              = null,
     $cacheConfig        = array(),
@@ -232,7 +228,7 @@ class sfViewCacheManager
   protected function ignore()
   {
     // ignore cache parameter? (only available in debug mode)
-    if (sfConfig::get('sf_debug') && $this->getContext()->getRequest()->getParameter('sf_ignore_cache', false, 'symfony/request/sfWebRequest') == true)
+    if (sfConfig::get('sf_debug') && $this->getContext()->getRequest()->getParameter('_sf_ignore_cache', false, 'symfony/request/sfWebRequest') == true)
     {
       if (sfConfig::get('sf_logging_active'))
       {
@@ -316,7 +312,11 @@ class sfViewCacheManager
 
   public function clean($namespace = null, $mode = 'all')
   {
-    $this->cache->clean($namespace, $mode);
+    try
+    {
+      $this->cache->clean($namespace, $mode);
+    }
+    catch (sfCacheException $e) {}
   }
 
   public function lastModified($internalUri, $suffix = 'slot')

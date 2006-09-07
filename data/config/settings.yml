@@ -51,7 +51,7 @@ default:
     cache:                  off
     default_cache_lifetime: 86400
 
-    no_script_name:         on
+    no_script_name:         off
 
     # E_COMPILE_ERROR | E_ERROR | E_CORE_ERROR | E_USER_ERROR = 337
     error_reporting:        337
@@ -74,3 +74,8 @@ default:
     validation_error_id_prefix: error_for_
 
     autoloading_functions: ~
+
+    charset: utf-8
+
+    escaping_strategy: bc
+    escaping_method:   ESC_ENTITIES

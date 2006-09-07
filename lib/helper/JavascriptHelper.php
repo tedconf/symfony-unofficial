@@ -109,6 +109,18 @@
 
     return tag('input', $html_options);
   }
+  
+  /**
+   * Returns an html button to a remote action defined by 'url' (using the
+   * 'url_for()' format) that's called in the background using XMLHttpRequest.
+   *
+   * See link_to_remote() for details.
+   *
+   */
+  function button_to_remote($name, $options = array(), $html_options = array())
+  {
+    return button_to_function($name, remote_function($options), $html_options);
+  }
 
   /**
    * Returns a link to a remote action defined by 'url'
@@ -264,23 +276,22 @@
    *  Returns a button input tag that will submit form using XMLHttpRequest in the background instead of regular
    *  reloading POST arrangement. The '$options' argument is the same as in 'form_remote_tag()'.
    */
-  function submit_to_remote($name, $value, $options = array())
+  function submit_to_remote($name, $value, $options = array(), $options_html = array())
   {
+    $options = _parse_attributes($options);
+    $options_html = _parse_attributes($options_html);
+
     if (!isset($options['with']))
     {
       $options['with'] = 'Form.serialize(this.form)';
     }
 
-    if (!isset($options['html']))
-    {
-      $options['html'] = array();
-    }
-    $options['html']['type'] = 'button';
-    $options['html']['onclick'] = remote_function($options).'; return false;';
-    $options['html']['name'] = $name;
-    $options['html']['value'] = $value;
+    $options_html['type'] = 'button';
+    $options_html['onclick'] = remote_function($options).'; return false;';
+    $options_html['name'] = $name;
+    $options_html['value'] = $value;
 
-    return tag('input', $options['html'], false);
+    return tag('input', $options_html, false);
   }
 
   /**

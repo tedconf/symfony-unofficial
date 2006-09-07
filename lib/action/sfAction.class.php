@@ -22,7 +22,8 @@ abstract class sfAction extends sfComponent
 {
   private
     $security = array(),
-    $template = '';
+    $template = null,
+    $layout   = null;
 
   /**
    * Gets current module name
@@ -160,7 +161,7 @@ abstract class sfAction extends sfComponent
    *
    * @param  string module name
    * @param  string action name
-   * @return sfView::NONE
+   * @throws sfActionStopException always
    */
   public function forward ($module, $action)
   {
@@ -184,7 +185,7 @@ abstract class sfAction extends sfComponent
    * @param  bool   A condition that evaluates to true or false.
    * @param  string module name
    * @param  string action name
-   * @return sfView::NONE
+   * @throws sfActionStopException always
    */
   public function forwardIf ($condition, $module, $action)
   {
@@ -207,7 +208,7 @@ abstract class sfAction extends sfComponent
    * @param  bool   A condition that evaluates to true or false.
    * @param  string module name
    * @param  string action name
-   * @return sfView::NONE
+   * @throws sfActionStopException always
    */
   public function forwardUnless ($condition, $module, $action)
   {
@@ -299,11 +300,11 @@ abstract class sfAction extends sfComponent
    * <code>return $this->redirect('/ModuleName/ActionName')</code>
    *
    * @param  string url
-   * @return sfView::NONE
+   * @throws sfActionStopException always
    */
   public function redirect($url)
   {
-    $url = $this->getController()->genUrl($url);
+    $url = $this->getController()->genUrl($url, true);
 
     if (sfConfig::get('sf_logging_active')) $this->getContext()->getLogger()->info('{sfAction} redirect to "'.$url.'"');
 
@@ -323,7 +324,7 @@ abstract class sfAction extends sfComponent
    *
    * @param  bool   A condition that evaluates to true or false.
    * @param  string url
-   * @return sfView::NONE
+   * @throws sfActionStopException always
    */
   public function redirectIf ($condition, $url)
   {
@@ -344,7 +345,7 @@ abstract class sfAction extends sfComponent
    *
    * @param  bool   A condition that evaluates to true or false.
    * @param  string url
-   * @return sfView::NONE
+   * @throws sfActionStopException always
    */
   public function redirectUnless ($condition, $url)
   {
@@ -441,7 +442,6 @@ abstract class sfAction extends sfComponent
   /**
    * Indicates that this action requires security.
    *
-   * @param  string action name (defaults to the current action)
    * @return bool true, if this action requires security, otherwise false.
    */
   public function isSecure()
@@ -462,7 +462,6 @@ abstract class sfAction extends sfComponent
   /**
    * Gets credentials the user must have to access this action.
    *
-   * @param  string action name (defaults to the current action)
    * @return mixed
    */
   public function getCredential()
@@ -500,6 +499,9 @@ abstract class sfAction extends sfComponent
   /**
    * Gets the name of the alternate template for this Action.
    *
+   * WARNING: It only returns the template you set with the setTemplate() method,
+   *          and does not return the template that you configured in your view.yml.
+   *
    * See 'Naming Conventions' in the 'Symfony View' documentation.
    *
    * @return string
@@ -507,5 +509,34 @@ abstract class sfAction extends sfComponent
   public function getTemplate()
   {
     return $this->template;
+  }
+
+  /**
+   * Sets an alternate layout for this Component.
+   *
+   * To de-activate the layout, set the template name to false.
+   *
+   * To revert the layout to the one configured in the view.yml, set the template name to null.
+   *
+   * @param string layout name
+   */
+  public function setLayout($name)
+  {
+    if (sfConfig::get('sf_logging_active')) $this->getContext()->getLogger()->info('{sfAction} change layout to "'.$name.'"');
+
+    $this->layout = $name;
+  }
+
+  /**
+   * Gets the name of the alternate layout for this Component.
+   *
+   * WARNING: It only returns the layout you set with the setLayout() method,
+   *          and does not return the layout that you configured in your view.yml.
+   *
+   * @return string
+   */
+  public function getLayout()
+  {
+    return $this->layout;
   }
 }
