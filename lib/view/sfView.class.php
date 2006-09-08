@@ -54,16 +54,6 @@ abstract class sfView
   const HEADER_ONLY = 'Headers';
 
   /**
-   * Render a partial template.
-   */
-  const PARTIAL = 'Partial';
-
-  /**
-   * Render a global partial template.
-   */
-  const GLOBAL_PARTIAL = 'GlobalPartial';
-
-  /**
    * Render the presentation to the client.
    */
   const RENDER_CLIENT = 2;
@@ -77,11 +67,6 @@ abstract class sfView
    * Render the presentation to a variable.
    */
   const RENDER_VAR = 4;
-
-  /**
-   * Render the presentation from cache.
-   */
-  const RENDER_CACHE = 8;
 
   private
     $context            = null,
@@ -184,7 +169,7 @@ abstract class sfView
    */
   public function getEscaping()
   {
-    return $this->escaping;
+    return null === $this->escaping ? sfConfig::get('sf_escaping_strategy') : $this->escaping;
   }
 
   /**
@@ -199,17 +184,19 @@ abstract class sfView
    */
   public function getEscapingMethod()
   {
-    if (empty($this->escapingMethod))
+    $method = null === $this->escapingMethod ? sfConfig::get('sf_escaping_method') : $this->escapingMethod;
+
+    if (empty($method))
     {
-      return $this->escapingMethod;
+      return $method;
     }
 
-    if (!defined($this->escapingMethod))
+    if (!defined($method))
     {
-      throw new sfException(sprintf('Escaping method "%s" is not available; perhaps another helper needs to be loaded in?', $this->escapingMethod));
+      throw new sfException(sprintf('Escaping method "%s" is not available; perhaps another helper needs to be loaded in?', $method));
     }
 
-    return constant($this->escapingMethod);
+    return constant($method);
   }
 
   /**
@@ -318,6 +305,11 @@ abstract class sfView
    */
   public function initialize ($context, $moduleName, $actionName, $viewName)
   {
+    if (sfConfig::get('sf_logging_active'))
+    {
+      $context->getLogger()->info(sprintf('{sfView} initialize view for "%s/%s"', $moduleName, $actionName));
+    }
+
     $this->moduleName = $moduleName;
     $this->actionName = $actionName;
     $this->viewName   = $viewName;
@@ -329,11 +321,21 @@ abstract class sfView
     $this->parameter_holder->add(sfConfig::get('mod_'.strtolower($moduleName).'_view_param', array()));
 
     // set the currently executing module's template directory as the default template directory
-    $this->decoratorDirectory = sfConfig::get('sf_app_module_dir').'/'.$moduleName.'/'.sfConfig::get('sf_app_module_template_dir_name');
-    $this->directory          = $this->decoratorDirectory;
+    $this->directory = sfConfig::get('sf_app_module_dir').'/'.$moduleName.'/'.sfConfig::get('sf_app_module_template_dir_name');
+    $this->decoratorDirectory = sfConfig::get('sf_app_template_dir');
+
+    // store our current view
+    $actionStackEntry = $context->getController()->getActionStack()->getLastEntry();
+    if (!$actionStackEntry->getViewInstance())
+    {
+      $actionStackEntry->setViewInstance($this);
+    }
 
     // include view configuration
     $this->configure();
+
+    // set template directory
+    $this->setDirectory(sfLoader::getTemplateDir($this->directory, $moduleName, $this->getTemplate()));
 
     return true;
   }
@@ -416,10 +418,7 @@ abstract class sfView
     if (!is_readable($template))
     {
       // the template isn't readable
-      $error = 'The template "%s" does not exist or is unreadable';
-      $error = sprintf($error, $template);
-
-      throw new sfRenderException($error);
+      throw new sfRenderException(sprintf('The template "%s" does not exist in: %s', $template, $this->directory));
     }
 
     // check to see if this is a decorator template
@@ -497,7 +496,7 @@ abstract class sfView
 
     if (!strpos($this->decoratorTemplate, '.'))
     {
-      $this->decoratorTemplate .= $this->extension;
+      $this->decoratorTemplate .= $this->getExtension();
     }
 
     // set decorator status
@@ -581,5 +580,15 @@ abstract class sfView
     {
       $this->template = $template;
     }
+  }
+
+  public function getExtension ()
+  {
+    return $this->extension;
+  }
+
+  public function setExtension ($ext)
+  {
+    $this->extension = $ext;
   }
 }

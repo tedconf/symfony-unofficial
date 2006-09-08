@@ -95,12 +95,12 @@ class <?php echo $this->getGeneratedModuleName() ?>Actions extends sfActions
     try
     {
       $this->delete<?php echo $this->getClassName() ?>($this-><?php echo $this->getSingularName() ?>);
-      return $this->redirect('<?php echo $this->getSingularName() ?>/list');
+      return $this->redirect('<?php echo $this->getModuleName() ?>/list');
     }
     catch (PropelException $e)
     {
       $this->getRequest()->setError('delete', 'Could not delete the selected <?php echo sfInflector::humanize($this->getSingularName()) ?>. Make sure it does not have any associated items.');
-      return $this->forward('<?php echo $this->getSingularName() ?>', 'list');
+      return $this->forward('<?php echo $this->getModuleName() ?>', 'list');
     }
 
 <?php foreach ($this->getColumnCategories('edit.display') as $category): ?>
@@ -149,7 +149,7 @@ $through_class = isset($user_params['through_class']) ? $user_params['through_cl
 <?php if ($through_class): ?>
 <?php
 
-$class = $this->getSingularName();
+$class = $this->getClassName();
 $related_class = sfPropelManyToMany::getRelatedClass($class, $through_class);
 $related_table = constant($related_class.'Peer::TABLE_NAME');
 $middle_table = constant($through_class.'Peer::TABLE_NAME');

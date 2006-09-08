@@ -49,7 +49,7 @@ abstract class sfController
    */
   public function componentExists ($moduleName, $componentName)
   {
-    return $this->controllerExists($moduleName, $componentName, 'component');
+    return $this->controllerExists($moduleName, $componentName, 'component', false);
   }
 
   /**
@@ -62,23 +62,28 @@ abstract class sfController
    */
   public function actionExists ($moduleName, $actionName)
   {
-    return $this->controllerExists($moduleName, $actionName, 'action');
+    return $this->controllerExists($moduleName, $actionName, 'action', false);
   }
 
-  private function controllerExists ($moduleName, $controllerName, $extension)
+  /**
+   * Look for a controller and optionally throw exceptions if existence is required (i.e.
+   * in the case of {@link getController()}).
+   *
+   * @param string $moduleName the name of the module
+   * @param string $controllerName the name of the controller within the module
+   * @param string $extension either 'action' or 'component' depending on the type of
+   *               controller to look for
+   * @param boolean $throwExceptions whether to throw exceptions if the controller doesn't exist
+   *
+   * @throws sfConfigurationException thrown if the module is not activated
+   * @throws sfControllerException thrown if the controller doesn't exist and the $throwExceptions
+   *                               parameter is set to true
+   *
+   * @return boolean true if the controller exists; false otherwise
+   */
+  private function controllerExists ($moduleName, $controllerName, $extension, $throwExceptions)
   {
-    // all directories to look for modules
-    $dirs = array(
-      // application
-      sfConfig::get('sf_app_module_dir').'/'.$moduleName.'/'.sfConfig::get('sf_app_module_action_dir_name') => false,
-
-      // local plugin
-      sfConfig::get('sf_plugin_data_dir').'/modules/'.$moduleName.'/actions' => true,
-
-      // core modules or global plugins
-      sfConfig::get('sf_symfony_data_dir').'/modules/'.$moduleName.'/actions' => true,
-    );
-
+    $dirs = sfLoader::getControllerDirs($moduleName);
     foreach ($dirs as $dir => $checkActivated)
     {
       // plugin module activated?
@@ -109,15 +114,36 @@ abstract class sfController
         // module class exists
         require_once($module_file);
 
-        // action is defined in this class?
-        $defined = in_array('execute'.ucfirst($controllerName), get_class_methods($moduleName.$classSuffix.'s'));
-        if ($defined)
+        if (!class_exists($moduleName.$classSuffix.'s', false))
         {
-          $this->controllerClasses[$moduleName.'_'.$controllerName.'_'.$classSuffix] = $moduleName.$classSuffix.'s';
+          if ($throwExceptions)
+          {
+            throw new sfControllerException(sprintf('There is no "%s" class in your action file "%s".', $moduleName.$classSuffix.'s', $module_file));
+          }
+
+          return false;
         }
 
-        return $defined;
+        // action is defined in this class?
+        if (!in_array('execute'.ucfirst($controllerName), get_class_methods($moduleName.$classSuffix.'s')))
+        {
+          if ($throwExceptions)
+          {
+            throw new sfControllerException(sprintf('There is no "%s" method in your action class "%s"', 'execute'.ucfirst($controllerName), $moduleName.$classSuffix.'s'));
+          }
+
+          return false;
+        }
+
+        $this->controllerClasses[$moduleName.'_'.$controllerName.'_'.$classSuffix] = $moduleName.$classSuffix.'s';
+        return true;
       }
+    }
+
+    // send an exception if debug
+    if ($throwExceptions && sfConfig::get('sf_debug'))
+    {
+      throw new sfControllerException(sprintf('{sfController} controller "%s/%s" does not exist in: %s', $moduleName, $controllerName, implode(', ', array_keys($dirs))));
     }
 
     return false;
@@ -371,7 +397,7 @@ abstract class sfController
     $classSuffix = ucfirst(strtolower($extension));
     if (!isset($this->controllerClasses[$moduleName.'_'.$controllerName.'_'.$classSuffix]))
     {
-      $this->controllerExists($moduleName, $controllerName, $extension);
+      $this->controllerExists($moduleName, $controllerName, $extension, true);
     }
 
     $class = $this->controllerClasses[$moduleName.'_'.$controllerName.'_'.$classSuffix];

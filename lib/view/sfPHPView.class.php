@@ -70,28 +70,7 @@ class sfPHPView extends sfView
     $standard_helpers = sfConfig::get('sf_standard_helpers');
 
     $helpers = array_unique(array_merge($core_helpers, $standard_helpers));
-    $this->loadHelpers($helpers);
-  }
-
-  /**
-   * Loads all template helpers.
-   *
-   * helpers defined in templates (set with use_helper())
-   */
-  protected function loadHelpers($helpers)
-  {
-    $helper_base_dir = sfConfig::get('sf_symfony_lib_dir').'/helper/';
-    foreach ($helpers as $helperName)
-    {
-      if (is_readable($helper_base_dir.$helperName.'Helper.php'))
-      {
-        include_once($helper_base_dir.$helperName.'Helper.php');
-      }
-      else
-      {
-        include_once('helper/'.$helperName.'Helper.php');
-      }
-    }
+    sfLoader::loadHelpers($helpers);
   }
 
   protected function renderFile($_sfFile)
@@ -147,69 +126,12 @@ class sfPHPView extends sfView
 
   public function configure()
   {
-    $context          = $this->getContext();
-    $actionStackEntry = $context->getController()->getActionStack()->getLastEntry();
-
-    // store our current view
-    if (!$actionStackEntry->getViewInstance())
-    {
-      $actionStackEntry->setViewInstance($this);
-    }
-
-    // all directories to look for templates
-    $dirs = array(
-      // application
-      $this->getDirectory(),
-
-      // local plugin
-      sfConfig::get('sf_plugin_data_dir').'/modules/'.$this->moduleName.'/templates',
-
-      // core modules or global plugins
-      sfConfig::get('sf_symfony_data_dir').'/modules/'.$this->moduleName.'/templates',
-
-      // generated templates in cache
-      sfConfig::get('sf_module_cache_dir').'/auto'.ucfirst($this->moduleName).'/templates',
-    );
-
     // require our configuration
+    $context = $this->getContext();
+    $actionStackEntry = $context->getController()->getActionStack()->getLastEntry();
     $action = $actionStackEntry->getActionInstance();
     $viewConfigFile = $this->moduleName.'/'.sfConfig::get('sf_app_module_config_dir_name').'/view.yml';
     require(sfConfigCache::getInstance()->checkConfig(sfConfig::get('sf_app_module_dir_name').'/'.$viewConfigFile));
-
-    if (sfView::GLOBAL_PARTIAL == $this->viewName)
-    {
-      // global partial
-      $templateFile = $this->actionName.$this->extension;
-      $dirs = array(sfConfig::get('sf_app_template_dir'));
-    }
-    else if (sfView::PARTIAL == $this->viewName)
-    {
-      // partial
-      $templateFile = $this->actionName.$this->extension;
-    }
-    else
-    {
-      $templateFile = $this->actionName.$this->viewName.$this->extension;
-    }
-
-    // set template name
-    $this->setTemplate($templateFile);
-
-    // set template directory
-    foreach ($dirs as $dir)
-    {
-      if (is_readable($dir.'/'.$templateFile))
-      {
-        $this->setDirectory($dir);
-
-        break;
-      }
-    }
-
-    if (sfConfig::get('sf_logging_active'))
-    {
-      $context->getLogger()->info(sprintf('{sfPHPView} execute view for template "%s"', $templateFile));
-    }
   }
 
   /**

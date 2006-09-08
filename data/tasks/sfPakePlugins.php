@@ -12,112 +12,79 @@ pake_task('plugin-uninstall', 'project_exists');
 pake_desc('upgrade all plugins');
 pake_task('plugin-upgrade-all', 'project_exists');
 
-function _pear_get_method($args)
-{
-  if (!isset($args[0]))
-  {
-    throw new Exception('You must indicate where you want to install your plugin (local or global).');
-  }
-
-  $method = strtolower($args[0]);
-
-  if (!in_array($method, array('local', 'global')))
-  {
-    throw new Exception('You must indicate where you want to install your plugin (local or global).');
-  }
-
-  return $method;
-}
-
-// symfony plugin-install [local|global] pluginName
+// symfony plugin-install pluginName
 function run_plugin_install($task, $args)
 {
-  $method = _pear_get_method($args);
-
-  if (!isset($args[1]))
+  if (!isset($args[0]))
   {
     throw new Exception('You must provide the plugin name.');
   }
 
-  list($old_config, $config) = _pear_init($method);
+  $config = _pear_init();
 
   // install plugin
-  $packages = array($args[1]);
-  pake_echo_action('plugin', 'installing plugin "'.$args[1].'"');
-  $ret = _pear_run_command($config, 'install', array(), $packages);
+  $packages = array($args[0]);
+  pake_echo_action('plugin', 'installing plugin "'.$args[0].'"');
+  list($ret, $error) = _pear_run_command($config, 'install', array(), $packages);
 
-  _pear_restore_config($old_config);
-
-  if ($ret && !strpos($ret, 'not installed'))
+  if ($error)
   {
-    throw new Exception($ret);
+    throw new Exception($error);
   }
 }
 
 function run_plugin_upgrade($task, $args)
 {
-  $method = _pear_get_method($args);
-
-  if (!isset($args[1]))
+  if (!isset($args[0]))
   {
     throw new Exception('You must provide the plugin name.');
   }
 
-  list($old_config, $config) = _pear_init($method);
+  $config = _pear_init();
 
   // upgrade plugin
-  $packages = array($args[1]);
-  pake_echo_action('plugin', 'upgrading plugin "'.$args[1].'"');
-  $ret = _pear_run_command($config, 'upgrade', array('offline' => true), $packages);
+  $packages = array($args[0]);
+  pake_echo_action('plugin', 'upgrading plugin "'.$args[0].'"');
+  list($ret, $error) = _pear_run_command($config, 'upgrade', array('loose' => true, 'nodeps' => true), $packages);
 
-  _pear_restore_config($old_config);
-
-  if ($ret && !strpos($ret, 'not installed'))
+  if ($error)
   {
-    throw new Exception($ret);
+    throw new Exception($error);
   }
 }
 
 function run_plugin_uninstall($task, $args)
 {
-  $method = _pear_get_method($args);
-
-  if (!isset($args[1]))
+  if (!isset($args[0]))
   {
     throw new Exception('You must provide the plugin name.');
   }
 
-  list($old_config, $config) = _pear_init($method);
+  $config = _pear_init();
 
-  // install plugin
-  $packages = array($args[1]);
-  pake_echo_action('plugin', 'uninstalling plugin "'.$args[1].'"');
-  $ret = _pear_run_command($config, 'uninstall', array(), $packages);
+  // uninstall plugin
+  $packages = array($args[0]);
+  pake_echo_action('plugin', 'uninstalling plugin "'.$args[0].'"');
+  list($ret, $error) = _pear_run_command($config, 'uninstall', array(), $packages);
 
-  _pear_restore_config($old_config);
-
-  if ($ret)
+  if ($error)
   {
-    throw new Exception($ret);
+    throw new Exception($error);
   }
 }
 
 function run_plugin_upgrade_all($task, $args)
 {
-  $method = 'local';
-
-  list($old_config, $config) = _pear_init($method);
+  $config = _pear_init();
 
   // upgrade all plugins
   pake_echo_action('plugin', 'upgrading all plugins');
-  _pear_run_upgrade($config, sfConfig::get('sf_lib_dir').DIRECTORY_SEPARATOR.'plugins');
-
-  _pear_restore_config($old_config);
+  _pear_run_upgrade_all($config, sfConfig::get('sf_lib_dir').DIRECTORY_SEPARATOR.'plugins');
 }
 
 function _pear_run_command($config, $command, $opts, $params)
 {
-  ob_start();
+  ob_start('_pear_echo_message', 2);
   $cmd = PEAR_Command::factory($command, $config);
   $ret = ob_get_clean();
   if (PEAR::isError($cmd))
@@ -125,14 +92,30 @@ function _pear_run_command($config, $command, $opts, $params)
     throw new Exception($cmd->getMessage());
   }
 
-  ob_start();
+  ob_start('_pear_echo_message', 2);
   $ok   = $cmd->run($command, $opts, $params);
   $ret .= ob_get_clean();
 
-  return (PEAR::isError($ok) ? $ret.$ok->getMessage() : null);
+  $ret = trim($ret);
+
+  return PEAR::isError($ok) ? array($ret, $ok->getMessage()) : array($ret, null);
 }
 
-function _pear_run_upgrade($config, $install_dir)
+function _pear_echo_message($message)
+{
+  $t = '';
+  foreach (explode("\n", $message) as $line)
+  {
+    if ($line = trim($line))
+    {
+      $t .= pake_format_action('pear', $line);
+    }
+  }
+
+  return $t;
+}
+
+function _pear_run_upgrade_all($config, $install_dir)
 {
   $registry = new PEAR_Registry($install_dir);
   $remote = new PEAR_Remote($config);
@@ -157,7 +140,7 @@ function _pear_run_upgrade($config, $install_dir)
   }
 }
 
-function _pear_init($method = 'local')
+function _pear_init()
 {
   require_once 'PEAR.php';
   require_once 'PEAR/Frontend.php';
@@ -165,19 +148,6 @@ function _pear_init($method = 'local')
   require_once 'PEAR/Registry.php';
   require_once 'PEAR/Command.php';
   require_once 'PEAR/Remote.php';
-
-  $install_lib_dir  = sfConfig::get('sf_plugin_lib_dir');
-  $install_data_dir = sfConfig::get('sf_plugin_data_dir');
-
-  if (!is_dir($install_lib_dir))
-  {
-    pake_mkdirs($install_lib_dir);
-  }
-
-  if (!is_dir($install_data_dir))
-  {
-    pake_mkdirs($install_data_dir);
-  }
 
   // current symfony release
   if (is_readable('lib/symfony'))
@@ -196,73 +166,80 @@ function _pear_init($method = 'local')
   // PEAR
   PEAR_Command::setFrontendType('CLI');
   $ui = &PEAR_Command::getFrontendObject();
-  $config = &PEAR_Config::singleton();
-  $old_config = array();
-  if ($method == 'local')
-  {
-    // save PEAR configuration
-    $old_config = array(
-      'php_dir'  => $config->get('php_dir'),
-      'data_dir' => $config->get('data_dir'),
-      'bin_dir'  => $config->get('bin_dir'),
-      'test_dir' => $config->get('test_dir'),
-      'doc_dir'  => $config->get('doc_dir'),
-    );
 
-    // change PEAR configuration
-    $config->set('php_dir',  $install_lib_dir);
-    $config->set('data_dir', $install_data_dir);
-    $config->set('bin_dir',  sfConfig::get('sf_bin_dir'));
-    $config->set('test_dir', sfConfig::get('sf_test_dir'));
-    $config->set('doc_dir',  sfConfig::get('sf_doc_dir'));
-  }
+  // read user/system configuration (don't use the singleton)
+  $config = new PEAR_Config();
+  $config_file = sfConfig::get('sf_plugins_dir').DIRECTORY_SEPARATOR.'.pearrc';
+
+  // change the configuration for symfony use
+  $config->set('php_dir',  sfConfig::get('sf_root_dir').'/plugins');
+  $config->set('data_dir', sfConfig::get('sf_root_dir').'/plugins');
+  $config->set('test_dir', sfConfig::get('sf_root_dir').'/plugins');
+  $config->set('doc_dir',  sfConfig::get('sf_root_dir').'/plugins');
+  $config->set('bin_dir',  sfConfig::get('sf_root_dir').'/plugins');
+
+  // save out configuration file
+  $config->writeConfigFile($config_file, 'user');
+
+  // use our configuration file
+  $config = &PEAR_Config::singleton($config_file);
+
   $config->set('verbose', 1);
   $ui->setConfig($config);
 
-  // for local installation
-  if ($method == 'local')
-  {
-    // register our channel
-    $ret = _pear_run_command($config, 'channel-discover', array(), array('pear.symfony-project.com'));
-    if ($ret && !strpos($ret, 'already initialized'))
-    {
-      throw new Exception($ret);
-    }
+  date_default_timezone_set('UTC');
 
-    // fake symfony registration for dependencies to work locally
-    $symfony = array(
-      'name'          => 'symfony',
-      'channel'       => 'pear.symfony-project.com',
-      'date'          => '2005-12-10',
-      'time'          => '23:34:49',
-      'version'       => $sf_version,
-      'stability'     => array('release' => 'stable', 'api' => 'stable'),
-      'xsdversion'    => '2.0',
-      '_lastmodified' => time(),
-    );
-    file_put_contents($install_lib_dir.DIRECTORY_SEPARATOR.'.registry'.DIRECTORY_SEPARATOR.'.channel.pear.symfony-project.com'.DIRECTORY_SEPARATOR.'symfony.reg', serialize($symfony));
-  }
+  // register our channel
+  $symfony_channel = array(
+    'attribs' => array(
+      'version' => '1.0',
+      'xmlns' => 'http://pear.php.net/channel-1.0',
+      'xmlns:xsi' => 'http://www.w3.org/2001/XMLSchema-instance',
+      'xsi:schemaLocation' => 'http://pear.php.net/dtd/channel-1.0 http://pear.php.net/dtd/channel-1.0.xsd',
+    ),
 
-  return array($old_config, $config);
-}
+    'name' => 'pear.symfony-project.com',
+    'summary' => 'symfony project PEAR channel',
+    'suggestedalias' => 'symfony',
+    'servers' => array(
+      'primary' => array(
+        'rest' => array(
+          'baseurl' => array(
+            array(
+              'attribs' => array('type' => 'REST1.0'),
+              '_content' => 'http://pear.symfony-project.com/Chiara_PEAR_Server_REST/',
+            ),
+            array(
+              'attribs' => array('type' => 'REST1.1'),
+              '_content' => 'http://pear.symfony-project.com/Chiara_PEAR_Server_REST/',
+            ),
+          ),
+        ),
+      ),
+    ),
+    '_lastmodified' => array(
+      'ETag' => "113845-297-dc93f000",
+      'Last-Modified' => date('r'),
+    ),
+  );
+  pake_mkdirs(sfConfig::get('sf_plugins_dir').'/.channels/.alias');
+  file_put_contents(sfConfig::get('sf_plugins_dir').'/.channels/pear.symfony-project.com.reg', serialize($symfony_channel));
+  file_put_contents(sfConfig::get('sf_plugins_dir').'/.channels/.alias/symfony.txt', 'pear.symfony-project.com');
 
-function _pear_restore_config($old_config)
-{
-  if (!count($old_config))
-  {
-    return;
-  }
+  // register symfony for dependencies
+  $symfony = array(
+    'name'          => 'symfony',
+    'channel'       => 'pear.symfony-project.com',
+    'date'          => date('Y-m-d'),
+    'time'          => date('H:i:s'),
+    'version'       => $sf_version,
+    'stability'     => array('release' => 'stable', 'api' => 'stable'),
+    'xsdversion'    => '2.0',
+    '_lastmodified' => time(),
+  );
+  $dir = sfConfig::get('sf_plugins_dir').DIRECTORY_SEPARATOR.'.registry'.DIRECTORY_SEPARATOR.'.channel.pear.symfony-project.com';
+  pake_mkdirs($dir);
+  file_put_contents($dir.DIRECTORY_SEPARATOR.'symfony.reg', serialize($symfony));
 
-  PEAR_Command::setFrontendType('CLI');
-  $ui = &PEAR_Command::getFrontendObject();
-  $config = &PEAR_Config::singleton();
-
-  // restore PEAR configuration
-  $config->set('php_dir',  $old_config['php_dir']);
-  $config->set('data_dir', $old_config['data_dir']);
-  $config->set('bin_dir',  $old_config['bin_dir']);
-  $config->set('test_dir', $old_config['test_dir']);
-  $config->set('doc_dir',  $old_config['doc_dir']);
-
-  $ui->setConfig($config);
+  return $config;
 }

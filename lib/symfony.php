@@ -38,6 +38,7 @@ if (!sfConfig::get('sf_in_bootstrap'))
   require_once($sf_symfony_lib_dir.'/config/sfYamlConfigHandler.class.php');
   require_once($sf_symfony_lib_dir.'/config/sfAutoloadConfigHandler.class.php');
   require_once($sf_symfony_lib_dir.'/config/sfRootConfigHandler.class.php');
+  require_once($sf_symfony_lib_dir.'/config/sfLoader.class.php');
 
   // basic exception classes
   require_once($sf_symfony_lib_dir.'/exception/sfException.class.php');
@@ -48,6 +49,8 @@ if (!sfConfig::get('sf_in_bootstrap'))
 
   // utils
   require_once($sf_symfony_lib_dir.'/util/sfParameterHolder.class.php');
+  require_once($sf_symfony_lib_dir.'/util/sfTimerManager.class.php');
+  require_once($sf_symfony_lib_dir.'/util/sfTimer.class.php');
 }
 else
 {
@@ -56,47 +59,54 @@ else
 
 final class Symfony
 {
-  protected static $loaded = false;
+  protected static $classes = array();
+
+  public static function getClassPath($class)
+  {
+    return isset(self::$classes[$class]) ? self::$classes[$class] : null;
+  }
 
   public static function __autoload($class)
   {
-    if (false === self::$loaded)
+    // load the list of autoload classes
+    if (!self::$classes)
     {
-      // load the list of autoload classes
-      include_once(sfConfigCache::getInstance()->checkConfig(sfConfig::get('sf_app_config_dir_name').'/autoload.yml'));
-
-      self::$loaded = true;
+      $file = sfConfigCache::getInstance()->checkConfig(sfConfig::get('sf_app_config_dir_name').'/autoload.yml');
+      self::$classes = include($file);
     }
 
-    $classes = sfConfig::get('sf_class_autoload', array());
-    if (!isset($classes[$class]))
+    // class already exists
+    if (class_exists($class, false))
     {
-      if (sfContext::hasInstance())
-      {
-        // see if the file exists in the current module lib directory
-        // must be in a module context
-        $current_module = sfContext::getInstance()->getModuleName();
-        if ($current_module)
-        {
-          $module_lib = sfConfig::get('sf_app_module_dir').'/'.$current_module.'/'.sfConfig::get('sf_app_module_lib_dir_name').'/'.$class.'.class.php';
-          if (is_readable($module_lib))
-          {
-            require_once($module_lib);
-
-            return true;
-          }
-        }
-      }
-
-      return false;
+      return true;
     }
-    else
+
+    // we have a class path, let's include it
+    if (isset(self::$classes[$class]))
     {
-      // class exists, let's include it
-      require_once($classes[$class]);
+      require(self::$classes[$class]);
 
       return true;
     }
+
+    // see if the file exists in the current module lib directory
+    // must be in a module context
+    if (sfContext::hasInstance())
+    {
+      $current_module = sfContext::getInstance()->getModuleName();
+      if ($current_module)
+      {
+        $module_lib = sfConfig::get('sf_app_module_dir').'/'.$current_module.'/'.sfConfig::get('sf_app_module_lib_dir_name').'/'.$class.'.class.php';
+        if (is_readable($module_lib))
+        {
+          require($module_lib);
+
+          return true;
+        }
+      }
+    }
+
+    return false;
   }
 }
 

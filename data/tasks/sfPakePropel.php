@@ -42,7 +42,8 @@ function run_propel_convert_xml_schema($task, $args)
 
 function _propel_convert_yml_schema($check_schema = true, $prefix = '')
 {
-  $schemas = pakeFinder::type('file')->name('*schema.yml')->relative()->in('config');
+  $finder = pakeFinder::type('file')->name('*schema.yml');
+  $schemas = $finder->in(array_merge(array('config'), glob(sfConfig::get('sf_root_dir').'/plugins/*/config')));
   if ($check_schema && !count($schemas))
   {
     throw new Exception('You must create a schema.yml file.');
@@ -59,17 +60,28 @@ function _propel_convert_yml_schema($check_schema = true, $prefix = '')
   $db_schema = new sfPropelDatabaseSchema();
   foreach ($schemas as $schema)
   {
-    $db_schema->loadYAML('config/'.$schema);
+    $db_schema->loadYAML($schema);
 
     pake_echo_action('schema', 'converting "'.$schema.'"'.' to XML');
 
-    file_put_contents('config/'.$prefix.str_replace('.yml', '.xml', $schema), $db_schema->asXML());
+    // change prefix for plugins
+    if (preg_match('#plugins[/\\\\]([^/\\\\]+)[/\\\\]#', $schema, $match))
+    {
+      $localprefix = $prefix.$match[1].'-';
+    }
+    else
+    {
+      $localprefix = $prefix;
+    }
+
+    file_put_contents('config'.DIRECTORY_SEPARATOR.$localprefix.str_replace('.yml', '.xml', basename($schema)), $db_schema->asXML());
   }
 }
 
 function _propel_convert_xml_schema($check_schema = true, $prefix = '')
 {
-  $schemas = pakeFinder::type('file')->name('*schema.xml')->relative()->in('config');
+  $finder = pakeFinder::type('file')->name('*schema.xml');
+  $schemas = array_merge($finder->in('config'), $finder->in('data/plugins'));
   if ($check_schema && !count($schemas))
   {
     throw new Exception('You must create a schema.xml file.');
@@ -86,11 +98,27 @@ function _propel_convert_xml_schema($check_schema = true, $prefix = '')
   $db_schema = new sfPropelDatabaseSchema();
   foreach ($schemas as $schema)
   {
-    $db_schema->loadXML('config/'.$schema);
+    $db_schema->loadXML($schema);
 
     pake_echo_action('schema', 'converting "'.$schema.'"'.' to YAML');
 
-    file_put_contents('config/'.$prefix.str_replace('.xml', '.yml', $schema), $db_schema->asYAML());
+    file_put_contents('config'.DIRECTORY_SEPARATOR.$prefix.str_replace('.xml', '.yml', basename($schema)), $db_schema->asYAML());
+  }
+}
+
+function _propel_copy_xml_schema_from_plugins($prefix = '')
+{
+  $schemas = pakeFinder::type('file')->name('*schema.xml')->in(glob(sfConfig::get('sf_root_dir').'/plugins/*/config'));
+
+  foreach ($schemas as $schema)
+  {
+    // change prefix for plugins
+    if (preg_match('#plugins[/\\\\]([^/\\\\]+)[/\\\\]#', $schema, $match))
+    {
+      $localprefix = $prefix.$match[1].'-';
+    }
+
+    pake_copy($schema, 'config'.DIRECTORY_SEPARATOR.$localprefix.basename($schema));
   }
 }
 
@@ -106,11 +134,13 @@ function run_propel_build_all_load($task, $args)
 
 function run_propel_build_model($task, $args)
 {
+  _propel_copy_xml_schema_from_plugins('generated-');
   _call_phing($task, 'build-om');
 }
 
 function run_propel_build_sql($task, $args)
 {
+  _propel_copy_xml_schema_from_plugins('generated-');
   _call_phing($task, 'build-sql');
 }
 
@@ -121,6 +151,7 @@ function run_propel_build_db($task, $args)
 
 function run_propel_insert_sql($task, $args)
 {
+  _propel_copy_xml_schema_from_plugins('generated-');
   _call_phing($task, 'insert-sql');
 }
 
@@ -180,19 +211,41 @@ function run_propel_load_data($task, $args)
   // get configuration
   require_once SF_ROOT_DIR.DIRECTORY_SEPARATOR.'apps'.DIRECTORY_SEPARATOR.SF_APP.DIRECTORY_SEPARATOR.'config'.DIRECTORY_SEPARATOR.'config.php';
 
-  $fixtures_dir = empty($args[2]) ? 'fixtures' : $args[2];
-  $fixtures_dir = sfConfig::get('sf_data_dir').DIRECTORY_SEPARATOR.$fixtures_dir;
-  if (!is_readable($fixtures_dir))
+  if (count($args) > 1 && $args[count($args) - 1] == 'append')
   {
-    throw new Exception(sprintf('Fixture directory "%s" does not exist.', $fixtures_dir));
+    array_pop($args);
+    $delete = false;
+  }
+  else
+  {
+    $delete = true;
+  }
+
+  if (count($args) == 1)
+  {
+    $fixtures_dirs = sfFinder::type('dir')->name('fixtures')->in(array_merge(glob(sfConfig::get('sf_root_dir').'/plugins/*/data'), array(sfConfig::get('sf_data_dir'))));
+  }
+  else
+  {
+    $fixtures_dirs = array_slice($args, 1);
   }
 
   $databaseManager = new sfDatabaseManager();
   $databaseManager->initialize();
 
   $data = new sfPropelData();
-  $data->setDeleteCurrentData(!empty($args[3]) && $args[3] == 'append' ? false : true);
-  $data->loadData($fixtures_dir);
+  $data->setDeleteCurrentData($delete);
+
+  foreach ($fixtures_dirs as $fixtures_dir)
+  {
+    if (!is_readable($fixtures_dir))
+    {
+      continue;
+    }
+
+    pake_echo_action('propel', sprintf('load data from "%s"', $fixtures_dir));
+    $data->loadData($fixtures_dir);
+  }
 }
 
 function _call_phing($task, $task_name, $check_schema = true)
@@ -202,7 +255,7 @@ function _call_phing($task, $task_name, $check_schema = true)
   $schemas = pakeFinder::type('file')->name('*schema.xml')->relative()->in('config');
   if ($check_schema && !$schemas)
   {
-    throw new Exception('You must create a schema.xml file.');
+    throw new Exception('You must create a schema.yml or schema.xml file.');
   }
 
   // create a tmp propel.ini configuration file

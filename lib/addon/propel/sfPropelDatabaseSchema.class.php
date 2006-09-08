@@ -36,11 +36,14 @@ class sfPropelDatabaseSchema
     }
 
     $this->connection_name = array_shift(array_keys($schema));
-    $this->database = $schema[$this->connection_name];
+    if ($this->connection_name)
+    {
+      $this->database = $schema[$this->connection_name];
 
-    $this->fixYAMLDatabase();
-    $this->fixYAMLI18n();
-    $this->fixYAMLColumns();
+      $this->fixYAMLDatabase();
+      $this->fixYAMLI18n();
+      $this->fixYAMLColumns();
+    }
   }
 
   public function asXML()
@@ -191,6 +194,8 @@ class sfPropelDatabaseSchema
   {
     foreach ($this->getTables() as $table => $columns)
     {
+      $has_primary_key = false;
+
       foreach ($columns as $column => $attributes)
       {
         if ($attributes == null)
@@ -211,29 +216,76 @@ class sfPropelDatabaseSchema
               'primaryKey'    => true,
               'autoincrement' => true
             );
+            $has_primary_key = true;
           }
-
-          $pos = strpos($column, '_id');
-          if ($pos > 0 && $pos == strlen($column) - 3)
+        }
+        else
+        {
+          if(!is_array($attributes))
           {
-            // foreign key convention
-            $foreign_table = $this->findTable(substr($column, 0, $pos));
-            if ($foreign_table)
+            // compact type given as single attribute
+            $this->database[$table][$column] = $this->getAttributesFromCompactType($attributes);
+          }
+          else
+          {
+            if (isset($attributes['type']))
             {
-              $this->database[$table][$column] = array(
-                'type'             => 'integer',
-                'foreignTable'     => $foreign_table,
-                'foreignReference' => 'id'
-              );
+              // compact type given as value of the type attribute
+              $this->database[$table][$column] = array_merge($this->database[$table][$column], $this->getAttributesFromCompactType($attributes['type']));
             }
-            else
+            if (isset($attributes['primaryKey']))
             {
-              throw new sfException(sprintf('Unable to resolve foreign table for column "%s"', $column));
+              $has_primary_key = true;
             }
           }
+        }
 
+        $pos = strpos($column, '_id');
+        if ($pos > 0 && $pos == strlen($column) - 3)
+        {
+          // foreign key convention
+          $foreign_table = $this->findTable(substr($column, 0, $pos));
+          if ($foreign_table || isset($this->database[$table][$column]['foreignTable']))
+          {
+            $this->database[$table][$column] = array_merge(
+              array(
+                'type'             => 'integer',
+                'foreignReference' => 'id'
+              ),
+              ($foreign_table ? array('foreignTable' => $foreign_table) : array()),
+              ($attributes != null ? $this->database[$table][$column] : array())
+            );
+          }
+          else
+          {
+            throw new sfException(sprintf('Unable to resolve foreign table for column "%s"', $column));
+          }
         }
       }
+
+      if(!$has_primary_key)
+      {
+        // convention for tables without primary key
+        $this->database[$table]['id'] = array (
+          'type'          => 'integer',
+          'required'      => true,
+          'primaryKey'    => true,
+          'autoincrement' => true
+        );
+      }
+    }
+  }
+
+  private function getAttributesFromCompactType($type)
+  {
+    preg_match('/varchar\(([\d]+)\)/', $type, $matches);
+    if (isset($matches[1]))
+    {
+      return array('type' => 'varchar', 'size' => $matches[1]);
+    }
+    else
+    {
+      return array('type' => $type);
     }
   }
 
@@ -262,20 +314,7 @@ class sfPropelDatabaseSchema
   private function getAttributesForColumn($col_name, $column)
   {
     $attributes_string = '';
-    if (!is_array($column) && $column != null)
-    {
-      // simple type definition
-      preg_match('/varchar\(([\d]+)\)/', $column, $matches);
-      if (isset($matches[1]))
-      {
-        $attributes_string .= " type=\"varchar\" size=\"$matches[1]\" />\n";
-      }
-      else
-      {
-        $attributes_string .= " type=\"$column\" />\n";
-      }
-    }
-    elseif (is_array($column))
+    if (is_array($column))
     {
       foreach ($column as $key => $value)
       {
@@ -527,7 +566,7 @@ class sfPropelDatabaseSchema
             $reference = $foreign_key_attributes['references'][0];
 
             // set simple foreign key
-            $this->database[$table][$reference['local']]['foreignTable'] = $foreign_key_name;
+            $this->database[$table][$reference['local']]['foreignTable'] = $foreign_key_attributes['foreign_table'];
             $this->database[$table][$reference['local']]['foreignReference'] = $reference['foreign'];
             if(isset($foreign_key_attributes['_attributes']['onDelete']))
             {
