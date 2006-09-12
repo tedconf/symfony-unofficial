@@ -12,6 +12,9 @@ pake_task('plugin-uninstall', 'project_exists');
 pake_desc('list installed plugins');
 pake_task('plugin-list', 'project_exists');
 
+pake_desc('initiate a plugins module in your project');
+pake_task('plugin-init-module', 'project_exists');
+
 // symfony plugin-install pluginName
 function run_plugin_install($task, $args)
 {
@@ -96,6 +99,71 @@ function run_plugin_list($task, $args)
       pake_echo(sprintf(" %-40s %10s-%-6s %s", pakeColor::colorize($pobj->getPackage(), 'INFO'), $pobj->getVersion(), $pobj->getState() ? $pobj->getState() : null, pakeColor::colorize('# '.$channel, 'COMMENT')));
     }
   }
+}
+
+function run_plugin_init_module($task, $args)
+{
+  if (!isset($args[1]))
+  {
+    throw new Exception('You must provide your plugin name.');
+  }
+  
+  if(!isset($args[2]))
+  {
+    throw new Exception('You must provide the module name.');    
+  }
+
+  $app    = $args[0];
+  $plugin = $args[1];
+  $module = $args[2];
+
+  $sf_root_dir = sfConfig::get('sf_root_dir');
+  $module_dir  = $sf_root_dir.'/'.sfConfig::get('sf_apps_dir_name').'/'.$app.'/'.sfConfig::get('sf_app_module_dir_name').'/'.$module;
+
+  if (is_dir($module_dir))
+  {
+    throw new Exception(sprintf('The directory "%s" already exists.', $module_dir));
+  }
+
+  try
+  {
+    $author_name = $task->get_property('author', 'symfony');
+  }
+  catch (pakeException $e)
+  {
+    $author_name = 'Your name here';
+  }
+
+  $constants = array(
+    'PROJECT_NAME' => $task->get_property('name', 'symfony'),
+    'APP_NAME'     => $app,
+    'MODULE_NAME'  => $module,
+    'AUTHOR_NAME'  => $author_name,
+    'PLUGIN_NAME'  => $plugin
+  );
+
+  if (is_readable(sfConfig::get('sf_plugin_dir').'/'.$plugin.'/module'))
+  {
+    $sf_skeleton_dir = sfConfig::get('sf_plugin_dir').'/'.$plugin.'/module';
+  }
+  else
+  {
+    $sf_skeleton_dir = sfConfig::get('sf_symfony_data_dir').'/plugin/module';
+  }
+
+  // create basic application structure
+  $finder = pakeFinder::type('any')->ignore_version_control()->discard('.sf');
+  pake_mirror($finder, $sf_skeleton_dir.'/module/', $module_dir);
+
+  // create basic test
+  pake_copy($sf_skeleton_dir.'/test/actionsTest.php', $sf_root_dir.'/test/'.$app.'/'.$module.'ActionsTest.php');
+
+  // customize test file
+  pake_replace_tokens($module.'ActionsTest.php', $sf_root_dir.'/test/'.$app, '##', '##', $constants);
+
+  // customize php and yml files
+  $finder = pakeFinder::type('file')->name('*.php', '*.yml');
+  pake_replace_tokens($finder, $module_dir, '##', '##', $constants);  
 }
 
 function _pear_run_command($config, $command, $opts, $params)

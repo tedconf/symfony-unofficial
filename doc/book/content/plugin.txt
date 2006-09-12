@@ -197,6 +197,10 @@ On the other hand, if a plugin wants to offer a module with the ability to overr
         // Override the plugin code there
       }
     }
+    
+If you stick to using the naming conventions above then you can initiate a plugins module in an application using the following command
+
+    $ symfony plugin-init-module <APPLICATION_NAME> <PLUGIN_NAME> <MODULE_NAME>
 
 How to package a plugin for PEAR
 --------------------------------

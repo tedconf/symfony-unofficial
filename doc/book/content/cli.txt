@@ -175,6 +175,17 @@ Upgrades all the plugins previously installed in local
 
     $ symfony plugin-uninstall [local|global] <CHANNEL_NAME>/<PLUGIN_NAME>
     
+Uninstalls a plugin.
+
+    $ symfony plugin-list
+
+Lists all available plugins.
+
+    $ symfony plugin-init-module <APPLICATION_NAME> <PLUGIN_NAME> <MODULE_NAME>
+
+Initiate a copy of a plugins module in your applications module directory that you can edit.
+
+    
 Uninstalls a plugin.    
 
 The way to build, install and manage plugins is described in the [plugin chapter](plugin.txt).
