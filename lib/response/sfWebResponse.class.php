@@ -93,7 +93,7 @@ class sfWebResponse extends sfResponse
    *
    * @return void
    */
-  public function setCookie ($name, $value, $expire = null, $path = '/', $domain = '', $secure = false)
+  public function setCookie ($name, $value, $expire = null, $path = '/', $domain = '', $secure = false, $httpOnly = false)
   {
     if ($expire !== null)
     {
@@ -112,12 +112,13 @@ class sfWebResponse extends sfResponse
     }
 
     $this->cookies[] = array(
-      'name'   => $name,
-      'value'  => $value,
-      'expire' => $expire,
-      'path'   => $path,
-      'domain' => $domain,
-      'secure' => $secure ? true : false,
+      'name'     => $name,
+      'value'    => $value,
+      'expire'   => $expire,
+      'path'     => $path,
+      'domain'   => $domain,
+      'secure'   => $secure ? true : false,
+      'httpOnly' => $httpOnly,
     );
   }
 
@@ -151,6 +152,14 @@ class sfWebResponse extends sfResponse
   public function setHttpHeader ($name, $value, $replace = true)
   {
     $name = $this->normalizeHeaderName($name);
+
+    if ('Content-Type' == $name)
+    {
+      $this->setContentType($value);
+
+      return;
+    }
+
     $exists = isset($this->headers[$name]);
 
     if ($exists && !$replace)
@@ -192,7 +201,18 @@ class sfWebResponse extends sfResponse
    */
   public function setContentType ($value)
   {
-    $this->setHttpHeader('Content-Type', $value, true);
+    // add charset if needed
+    if (false === stripos($value, 'charset'))
+    {
+      $value .= '; charset='.sfConfig::get('sf_charset');
+    }
+
+    if (isset($this->headers['Content-Type']))
+    {
+      $this->headers['Content-Type'] = array();
+    }
+
+    $this->headers['Content-Type'][] = $value;
   }
 
   /**
@@ -225,7 +245,16 @@ class sfWebResponse extends sfResponse
   public function sendHttpHeaders ()
   {
     // status
-    $status = 'HTTP/1.0 '.$this->statusCode.' '.$this->statusText;
+    if (substr(php_sapi_name(), 0, 3) == 'cgi' && isset($_SERVER['SERVER_SOFTWARE']) && false !== stripos($_SERVER['SERVER_SOFTWARE'], 'apache/2'))
+    {
+      // fix bug http://www.symfony-project.com/trac/ticket/669 for apache2/mod_fastcgi
+      $status = 'Status: '.$this->statusCode.' '.$this->statusText;
+    }
+    else
+    {
+      $status = 'HTTP/1.0 '.$this->statusCode.' '.$this->statusText;
+    }
+
     header($status);
 
     if (sfConfig::get('sf_logging_active'))
@@ -250,7 +279,14 @@ class sfWebResponse extends sfResponse
     // cookies
     foreach ($this->cookies as $cookie)
     {
-      setrawcookie($cookie['name'], $cookie['value'], $cookie['expire'], $cookie['path'], $cookie['domain'], $cookie['secure']);
+      if (version_compare(phpversion(), '5.2', '>='))
+      {
+        setrawcookie($cookie['name'], $cookie['value'], $cookie['expire'], $cookie['path'], $cookie['domain'], $cookie['secure'], $cookie['httpOnly']);
+      }
+      else
+      {
+        setrawcookie($cookie['name'], $cookie['value'], $cookie['expire'], $cookie['path'], $cookie['domain'], $cookie['secure']);
+      }
 
       if (sfConfig::get('sf_logging_active'))
       {
@@ -336,10 +372,15 @@ class sfWebResponse extends sfResponse
   {
     if ($override || !$this->hasParameter($key, 'helper/asset/auto/httpmeta'))
     {
-      $this->setParameter($key, $value, 'helper/asset/auto/httpmeta');
-
       // set HTTP header
       $this->setHttpHeader($key, $value, false);
+
+      if ('Content-Type' == $this->normalizeHeaderName($key))
+      {
+        $value = $this->getContentType();
+      }
+
+      $this->setParameter($key, $value, 'helper/asset/auto/httpmeta');
     }
   }
 
@@ -359,7 +400,7 @@ class sfWebResponse extends sfResponse
 
       if (!$doNotEscape)
       {
-        $value = htmlentities($value, ENT_QUOTES, 'UTF-8');
+        $value = htmlentities($value, ENT_QUOTES, sfConfig::get('sf_charset'));
       }
 
       $this->setParameter($key, $value, 'helper/asset/auto/meta');
@@ -382,7 +423,7 @@ class sfWebResponse extends sfResponse
         $title = sfConfig::get('sf_i18n_instance')->__($title);
       }
 
-      $title = htmlentities($title, ENT_QUOTES, 'UTF-8');
+      $title = htmlentities($title, ENT_QUOTES, sfConfig::get('sf_charset'));
     }
 
     $this->setParameter('title', $title, 'helper/asset/auto/meta');
@@ -446,6 +487,9 @@ class sfWebResponse extends sfResponse
 
   public function mergeProperties($response)
   {
+    // view configuration
+    $this->getParameterHolder()->add($response->getParameterHolder()->getAll('symfony/action/view'), 'symfony/action/view');
+
     // add stylesheets
     foreach (array('first', '', 'last') as $position)
     {
@@ -466,6 +510,11 @@ class sfWebResponse extends sfResponse
         $this->setHttpHeader($name, $value);
       }
     }
+  }
+
+  public function __sleep()
+  {
+    return array('content', 'headers', 'statusCode', 'statusText', 'parameter_holder');
   }
 
   /**

@@ -25,9 +25,6 @@ class sfException extends Exception
   private
     $name = null;
 
-  private static
-    $format = 'plain';
-
   /**
    * Class constructor.
    *
@@ -47,28 +44,6 @@ class sfException extends Exception
     {
       sfLogger::getInstance()->err('{'.$this->getName().'} '.$message);
     }
-  }
-
-  /**
-   * Gets the stack trace format.
-   *
-   * @return string The format to use for printing.
-   */
-  public static function getFormat()
-  {
-    return self::$format;
-  }
-
-  /**
-   * Sets the stack trace format.
-   *
-   * @param string The format you wish to use for printing. Options include:
-   *               - html
-   *               - plain
-   */
-  public static function setFormat($format)
-  {
-    self::$format = $format;
   }
 
   /**
@@ -102,10 +77,11 @@ class sfException extends Exception
       return;
     }
 
+    header('HTTP/1.0 500 Internal Server Error');
+
     // send an error 500 if not in debug mode
     if (!sfConfig::get('sf_debug'))
     {
-      header('HTTP/1.0 500 Internal Server Error');
       $file = sfConfig::get('sf_web_dir').'/error500.html';
       if (is_readable($file))
       {
@@ -125,9 +101,6 @@ class sfException extends Exception
       return;
     }
 
-    // lower-case the format to avoid sensitivity issues
-    $format = strtolower(self::$format);
-
     $message = ($exception->getMessage() != null) ? $exception->getMessage() : 'n/a';
     $name    = get_class($exception);
 
@@ -140,6 +113,7 @@ class sfException extends Exception
     ));
 
     $traces = array();
+    $format = 'cli' == php_sapi_name() ? 'plain' : 'html';
     if ($format == 'html')
     {
       $lineFormat = 'at <strong>%s%s%s</strong>(%s)<br />in <em>%s</em> line %s <a href="#" onclick="toggle(\'%s\'); return false;">...</a><br /><ul id="%s" style="display: %s">%s</ul>';
@@ -208,12 +182,12 @@ class sfException extends Exception
       $content = preg_split('#<br />#', highlight_file($file, true));
 
       $lines = array();
-      for ($i = max($line - 3, 0), $max = min($line + 3, count($content)); $i <= $max; $i++)
+      for ($i = max($line - 3, 1), $max = min($line + 3, count($content)); $i <= $max; $i++)
       {
         $lines[] = '<li'.($i == $line ? ' class="selected"' : '').'>'.$content[$i - 1].'</li>';
       }
 
-      return '<ol start="'.($line - 3).'">'.implode("\n", $lines).'</ol>';
+      return '<ol start="'.max($line - 3, 1).'">'.implode("\n", $lines).'</ol>';
     }
   }
 

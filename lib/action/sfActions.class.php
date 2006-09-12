@@ -42,8 +42,7 @@ abstract class sfActions extends sfAction
   {
     // dispatch action
     $actionToRun = 'execute'.ucfirst($this->getActionName());
-
-    if (!method_exists($this, $actionToRun))
+    if (!is_callable(array($this, $actionToRun)))
     {
       // action not found
       $error = 'sfAction initialization failed for module "%s", action "%s". You must create a "%s" method.';
@@ -51,7 +50,10 @@ abstract class sfActions extends sfAction
       throw new sfInitializationException($error);
     }
 
-    if (sfConfig::get('sf_logging_active')) $this->getContext()->getLogger()->info('{sfActions} call "'.get_class($this).'->'.$actionToRun.'()'.'"');
+    if (sfConfig::get('sf_logging_active'))
+    {
+      $this->getContext()->getLogger()->info('{sfActions} call "'.get_class($this).'->'.$actionToRun.'()'.'"');
+    }
 
     // run action
     $ret = $this->$actionToRun();

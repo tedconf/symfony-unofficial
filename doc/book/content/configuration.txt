@@ -247,7 +247,7 @@ To know if the `fake` credit cards are accepted in the current environment, get 
 
 But maybe you need to add an array, an associative array or a lot of new parameters. In this case it is better to create a new configuration file, together with the corresponding configuration handler.
 
->**Note**: For project-wide custom settings, you can still take advantage of the `config/config.php` file to call directly the `sfConfig::set()` method or load your own YAML file with `sfYaml::load($file)`.
+>**Note**: For project-wide custom settings, you can still take advantage of the `config/config.php` file to call directly the `sfConfig::set()` method or load your own YAML file with `sfYaml::load($file)`. Beware that autoloading is not active when the `config.php` is executed, so you need to manually include the class files that you want to use.
 
 Scriptable configuration
 ------------------------
@@ -265,6 +265,23 @@ Beware though that the configuration is parsed very early in the life of a reque
 
 Be also aware that in the production environment, the configuration is cached, so the configuration files are parsed (and executed) only once after the cache is cleared.
 
+And if you are allergic to YAML, or if you prefer to avoid writing both a configuration file and a configuration handler to finally get an associative array in PHP, you can bypass YAML parsing completely and return a PHP array in any YAML file. It means that you can write the `logging.yml` as follows:
+
+    [php]
+    <?php
+    return array(
+      'default' => array(
+        'active' => true,
+        'level'  => 'debug'
+      )
+    );
+
+...instead of the classic
+
+    default:
+      active: on
+      level:  debug
+      
 Configuration handlers
 ----------------------
 

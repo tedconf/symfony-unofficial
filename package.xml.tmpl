@@ -14,7 +14,7 @@
  <date>##CURRENT_DATE##</date>
  <version>
    <release>##SYMFONY_VERSION##</release>
-   <api>0.7.0</api>
+   <api>1.0.0</api>
  </version>
  <stability>
   <release>##STABILITY##</release>
@@ -24,24 +24,28 @@
  <notes>-</notes>
  <contents>
   <dir name="/">
-   <file role="script" baseinstalldir="/" name="bin/symfony.sh">
+
+    ##CLASS_FILES##
+
+   <file role="script" baseinstalldir="/" name="data/bin/symfony.sh">
     <tasks:replace type="pear-config" from="@PHP-BIN@" to="php_bin"/>
     <tasks:replace type="pear-config" from="@BIN-DIR@" to="bin_dir"/>
     <tasks:replace type="pear-config" from="@PEAR-DIR@" to="php_dir"/>
+    <tasks:replace type="pear-config" from="@DATA-DIR@" to="data_dir" />
    </file>
-   <file role="script" baseinstalldir="/" name="bin/symfony.bat">
+   <file role="script" baseinstalldir="/" name="data/bin/symfony.bat">
     <tasks:replace type="pear-config" from="@PHP-BIN@" to="php_bin"/>
     <tasks:replace type="pear-config" from="@BIN-DIR@" to="bin_dir"/>
     <tasks:replace type="pear-config" from="@PEAR-DIR@" to="php_dir"/>
+    <tasks:replace type="pear-config" from="@DATA-DIR@" to="data_dir" />
    </file>
 
-   <file role="php" baseinstalldir="/" install-as="symfony.php" name="bin/symfony.php">
+   <file role="data" baseinstalldir="symfony" install-as="bin/symfony.php" name="data/bin/symfony.php">
     <tasks:replace type="pear-config" from="@DATA-DIR@" to="data_dir" />
     <tasks:replace type="pear-config" from="@PEAR-DIR@" to="php_dir" />
     <tasks:replace type="package-info" from="@SYMFONY-VERSION@" to="version" />
+    <tasks:replace type="pear-config" from="@DATA-DIR@" to="data_dir" />
    </file>
-
-   ##CLASS_FILES##
 
    <file role="php" baseinstalldir="symfony" install-as="pear.php" name="lib/pear.php">
     <tasks:replace type="pear-config" from="@DATA-DIR@" to="data_dir" />
@@ -50,7 +54,6 @@
    </file>
 
    <file role="doc" baseinstalldir="symfony" name="LICENSE" />
-   <file role="doc" baseinstalldir="symfony" name="UPGRADE" />
   </dir>
  </contents>
  <dependencies>
@@ -61,11 +64,6 @@
    <pearinstaller>
     <min>1.4.1</min>
    </pearinstaller>
-   <package>
-    <name>pake</name>
-    <channel>pear.symfony-project.com</channel>
-    <min>1.0.93</min>
-   </package>
   </required>
  </dependencies>
 
@@ -76,15 +74,15 @@
     </os>
    </installconditions>
    <filelist>
-    <install as="symfony.bat" name="bin/symfony.bat" />
-    <ignore name="bin/symfony.sh" />
+    <install as="symfony.bat" name="data/bin/symfony.bat" />
+    <ignore name="data/bin/symfony.sh" />
    </filelist>
   </phprelease>
 
   <phprelease>
    <filelist>
-    <install as="symfony" name="bin/symfony.sh" />
-    <ignore name="bin/symfony.bat" />
+    <install as="symfony" name="data/bin/symfony.sh" />
+    <ignore name="data/bin/symfony.bat" />
    </filelist>
   </phprelease>
 

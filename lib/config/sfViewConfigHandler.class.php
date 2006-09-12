@@ -54,7 +54,7 @@ class sfViewConfigHandler extends sfYamlConfigHandler
     // init our data array
     $data = array();
 
-    $data[] = "\$response = \$action->getResponse();\n";
+    $data[] = "\$response = \$context->getResponse();\n";
 
     // iterate through all view names
     $first = true;
@@ -65,29 +65,14 @@ class sfViewConfigHandler extends sfYamlConfigHandler
         continue;
       }
 
-      $data[] = ($first ? '' : 'else ')."if (\$this->viewName == '$viewName')\n".
+      $data[] = ($first ? '' : 'else ')."if (\$this->actionName.\$this->viewName == '$viewName')\n".
                 "{\n";
 
-      // template name
-      $templateName = $this->getConfigValue('template', $viewName);
-      if ($templateName)
-      {
-        $data[] = "  \$templateName = \$action->getTemplate() ? \$action->getTemplate() : '$templateName';\n";
-      }
-      else
-      {
-        $data[] = "  \$templateName = \$action->getTemplate() ? \$action->getTemplate() : \$this->getContext()->getActionName();\n";
-      }
-
-      $data[] = "  if (!\$actionStackEntry->isSlot())\n";
-      $data[] = "  {\n";
-
+      $data[] = $this->addTemplate($viewName);
       $data[] = $this->addLayout($viewName);
       $data[] = $this->addComponentSlots($viewName);
       $data[] = $this->addHtmlHead($viewName);
       $data[] = $this->addEscaping($viewName);
-
-      $data[] = "  }\n";
 
       $data[] = $this->addHtmlAsset($viewName);
 
@@ -98,25 +83,12 @@ class sfViewConfigHandler extends sfYamlConfigHandler
 
     // general view configuration
     $data[] = ($first ? '' : "else\n{")."\n";
-    $templateName = $this->getConfigValue('template', 'all');
-    if ($templateName)
-    {
-      $data[] = "  \$templateName = \$action->getTemplate() ? \$action->getTemplate() : '$templateName';\n";
-    }
-    else
-    {
-      $data[] = "  \$templateName = \$action->getTemplate() ? \$action->getTemplate() : \$this->getContext()->getActionName();\n";
-    }
 
-    $data[] = "  if (!\$actionStackEntry->isSlot())\n";
-    $data[] = "  {\n";
-
+    $data[] = $this->addTemplate();
     $data[] = $this->addLayout();
     $data[] = $this->addComponentSlots();
     $data[] = $this->addHtmlHead();
     $data[] = $this->addEscaping();
-
-    $data[] = "  }\n";
 
     $data[] = $this->addHtmlAsset();
     $data[] = ($first ? '' : "}")."\n";
@@ -142,9 +114,22 @@ class sfViewConfigHandler extends sfYamlConfigHandler
         $component = array(null, null);
       }
 
-      $data .= "    \$this->setComponentSlot('$name', '{$component[0]}', '{$component[1]}');\n";
-      $data .= "    if (sfConfig::get('sf_logging_active')) \$context->getLogger()->info('{sfViewConfig} set component \"$name\" ({$component[0]}/{$component[1]})');\n";
+      $data .= "  \$this->setComponentSlot('$name', '{$component[0]}', '{$component[1]}');\n";
+      $data .= "  if (sfConfig::get('sf_logging_active')) \$context->getLogger()->info('{sfViewConfig} set component \"$name\" ({$component[0]}/{$component[1]})');\n";
     }
+
+    return $data;
+  }
+
+  private function addTemplate($viewName = '')
+  {
+    $data = '';
+
+    $templateName = $this->getConfigValue('template', $viewName);
+    $defaultTemplateName = $templateName ? "'$templateName'" : '$this->actionName';
+
+    $data .= "  \$templateName = \$response->getParameter(\$this->moduleName.'_'.\$this->actionName.'_template', $defaultTemplateName, 'symfony/action/view');\n";
+    $data .= "  \$this->setTemplate(\$templateName.\$this->viewName.\$this->getExtension());\n";
 
     return $data;
   }
@@ -153,12 +138,17 @@ class sfViewConfigHandler extends sfYamlConfigHandler
   {
     $data = '';
 
-    $has_layout = $this->getConfigValue('has_layout', $viewName);
-    if ($has_layout)
+    if ($this->getConfigValue('has_layout', $viewName) && false !== $layout = $this->getConfigValue('layout', $viewName))
     {
-      $layout = $this->getconfigValue('layout', $viewName);
-      $data .= "    \$this->setDecoratorDirectory(sfConfig::get('sf_app_template_dir'));\n".
-               "    \$this->setDecoratorTemplate('$layout.php');\n";
+      $data = "  \$this->setDecoratorTemplate('$layout'.\$this->getExtension());\n";
+    }
+
+    // For XMLHttpRequest, we want no layout by default
+    // So, we check if the user requested has_layout: true or if he gave a layout: name for this particular action
+    $localLayout = isset($this->yamlConfig[$viewName]['layout']) || isset($this->yamlConfig[$viewName]['has_layout']);
+    if (!$localLayout && $data)
+    {
+      $data = "  if (!\$context->getRequest()->isXmlHttpRequest())\n  {\n  $data  }\n";
     }
 
     return $data;
@@ -170,12 +160,12 @@ class sfViewConfigHandler extends sfYamlConfigHandler
 
     foreach ($this->mergeConfigValue('http_metas', $viewName) as $httpequiv => $content)
     {
-      $data[] = sprintf("    \$response->addHttpMeta('%s', '%s', false);", $httpequiv, str_replace('\'', '\\\'', $content));
+      $data[] = sprintf("  \$response->addHttpMeta('%s', '%s', false);", $httpequiv, str_replace('\'', '\\\'', $content));
     }
 
     foreach ($this->mergeConfigValue('metas', $viewName) as $name => $content)
     {
-      $data[] = sprintf("    \$response->addMeta('%s', '%s', false, true);", $name, str_replace('\'', '\\\'', preg_replace('/&amp;(?=\w+;)/', '&', htmlentities($content, ENT_QUOTES, 'UTF-8'))));
+      $data[] = sprintf("  \$response->addMeta('%s', '%s', false, true);", $name, str_replace('\'', '\\\'', preg_replace('/&amp;(?=\w+;)/', '&', htmlentities($content, ENT_QUOTES, sfConfig::get('sf_charset')))));
     }
 
     return implode("\n", $data)."\n";
@@ -276,7 +266,7 @@ class sfViewConfigHandler extends sfYamlConfigHandler
 
         if ($key)
         {
-          $data[] = sprintf("  \$response->addStylesheet('%s', '%s', %s);", $key, $position, var_export($options, true));
+          $data[] = sprintf("  \$response->addStylesheet('%s', '%s', %s);", $key, $position, str_replace("\n", '', var_export($options, true)));
         }
       }
     }

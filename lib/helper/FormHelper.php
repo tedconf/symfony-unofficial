@@ -1,6 +1,6 @@
 <?php
 
-require_once(sfConfig::get('sf_symfony_lib_dir').'/helper/ValidationHelper.php');
+use_helper('Validation');
 
 /*
  * This file is part of the symfony package.
@@ -41,7 +41,7 @@ require_once(sfConfig::get('sf_symfony_lib_dir').'/helper/ValidationHelper.php')
  *
  * <code>
  *  $card_list = array('VISA' => 'Visa', 'MAST' => 'MasterCard', 'AMEX' => 'American Express', 'DISC' => 'Discover');
- *  echo select_tag('cc_type', options_for_select($card_list), 'AMEX', array('include_custom' => '-- Select Credit Card Type --'));
+ *  echo select_tag('cc_type', options_for_select($card_list, 'AMEX', array('include_custom' => '-- Select Credit Card Type --')));
  * </code>
  *
  * <code>
@@ -470,8 +470,22 @@ function textarea_tag($name, $content = null, $options = array())
 
   if ($rich == 'tinymce')
   {
+    if (isset($options['tinymce_gzip']))
+    {
+      // use tinymce's gzipped js?
+      if ($options['tinymce_gzip'] === true)
+      {
+        $tinymce_file = '/tiny_mce_gzip.php';
+      }
+      unset($options['tinymce_gzip']);
+    }
+    // use standard tinymce js
+    else
+    {
+      $tinymce_file = '/tiny_mce.js';
+    }
     // tinymce installed?
-    $js_path = sfConfig::get('sf_rich_text_js_dir') ? '/'.sfConfig::get('sf_rich_text_js_dir').'/tiny_mce.js' : '/sf/js/tinymce/tiny_mce.js';
+    $js_path = sfConfig::get('sf_rich_text_js_dir') ? '/'.sfConfig::get('sf_rich_text_js_dir').$tinymce_file : '/sf/tinymce/js'.$tinymce_file;
     if (!is_readable(sfConfig::get('sf_web_dir').$js_path))
     {
       throw new sfConfigurationException('You must install TinyMCE to use this helper (see rich_text_js_dir settings).');
@@ -507,10 +521,12 @@ function textarea_tag($name, $content = null, $options = array())
       $style_selector   = 'styleselect,separator,';
     }
 
+    $culture = sfContext::getInstance()->getUser()->getCulture();
+
     $tinymce_js = '
 tinyMCE.init({
   mode: "exact",
-  language: "en",
+  language: "'.strtolower(substr($culture, 0, 2)).'",
   elements: "'.$id.'",
   plugins: "table,advimage,advlink,flash",
   theme: "advanced",
@@ -556,7 +572,7 @@ tinyMCE.init({
     error_reporting($error_reporting);
 
     $fckeditor           = new FCKeditor($name);
-    $fckeditor->BasePath = '/'.sfConfig::get('sf_rich_text_fck_js_dir').'/';
+    $fckeditor->BasePath = sfContext::getInstance()->getRequest()->getRelativeUrlRoot().'/'.sfConfig::get('sf_rich_text_fck_js_dir').'/';
     $fckeditor->Value    = $content;
 
     if (isset($options['width']))
@@ -666,24 +682,6 @@ function radiobutton_tag($name, $value, $checked = false, $options = array())
   if ($checked) $html_options['checked'] = 'checked';
 
   return tag('input', $html_options);
-}
-
-/**
- * Returns an XHTML compliant <input> tag with type="file".
- *
- * Alias for input_file_tag
- *
- * <b>DEPRECIATED:</b> Use input_file_tag
- * @see input_file_tag
- */
-function input_upload_tag($name, $options = array())
-{
-  if (sfConfig::get('sf_logging_active'))
-  {
-    sfContext::getInstance()->getLogger()->err('This function is deprecated. Please use input_file_tag.');
-  }
-  
-  return input_file_tag($name, $options);
 }
 
 /**
@@ -817,17 +815,17 @@ function input_date_tag($name, $value, $options = array())
   }
 
   // register our javascripts and stylesheets
-  $langFile = '/sf/js/calendar/lang/calendar-'.strtolower(substr($culture, 0, 2));
+  $langFile = '/sf/calendar/lang/calendar-'.strtolower(substr($culture, 0, 2));
   $jss = array(
-    '/sf/js/calendar/calendar',
-    is_readable(sfConfig::get('sf_symfony_data_dir').'/web/'.$langFile.'.js') ? $langFile : '/sf/js/calendar/lang/calendar-en',
-    '/sf/js/calendar/calendar-setup',
+    '/sf/calendar/calendar',
+    is_readable(sfConfig::get('sf_symfony_data_dir').'/web/'.$langFile.'.js') ? $langFile : '/sf/calendar/lang/calendar-en',
+    '/sf/calendar/calendar-setup',
   );
   foreach ($jss as $js)
   {
     $context->getResponse()->addJavascript($js);
   }
-  $context->getResponse()->addStylesheet('/sf/js/calendar/skins/aqua/theme');
+  $context->getResponse()->addStylesheet('/sf/calendar/skins/aqua/theme');
 
   // date format
   $dateFormatInfo = sfDateTimeFormatInfo::getInstance($culture);
@@ -860,7 +858,7 @@ function input_date_tag($name, $value, $options = array())
   // construct html
   if (!isset($options['size']))
   {
-    $options['size'] = 9;
+    $options['size'] = 11;
   }
   $html = input_tag($name, $value, $options);
 

@@ -102,7 +102,7 @@ Now all the templates using this partial won't actually execute the PHP code of 
 Just like for actions, partial caching is also relevant when the result of the partial depends on parameters:
 
     [php]
-    <?php include_partial('mymodule/my_other_partial', array('foo' => 'bar)) ?>
+    <?php include_partial('mymodule/my_other_partial', array('foo' => 'bar')) ?>
 
 A component is a lightweight action put on top of a partial. A component slot is a component for which the action varies according to the calling actions. These two inclusion types are very similar to partials, and support caching the same way. For instance, if your global layout shows a:
 
@@ -401,7 +401,7 @@ In symfony, you activate the etags feature for the whole application in the `set
       .settings:
         etag: on
         
-When the server receives a request for a page containing an etag, it processes this page as it would usually. For a page of 'page' type cace, the response it directly taken from the cache. The server will compute a new md5 hash of the cached response and see that it's the same as the one sent by the browser. Instead of sending the response again, the server will send a 304 header only, and the browser will redisplay the page it keeps in its local cache.
+When the server receives a request for a page containing an etag, it processes this page as it would usually. For a page of 'page' type cache, the response it directly taken from the cache. The server will compute a new md5 hash of the cached response and see that it's the same as the one sent by the browser. Instead of sending the response again, the server will send a 304 header only, and the browser will redisplay the page it keeps in its local cache.
 
 ### Conditional GET
 
