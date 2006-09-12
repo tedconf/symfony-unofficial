@@ -58,23 +58,27 @@ function _propel_convert_yml_schema($check_schema = true, $prefix = '')
   require_once($sf_symfony_lib_dir.'/addon/propel/sfPropelDatabaseSchema.class.php');
 
   $db_schema = new sfPropelDatabaseSchema();
+
   foreach ($schemas as $schema)
   {
     $db_schema->loadYAML($schema);
 
     pake_echo_action('schema', 'converting "'.$schema.'"'.' to XML');
 
+    $localprefix = $prefix;
+    
     // change prefix for plugins
     if (preg_match('#plugins[/\\\\]([^/\\\\]+)[/\\\\]#', $schema, $match))
     {
       $localprefix = $prefix.$match[1].'-';
     }
-    else
-    {
-      $localprefix = $prefix;
-    }
-
-    file_put_contents('config'.DIRECTORY_SEPARATOR.$localprefix.str_replace('.yml', '.xml', basename($schema)), $db_schema->asXML());
+        
+    // save converted xml files in original directories
+    $xml_file_name = str_replace('.yml', '.xml', basename($schema));
+    
+    $file = str_replace(basename($schema), $localprefix.$xml_file_name,  $schema);
+    pake_echo_action('schema', 'putting '.$file);    
+    file_put_contents($file, $db_schema->asXML());
   }
 }
 
@@ -100,9 +104,20 @@ function _propel_convert_xml_schema($check_schema = true, $prefix = '')
   {
     $db_schema->loadXML($schema);
 
-    pake_echo_action('schema', 'converting "'.$schema.'"'.' to YAML');
+    $localprefix = $prefix;
+    
+    // change prefix for plugins
+    if (preg_match('#plugins[/\\\\]([^/\\\\]+)[/\\\\]#', $schema, $match))
+    {
+      $localprefix = $prefix.$match[1].'-';
+    }
 
-    file_put_contents('config'.DIRECTORY_SEPARATOR.$prefix.str_replace('.xml', '.yml', basename($schema)), $db_schema->asYAML());
+    // save converted xml files in original directories
+    $yml_file_name = str_replace('.xml', '.yml', basename($schema));
+    
+    $file = str_replace(basename($schema), $prefix.$yml_file_name,  $schema);
+    pake_echo_action('schema', 'putting '.$file);    
+    file_put_contents($file, $db_schema->asXML());
   }
 }
 
@@ -112,11 +127,20 @@ function _propel_copy_xml_schema_from_plugins($prefix = '')
 
   foreach ($schemas as $schema)
   {
+    // reset local prefix
+    $localprefix = '';
+    
     // change prefix for plugins
     if (preg_match('#plugins[/\\\\]([^/\\\\]+)[/\\\\]#', $schema, $match))
     {
-      $localprefix = $prefix.$match[1].'-';
+      // if the plugin name is not in the schema filename, add it
+      if(!strstr(basename($schema), $match[1]))
+        $localprefix = $match[1].'-';     
     }
+    
+    // if the prefix is not in the schema filename, add it
+    if(!strstr(basename($schema), $prefix))
+      $localprefix = $prefix.$localprefix;
 
     pake_copy($schema, 'config'.DIRECTORY_SEPARATOR.$localprefix.basename($schema));
   }
@@ -141,7 +165,7 @@ function run_propel_build_model($task, $args)
   _propel_copy_xml_schema_from_plugins('generated-');
   _call_phing($task, 'build-om');
   $finder = pakeFinder::type('file')->name('generated-*schema.xml');
-  pake_remove($finder, 'config');
+  pake_remove($finder, array('config', 'plugins'));
 }
 
 function run_propel_build_sql($task, $args)

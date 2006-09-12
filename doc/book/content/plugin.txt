@@ -201,6 +201,8 @@ On the other hand, if a plugin wants to offer a module with the ability to overr
 If you stick to using the naming conventions above then you can initiate a plugins module in an application using the following command
 
     $ symfony plugin-init-module <APPLICATION_NAME> <PLUGIN_NAME> <MODULE_NAME>
+    
+To override the plugins schema files, you must copy them to your projects config directory, and if they do not contain the PluginName,prefix them with the `PluginName-`, for the example above, you would have make a copy of the plugins schema.yml file, and prefix it `PluginName-`, to produce `PluginName-schema.yml` in your project's config directory. This file will then be used instead of the plugin file when building the model.
 
 How to package a plugin for PEAR
 --------------------------------
