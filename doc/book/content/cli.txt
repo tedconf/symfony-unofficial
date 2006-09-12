@@ -61,6 +61,10 @@ Initializes a new batch file (shortcut: `batch`). You must select a batch skelet
 
 Initializes a new controller (shortcut: `controller`). The default script name follows the symfony convention.
 
+    $ symfony init-plugin <PLUGIN_NAME>
+
+Initializes a new plugin (shortcut: `plugin`). Please use camel-case to name your plugins.
+
 Find more about these commands in the [project creation chapter](project_creation.txt).
 
 ### Model generation

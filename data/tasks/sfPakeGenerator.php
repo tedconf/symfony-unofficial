@@ -20,6 +20,10 @@ pake_desc('initialize a new symfony controller script');
 pake_task('init-controller', 'app_exists');
 pake_alias('controller', 'init-controller');
 
+pake_desc('initialize a new plugin');
+pake_task('init-plugin', 'project_exists');
+pake_alias('plugin', 'init-plugin');
+
 function run_init_project($task, $args)
 {
   if (file_exists('SYMFONY'))
@@ -174,6 +178,57 @@ function run_init_batch($task, $args)
   {
     throw new Exception('The skeleton you specified could not be found.');
   }
+}
+
+function run_init_plugin($task, $args)
+{
+  if (count($args) < 1)
+  {
+    throw new Exception('You must provide a plugin name.');
+  }
+
+  $plugin    = $args[0];
+
+  $sf_root_dir = sfConfig::get('sf_root_dir');
+  $plugin_dir  = $sf_root_dir.'/'.sfConfig::get('sf_plugins_dir_name').'/'.$plugin;
+
+  if (is_dir($plugin_dir))
+  {
+    throw new Exception(sprintf('The directory "%s" already exists.', $plugin_dir));
+  }
+
+  try
+  {
+    $author_name = $task->get_property('author', 'symfony');
+  }
+  catch (pakeException $e)
+  {
+    $author_name = 'Your name here';
+  }
+
+  $constants = array(
+    'PROJECT_NAME' => $task->get_property('name', 'symfony'),
+    'APP_NAME'     => $app,
+    'MODULE_NAME'  => $module,
+    'AUTHOR_NAME'  => $author_name,
+  );
+
+  if (is_readable(sfConfig::get('sf_data_dir').'/skeleton/plugin'))
+  {
+    $sf_skeleton_dir = sfConfig::get('sf_data_dir').'/skeleton/plugin';
+  }
+  else
+  {
+    $sf_skeleton_dir = sfConfig::get('sf_symfony_data_dir').'/skeleton/plugin';
+  }
+
+  // create basic plugin structure
+  $finder = pakeFinder::type('any')->ignore_version_control()->discard('.sf');
+  pake_mirror($finder, $sf_skeleton_dir.'/plugin', $plugin_dir);
+
+  // customize php and yml files
+  $finder = pakeFinder::type('file')->name('*.php', '*.yml', 'LICENCE');
+  pake_replace_tokens($finder, $plugin_dir, '##', '##', $constants);
 }
 
 function _batch_default($task, $args)
