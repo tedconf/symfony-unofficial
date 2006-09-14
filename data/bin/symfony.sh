@@ -18,7 +18,7 @@ if [ -z "$SYMFONY_HOME" ] ; then
 fi
 
 if [ -d "$SYMFONY_HOME" ] ; then
-  COMMAND=$SYMFONY_HOME/data/bin/symfony.php
+  COMMAND=$SYMFONY_HOME/bin/symfony.php
 else
   COMMAND=`dirname $0`/symfony.php
 fi
