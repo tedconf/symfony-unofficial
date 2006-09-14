@@ -119,26 +119,45 @@ class sfLoader
   {
     static $loaded = array();
 
+    array_unshift($helpers, 'sf');
+
     $dirs = self::getHelperDirs($moduleName);
     foreach ($helpers as $helperName)
     {
+      $className = $helperName.'Helper';
       if (isset($loaded[$helperName]))
       {
         continue;
       }
-
-      $fileName = $helperName.'Helper.php';
-      foreach ($dirs as $dir)
+      elseif(class_exists($className))
       {
-        $included = false;
-        if (is_readable($dir.'/'.$fileName))
-        {
-          include($dir.'/'.$fileName);
-          $included = true;
-          break;
-        }
+        self::initHelperClass($className);
+        continue;
       }
 
+      if (!$included)
+      {
+        //$fileName = $helperName.'Helper.php';
+        $fileName = $helperName.'Helper.class.php';
+        foreach ($dirs as $dir)
+        {
+          $included = false;
+          if (is_readable($dir.'/'.$fileName))
+          {
+            include($dir.'/'.$fileName);
+            $included = true;
+            break;
+          }
+        }
+      }
+      if (!$included)
+      {
+        //attempt to autoload
+        if (is_callable(array($className, '_initialize')))
+        {
+          $included = true;
+        }
+      }
       if (!$included)
       {
         // search in the include path
@@ -149,9 +168,32 @@ class sfLoader
       }
 
       $loaded[$helperName] = true;
+
+      self::initHelperClass($className);
     }
   }
-
+  static public function initHelperClass($className)
+  {
+      //backwards compatibility for built in helper classes
+      if (class_exists($className))
+      {
+        foreach (get_class_methods($className) as $methodName)
+        {
+          if (substr($methodName, 0, 2) == '_')
+          {
+            continue;
+          }
+          if (!function_exists($methodName))
+          {
+            eval('function ' . $methodName . '() { $args = func_get_args(); return call_user_func_array(array("' . $className. '", "' . $methodName . '"), $args); }');
+          }
+        }
+        if (is_callable(array($className, '_initialize')))
+        {
+          call_user_func_array(array($className, '_initialize'), array());
+        }
+      }
+  }
   static public function loadPluginConfig()
   {
     foreach (glob(sfConfig::get('sf_plugins_dir').'/*/config/config.php') as $config)

@@ -55,3 +55,9 @@ autoload:
     name:           module
     path:           %SF_APP_DIR%/modules/*/lib
     recursive:      on
+
+  # helpers
+  helpers_lib:
+    name:           helpers lib
+    path:           %SF_SYMFONY_LIB_DIR%/helpers
+    recursive:      on

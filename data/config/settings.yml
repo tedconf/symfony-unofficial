@@ -74,7 +74,7 @@ default:
     charset: utf-8
 
     escaping_strategy: bc
-    escaping_method:   ESC_ENTITIES
+    escaping_method:   EscapingHelper::ESC_ENTITIES
 
     prototype_web_dir: /sf/prototype
     admin_web_dir:     /sf/sf_admin
