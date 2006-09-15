@@ -382,7 +382,10 @@ class sfWebDebug
     {
       // get Propel statistics if available (user created a model and a db)
       // we require Propel here to avoid autoloading and automatic connection
-      require_once('propel/Propel.php');
+      if (!class_exists('Propel'))
+      {
+        require_once('propel/Propel.php');
+      }
       if (Propel::isInit())
       {
         try
