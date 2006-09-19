@@ -1,5 +1,0 @@
-stats
-.svn
-web/uploads
-cache
-log
