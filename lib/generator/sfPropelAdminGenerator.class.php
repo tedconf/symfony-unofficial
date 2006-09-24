@@ -304,15 +304,19 @@ EOF;
         $phpNames[] = $this->getAdminColumnForField($field, $flag);
       }
     }
-    else // FIXME: this is not doctrine compatible
-    {
-      // no, just return the full list of columns in table
-      foreach ($this->getTableMap()->getColumns() as $column)
-      {
-        $phpNames[] = new sfAdminColumn($column->getPhpName(), $column);
-      }
-    }
+    else     // no, just return the full list of columns in table
+      return $this->getAllColumns();
 
+    return $phpNames;
+  }
+  
+  public function getAllColumns()
+  {
+    $phpNames = array();
+    foreach ($this->getTableMap()->getColumns() as $column)
+    {
+      $phpNames[] = new sfAdminColumn($column->getPhpName(), $column);
+    }
     return $phpNames;
   }
   
@@ -530,12 +534,9 @@ EOF;
 
     if ($column->isForeignKey())
     {
-      $relatedTable = $this->getMap()->getDatabaseMap()->getTable($column->getRelatedTableName());
-      $params = $this->getObjectTagParams($params, array('include_blank' => true));
+      $params = $this->getObjectTagParams($params, array('include_blank' => true, 'related_class'=>$this->getRelatedClassName($column), 'text_method'=>'__toString', 'control_name'=>'filters['.$column->getName().']'));
+      return "object_select_tag($default_value, null, $params)";
 
-      $options = "objects_for_select(".$relatedTable->getPhpName()."Peer::doSelect(new Criteria()), 'getPrimaryKey', '__toString', $default_value, $params)";
-
-      return "select_tag($name, $options, $params)";
     }
     else if ($type == CreoleTypes::DATE)
     {

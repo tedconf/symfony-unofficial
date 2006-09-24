@@ -97,7 +97,7 @@ function objects_for_select($options = array(), $value_method, $text_method = nu
 /**
  * Returns a list html tag.
  *
- * @param object An object.
+ * @param object An object or the selected value
  * @param string An object column.
  * @param array Input options (related_class option is mandatory).
  * @param bool Input default value.
@@ -138,8 +138,14 @@ function object_select_tag($object, $method, $options = array(), $default_value 
     $select_options = array('' => '') + $select_options;
     unset($options['include_blank']);
   }
+  
+  if (is_object($object))
+  {
+    $value = _get_object_value($object, $method, $default_value);
+  }
+  else
+    $value = $object;
 
-  $value = _get_object_value($object, $method, $default_value);
   $option_tags = options_for_select($select_options, $value, $options);
 
   return select_tag(_convert_method_to_name($method, $options), $option_tags, $options);
@@ -172,7 +178,7 @@ function _get_options_from_objects($objects, $text_method = null)
     $methodToCall = '';
     foreach (array($text_method, 'toString', '__toString', 'getPrimaryKey') as $method)
     {
-      if (is_callable(array($objects[0], $method)))
+      if (method_exists($objects[0], $method))
       {
         $methodToCall = $method;
         break;
