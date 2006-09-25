@@ -72,14 +72,14 @@ function objects_for_select($options = array(), $value_method, $text_method = nu
   foreach($options as $option)
   {
     // text method exists?
-    if ($text_method && !is_callable(array($option, $text_method)))
+    if ($text_method && !method_exists($option, $text_method))
     {
       $error = sprintf('Method "%s" doesn\'t exist for object of class "%s"', $text_method, get_class($option));
       throw new sfViewException($error);
     }
 
     // value method exists?
-    if (!is_callable(array($option, $value_method)))
+    if (!method_exists($option, $value_method))
     {
       $error = sprintf('Method "%s" doesn\'t exist for object of class "%s"', $value_method, get_class($option));
       throw new sfViewException($error);
@@ -283,16 +283,24 @@ function _convert_method_to_name ($method, &$options)
 
   if (!$name)
   {
-    $name = sfInflector::underscore($method);
-    $name = preg_replace('/^get_?/', '', $name);
+    if (is_array($method))
+      $name = implode('-',$method[1]);
+    else
+    {
+      $name = sfInflector::underscore($method);
+      $name = preg_replace('/^get_?/', '', $name);
+    }
   }
 
   return $name;
 }
 
 // returns default_value if object value is null
+// method is either a string or: array('method',array('param1','param2'))
 function _get_object_value ($object, $method, $default_value = null, $param = null)
 {
+  if (is_string($method))
+  {
   // method exists?
   if (!is_callable(array($object, $method)))
   {
@@ -309,6 +317,11 @@ function _get_object_value ($object, $method, $default_value = null, $param = nu
   else
   {
     $object_value = $object->$method();
+  }
+  }
+  elseif (is_array($method))
+  {
+    $object_value = call_user_func_array(array($object, $method[0]), $method[1]);
   }
 
   return ($default_value !== null && $object_value === null) ? $default_value : $object_value;
