@@ -1,0 +1,17 @@
+_cacheableComponent:
+  activate: on
+
+_component:
+  activate: off
+
+_cacheablePartial:
+  activate: on
+
+_partial:
+  activate: off
+
+multi:
+  activate: off
+
+page:
+  with_layout: true

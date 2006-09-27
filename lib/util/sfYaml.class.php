@@ -54,16 +54,7 @@ class sfYaml
     {
       $spyc = new Spyc();
 
-      try
-      {
-        return $spyc->load($input);
-      }
-      catch (Exception $e)
-      {
-        $error = str_replace(': Line', ': File '.$input.' line', $e->getMessage());
-        $e = new sfConfigurationException($error);
-        $e->printStackTrace();
-      }
+      return $spyc->load($input);
     }
   }
 
@@ -83,7 +74,7 @@ class sfYaml
     return $spyc->dump($array);
   }
 
-  private static function getIncludeContents($input)
+  protected static function getIncludeContents($input)
   {
     // if input is a file, process it
     if (strpos($input, "\n") === false && is_file($input))

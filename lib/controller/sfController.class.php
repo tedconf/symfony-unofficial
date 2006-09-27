@@ -20,7 +20,7 @@
  */
 abstract class sfController
 {
-  private
+  protected
     $context                  = null,
     $controllerClasses        = array(),
     $maxForwards              = 5,
@@ -81,7 +81,7 @@ abstract class sfController
    *
    * @return boolean true if the controller exists; false otherwise
    */
-  private function controllerExists ($moduleName, $controllerName, $extension, $throwExceptions)
+  protected function controllerExists ($moduleName, $controllerName, $extension, $throwExceptions)
   {
     $dirs = sfLoader::getControllerDirs($moduleName);
     foreach ($dirs as $dir => $checkActivated)
@@ -143,7 +143,15 @@ abstract class sfController
     // send an exception if debug
     if ($throwExceptions && sfConfig::get('sf_debug'))
     {
-      throw new sfControllerException(sprintf('{sfController} controller "%s/%s" does not exist in: %s', $moduleName, $controllerName, implode(', ', array_keys($dirs))));
+      $dirs = array_keys($dirs);
+
+      // remove sf_root_dir from dirs
+      foreach ($dirs as &$dir)
+      {
+        $dir = str_replace(sfConfig::get('sf_root_dir'), '%SF_ROOT_DIR%', $dir);
+      }
+
+      throw new sfControllerException(sprintf('{sfController} controller "%s/%s" does not exist in: %s', $moduleName, $controllerName, implode(', ', $dirs)));
     }
 
     return false;
@@ -391,7 +399,7 @@ abstract class sfController
     return $this->getController($moduleName, $componentName, 'component');
   }
 
-  private function getController ($moduleName, $controllerName, $extension)
+  protected function getController ($moduleName, $controllerName, $extension)
   {
     $classSuffix = ucfirst(strtolower($extension));
     if (!isset($this->controllerClasses[$moduleName.'_'.$controllerName.'_'.$classSuffix]))
@@ -532,7 +540,7 @@ abstract class sfController
    *
    * @return void
    */
-  private function loadGlobalFilters ($filterChain)
+  protected function loadGlobalFilters ($filterChain)
   {
     static $list = array();
 
@@ -560,7 +568,7 @@ abstract class sfController
    *
    * @return void
    */
-  private function loadModuleFilters ($filterChain)
+  protected function loadModuleFilters ($filterChain)
   {
     // filter list cache file
     static $list = array();

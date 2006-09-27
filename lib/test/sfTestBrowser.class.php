@@ -172,4 +172,80 @@ class sfTestBrowser extends sfBrowser
 
     return $this;
   }
+
+  public function isCached($boolean, $with_layout = false)
+  {
+    return $this->isUriCached(sfRouting::getInstance()->getCurrentInternalUri(), $boolean, $with_layout);
+  }
+
+  public function isUriCached($uri, $boolean, $with_layout = false)
+  {
+    $cacheManager = $this->getContext()->getViewCacheManager();
+
+    // check that cache is activated
+    if (!$cacheManager)
+    {
+      $this->test->ok(!$boolean, 'cache is disabled');
+
+      return $this;
+    }
+
+    if ($uri == sfRouting::getInstance()->getCurrentInternalUri())
+    {
+      $main = true;
+      $type = $with_layout ? 'page' : 'action';
+    }
+    else
+    {
+      $main = false;
+      $type = $uri;
+    }
+
+    // check layout configuration
+    if ($cacheManager->withLayout($uri) && !$with_layout)
+    {
+      $this->test->fail('cache without layout');
+      $this->test->skip('cache is not configured properly', 2);
+    }
+    else if (!$cacheManager->withLayout($uri) && $with_layout)
+    {
+      $this->test->fail('cache with layout');
+      $this->test->skip('cache is not configured properly', 2);
+    }
+    else
+    {
+      $this->test->pass('cache is configured properly');
+
+      // check page is cached
+      $ret = $this->test->is($cacheManager->has($uri), $boolean, sprintf('"%s" %s in cache', $type, $boolean ? 'is' : 'is not'));
+
+      // check that the content is ok in cache
+      if ($boolean)
+      {
+        if (!$ret)
+        {
+          $this->test->fail('content in cache is ok');
+        }
+        else if ($with_layout)
+        {
+          $response = unserialize($cacheManager->get($uri));
+          $content = $response->getContent();
+          $this->test->is($content, $this->getResponse()->getContent(), 'content in cache is ok');
+        }
+        else if (true === $main)
+        {
+          $ret = unserialize($cacheManager->get($uri));
+          $content = $ret['content'];
+          $this->test->ok(false !== strpos($this->getResponse()->getContent(), $content), 'content in cache is ok');
+        }
+        else
+        {
+          $content = $cacheManager->get($uri);
+          $this->test->ok(false !== strpos($this->getResponse()->getContent(), $content), 'content in cache is ok');
+        }
+      }
+    }
+
+    return $this;
+  }
 }

@@ -32,12 +32,16 @@ class sfToolkit
     $retval = null;
 
     if (self::isPathAbsolute($filename))
+    {
       $filename = basename($filename);
+    }
 
     $pattern = '/(.*?)\.(class|interface)\.php/i';
 
     if (preg_match($pattern, $filename, $match))
+    {
       $retval = $match[1];
+    }
 
     return $retval;
   }
@@ -293,7 +297,7 @@ class sfToolkit
     $attributes = array();
     foreach ($matches as $val)
     {
-      $attributes[$val[1]] = self::toType($val[3]);
+      $attributes[$val[1]] = self::literalize($val[3]);
     }
 
     return $attributes;
@@ -305,7 +309,7 @@ class sfToolkit
    * @param  string
    * @return mixed
    */
-  protected static function toType($value)
+  public static function literalize($value)
   {
     // lowercase our value for comparison
     $value  = trim($value);
@@ -331,8 +335,23 @@ class sfToolkit
     {
       $value = (float) $value;
     }
+    else
+    {
+      $value = self::replaceConstants($value);
+    }
 
     return $value;
+  }
+
+  /**
+   * Replaces constant identifiers in a scalar value.
+   *
+   * @param string the value to perform the replacement on
+   * @return string the value with substitutions made
+   */
+  public static function replaceConstants($value)
+  {
+    return preg_replace('/%(.+?)%/e', 'sfConfig::get(strtolower("\\1")) ? sfConfig::get(strtolower("\\1")) : "%\\1%"', $value);
   }
 
   /**

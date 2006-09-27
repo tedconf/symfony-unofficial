@@ -22,13 +22,14 @@
  */
 class sfViewCacheManager
 {
-  private
+  protected
     $cache              = null,
     $cacheConfig        = array(),
     $viewCacheClassName = '',
     $viewCacheOptions   = array(),
     $context            = null,
-    $controller         = null;
+    $controller         = null,
+    $loaded             = array();
 
   public function initialize($context)
   {
@@ -145,8 +146,6 @@ class sfViewCacheManager
 
   public function registerConfiguration($moduleName)
   {
-    static $loaded = array();
-
     if (!isset($loaded[$moduleName]))
     {
       require(sfConfigCache::getInstance()->checkConfig(sfConfig::get('sf_app_module_dir_name').'/'.$moduleName.'/'.sfConfig::get('sf_app_module_config_dir_name').'/cache.yml'));
@@ -174,7 +173,7 @@ class sfViewCacheManager
     return $this->getCacheConfig($internalUri, 'vary', array());
   }
 
-  private function getCacheConfig($internalUri, $key, $defaultValue = null)
+  protected function getCacheConfig($internalUri, $key, $defaultValue = null)
   {
     list($route_name, $params) = $this->controller->convertUrlStringToParameters($internalUri);
 

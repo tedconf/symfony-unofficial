@@ -23,7 +23,7 @@
  */
 class sfContext
 {
-  private
+  protected
     $actionStack       = null,
     $controller        = null,
     $databaseManager   = null,
@@ -36,7 +36,7 @@ class sfContext
     $logger            = null,
     $user              = null;
 
-  private static
+  protected static
     $instance          = null;
 
   /**
@@ -49,11 +49,12 @@ class sfContext
     self::$instance = null;
   }
 
-  private function initialize()
+  protected function initialize()
   {
     if (sfConfig::get('sf_logging_active'))
     {
       $this->logger = sfLogger::getInstance();
+      $this->logger->info('{sfContext} '."\n\n");
       $this->logger->info('{sfContext} initialization');
     }
 

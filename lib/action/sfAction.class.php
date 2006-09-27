@@ -20,7 +20,7 @@
  */
 abstract class sfAction extends sfComponent
 {
-  private
+  protected
     $security = array();
 
   /**
@@ -438,6 +438,11 @@ abstract class sfAction extends sfComponent
   public function validate ()
   {
     return true;
+  }
+
+  public function getSecurityConfiguration()
+  {
+    return $this->security;
   }
 
   /**
