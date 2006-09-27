@@ -20,8 +20,7 @@
  */
 class sfPropelAdminGenerator extends sfPropelCrudGenerator
 {
-  private
-    #$params = array(),
+  protected
     $fields = array();
 
   public function initialize($generatorManager)
@@ -371,7 +370,7 @@ EOF;
     }
   }
 
-  private function getFieldParameterValue($key, $type = '', $default = null)
+  protected function getFieldParameterValue($key, $type = '', $default = null)
   {
     $retval = $this->getValueFromKey($type.'.fields.'.$key, $default);
     if ($retval !== null)
@@ -396,7 +395,7 @@ EOF;
     }
   }
 
-  private function getValueFromKey($key, $default = null)
+  protected function getValueFromKey($key, $default = null)
   {
     $ref   =& $this->params;
     $parts =  explode('.', $key);
@@ -530,11 +529,12 @@ EOF;
     $type = $column->getCreoleType();
 
     $default_value = "isset(\$filters['".$column->getName()."']) ? \$filters['".$column->getName()."'] : null";
-    $name = '\'filters['.$column->getName().']\'';
+    $unquotedName = 'filters['.$column->getName().']';
+    $name = "'$unquotedName'";
 
     if ($column->isForeignKey())
     {
-      $params = $this->getObjectTagParams($params, array('include_blank' => true, 'related_class'=>$this->getRelatedClassName($column), 'text_method'=>'__toString', 'control_name'=>'filters['.$column->getName().']'));
+      $params = $this->getObjectTagParams($params, array('include_blank' => true, 'related_class'=>$this->getRelatedClassName($column), 'text_method'=>'__toString', 'control_name'=>$unquotedName));
       return "object_select_tag($default_value, null, $params)";
 
     }
@@ -590,7 +590,7 @@ EOF;
     }
   }
 
-  private function escapeString($string)
+  protected function escapeString($string)
   {
     return preg_replace('/\'/', '\\\'', $string);
   }
