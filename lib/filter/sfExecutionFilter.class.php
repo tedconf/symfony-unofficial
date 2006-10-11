@@ -134,7 +134,7 @@ class sfExecutionFilter extends sfFilter
           // validation failed
           $handleErrorToRun = 'handleError'.ucfirst($actionName);
           $viewName = method_exists($actionInstance, $handleErrorToRun) ? $actionInstance->$handleErrorToRun() : $actionInstance->handleError();
-          if (!$viewName)
+          if ($viewName == '')
           {
             $viewName = sfView::ERROR;
           }
