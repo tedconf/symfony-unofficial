@@ -1,5 +1,13 @@
 <?php
 
+/*
+ * This file is part of the symfony package.
+ * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
+ * 
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 pake_desc('clear cached information');
 pake_task('clear-cache', 'project_exists');
 pake_alias('cc', 'clear-cache');
@@ -17,10 +25,10 @@ pake_desc('purges an applications log files');
 pake_task('purge-logs', 'project_exists');
 
 pake_desc('enables an application in a given environment');
-pake_task('enable', 'app_exists'); 
+pake_task('enable', 'app_exists');
 
 pake_desc('disables an application in a given environment');
-pake_task('disable', 'app_exists'); 
+pake_task('disable', 'app_exists');
 
 /**
  * fixes permissions in a symfony project
@@ -36,8 +44,9 @@ function run_fix_perms($task, $args)
 
   pake_chmod(sfConfig::get('sf_cache_dir_name'), $sf_root_dir, 0777);
   pake_chmod(sfConfig::get('sf_log_dir_name'), $sf_root_dir, 0777);
+  pake_chmod('symfony', $sf_root_dir, 0777);
 
-  $dirs = array('cache', 'upload', 'log');
+  $dirs = array('root_cache', 'upload', 'log');
   $dir_finder = pakeFinder::type('dir')->ignore_version_control();
   $file_finder = pakeFinder::type('file')->ignore_version_control();
   foreach ($dirs as $dir)
@@ -62,6 +71,9 @@ function run_clear_cache($task, $args)
   {
     throw new Exception('Cache directory does not exist.');
   }
+
+  // clear process cache
+  sfProcessCache::clear();
 
   $cache_dir = sfConfig::get('sf_cache_dir_name');
 
@@ -242,10 +254,6 @@ function run_rotate_log($task, $args)
 function run_purge_logs($task, $args)
 {
   $sf_symfony_data_dir = sfConfig::get('sf_symfony_data_dir');
-  $sf_symfony_lib_dir = sfConfig::get('sf_symfony_lib_dir');
-  require_once($sf_symfony_lib_dir.'/util/Spyc.class.php');
-  require_once($sf_symfony_lib_dir.'/util/sfYaml.class.php');
-  require_once($sf_symfony_lib_dir.'/util/sfToolkit.class.php');
 
   $default_logging = sfYaml::load($sf_symfony_data_dir.'/config/logging.yml');
   $app_dir = sfConfig::get('sf_app_dir');

@@ -70,6 +70,7 @@ class sfPropelDatabase extends sfCreoleDatabase
       $this->setParameter('username', $params['username']);
       $this->setParameter('password', $params['password']);
       $this->setParameter('port',     $params['port']);
+      $this->setParameter('encoding', isset($params['encoding']) ? $params['encoding'] : null);
     }
 
     self::$config['propel']['datasources'][$this->getParameter('datasource')] =
@@ -83,6 +84,7 @@ class sfPropelDatabase extends sfCreoleDatabase
           'username' => $this->getParameter('username'),
           'password' => $this->getParameter('password'),
           'port'     => $this->getParameter('port'),
+          'encoding' => $this->getParameter('encoding'),
         ),
       );
   }
@@ -101,5 +103,31 @@ class sfPropelDatabase extends sfCreoleDatabase
 
     self::$config['propel']['datasources'][$this->getParameter('datasource')]['connection'][$key] = $value;
     $this->setParameter($key, $value);
+  }
+
+  public function retrieveObjects($class, $peerMethod = null)
+  {
+    if (!$classPath = sfCore::getClassPath($class.'Peer'))
+    {
+      throw new sfException(sprintf('Unable to find path for class "%s".', $class.'Peer'));
+    }
+
+    require_once($classPath);
+
+    if (!$peerMethod)
+    {
+      $peerMethod = 'doSelect';
+    }
+
+    $classPeer = $class.'Peer';
+
+    if (!is_callable(array($classPeer, $peerMethod)))
+    {
+      throw new sfException(sprintf('Peer method "%s" not found for class "%s"', $peerMethod, $classPeer));
+    }
+
+    $objects = call_user_func(array($classPeer, $peerMethod), new Criteria());
+
+    return $objects;
   }
 }

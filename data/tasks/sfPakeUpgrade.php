@@ -1,10 +1,23 @@
 <?php
 
+/*
+ * This file is part of the symfony package.
+ * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
+ * 
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 pake_desc('upgrade to a new symfony release');
-pake_task('upgrade', 'project_exists');
+pake_task('upgrade');
 
 pake_desc('downgrade to a previous symfony release');
 pake_task('downgrade', 'project_exists');
+
+function run_downgrade($task, $args)
+{
+  throw new Exception('I have no downgrade script for this release.');
+}
 
 function run_upgrade($task, $args)
 {
@@ -27,6 +40,12 @@ function run_upgrade($task, $args)
 
 function run_upgrade_0_8($task, $args)
 {
+  // check we have a project
+  if (!file_exists('symfony') && !file_exists('SYMFONY'))
+  {
+    throw new Exception('You must be in a symfony project directory');
+  }
+
   // upgrade propel.ini
   _upgrade_0_8_propel_ini();
 
@@ -36,8 +55,22 @@ function run_upgrade_0_8($task, $args)
   // find all applications for this project
   $apps = pakeFinder::type('directory')->name(sfConfig::get('sf_app_module_dir_name'))->mindepth(1)->maxdepth(1)->relative()->in(sfConfig::get('sf_apps_dir_name'));
 
+  // install symfony CLI
+  if (file_exists(sfConfig::get('sf_root_dir').'/SYMFONY'))
+  {
+    pake_remove(sfConfig::get('sf_root_dir').'/SYMFONY', '');
+  }
+  pake_copy(sfConfig::get('sf_symfony_data_dir').'/skeleton/project/symfony', sfConfig::get('sf_root_dir').'/symfony');
+  pake_chmod('symfony', sfConfig::get('sf_root_dir'), 0777);
+
   // update schemas
   _upgrade_0_8_schemas();
+
+  // add bootstrap files for tests
+  _add_0_8_test_bootstraps();
+
+  // upgrade main config.php
+  _upgrade_0_8_main_config_php();
 
   // upgrade all applications
   foreach ($apps as $app_module_dir)
@@ -99,11 +132,11 @@ function _upgrade_0_8_php_files($app_dir)
     $content = file_get_contents($php_file);
 
     $deprecated = array(
-      "'/sf/js/prototype"     => "sfConfig::get('SF_PROTOTYPE_WEB_DIR').'/js",
-      "'/sf/css/prototype"    => "sfConfig::get('SF_PROTOTYPE_WEB_DIR').'/css",
-      "'/sf/js/sf_admin"      => "sfConfig::get('SF_PROTOTYPE_WEB_DIR').'/js",
-      "'/sf/css/sf_admin"     => "sfConfig::get('SF_PROTOTYPE_WEB_DIR').'/css",
-      "'/sf/images/sf_admin"  => "sfConfig::get('SF_PROTOTYPE_WEB_DIR').'/images",
+      "'/sf/js/prototype"     => "sfConfig::get('sf_prototype_web_dir').'/js",
+      "'/sf/css/prototype"    => "sfConfig::get('sf_prototype_web_dir').'/css",
+      "'/sf/js/sf_admin"      => "sfConfig::get('sf_prototype_web_dir').'/js",
+      "'/sf/css/sf_admin"     => "sfConfig::get('sf_prototype_web_dir').'/css",
+      "'/sf/images/sf_admin"  => "sfConfig::get('sf_prototype_web_dir').'/images",
     );
     $seen = array();
     foreach ($deprecated as $old => $new)
@@ -296,17 +329,42 @@ function _upgrade_0_8_config_php($app_dir)
 {
   pake_echo_action('upgrade 0.8', 'upgrading config.php');
 
-  $config_file = $app_dir.DIRECTORY_SEPARATOR.sfConfig::get('sf_config_dir_name').DIRECTORY_SEPARATOR.'config.php';
+  pake_copy(sfConfig::get('sf_symfony_data_dir').'/skeleton/app/app/config/config.php', $app_dir.DIRECTORY_SEPARATOR.sfConfig::get('sf_config_dir_name').DIRECTORY_SEPARATOR.'config.php');
+}
 
-  $config_php = file_get_contents($config_file);
+function _upgrade_0_8_main_config_php()
+{
+  pake_echo_action('upgrade 0.8', 'upgrading main config.php');
 
-  $replace_string = "sfConfig::get('sf_lib_dir').PATH_SEPARATOR.\n  sfConfig::get('sf_root_dir').PATH_SEPARATOR";
-  if (!preg_match('/'.preg_quote($replace_string, '/').'/', $config_php))
+  $content = file_get_contents(sfConfig::get('sf_root_dir').'/config/config.php');
+
+  if (false === strpos($content, 'sf_symfony_lib_dir'))
   {
-    $config_php = str_replace('sfConfig::get(\'sf_lib_dir\').PATH_SEPARATOR', $replace_string, $config_php);
-  }
+    pake_echo_comment('symfony lib and data dir are now configured in main config.php');
 
-  file_put_contents($config_file, $config_php);
+    $lib_dir = sfConfig::get('sf_symfony_lib_dir');
+    $data_dir = sfConfig::get('sf_symfony_data_dir');
+    if (is_link('lib/symfony') && is_link('data/symfony'))
+    {
+      $content .= <<<EOF
+
+\$sf_symfony_lib_dir  = dirname(__FILE__).'/../lib/symfony';
+\$sf_symfony_data_dir = dirname(__FILE__).'/../data/symfony';
+
+EOF;
+    }
+    else
+    {
+      $content .= <<<EOF
+
+\$sf_symfony_lib_dir  = '$lib_dir';
+\$sf_symfony_data_dir = '$data_dir';
+
+EOF;
+    }
+
+    file_put_contents(sfConfig::get('sf_root_dir').'/config/config.php', $content);
+  }
 }
 
 function _upgrade_0_8_propel_model()
@@ -360,29 +418,6 @@ function _upgrade_0_8_schemas()
 
     file_put_contents($xml_file, $content);
   }
-
-  $seen = false;
-  $yml_files = pakeFinder::type('file')->name('*schema.yml')->in(sfConfig::get('sf_config_dir'));
-  foreach ($yml_files as $yml_file)
-  {
-    $content = file_get_contents($yml_file);
-
-    if (preg_match('/^  _attributes:\s*{[^}]*package:[^}]*}/m', $content))
-    {
-      continue;
-    }
-
-    $count = 0;
-    $content = preg_replace('/^(.+\:)/', "\\1\n  _attributes: { package: lib.model }", $content, 1, $count);
-    if ($count && !$seen)
-    {
-      $seen = true;
-      pake_echo_comment('schema.yml must now have a database package');
-      pake_echo_comment('  default is _attributes: { package: lib.model }');
-    }
-
-    file_put_contents($yml_file, $content);
-  }
 }
 
 function _upgrade_0_8_propel_ini()
@@ -406,10 +441,13 @@ function _upgrade_0_8_propel_ini()
     }
 
     // new propel builder class to be able to remove require_* and strip comments
-    $propel_ini = str_replace('propel.engine.builder.om.php5.PHP5ExtensionObjectBuilder', 'symfony.addon.propel.builder.SfExtensionObjectBuilder', $propel_ini);
-    $propel_ini = str_replace('propel.engine.builder.om.php5.PHP5ExtensionPeerBuilder', 'symfony.addon.propel.builder.SfExtensionPeerBuilder', $propel_ini);
-    $propel_ini = str_replace('propel.engine.builder.om.php5.PHP5MultiExtendObjectBuilder', 'symfony.addon.propel.builder.SfMultiExtendObjectBuilder', $propel_ini);
-    $propel_ini = str_replace('propel.engine.builder.om.php5.PHP5MapBuilderBuilder', 'symfony.addon.propel.builder.SfMapBuilderBuilder', $propel_ini);
+    $propel_ini = str_replace('propel.engine.builder.om.php5.PHP5ExtensionObjectBuilder', 'addon.propel.builder.SfExtensionObjectBuilder', $propel_ini);
+    $propel_ini = str_replace('propel.engine.builder.om.php5.PHP5ExtensionPeerBuilder', 'addon.propel.builder.SfExtensionPeerBuilder', $propel_ini);
+    $propel_ini = str_replace('propel.engine.builder.om.php5.PHP5MultiExtendObjectBuilder', 'addon.propel.builder.SfMultiExtendObjectBuilder', $propel_ini);
+    $propel_ini = str_replace('propel.engine.builder.om.php5.PHP5MapBuilderBuilder', 'addon.propel.builder.SfMapBuilderBuilder', $propel_ini);
+
+    // replace old symfony.addon.propel path to addon.propel
+    $propel_ini = str_replace('symfony.addon.propel.builder.', 'addon.propel.builder.', $propel_ini);
 
     if (false === strpos($propel_ini, 'addIncludes'))
     {
@@ -428,4 +466,14 @@ EOF;
 
     file_put_contents($propel_file, $propel_ini);
   }
+}
+
+function _add_0_8_test_bootstraps()
+{
+  pake_echo_action('upgrade 0.8', 'add test bootstrap files');
+
+  pake_mkdirs(sfConfig::get('sf_root_dir').'/test/bootstrap');
+
+  pake_copy(sfConfig::get('sf_symfony_data_dir').'/skeleton/project/test/bootstrap/functional.php', sfConfig::get('sf_root_dir').'/test/bootstrap/functional.php');
+  pake_copy(sfConfig::get('sf_symfony_data_dir').'/skeleton/project/test/bootstrap/unit.php', sfConfig::get('sf_root_dir').'/test/bootstrap/unit.php');
 }

@@ -94,7 +94,15 @@ class sfAutoloadConfigHandler extends sfYamlConfigHandler
           preg_match_all($regex, file_get_contents($file), $classes);
           foreach ($classes[1] as $class)
           {
-            $data[] = sprintf("'%s' => '%s',", $class, $file);
+            $prefix = '';
+            if (isset($entry['prefix']))
+            {
+              // FIXME: does not work for plugins installed with a symlink
+              preg_match('~^'.str_replace('\*', '(.+?)', preg_quote(str_replace('/', DIRECTORY_SEPARATOR, $path), '~')).'~', $file, $match);
+              $prefix = $match[$entry['prefix']].'/';
+            }
+
+            $data[] = sprintf("'%s%s' => '%s',", $prefix, $class, $file);
           }
         }
       }

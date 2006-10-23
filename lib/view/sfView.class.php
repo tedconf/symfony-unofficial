@@ -68,7 +68,7 @@ abstract class sfView
    */
   const RENDER_VAR = 4;
 
-  private
+  protected
     $context            = null,
     $decorator          = false,
     $decoratorDirectory = null,
@@ -77,9 +77,7 @@ abstract class sfView
     $componentSlots     = array(),
     $template           = null,
     $escaping           = null,
-    $escapingMethod     = null;
-
-  protected
+    $escapingMethod     = null,
     $attribute_holder   = null,
     $parameter_holder   = null,
     $moduleName         = '',
@@ -321,13 +319,6 @@ abstract class sfView
     $this->parameter_holder->add(sfConfig::get('mod_'.strtolower($moduleName).'_view_param', array()));
 
     $this->decoratorDirectory = sfConfig::get('sf_app_template_dir');
-
-    // store our current view
-    $actionStackEntry = $context->getController()->getActionStack()->getLastEntry();
-    if (!$actionStackEntry->getViewInstance())
-    {
-      $actionStackEntry->setViewInstance($this);
-    }
 
     // include view configuration
     $this->configure();

@@ -1,5 +1,13 @@
 <?php
 
+/*
+ * This file is part of the symfony package.
+ * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
+ * 
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 pake_desc('create classes for current model');
 pake_task('propel-build-model', 'project_exists');
 
@@ -49,14 +57,6 @@ function _propel_convert_yml_schema($check_schema = true, $prefix = '')
     throw new Exception('You must create a schema.yml file.');
   }
 
-  $sf_symfony_lib_dir = sfConfig::get('sf_symfony_lib_dir');
-  require_once($sf_symfony_lib_dir.'/util/Spyc.class.php');
-  require_once($sf_symfony_lib_dir.'/util/sfYaml.class.php');
-  require_once($sf_symfony_lib_dir.'/util/sfToolkit.class.php');
-  require_once($sf_symfony_lib_dir.'/util/sfInflector.class.php');
-  require_once($sf_symfony_lib_dir.'/exception/sfException.class.php');
-  require_once($sf_symfony_lib_dir.'/addon/propel/sfPropelDatabaseSchema.class.php');
-
   $db_schema = new sfPropelDatabaseSchema();
   foreach ($schemas as $schema)
   {
@@ -71,7 +71,7 @@ function _propel_convert_yml_schema($check_schema = true, $prefix = '')
     {
       $localprefix = $prefix.$match[1].'-';
     }
-        
+
     // save converted xml files in original directories
     $xml_file_name = str_replace('.yml', '.xml', basename($schema));
 
@@ -84,19 +84,12 @@ function _propel_convert_yml_schema($check_schema = true, $prefix = '')
 function _propel_convert_xml_schema($check_schema = true, $prefix = '')
 {
   $finder = pakeFinder::type('file')->name('*schema.xml');
-  $schemas = array_merge($finder->in('config'), $finder->in('data/plugins'));
+
+  $schemas = array_merge($finder->in('config'), $finder->in(glob(sfConfig::get('sf_root_dir').'/plugins/*/config')));
   if ($check_schema && !count($schemas))
   {
     throw new Exception('You must create a schema.xml file.');
   }
-
-  $sf_symfony_lib_dir = sfConfig::get('sf_symfony_lib_dir');
-  require_once($sf_symfony_lib_dir.'/util/Spyc.class.php');
-  require_once($sf_symfony_lib_dir.'/util/sfYaml.class.php');
-  require_once($sf_symfony_lib_dir.'/util/sfToolkit.class.php');
-  require_once($sf_symfony_lib_dir.'/util/sfInflector.class.php');
-  require_once($sf_symfony_lib_dir.'/exception/sfException.class.php');
-  require_once($sf_symfony_lib_dir.'/addon/propel/sfPropelDatabaseSchema.class.php');
 
   $db_schema = new sfPropelDatabaseSchema();
   foreach ($schemas as $schema)
@@ -116,7 +109,7 @@ function _propel_convert_xml_schema($check_schema = true, $prefix = '')
     
     $file = str_replace(basename($schema), $prefix.$yml_file_name,  $schema);
     pake_echo_action('schema', 'putting '.$file);    
-    file_put_contents($file, $db_schema->asXML());
+    file_put_contents($file, $db_schema->asYAML());
   }
 }
 
@@ -133,15 +126,20 @@ function _propel_copy_xml_schema_from_plugins($prefix = '')
     if (preg_match('#plugins[/\\\\]([^/\\\\]+)[/\\\\]#', $schema, $match))
     {
       // if the plugin name is not in the schema filename, add it
-      if(!strstr(basename($schema), $match[1]))
+      if (!strstr(basename($schema), $match[1]))
+      {
         $localprefix = $match[1].'-';
+      }
     }
 
     // if the prefix is not in the schema filename, add it
-    if(!strstr(basename($schema), $prefix))
+    if (!strstr(basename($schema), $prefix))
+    {
       $localprefix = $prefix.$localprefix;
+    }
 
     pake_copy($schema, 'config'.DIRECTORY_SEPARATOR.$localprefix.basename($schema));
+    pake_remove($schema, '');
   }
 }
 
@@ -162,7 +160,7 @@ function run_propel_build_model($task, $args)
 {
   _propel_convert_yml_schema(false, 'generated-');
   _propel_copy_xml_schema_from_plugins('generated-');
-  _call_phing($task, 'build-om');
+  _call_phing($task, 'om');
   $finder = pakeFinder::type('file')->name('generated-*schema.xml');
   pake_remove($finder, array('config', 'plugins'));
 }
@@ -171,14 +169,14 @@ function run_propel_build_sql($task, $args)
 {
   _propel_convert_yml_schema(false, 'generated-');
   _propel_copy_xml_schema_from_plugins('generated-');
-  _call_phing($task, 'build-sql');
+  _call_phing($task, 'sql');
   $finder = pakeFinder::type('file')->name('generated-*schema.xml');
   pake_remove($finder, 'config');
 }
 
 function run_propel_build_db($task, $args)
 {
-  _call_phing($task, 'build-db');
+  _call_phing($task, 'create-db');
 }
 
 function run_propel_insert_sql($task, $args)
@@ -192,7 +190,7 @@ function run_propel_insert_sql($task, $args)
 
 function run_propel_build_schema($task, $args)
 {
-  _call_phing($task, 'build-model-schema', false);
+  _call_phing($task, 'creole', false);
 
   // fix database name
   if (file_exists('config/schema.xml'))
@@ -291,38 +289,22 @@ function _call_phing($task, $task_name, $check_schema = true)
     throw new Exception('You must create a schema.yml or schema.xml file.');
   }
 
-  // create a tmp propel.ini configuration file
-  $propelIniFileName = tempnam(sfConfig::get('sf_config_dir'), 'propelini');
-  pake_copy(sfConfig::get('sf_config_dir').DIRECTORY_SEPARATOR.'propel.ini', $propelIniFileName, array('override' => true));
-
-  // update propel root dir
-  $propelIni = file_get_contents($propelIniFileName);
-  $propelIni = preg_replace('/^\s*propel.output.dir\s*=\s*.+?$/m', 'propel.output.dir = '.sfConfig::get('sf_root_dir'), $propelIni);
-  file_put_contents($propelIniFileName, $propelIni);
-
-  // update database information
-  $projectConfigFile = sfConfig::get('sf_config_dir').DIRECTORY_SEPARATOR.'databases.yml';
-  $appConfigFile     = sfConfig::get('sf_apps_dir_name').DIRECTORY_SEPARATOR.'apps'.DIRECTORY_SEPARATOR.sfConfig::get('sf_app_config_dir_name').DIRECTORY_SEPARATOR.'databases.yml';
-
-  $propel_generator_dir = sfConfig::get('sf_symfony_lib_dir').'/vendor/propel-generator';
-
-  $options = array(
-    'project' => $task->get_property('name', 'symfony'),
-    'lib_dir' => sfConfig::get('sf_symfony_lib_dir'),
-    'data_dir' => sfConfig::get('sf_symfony_data_dir'),
-    'propel_generator_dir' => $propel_generator_dir,
-    'propel_ini' => basename($propelIniFileName),
-  );
-
   // call phing targets
   pake_import('Phing', false);
   if (false === strpos('propel-generator', get_include_path()))
   {
     set_include_path(sfConfig::get('sf_symfony_lib_dir').'/vendor/propel-generator/classes'.PATH_SEPARATOR.get_include_path());
   }
-  pakePhingTask::call_phing($task, array($task_name), sfConfig::get('sf_symfony_data_dir').'/bin/build.xml', $options);
 
-  pake_remove($propelIniFileName, '');
+  // needed to include the right Propel builders
+  set_include_path(sfConfig::get('sf_symfony_lib_dir').PATH_SEPARATOR.get_include_path());
+
+  $options = array(
+    'project.dir'       => sfConfig::get('sf_root_dir').'/config',
+    'build.properties'  => 'propel.ini',
+    'propel.output.dir' => sfConfig::get('sf_root_dir'),
+  );
+  pakePhingTask::call_phing($task, array($task_name), sfConfig::get('sf_symfony_lib_dir').'/vendor/propel-generator/build.xml', $options);
 
   chdir(sfConfig::get('sf_root_dir'));
 }

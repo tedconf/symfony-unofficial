@@ -16,11 +16,11 @@
  */
 class sfCacheFilter extends sfFilter
 {
-  private
+  protected
     $cacheManager = null,
     $request      = null,
     $response     = null,
-    $cache       = array();
+    $cache        = array();
 
   public function initialize($context, $parameters = array())
   {
@@ -48,6 +48,16 @@ class sfCacheFilter extends sfFilter
       return;
     }
 
+    if ($this->executeBeforeExecution())
+    {
+      $filterChain->execute();
+    }
+
+    $this->executeBeforeRendering();
+  }
+
+  public function executeBeforeExecution ()
+  {
     // register our cache configuration
     $this->cacheManager->registerConfiguration($this->getContext()->getModuleName());
 
@@ -66,7 +76,7 @@ class sfCacheFilter extends sfFilter
         if ($inCache)
         {
           // page is in cache, so no need to run execution filter
-          $filterChain->executionFilterDone();
+          return false;
         }
       }
       else
@@ -76,7 +86,7 @@ class sfCacheFilter extends sfFilter
       }
     }
 
-    $filterChain->execute();
+    return true;
   }
 
   /**
@@ -86,16 +96,8 @@ class sfCacheFilter extends sfFilter
    *
    * @return void
    */
-  public function executeBeforeRendering ($filterChain)
+  public function executeBeforeRendering ()
   {
-    // execute this filter only once, if cache is set and no GET or POST parameters
-    if (!$this->isFirstCallBeforeRendering() || !sfConfig::get('sf_cache') || count($_GET) || count($_POST))
-    {
-      $filterChain->execute();
-
-      return;
-    }
-
     // cache only 200 HTTP status
     if ($this->response->getStatusCode() == 200)
     {
@@ -128,6 +130,7 @@ class sfCacheFilter extends sfFilter
     // remove PHP automatic Cache-Control and Expires headers if not overwritten by application or cache
     if ($this->response->hasHttpHeader('Last-Modified') || sfConfig::get('sf_etag'))
     {
+      // FIXME: these headers are set by PHP sessions (see session_cache_limiter())
       $this->response->setHttpHeader('Cache-Control', null, false);
       $this->response->setHttpHeader('Expires', null, false);
       $this->response->setHttpHeader('Pragma', null, false);
@@ -168,12 +171,9 @@ class sfCacheFilter extends sfFilter
         }
       }
     }
-
-    // execute next filter
-    $filterChain->execute();
   }
 
-  private function setPageCache($uri)
+  protected function setPageCache($uri)
   {
     if ($this->getContext()->getController()->getRenderMode() != sfView::RENDER_CLIENT)
     {
@@ -190,7 +190,7 @@ class sfCacheFilter extends sfFilter
     }
   }
 
-  private function getPageCache($uri)
+  protected function getPageCache($uri)
   {
     $context = $this->getContext();
 
@@ -229,7 +229,7 @@ class sfCacheFilter extends sfFilter
     return true;
   }
 
-  private function setActionCache($uri)
+  protected function setActionCache($uri)
   {
     $content = $this->response->getParameter($uri.'_action', null, 'symfony/cache');
 
@@ -239,12 +239,12 @@ class sfCacheFilter extends sfFilter
     }
   }
 
-  private function getActionCache($uri)
+  protected function getActionCache($uri)
   {
     // retrieve content from cache
     $retval = $this->cacheManager->get($uri);
 
-    if (sfConfig::get('sf_web_debug'))
+    if ($retval && sfConfig::get('sf_web_debug'))
     {
       $tmp = unserialize($retval);
       $tmp['content'] = sfWebDebug::getInstance()->decorateContentWithDebug($uri, $tmp['content'], false);

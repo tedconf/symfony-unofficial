@@ -128,7 +128,7 @@ class sfPropelDatabaseSchema
     return $xml;
   }
   
-  private function fixYAMLDatabase()
+  protected function fixYAMLDatabase()
   {
     if (!isset($this->database['_attributes']))
     {
@@ -140,7 +140,7 @@ class sfPropelDatabaseSchema
     $this->setIfNotSet($this->database['_attributes'], 'package', 'lib.model');
   }
 
-  private function fixYAMLI18n()
+  protected function fixYAMLI18n()
   {
     foreach ($this->getTables() as $i18n_table => $columns)
     {
@@ -191,7 +191,7 @@ class sfPropelDatabaseSchema
     }
   }
 
-  private function fixYAMLColumns()
+  protected function fixYAMLColumns()
   {
     foreach ($this->getTables() as $table => $columns)
     {
@@ -219,6 +219,26 @@ class sfPropelDatabaseSchema
             );
             $has_primary_key = true;
           }
+          
+          $pos = strpos($column, '_id');
+          if ($pos > 0 && $pos == strlen($column) - 3)
+          {
+            // foreign key convention
+            $foreign_table = $this->findTable(substr($column, 0, $pos));
+            if ($foreign_table)
+            {
+              $this->database[$table][$column] = array(
+                'type'             => 'integer',
+                'foreignTable'     => $foreign_table,
+                'foreignReference' => 'id'
+              );
+            }
+            else
+            {
+              throw new sfException(sprintf('Unable to resolve foreign table for column "%s"', $column));
+            }
+          }
+          
         }
         else
         {
@@ -239,29 +259,7 @@ class sfPropelDatabaseSchema
               $has_primary_key = true;
             }
           }
-        }
-        
-        $pos = strpos($column, '_id');
-        if ($pos > 0 && $pos == strlen($column) - 3)
-        {
-          // foreign key convention
-          $foreign_table = $this->findTable(substr($column, 0, $pos));
-          if ($foreign_table || isset($this->database[$table][$column]['foreignTable']))
-          {
-            $this->database[$table][$column] = array_merge(
-              array(
-                'type'             => 'integer',
-                'foreignReference' => 'id'
-              ),
-              ($foreign_table ? array('foreignTable' => $foreign_table) : array()),
-              ($attributes != null ? $this->database[$table][$column] : array())
-            );
-          }
-          else
-          {
-            throw new sfException(sprintf('Unable to resolve foreign table for column "%s"', $column));
-          }
-        }
+        }        
       }
       
       if(!$has_primary_key)
@@ -277,7 +275,7 @@ class sfPropelDatabaseSchema
     }
   }
   
-  private function getAttributesFromCompactType($type)
+  protected function getAttributesFromCompactType($type)
   {
     preg_match('/varchar\(([\d]+)\)/', $type, $matches);
     if (isset($matches[1]))
@@ -290,7 +288,7 @@ class sfPropelDatabaseSchema
     }
   }
 
-  private function setIfNotSet(&$entry, $key, $value)
+  protected function setIfNotSet(&$entry, $key, $value)
   {
     if (!isset($entry[$key]))
     {
@@ -298,7 +296,7 @@ class sfPropelDatabaseSchema
     }
   }
 
-  private function findTable($table_name)
+  protected function findTable($table_name)
   {
     // find a table from a phpName or a name
     $table_match = false;
@@ -312,7 +310,7 @@ class sfPropelDatabaseSchema
     return $table_match;
   }
 
-  private function getAttributesForColumn($col_name, $column)
+  protected function getAttributesForColumn($col_name, $column)
   {
     $attributes_string = '';
     if (is_array($column))
@@ -371,7 +369,7 @@ class sfPropelDatabaseSchema
     return $attributes_string;
   }
 
-  private function getAttributesFor($tag)
+  protected function getAttributesFor($tag)
   {
     if (!isset($tag['_attributes']))
     {
@@ -387,7 +385,7 @@ class sfPropelDatabaseSchema
     return $attributes_string;
   }
 
-  private function getCorrectValueFor($key, $value)
+  protected function getCorrectValueFor($key, $value)
   {
     $booleans = array('required', 'primaryKey', 'autoincrement', 'autoIncrement', 'noXsd', 'isI18N', 'isCulture');
     if (in_array($key, $booleans))
@@ -400,12 +398,12 @@ class sfPropelDatabaseSchema
     } 
   }
 
-  private function getTables()
+  protected function getTables()
   {
     return $this->getChildren($this->database); 
   }
   
-  private function getChildren($hash)
+  protected function getChildren($hash)
   {
     foreach ($hash as $key => $value)
     {
@@ -552,7 +550,7 @@ class sfPropelDatabaseSchema
     // $this->fixXMLColumns();
   }
 
-  private function fixXMLForeignKeys()
+  protected function fixXMLForeignKeys()
   {
     foreach($this->getTables() as $table => $columns)
     {
@@ -584,7 +582,7 @@ class sfPropelDatabaseSchema
     }
   }
 
-  private function fixXMLIndexes()
+  protected function fixXMLIndexes()
   {
     foreach($this->getTables() as $table => $columns)
     {
@@ -631,7 +629,7 @@ class sfPropelDatabaseSchema
     }
   }
 
-  private function fixXMLColumns()
+  protected function fixXMLColumns()
   {
     foreach($this->getTables() as $table => $columns)
     {
@@ -669,7 +667,7 @@ class sfPropelDatabaseSchema
     return sfYaml::dump(array($this->connection_name => $this->database));
   }
 
-  private function getNameAndAttributes($hash, $name_attribute = 'name')
+  protected function getNameAndAttributes($hash, $name_attribute = 'name')
   {
     // tag name
     $name = '';
@@ -689,7 +687,7 @@ class sfPropelDatabaseSchema
     return array($name, $attributes);
   }
 
-  private function removeEmptyKey(&$hash, $key)
+  protected function removeEmptyKey(&$hash, $key)
   {
     if(isset($hash[$key]) && !$hash[$key])
     {

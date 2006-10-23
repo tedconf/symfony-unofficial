@@ -17,7 +17,7 @@
  */
 class sfPropelData
 {
-  private
+  protected
     $deleteCurrentData = true,
     $maps              = array(),
     $object_references = array();
@@ -37,7 +37,7 @@ class sfPropelData
   {
     $fixture_files = $this->getFiles($directory_or_file);
 
-    // wrap all databases operations in a single transaction
+    // wrap all database operations in a single transaction
     $con = Propel::getConnection();
     try
     {
@@ -59,15 +59,20 @@ class sfPropelData
   protected function doLoadDataFromFile($fixture_file)
   {
     // import new datas
-    $main_datas = sfYaml::load($fixture_file);
+    $data = sfYaml::load($fixture_file);
 
-    if ($main_datas === null)
+    $this->loadDataFromArray($data);
+  }
+
+  public function loadDataFromArray($data)
+  {
+    if ($data === null)
     {
       // no data
       return;
     }
 
-    foreach ($main_datas as $class => $datas)
+    foreach ($data as $class => $datas)
     {
       $class = trim($class);
 
@@ -159,21 +164,21 @@ class sfPropelData
       rsort($fixture_files);
       foreach ($fixture_files as $fixture_file)
       {
-        $main_datas = sfYaml::load($fixture_file);
+        $data = sfYaml::load($fixture_file);
 
-        if ($main_datas === null)
+        if ($data === null)
         {
           // no data
           continue;
         }
 
-        $classes = array_keys($main_datas);
+        $classes = array_keys($data);
         krsort($classes);
         foreach ($classes as $class)
         {
           $peer_class = trim($class.'Peer');
 
-          if (!$classPath = Symfony::getClassPath($peer_class))
+          if (!$classPath = sfCore::getClassPath($peer_class))
           {
             throw new sfException(sprintf('Unable to find path for class "%s".', $peer_class));
           }
@@ -211,12 +216,12 @@ class sfPropelData
     return $fixture_files;
   }
 
-  private function loadMapBuilder($class)
+  protected function loadMapBuilder($class)
   {
     $class_map_builder = $class.'MapBuilder';
     if (!isset($this->maps[$class]))
     {
-      if (!$classPath = Symfony::getClassPath($class_map_builder))
+      if (!$classPath = sfCore::getClassPath($class_map_builder))
       {
         throw new sfException(sprintf('Unable to find path for class "%s".', $class_map_builder));
       }

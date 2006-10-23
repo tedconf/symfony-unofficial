@@ -8,17 +8,7 @@
  * file that was distributed with this source code.
  */
 
-$_test_dir = realpath(dirname(__FILE__).'/../..');
-require_once($_test_dir.'/../lib/vendor/lime/lime.php');
-require_once($_test_dir.'/../lib/util/sfParameterHolder.class.php');
-require_once($_test_dir.'/../lib/util/sfToolkit.class.php');
-require_once($_test_dir.'/../lib/util/sfYaml.class.php');
-require_once($_test_dir.'/../lib/util/Spyc.class.php');
-require_once($_test_dir.'/../lib/config/sfLoader.class.php');
-require_once($_test_dir.'/../lib/config/sfConfig.class.php');
-require_once($_test_dir.'/../lib/config/sfConfigHandler.class.php');
-require_once($_test_dir.'/../lib/config/sfYamlConfigHandler.class.php');
-require_once($_test_dir.'/../lib/config/sfDefineEnvironmentConfigHandler.class.php');
+require_once(dirname(__FILE__).'/../../bootstrap/unit.php');
 
 sfConfig::set('sf_symfony_lib_dir', realpath(dirname(__FILE__).'/../../../lib'));
 
@@ -28,7 +18,7 @@ $t = new lime_test(1, new lime_output_color());
 $handler = new sfDefineEnvironmentConfigHandler();
 $handler->initialize(array('prefix' => 'sf_'));
 
-$dir = dirname(__FILE__).DIRECTORY_SEPARATOR.'fixtures'.DIRECTORY_SEPARATOR;
+$dir = dirname(__FILE__).DIRECTORY_SEPARATOR.'fixtures'.DIRECTORY_SEPARATOR.'sfDefineEnvironmentConfigHandler'.DIRECTORY_SEPARATOR;
 
 $files = array(
   $dir.'prefix_default.yml',

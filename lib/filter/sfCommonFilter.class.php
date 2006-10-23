@@ -28,40 +28,24 @@ class sfCommonFilter extends sfFilter
   {
     // execute next filter
     $filterChain->execute();
-  }
 
-  /**
-   * Execute this filter.
-   *
-   * @param FilterChain A FilterChain instance.
-   *
-   * @return void
-   */
-  public function executeBeforeRendering ($filterChain)
-  {
     // execute this filter only once
-    if ($this->isFirstCallBeforeRendering())
+    $response = $this->getContext()->getResponse();
+
+    // include javascripts and stylesheets
+    sfLoader::loadHelpers(array('Tag', 'Asset'));
+    $html  = $this->includeJavascripts($response);
+    $html .= $this->includeStylesheets($response);
+    $content = $response->getContent();
+    if (false !== ($pos = strpos($content, '</head>')))
     {
-      $response = $this->getContext()->getResponse();
-
-      // include javascripts and stylesheets
-      sfLoader::loadHelpers(array('Tag', 'Asset'));
-      $html  = $this->include_javascripts($response);
-      $html .= $this->include_stylesheets($response);
-      $content = $response->getContent();
-      if (false !== ($pos = strpos($content, '</head>')))
-      {
-        $content = substr($content, 0, $pos).$html.substr($content, $pos);
-      }
-
-      $response->setContent($content);
+      $content = substr($content, 0, $pos).$html.substr($content, $pos);
     }
 
-    // execute next filter
-    $filterChain->execute();
+    $response->setContent($content);
   }
 
-  private function include_javascripts($response)
+  protected function includeJavascripts($response)
   {
     $already_seen = array();
     $html = '';
@@ -90,7 +74,7 @@ class sfCommonFilter extends sfFilter
     return $html;
   }
 
-  private function include_stylesheets($response)
+  protected function includeStylesheets($response)
   {
     $already_seen = array();
     $html = '';

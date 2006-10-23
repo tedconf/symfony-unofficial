@@ -67,7 +67,6 @@ all:
 #    web_debug:              off
 #
 #    cache:                  off
-#    default_cache_lifetime: 86400
 #
 #    no_script_name:         on
 #
@@ -75,8 +74,6 @@ all:
 #    error_reporting:        337
 #
 #    rich_text_js_dir:       js/tiny_mce
-#
-#    safe_slot:              on
 #
 #    use_flash:              on
 #
@@ -90,14 +87,17 @@ all:
 #    validation_error_suffix:    ' &nbsp;&darr;'
 #    validation_error_class:     form_error
 #    validation_error_id_prefix: error_for_
-# 
+#
 #    autoloading_functions: ~
-# 
+#
 #    charset: utf-8
-# 
+#
 #    escaping_strategy: bc
-#    escaping_method:   EscapingHelper::ESC_ENTITIES
+#    escaping_method:   ESC_ENTITIES
 #
 #    prototype_web_dir: /sf/prototype
 #    admin_web_dir:     /sf/sf_admin
 #    web_debug_web_dir: /sf/sf_web_debug
+#
+#    check_lock:            off
+#    check_symfony_version: off

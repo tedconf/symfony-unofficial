@@ -22,40 +22,27 @@
  </stability>
  <license uri="http://www.symfony-project.com/license">MIT license</license>
  <notes>-</notes>
+
  <contents>
   <dir name="/">
 
     ##CLASS_FILES##
 
-   <file role="script" baseinstalldir="/" name="data/bin/symfony.sh">
-    <tasks:replace type="pear-config" from="@PHP-BIN@" to="php_bin"/>
-    <tasks:replace type="pear-config" from="@BIN-DIR@" to="bin_dir"/>
-    <tasks:replace type="pear-config" from="@PEAR-DIR@" to="php_dir"/>
-    <tasks:replace type="pear-config" from="@DATA-DIR@" to="data_dir" />
-   </file>
-   <file role="script" baseinstalldir="/" name="data/bin/symfony.bat">
-    <tasks:replace type="pear-config" from="@PHP-BIN@" to="php_bin"/>
-    <tasks:replace type="pear-config" from="@BIN-DIR@" to="bin_dir"/>
-    <tasks:replace type="pear-config" from="@PEAR-DIR@" to="php_dir"/>
-    <tasks:replace type="pear-config" from="@DATA-DIR@" to="data_dir" />
-   </file>
-
-   <file role="data" baseinstalldir="symfony" install-as="bin/symfony.php" name="data/bin/symfony.php">
+   <file role="script" baseinstalldir="/" install-as="symfony" name="data/bin/symfony">
     <tasks:replace type="pear-config" from="@DATA-DIR@" to="data_dir" />
     <tasks:replace type="pear-config" from="@PEAR-DIR@" to="php_dir" />
-    <tasks:replace type="package-info" from="@SYMFONY-VERSION@" to="version" />
-    <tasks:replace type="pear-config" from="@DATA-DIR@" to="data_dir" />
    </file>
 
-   <file role="php" baseinstalldir="symfony" install-as="pear.php" name="lib/pear.php">
-    <tasks:replace type="pear-config" from="@DATA-DIR@" to="data_dir" />
-    <tasks:replace type="pear-config" from="@PEAR-DIR@" to="php_dir" />
-    <tasks:replace type="package-info" from="@SYMFONY-VERSION@" to="version" />
+   <file role="script" baseinstalldir="/" name="data/bin/symfony.bat" />
+
+   <file role="php" baseinstalldir="symfony" install-as="VERSION" name="lib/VERSION">
+    <tasks:replace type="package-info" from="0.9.0-DEV" to="version" />
    </file>
 
    <file role="doc" baseinstalldir="symfony" name="LICENSE" />
   </dir>
  </contents>
+
  <dependencies>
   <required>
    <php>
@@ -69,22 +56,20 @@
 
  <phprelease>
    <installconditions>
-    <os>
-     <name>windows</name>
-    </os>
+     <os>
+       <name>windows</name>
+     </os>
    </installconditions>
    <filelist>
-    <install as="symfony.bat" name="data/bin/symfony.bat" />
-    <ignore name="data/bin/symfony.sh" />
+     <install as="symfony.bat" name="data/bin/symfony.bat" />
    </filelist>
-  </phprelease>
+ </phprelease>
 
-  <phprelease>
-   <filelist>
-    <install as="symfony" name="data/bin/symfony.sh" />
-    <ignore name="data/bin/symfony.bat" />
-   </filelist>
-  </phprelease>
+ <phprelease>
+  <filelist>
+   <ignore name="data/bin/symfony.bat" />
+  </filelist>
+ </phprelease>
 
  <changelog>
  </changelog>

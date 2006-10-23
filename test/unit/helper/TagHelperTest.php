@@ -8,24 +8,17 @@
  * file that was distributed with this source code.
  */
 
-$_test_dir = realpath(dirname(__FILE__).'/../..');
-require_once($_test_dir.'/../lib/vendor/lime/lime.php');
+require_once(dirname(__FILE__).'/../../bootstrap/unit.php');
 require_once($_test_dir.'/unit/sfContextMock.class.php');
-require_once($_test_dir.'/../lib/util/sfToolkit.class.php');
-require_once($_test_dir.'/../lib/config/sfConfig.class.php');
-sfConfig::set('sf_symfony_lib_dir', realpath(dirname(__FILE__).'/../../../lib'));
-require_once($_test_dir.'/../lib/config/sfLoader.class.php');
-
-class sfException extends Exception {}
-class sfViewException extends sfException {}
 
 sfLoader::loadHelpers(array('Helper', 'Tag'));
 
-$t = new lime_test(13, new lime_output_color());
+$t = new lime_test(16, new lime_output_color());
 
 $context = new sfContext();
 
 // tag()
+$t->diag('tag()');
 $t->is(tag(''), '', 'tag() returns an empty string with empty input');
 $t->is(tag('br'), '<br />', 'tag() takes a tag as its first parameter');
 $t->is(tag('p', null, true), '<p>', 'tag() takes a boolean parameter as its third parameter');
@@ -35,14 +28,27 @@ $t->is(tag('p', array('class' => 'foo', 'id' => 'bar'), true), '<p class="foo" i
 //$t->is(tag('br', array('class' => '"foo"')), '<br class="&quot;foo&quot;" />');
 
 // content_tag()
+$t->diag('content_tag()');
 $t->is(content_tag(''), '', 'content_tag() returns an empty string with empty input');
 $t->is(content_tag('', ''), '', 'content_tag() returns an empty string with empty input');
 $t->is(content_tag('p', 'Toto'), '<p>Toto</p>', 'content_tag() takes a content as its second parameter');
 $t->is(content_tag('p', ''), '<p></p>', 'content_tag() takes a tag as its first parameter');
 
 // cdata_section()
-$t->is(cdata_section(''), '<![CDATA[]]>');
-$t->is(cdata_section('foobar'), '<![CDATA[foobar]]>');
+$t->diag('cdata_section()');
+$t->is(cdata_section(''), '<![CDATA[]]>', 'cdata_section() returns a string wrapped into a CDATA section');
+$t->is(cdata_section('foobar'), '<![CDATA[foobar]]>', 'cdata_section() returns a string wrapped into a CDATA section');
 
 // escape_javascript()
-$t->is(escape_javascript("alert('foo');\nalert(\"bar\");"), 'alert(\\\'foo\\\');\\nalert(\\"bar\\");');
+$t->diag('escape_javascript()');
+$t->is(escape_javascript("alert('foo');\nalert(\"bar\");"), 'alert(\\\'foo\\\');\\nalert(\\"bar\\");', 'escape_javascript() escapes JavaScript scripts');
+
+// _get_option()
+$t->diag('_get_option()');
+$options = array(
+  'foo' => 'bar',
+  'bar' => 'foo',
+);
+$t->is(_get_option($options, 'foo'), 'bar', '_get_option() returns the value for the given key');
+$t->ok(!isset($options['foo']), '_get_option() removes the key from the original array');
+$t->is(_get_option($options, 'nofoo', 'nobar'), 'nobar', '_get_option() returns the default value if the key does not exist');

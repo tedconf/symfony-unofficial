@@ -1,0 +1,36 @@
+_contextualCacheableComponent:
+  activate:   on
+  contextual: true
+
+_contextualComponent:
+  activate:   off
+  contextual: true
+
+_cacheableComponent:
+  activate: on
+
+_component:
+  activate: off
+
+_contextualCacheablePartial:
+  activate:   on
+  contextual: true
+
+_contextualPartial:
+  activate:   off
+  contextual: true
+
+_cacheablePartial:
+  activate: on
+
+_partial:
+  activate: off
+
+multi:
+  activate: off
+
+multiBis:
+  activate: off
+
+page:
+  with_layout: true

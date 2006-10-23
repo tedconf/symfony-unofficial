@@ -86,12 +86,12 @@ class sfCompileConfigHandler extends sfYamlConfigHandler
                       date('Y/m/d H:i:s'), $data);
 
     // save current symfony release
-    file_put_contents(sfConfig::get('sf_config_cache_dir').'/VERSION', sfConfig::get('sf_version'));
+    file_put_contents(sfConfig::get('sf_config_cache_dir').'/VERSION', file_get_contents(sfConfig::get('sf_symfony_lib_dir').'/VERSION'));
 
     return $retval;
   }
 
-  private function insertConfig($matches)
+  protected function insertConfig($matches)
   {
     $configFile = sfConfig::get('sf_app_config_dir_name').'/'.$matches[4];
 

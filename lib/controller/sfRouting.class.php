@@ -24,10 +24,10 @@
  */
 class sfRouting
 {
-  private static
+  protected static
     $instance           = null;
 
-  private
+  protected
     $current_route_name = '',
     $routes             = array();
 
@@ -46,7 +46,7 @@ class sfRouting
     return self::$instance;
   }
 
-  private function setCurrentRouteName($name)
+  protected function setCurrentRouteName($name)
   {
     $this->current_route_name = $name;
   }
@@ -88,7 +88,8 @@ class sfRouting
       {
         foreach ($request->getParameterHolder()->getAll() as $key => $value)
         {
-          if ($key == 'module' || $key == 'action' || in_array($key, $names)) {
+          if ($key == 'module' || $key == 'action' || in_array($key, $names))
+          {
             continue;
           }
 
@@ -123,6 +124,11 @@ class sfRouting
     return count($this->routes) ? true : false;
   }
 
+  public function hasRouteName($name)
+  {
+    return isset($this->routes[$name]) ? true : false;
+  }
+
   /**
    * Get a route by its name.
    *
@@ -137,7 +143,7 @@ class sfRouting
 
     if (!isset($this->routes[$name]))
     {
-      $error = 'The route "%s" does not exist.';
+      $error = 'The route "%s" does not exist';
       $error = sprintf($error, $name);
 
       throw new sfConfigurationException($error);
@@ -310,6 +316,15 @@ class sfRouting
       if ($global_defaults !== null)
       {
         $defaults = array_merge($defaults, $global_defaults);
+      }
+
+      // all params must be given
+      foreach ($names as $tmp)
+      {
+        if (!isset($params[$tmp]) && !isset($defaults[$tmp]))
+        {
+          throw new sfException(sprintf('Route named "%s" have a mandatory "%s" parameter', $name, $tmp));
+        }
       }
     }
     else

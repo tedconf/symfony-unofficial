@@ -20,7 +20,7 @@
  */
 class sfWebResponse extends sfResponse
 {
-  private
+  protected
     $cookies    = array(),
     $headers    = array(),
     $statusCode = 200,
@@ -133,7 +133,7 @@ class sfWebResponse extends sfResponse
   public function setStatusCode ($code, $name = null)
   {
     $this->statusCode = $code;
-    $this->statusText = $name ? $name : $this->statusTexts[$code];
+    $this->statusText = null !== $name ? $name : $this->statusTexts[$code];
   }
 
   public function getStatusCode ()
@@ -155,19 +155,15 @@ class sfWebResponse extends sfResponse
 
     if ('Content-Type' == $name)
     {
-      $this->setContentType($value);
+      if ($replace)
+      {
+        $this->setContentType($value);
+      }
 
       return;
     }
 
-    $exists = isset($this->headers[$name]);
-
-    if ($exists && !$replace)
-    {
-      return;
-    }
-
-    if (!$exists || $replace)
+    if (!isset($this->headers[$name]) || $replace)
     {
       $this->headers[$name] = array();
     }
@@ -193,6 +189,16 @@ class sfWebResponse extends sfResponse
   }
 
   /**
+   * Has a HTTP header.
+   *
+   * @return boolean
+   */
+  public function hasHttpHeader ($name)
+  {
+    return isset($this->headers[$this->normalizeHeaderName($name)]);
+  }
+
+  /**
    * Set response content type.
    *
    * @param string value
@@ -207,12 +213,7 @@ class sfWebResponse extends sfResponse
       $value .= '; charset='.sfConfig::get('sf_charset');
     }
 
-    if (isset($this->headers['Content-Type']))
-    {
-      $this->headers['Content-Type'] = array();
-    }
-
-    $this->headers['Content-Type'][] = $value;
+    $this->headers['Content-Type'] = array($value);
   }
 
   /**
@@ -222,19 +223,9 @@ class sfWebResponse extends sfResponse
    */
   public function getContentType ()
   {
-    $ct = $this->getHttpHeader('Content-Type', 'text/html');
+    $ct = $this->getHttpHeader('Content-Type', 'text/html; charset='.sfConfig::get('sf_charset'));
 
     return $ct[0];
-  }
-
-  /**
-   * Has a HTTP header.
-   *
-   * @return boolean
-   */
-  public function hasHttpHeader ($name)
-  {
-    return isset($this->headers[$this->normalizeHeaderName($name)]);
   }
 
   /**
@@ -295,7 +286,7 @@ class sfWebResponse extends sfResponse
     }
   }
 
-  private function normalizeHeaderName($name)
+  protected function normalizeHeaderName($name)
   {
     if (strtolower($name) == 'etag')
     {
@@ -389,7 +380,7 @@ class sfWebResponse extends sfResponse
     return $this->parameter_holder->getAll('helper/asset/auto/meta');
   }
 
-  public function addMeta($key, $value, $override = true, $doNotEscape = false)
+  public function addMeta($key, $value, $override = true, $escape = true)
   {
     if ($override || !$this->hasParameter($key, 'helper/asset/auto/meta'))
     {
@@ -398,7 +389,7 @@ class sfWebResponse extends sfResponse
         $value = sfConfig::get('sf_i18n_instance')->__($value);
       }
 
-      if (!$doNotEscape)
+      if ($escape)
       {
         $value = htmlentities($value, ENT_QUOTES, sfConfig::get('sf_charset'));
       }
@@ -410,19 +401,19 @@ class sfWebResponse extends sfResponse
   public function getTitle()
   {
     $metas = $this->parameter_holder->getAll('helper/asset/auto/meta');
-	
-    return (array_key_exists('title', $metas)) ? $metas['title'] : false;
+
+    return (array_key_exists('title', $metas)) ? $metas['title'] : '';
   }
 
-  public function setTitle($title, $doNotEscape = false)
+  public function setTitle($title, $escape = true)
   {
-    if (!$doNotEscape)
+    if (sfConfig::get('sf_i18n'))
     {
-      if (sfConfig::get('sf_i18n'))
-      {
-        $title = sfConfig::get('sf_i18n_instance')->__($title);
-      }
+      $title = sfConfig::get('sf_i18n_instance')->__($title);
+    }
 
+    if ($escape)
+    {
       $title = htmlentities($title, ENT_QUOTES, sfConfig::get('sf_charset'));
     }
 
@@ -487,6 +478,9 @@ class sfWebResponse extends sfResponse
 
   public function mergeProperties($response)
   {
+    // slots
+    $this->getParameterHolder()->add($response->getParameterHolder()->getAll('symfony/view/sfView/slot'), 'symfony/view/sfView/slot');
+
     // view configuration
     $this->getParameterHolder()->add($response->getParameterHolder()->getAll('symfony/action/view'), 'symfony/action/view');
 
@@ -515,6 +509,10 @@ class sfWebResponse extends sfResponse
   public function __sleep()
   {
     return array('content', 'headers', 'statusCode', 'statusText', 'parameter_holder');
+  }
+
+  public function __wakeup()
+  {
   }
 
   /**

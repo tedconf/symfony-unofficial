@@ -52,18 +52,11 @@ class sfYaml
     }
     else
     {
+      require_once(dirname(__FILE__).'/Spyc.class.php');
+
       $spyc = new Spyc();
 
-      try
-      {
-        return $spyc->load($input);
-      }
-      catch (Exception $e)
-      {
-        $error = str_replace(': Line', ': File '.$input.' line', $e->getMessage());
-        $e = new sfConfigurationException($error);
-        $e->printStackTrace();
-      }
+      return $spyc->load($input);
     }
   }
 
@@ -83,14 +76,11 @@ class sfYaml
     return $spyc->dump($array);
   }
 
-  private static function getIncludeContents($input)
+  protected static function getIncludeContents($input)
   {
     // if input is a file, process it
     if (strpos($input, "\n") === false && is_file($input))
     {
-      require_once(sfConfig::get('sf_symfony_lib_dir').'/config/sfLoader.class.php');
-      sfLoader::loadHelpers(array('Text'));
-
       ob_start();
       $retval = include($input);
       $contents = ob_get_clean();
@@ -102,4 +92,12 @@ class sfYaml
     // else return original input
     return $input;
   }
+}
+
+/**
+ * Wraps echo to automatically provide a newline
+ */
+function echoln($string)
+{
+  echo $string."\n";
 }

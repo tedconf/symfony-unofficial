@@ -68,6 +68,38 @@ class sfLoader
     return null;
   }
 
+  static public function getGeneratorTemplateDirs($class, $theme)
+  {
+    $dirs = glob(sfConfig::get('sf_plugins_dir').'/*/data/generator/'.$class.'/'.$theme.'/template'); // plugin directories
+    $dirs[] = sfConfig::get('sf_data_dir').'/generator/'.$class.'/'.$theme.'/template';               // project directory
+    $dirs[] = sfConfig::get('sf_symfony_data_dir').'/generator/'.$class.'/default/template';          // default theme directory
+
+    return $dirs;
+  }
+
+  static public function getGeneratorSkeletonDirs($class, $theme)
+  {
+    $dirs = glob(sfConfig::get('sf_plugins_dir').'/*/data/generator/'.$class.'/'.$theme.'/skeleton'); // plugin directories
+    $dirs[] = sfConfig::get('sf_data_dir').'/generator/'.$class.'/'.$theme.'/skeleton';               // project directory
+    $dirs[] = sfConfig::get('sf_symfony_data_dir').'/generator/'.$class.'/default/skeleton';          // default theme directory
+
+    return $dirs;
+  }
+
+  static public function getGeneratorTemplate($class, $theme, $path)
+  {
+    $dirs = self::getGeneratorTemplateDirs($class, $theme);
+    foreach ($dirs as $dir)
+    {
+      if (is_readable($dir.'/'.$path))
+      {
+        return $dir.'/'.$path;
+      }
+    }
+
+    throw new sfException(sprintf('Unable to load "%s" generator template in: %s', $path, implode(', ', $dirs)));
+  }
+
   static public function getConfigDirs($configPath)
   {
     $globalConfigPath = basename(dirname($configPath)).'/'.basename($configPath);
@@ -105,6 +137,8 @@ class sfLoader
 
     $dirs[] = sfConfig::get('sf_app_lib_dir').'/helper';                                                                      // application
 
+    $dirs[] = sfConfig::get('sf_lib_dir').'/helper';                                                                      // project
+
     if ($pluginDirs = glob(sfConfig::get('sf_plugins_dir').'/*/lib/helper'))
     {
       $dirs = array_merge($dirs, $pluginDirs);                                                                                // plugins
@@ -119,81 +153,47 @@ class sfLoader
   {
     static $loaded = array();
 
-    array_unshift($helpers, 'sf');
-
     $dirs = self::getHelperDirs($moduleName);
     foreach ($helpers as $helperName)
     {
-      $className = $helperName.'Helper';
       if (isset($loaded[$helperName]))
       {
         continue;
       }
-      elseif(class_exists($className))
+
+      $fileName = $helperName.'Helper.php';
+      foreach ($dirs as $dir)
       {
-        self::initHelperClass($className);
-        continue;
+        $included = false;
+        if (is_readable($dir.'/'.$fileName))
+        {
+          include($dir.'/'.$fileName);
+          $included = true;
+          break;
+        }
       }
 
-      if (!$included)
-      {
-        //$fileName = $helperName.'Helper.php';
-        $fileName = $helperName.'Helper.class.php';
-        foreach ($dirs as $dir)
-        {
-          $included = false;
-          if (is_readable($dir.'/'.$fileName))
-          {
-            include($dir.'/'.$fileName);
-            $included = true;
-            break;
-          }
-        }
-      }
-      if (!$included)
-      {
-        //attempt to autoload
-        if (is_callable(array($className, '_initialize')))
-        {
-          $included = true;
-        }
-      }
       if (!$included)
       {
         // search in the include path
         if ((@include('helper/'.$fileName)) != 1)
         {
-          throw new sfViewException(sprintf('Unable to load "%s" helper in: %s', $helperName, implode(', ', array_merge($dirs, explode(PATH_SEPARATOR, get_include_path())))));
+          $dirs = array_merge($dirs, explode(PATH_SEPARATOR, get_include_path()));
+
+          // remove sf_root_dir from dirs
+          foreach ($dirs as &$dir)
+          {
+            $dir = str_replace(sfConfig::get('sf_root_dir'), '%SF_ROOT_DIR%', $dir);
+          }
+
+          throw new sfViewException(sprintf('Unable to load "%s" helper in: %s', $helperName, implode(', ', $dirs)));
         }
       }
 
       $loaded[$helperName] = true;
-
-      self::initHelperClass($className);
     }
   }
-  static public function initHelperClass($className)
-  {
-      //backwards compatibility for built in helper classes
-      if (class_exists($className))
-      {
-        foreach (get_class_methods($className) as $methodName)
-        {
-          if (substr($methodName, 0, 2) == '_')
-          {
-            continue;
-          }
-          if (!function_exists($methodName))
-          {
-            eval('function ' . $methodName . '() { $args = func_get_args(); return call_user_func_array(array("' . $className. '", "' . $methodName . '"), $args); }');
-          }
-        }
-        if (is_callable(array($className, '_initialize')))
-        {
-          call_user_func_array(array($className, '_initialize'), array());
-        }
-      }
-  }
+
   static public function loadPluginConfig()
   {
     foreach (glob(sfConfig::get('sf_plugins_dir').'/*/config/config.php') as $config)

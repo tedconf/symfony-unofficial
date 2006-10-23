@@ -295,7 +295,7 @@ class sfWebRequest extends sfRequest
    *
    * @return  array
    */
-  private function getPathInfoArray()
+  protected function getPathInfoArray()
   {
     if (!$this->pathInfoArray)
     {
@@ -412,9 +412,13 @@ class sfWebRequest extends sfRequest
    *
    * @return void
    */
-  private function loadParameters ()
+   protected function loadParameters ()
   {
     // merge GET parameters
+    if (get_magic_quotes_gpc())
+    {
+      $_GET = sfToolkit::stripslashesDeep($_GET);
+    }
     $this->getParameterHolder()->addByRef($_GET);
 
     $pathInfo = $this->getPathInfo();
@@ -453,6 +457,10 @@ class sfWebRequest extends sfRequest
     }
 
     // merge POST parameters
+    if (get_magic_quotes_gpc())
+    {
+      $_POST = sfToolkit::stripslashesDeep((array) $_POST);
+    }
     $this->getParameterHolder()->addByRef($_POST);
 
     // move symfony parameters in a protected namespace (parameters prefixed with _sf_)
@@ -581,7 +589,7 @@ class sfWebRequest extends sfRequest
    *
    * @return  string
    */
-  public function getRequestMethod()
+  public function getMethodName()
   {
     $pathArray = $this->getPathInfoArray();
 
@@ -644,7 +652,6 @@ class sfWebRequest extends sfRequest
         }
       }
 
-//      if(CultureInfo::validCulture($lang))
       $this->languages[] = $lang;
     }
 
@@ -692,28 +699,6 @@ class sfWebRequest extends sfRequest
     return isset($pathArray[$name]) ? stripslashes($pathArray[$name]) : null;
   }
 
-  public function __call ($name, $arguments)
-  {
-    if (0 === stripos($name, 'getHttp'))
-    {
-      $header = sfInflector::underscore(substr($name, 7));
-
-      return $this->getHttpHeader($header);
-    }
-    else if (0 === stripos($name, 'getSsl'))
-    {
-      $header = sfInflector::underscore(substr($name, 6));
-
-      return $this->getHttpHeader($header, 'ssl');
-    }
-
-    if (substr($name, 0, 2) != '__')
-    {
-      $error = sprintf('Call to undefined function: %s::%s().', get_class($this), $name);
-      trigger_error($error, E_USER_ERROR);
-    }
-  }
-
   /**
    * Get cookie value.
    *
@@ -725,7 +710,7 @@ class sfWebRequest extends sfRequest
 
     if (isset($_COOKIE[$name]))
     {
-      $retval = $_COOKIE[$name];
+      $retval = get_magic_quotes_gpc() ? stripslashes($_COOKIE[$name]) : $_COOKIE[$name];
     }
 
     return $retval;

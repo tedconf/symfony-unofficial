@@ -1,5 +1,13 @@
 <?php
 
+/*
+ * This file is part of the symfony package.
+ * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
+ * 
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 pake_desc('install a new plugin');
 pake_task('plugin-install', 'project_exists');
 
@@ -141,18 +149,7 @@ function _pear_init()
   require_once 'PEAR/Remote.php';
 
   // current symfony release
-  if (is_readable('lib/symfony'))
-  {
-    $sf_version = file_get_contents('lib/symfony/BRANCH');
-  }
-  else
-  {
-    // PEAR config
-    if ((include('symfony/pear.php')) != 'OK')
-    {
-      throw new Exception('Unable to find symfony librairies.');
-    }
-  }
+  $sf_version = preg_replace('/\-\w+$/', '', file_get_contents(sfConfig::get('sf_symfony_lib_dir').'/VERSION'));
 
   // PEAR
   PEAR_Command::setFrontendType('CLI');
@@ -227,7 +224,7 @@ function _pear_init()
     'stability'     => array('release' => 'stable', 'api' => 'stable'),
     'xsdversion'    => '2.0',
     '_lastmodified' => time(),
-    'old'           => array('version' => $sf_version),
+    'old'           => array('version' => $sf_version, 'release_state' => 'stable'),
   );
   $dir = sfConfig::get('sf_plugins_dir').DIRECTORY_SEPARATOR.'.registry'.DIRECTORY_SEPARATOR.'.channel.pear.symfony-project.com';
   pake_mkdirs($dir);

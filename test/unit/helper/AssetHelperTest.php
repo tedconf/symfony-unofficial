@@ -8,22 +8,16 @@
  * file that was distributed with this source code.
  */
 
-$_test_dir = realpath(dirname(__FILE__).'/../..');
-require_once($_test_dir.'/../lib/vendor/lime/lime.php');
+require_once(dirname(__FILE__).'/../../bootstrap/unit.php');
 require_once($_test_dir.'/unit/sfContextMock.class.php');
 require_once($_test_dir.'/unit/sfWebRequestMock.class.php');
-require_once($_test_dir.'/../lib/config/sfConfig.class.php');
-sfConfig::set('sf_symfony_lib_dir', realpath(dirname(__FILE__).'/../../../lib'));
-require_once($_test_dir.'/../lib/config/sfLoader.class.php');
-
-class sfException extends Exception {}
-class sfViewException extends sfException {}
 
 sfLoader::loadHelpers(array('Helper', 'Tag', 'Url', 'Asset'));
 
-$t = new lime_test(11, new lime_output_color());
+$t = new lime_test(9, new lime_output_color());
 
 // image_tag()
+$t->diag('image_tag()');
 $t->is(image_tag(''), '', 'image_tag() returns nothing when called without arguments');
 $t->is(image_tag('test'), '<img src="/images/test.png" alt="Test" />', 'image_tag() takes an image name as its first argument');
 $t->is(image_tag('test.png'), '<img src="/images/test.png" alt="Test" />', 'image_tag() can take an image name with an extension');

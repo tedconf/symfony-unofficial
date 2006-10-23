@@ -20,17 +20,19 @@ class sfBrowser
 {
   protected
     $context       = null,
+    $hostname      = null,
+    $remote        = null,
     $dom           = null,
     $stack         = array(),
     $stackPosition = -1,
-    $cookieJar     = array();
+    $cookieJar     = array(),
+    $fields        = array();
 
-  public function initialize ($hostname = null, $remote = null)
+  public function initialize($hostname = null, $remote = null, $options = array())
   {
     // setup our fake environment
-    $_SERVER['HTTP_HOST'] = $hostname ? $hostname : sfConfig::get('sf_app').'-'.sfConfig::get('sf_environment');
-    $_SERVER['HTTP_USER_AGENT'] = 'PHP5/CLI';
-    $_SERVER['REMOTE_ADDR'] = $remote ? $remote : '127.0.0.1';
+    $this->hostname = $hostname;
+    $this->remote   = $remote;
 
     sfConfig::set('sf_path_info_array', 'SERVER');
     sfConfig::set('sf_test', true);
@@ -74,8 +76,15 @@ class sfBrowser
     // remove anchor
     $path = preg_replace('/#.*/', '', $path);
 
+    // removes all fields from previous request
+    $this->fields = array();
+
     // prepare the request object
     unset($_SERVER['argv']);
+    $_SERVER['HTTP_HOST']       = $this->hostname ? $this->hostname : sfConfig::get('sf_app').'-'.sfConfig::get('sf_environment');
+    $_SERVER['SERVER_PORT']     = 80;
+    $_SERVER['HTTP_USER_AGENT'] = 'PHP5/CLI';
+    $_SERVER['REMOTE_ADDR']     = $this->remote ? $this->remote : '127.0.0.1';
     $_SERVER['REQUEST_METHOD']  = strtoupper($method);
     $_SERVER['PATH_INFO']       = $path;
     $_SERVER['REQUEST_URI']     = '/index.php'.$uri;
@@ -117,16 +126,17 @@ class sfBrowser
     // we register a fake rendering filter
     $controller->setRenderingFilterClassName('sfFakeRenderingFilter');
 
-    // dispatch our request and ignore output
+    // dispatch our request
     ob_start();
     $controller->dispatch();
     $retval = ob_get_clean();
 
     // append retval to the response content
-    $this->getResponse()->setContent($this->getResponse()->getContent().$retval);
+    $this->getResponse()->setContent($retval);
 
     // manually shutdown user to save current session data
     $this->context->getUser()->shutdown();
+    $this->context->getStorage()->shutdown();
 
     // save cookies
     $this->cookieJar = array();
@@ -212,105 +222,126 @@ class sfBrowser
     return $this->get($locations[0]);
   }
 
+  public function setField($name, $value)
+  {
+    // as we don't know yet the form, just store name/value pairs
+    $this->parseArgumentAsArray($name, $value, $this->fields);
+
+    return $this;
+  }
+
   // link or button
   public function click($name, $arguments = array())
   {
     $xpath = new DomXpath($this->dom);
     $dom   = $this->dom;
 
-    if ($link = $xpath->query('//a[.="'.$name.'"]')->item(0))
+    // link
+    if ($link = $xpath->query(sprintf('//a[.="%s"]', $name))->item(0))
     {
-      // link
-      return $this->call($link->getAttribute('href'));
+      return $this->get($link->getAttribute('href'));
     }
-    else
+
+    // form
+    if (!$form = $xpath->query(sprintf('//input[(@type="submit" or @type="button") and @value="%s"]/ancestor::form', $name))->item(0))
     {
-      $forms = $xpath->query('//form');
-      foreach ($forms as $form)
+      throw new sfException(sprintf('Cannot find the "%s" link or button.', $name));
+    }
+
+    // form attributes
+    $url = $form->getAttribute('action');
+    $method = $form->getAttribute('method') ? strtolower($form->getAttribute('method')) : 'get';
+
+    // merge form default values and arguments
+    $defaults = array();
+    foreach($xpath->query('descendant::input | descendant::textarea | descendant::select', $form) as $element)
+    {
+      $elementName = $element->getAttribute('name');
+      $value = null;
+      if ($element->nodeName == 'input' && (($element->getAttribute('type') != 'submit' && $element->getAttribute('type') != 'button') || $element->getAttribute('value') == $name))
       {
-        if ($button = $xpath->query('//input[(@type="submit" or @type="button") and @value="'.$name.'"]', $form)->item(0))
+        $value = $element->getAttribute('value');
+      }
+      else if ($element->nodeName == 'textarea')
+      {
+        $value = '';
+        foreach ($element->childNodes as $el)
         {
-          // button
-          $url = $form->getAttribute('action');
-          if ($form->getAttribute('method'))
+          $value .= $dom->saveXML($el);
+        }
+      }
+      else if ($element->nodeName == 'select')
+      {
+        if ($multiple = $element->hasAttribute('multiple'))
+        {
+          $elementName = str_replace('[]', '', $elementName);
+          $value = array();
+        }
+        else
+        {
+          $value = null;
+        }
+        foreach ($xpath->query('descendant::option', $element) as $option)
+        {
+          if ($option->getAttribute('selected'))
           {
-            $method = strtolower($form->getAttribute('method'));
-          }
-          else
-          {
-            $method = 'get';
-          }
-
-          // merge form default values and arguments
-          $defaults = array();
-          foreach($xpath->query('descendant::input | descendant::textarea | descendant::select', $form) as $element)
-          {
-            $name = $element->getAttribute('name');
-            if ($element->nodeName == 'input')
+            if ($multiple)
             {
-              $defaults[$name] = $element->getAttribute('value');
+              $value[] = $option->getAttribute('value');
             }
-            else if ($element->nodeName == 'textarea')
+            else
             {
-              $defaults[$name] = '';
-              foreach ($element->childNodes as $el)
-              {
-                $defaults[$name] .= $dom->saveXML($el);
-              }
+              $value = $option->getAttribute('value');
             }
-            else if ($element->nodeName == 'select')
-            {
-              if ($multiple = $element->hasAttribute('multiple'))
-              {
-                $name = str_replace('[]', '', $name);
-                $defaults[$name] = array();
-              }
-              else
-              {
-                $defaults[$name] = null;
-              }
-              foreach ($xpath->query('descendant::option', $element) as $option)
-              {
-                if ($option->getAttribute('selected'))
-                {
-                  if ($multiple)
-                  {
-                    $defaults[$name][] = $option->getAttribute('value');
-                  }
-                  else
-                  {
-                    $defaults[$name] = $option->getAttribute('value');
-                  }
-                }
-              }
-            }
-          }
-
-          // create query_string
-          $arguments = array_merge($defaults, $arguments);
-          $query_string = http_build_query($arguments);
-          $sep = false === strpos($url, '?') ? '?' : '&';
-
-          if ('post' === $method)
-          {
-            return $this->call($url, $method, $arguments);
-          }
-          else
-          {
-            return $this->call($url.($query_string ? $sep.$query_string : ''), $method);
           }
         }
       }
+
+      if (null !== $value)
+      {
+        $this->parseArgumentAsArray($elementName, $value, $defaults);
+      }
     }
 
-    throw new sfException(sprintf('Cannot find the "%s" link or button.', $name));
+    // create query_string
+    $arguments = sfToolkit::arrayDeepMerge($defaults, $this->fields, $arguments);
+    $query_string = http_build_query($arguments);
+    $sep = false === strpos($url, '?') ? '?' : '&';
+
+    if ('post' == $method)
+    {
+      return $this->post($url, $arguments);
+    }
+    else
+    {
+      return $this->get($url.($query_string ? $sep.$query_string : ''));
+    }
+  }
+
+  protected function parseArgumentAsArray($name, $value, &$vars)
+  {
+    if (false !== $pos = strpos($name, '['))
+    {
+      $var = &$vars;
+      $tmps = array_filter(preg_split('/(\[ | \[\] | \])/x', $name));
+      foreach ($tmps as $tmp)
+      {
+        $var = &$var[$tmp];
+      }
+      $var = $value;
+    }
+    else
+    {
+      $vars[$name] = $value;
+    }
   }
 
   public function restart()
   {
     $this->newSession();
-    $this->cookieJar = array();
-    $this->stack = array();
+    $this->cookieJar     = array();
+    $this->stack         = array();
+    $this->fields        = array();
     $this->stackPosition = -1;
 
     return $this;
@@ -350,5 +381,8 @@ class sfFakeRenderingFilter extends sfFilter
 {
   public function execute ($filterChain)
   {
+    $filterChain->execute();
+
+    $this->getContext()->getResponse()->sendContent();
   }
 }

@@ -8,13 +8,12 @@
  * file that was distributed with this source code.
  */
 
-$_test_dir = realpath(dirname(__FILE__).'/../..');
-require_once($_test_dir.'/../lib/vendor/lime/lime.php');
-require_once($_test_dir.'/../lib/config/sfConfig.class.php');
+require_once(dirname(__FILE__).'/../../bootstrap/unit.php');
 
-$t = new lime_test(6, new lime_output_color());
+$t = new lime_test(7, new lime_output_color());
 
 // ::get() ::set()
+$t->diag('::get() ::set()');
 sfConfig::clear();
 
 sfConfig::set('foo', 'bar');
@@ -22,6 +21,7 @@ $t->is(sfConfig::get('foo'), 'bar', '::get() returns the value of key config');
 $t->is(sfConfig::get('foo1', 'default_value'), 'default_value', '::get() takes a default value as its second argument');
 
 // ::add()
+$t->diag('::add()');
 sfConfig::clear();
 
 sfConfig::set('foo', 'bar');
@@ -32,6 +32,15 @@ $t->is(sfConfig::get('foo'), 'foo', '::add() adds an array of config parameters'
 $t->is(sfConfig::get('bar'), 'bar', '::add() adds an array of config parameters');
 $t->is(sfConfig::get('foo1'), 'foo1', '::add() adds an array of config parameters');
 
+// ::getAll()
+$t->diag('::getAll()');
+sfConfig::clear();
+sfConfig::set('foo', 'bar');
+sfConfig::set('foo1', 'foo1');
+
+$t->is(sfConfig::getAll(), array('foo' => 'bar', 'foo1' => 'foo1'), '::getAll() returns all config parameters');
+
 // ::clear()
+$t->diag('::clear()');
 sfConfig::clear();
 $t->is(sfConfig::get('foo1'), null, '::clear() removes all config parameters');
