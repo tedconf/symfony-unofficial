@@ -12,6 +12,11 @@ config/settings.yml:
   param:
     prefix: sf_
 
+config/project.yml:
+  class: sfDefineEnvironmentConfigHandler
+  param:
+    prefix: project_
+
 config/app.yml:
   class:    sfDefineEnvironmentConfigHandler
   param:

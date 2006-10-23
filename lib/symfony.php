@@ -84,6 +84,9 @@ try
     require_once($sf_symfony_lib_dir.'/debug/sfTimer.class.php');
   }
 
+  // load project-wide settings
+  $configCache->import($sf_app_config_dir_name.'/project.yml', true);
+
   // load base settings
   include($configCache->checkConfig($sf_app_config_dir_name.'/logging.yml'));
   include($configCache->checkConfig($sf_app_config_dir_name.'/settings.yml'));
