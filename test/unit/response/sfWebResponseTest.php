@@ -11,7 +11,7 @@
 require_once(dirname(__FILE__).'/../../bootstrap/unit.php');
 require_once($_test_dir.'/unit/sfContextMock.class.php');
 
-$t = new lime_test(28, new lime_output_color());
+$t = new lime_test(33, new lime_output_color());
 
 class myWebResponse extends sfWebResponse
 {
@@ -51,20 +51,25 @@ $t->is($response->hasHttpHeader('my-header'), true, '->hasHttpHeader() normalize
 // ->getHttpHeader()
 $t->diag('->getHttpHeader()');
 $response->setHttpHeader('My-Header', 'foo');
-$t->is($response->getHttpHeader('My-Header'), array('foo'), '->getHttpHeader() returns an array with current http header values');
-$t->is($response->getHttpHeader('my-header'), array('foo'), '->getHttpHeader() normalizes http header name');
+$t->is($response->getHttpHeader('My-Header'), 'foo', '->getHttpHeader() returns the current http header values');
+$t->is($response->getHttpHeader('my-header'), 'foo', '->getHttpHeader() normalizes http header name');
 
 // ->setHttpHeader()
 $t->diag('->setHttpHeader()');
 $response->setHttpHeader('My-Header', 'foo');
 $response->setHttpHeader('My-Header', 'bar', false);
 $response->setHttpHeader('my-header', 'foobar', false);
-$t->is($response->getHttpHeader('My-Header'), array('foo', 'bar', 'foobar'), '->setHttpHeader() takes a replace argument as its third argument');
+$t->is($response->getHttpHeader('My-Header'), 'foo, bar, foobar', '->setHttpHeader() takes a replace argument as its third argument');
 $response->setHttpHeader('My-Other-Header', 'foo', false);
-$t->is($response->getHttpHeader('My-Other-Header'), array('foo'), '->setHttpHeader() takes a replace argument as its third argument');
+$t->is($response->getHttpHeader('My-Other-Header'), 'foo', '->setHttpHeader() takes a replace argument as its third argument');
 
 $response->setHttpHeader('my-header', 'foo');
-$t->is($response->getHttpHeader('My-Header'), array('foo'), '->setHttpHeader() normalizes http header name');
+$t->is($response->getHttpHeader('My-Header'), 'foo', '->setHttpHeader() normalizes http header name');
+
+// ->clearHttpHeaders();
+$response->setHttpHeader('my-header', 'foo');
+$response->clearHttpHeaders();
+$t->is($response->getHttpHeader('My-Header'), '', '->clearHttpHeaders() clears all current http headers');
 
 // ->normalizeHeaderName()
 $t->diag('->normalizeHeaderName()');
@@ -97,8 +102,7 @@ $t->is($response->getContentType(), 'text/xml; charset=ISO-8859-1', '->setConten
 $response->setContentType('text/xml;charset = ISO-8859-1');
 $t->is($response->getContentType(), 'text/xml;charset = ISO-8859-1', '->setContentType() does nothing if a charset is given');
 
-$ct =  $response->getHttpHeader('content-type');
-$t->is($response->getContentType(), $ct[0], '->getContentType() is an alias for ->getHttpHeader(\'content-type\')');
+$t->is($response->getContentType(), $response->getHttpHeader('content-type'), '->getContentType() is an alias for ->getHttpHeader(\'content-type\')');
 
 $response->setContentType('text/xml');
 $response->setContentType('text/html');
@@ -109,3 +113,19 @@ $t->diag('->getTitle() ->setTitle()');
 $t->is($response->getTitle(), '', '->getTitle() returns an empty string by default');
 $response->setTitle('my title');
 $t->is($response->getTitle(), 'my title', '->setTitle() sets the title');
+
+// ->addHttpMeta()
+$t->diag('->addHttpMeta()');
+$response->clearHttpHeaders();
+$response->addHttpMeta('My-Header', 'foo');
+$response->addHttpMeta('My-Header', 'bar', false);
+$response->addHttpMeta('my-header', 'foobar', false);
+$metas = $response->getHttpMetas();
+$t->is($metas['My-Header'], 'foo, bar, foobar', '->addHttpMeta() takes a replace argument as its third argument');
+$t->is($response->getHttpHeader('My-Header'), 'foo, bar, foobar', '->addHttpMeta() also sets the corresponding http header');
+$response->addHttpMeta('My-Other-Header', 'foo', false);
+$metas = $response->getHttpMetas();
+$t->is($metas['My-Other-Header'], 'foo', '->addHttpMeta() takes a replace argument as its third argument');
+$response->addHttpMeta('my-header', 'foo');
+$metas = $response->getHttpMetas();
+$t->is($metas['My-Header'], 'foo', '->addHttpMeta() normalizes http header name');
