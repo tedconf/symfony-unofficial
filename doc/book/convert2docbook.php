@@ -3,7 +3,7 @@
 // Convert a markdown set of files to a docbook document
 
 require_once(dirname(__FILE__).'/markdown.php');
-require_once(dirname(__FILE__).'/../../lib/spyc/spyc.php');
+require_once(dirname(__FILE__).'/../../lib/spyc/spyc.php'); 
 
 $spyc = new Spyc();
 $config = $spyc->load(dirname(__FILE__).'/book.yml');
@@ -171,5 +171,3 @@ $book .= '
 ';
 
 file_put_contents(dirname(__FILE__).'/book.xml', $book);
-
-?>

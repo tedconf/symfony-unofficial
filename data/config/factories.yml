@@ -1,9 +1,12 @@
 default:
   controller:
-    class: myFrontWebController
+    class: sfFrontWebController
 
   request:
-    class: myWebRequest
+    class: sfWebRequest
+
+  response:
+    class: sfWebResponse
 
   user:
     class: myUser
@@ -16,8 +19,13 @@ default:
   execution_filter:
     class: sfExecutionFilter
 
+  rendering_filter:
+    class: sfRenderingFilter
+
   security_filter:
     class: sfBasicSecurityFilter
 
   view_cache:
     class: sfFileCache
+    param:
+      automaticCleaningFactor: 0

@@ -16,6 +16,7 @@ parts:
     - templating_configuration
     - templating_link_helpers
     - templating_form_helpers
+    - javascript
     - templating_i18n_helpers
     - templating_other_helpers
     - parameter_holder
@@ -27,14 +28,26 @@ parts:
     - cache
     - debug
     - populate
+    - test_unit_testing
+    - control_panel
+    - deployment
     - user_session
     - security
     - i18n
     - syndication
     - pager
+    - scaffolding
     - generator
+    - finder
+    - plugin
+    - batch
+    - cli
+    - upload
     - shopping_cart
+    - sortable
     - custom_helper
     - validate_form
+    - fillin
     - email
+    - cookie
     - 404

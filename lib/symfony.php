@@ -18,16 +18,46 @@
  * @version    SVN: $Id$
  */
 
-if (!($sf_in_bootstrap = sfConfig::get('sf_in_bootstrap')))
+$sf_symfony_lib_dir = sfConfig::get('sf_symfony_lib_dir');
+if (!sfConfig::get('sf_in_bootstrap'))
 {
-  include_once(dirname(__FILE__).'/symfony_autoload.php');
+  // YAML support
+  require_once($sf_symfony_lib_dir.'/util/sfYaml.class.php');
+
+  // cache support
+  require_once($sf_symfony_lib_dir.'/cache/sfCache.class.php');
+  require_once($sf_symfony_lib_dir.'/cache/sfFileCache.class.php');
+
+  // config support
+  require_once($sf_symfony_lib_dir.'/config/sfConfigCache.class.php');
+  require_once($sf_symfony_lib_dir.'/config/sfConfigHandler.class.php');
+  require_once($sf_symfony_lib_dir.'/config/sfYamlConfigHandler.class.php');
+  require_once($sf_symfony_lib_dir.'/config/sfAutoloadConfigHandler.class.php');
+  require_once($sf_symfony_lib_dir.'/config/sfRootConfigHandler.class.php');
+  require_once($sf_symfony_lib_dir.'/config/sfLoader.class.php');
+
+  // basic exception classes
+  require_once($sf_symfony_lib_dir.'/exception/sfException.class.php');
+  require_once($sf_symfony_lib_dir.'/exception/sfAutoloadException.class.php');
+  require_once($sf_symfony_lib_dir.'/exception/sfCacheException.class.php');
+  require_once($sf_symfony_lib_dir.'/exception/sfConfigurationException.class.php');
+  require_once($sf_symfony_lib_dir.'/exception/sfParseException.class.php');
+
+  // utils
+  require_once($sf_symfony_lib_dir.'/util/sfParameterHolder.class.php');
 }
+else
+{
+  require_once($sf_symfony_lib_dir.'/config/sfConfigCache.class.php');
+}
+
+// autoloading
+require_once($sf_symfony_lib_dir.'/util/sfCore.class.php');
+sfCore::initAutoloading();
 
 try
 {
   $configCache = sfConfigCache::getInstance();
-
-  ini_set('unserialize_callback_func', '__autoload');
 
   // force setting default timezone if not set
   if (function_exists('date_default_timezone_get'))
@@ -45,56 +75,46 @@ try
   // get config instance
   $sf_app_config_dir_name = sfConfig::get('sf_app_config_dir_name');
 
-  // load base settings
-  include($configCache->checkConfig($sf_app_config_dir_name.'/logging.yml'));
-  $configCache->import($sf_app_config_dir_name.'/php.yml');
-  include($configCache->checkConfig($sf_app_config_dir_name.'/settings.yml'));
-  include($configCache->checkConfig($sf_app_config_dir_name.'/app.yml'));
-
-  // create bootstrap file for next time
   $sf_debug = sfConfig::get('sf_debug');
-  if (!$sf_in_bootstrap && !$sf_debug && !sfConfig::get('sf_test'))
-  {
-    $configCache->checkConfig($sf_app_config_dir_name.'/bootstrap_compile.yml');
-  }
 
-  // set exception format
-  sfException::setFormat(isset($_SERVER['HTTP_HOST']) ? 'html' : 'plain');
-
+  // load timer classes if in debug mode
   if ($sf_debug)
   {
-    // clear our config and module cache
-    $configCache->clear();
+    require_once($sf_symfony_lib_dir.'/debug/sfTimerManager.class.php');
+    require_once($sf_symfony_lib_dir.'/debug/sfTimer.class.php');
   }
+
+  // load base settings
+  include($configCache->checkConfig($sf_app_config_dir_name.'/logging.yml'));
+  include($configCache->checkConfig($sf_app_config_dir_name.'/settings.yml'));
+  include($configCache->checkConfig($sf_app_config_dir_name.'/app.yml'));
 
   // error settings
   ini_set('display_errors', $sf_debug ? 'on' : 'off');
   error_reporting(sfConfig::get('sf_error_reporting'));
 
-  // compress output
-  ob_start(sfConfig::get('sf_compressed') ? 'ob_gzhandler' : '');
-
-/*
-  if (sfConfig::get('sf_logging_active'))
+  // create bootstrap file for next time
+  if (!sfConfig::get('sf_in_bootstrap') && !$sf_debug && !sfConfig::get('sf_test'))
   {
-    set_error_handler(array('sfLogger', 'errorHandler'));
+    $configCache->checkConfig($sf_app_config_dir_name.'/bootstrap_compile.yml');
   }
-*/
 
   // required core classes for the framework
   // create a temp var to avoid substitution during compilation
   if (!$sf_debug && !sfConfig::get('sf_test'))
   {
     $core_classes = $sf_app_config_dir_name.'/core_compile.yml';
-    $configCache->import($core_classes);
+    $configCache->import($core_classes, false);
   }
 
-  if (sfConfig::get('sf_routing'))
-  {
-    // we cannot cache the routing rules because of configuration problem
-    $routing = $sf_app_config_dir_name.'/routing.yml';
-    $configCache->import($routing);
-  }
+  $configCache->import($sf_app_config_dir_name.'/php.yml', false);
+  $configCache->import($sf_app_config_dir_name.'/routing.yml', false);
+
+  // include all config.php from plugins
+  sfLoader::loadPluginConfig();
+
+  // compress output
+  ob_start(sfConfig::get('sf_compressed') ? 'ob_gzhandler' : '');
 }
 catch (sfException $e)
 {
@@ -102,10 +122,7 @@ catch (sfException $e)
 }
 catch (Exception $e)
 {
-  // unknown exception
-  $e = new sfException($e->getMessage());
-
-  $e->printStackTrace();
+  // wrap non symfony exceptions
+  $sfException = new sfException();
+  $sfException->printStackTrace($e);
 }
-
-?>

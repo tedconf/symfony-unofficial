@@ -13,8 +13,6 @@
  * @author  Jon Parise <jon@php.net>
  * @since   sfLog 1.1
  * @package sfLog
- *
- * @example console.php     Using the console handler.
  */
 class sfLog_console extends sfLog
 {
@@ -23,28 +21,35 @@ class sfLog_console extends sfLog
      * @var resource
      * @access private
      */
-    var $_stream = 'php://stdout';
+    private $_stream = 'php://stdout';
 
+    /**
+     * Handle to the output stream's file pointer.
+     * @var resource
+     * @access private
+     */
+    private $_fp = null;
+    
     /**
      * Should the output be buffered or displayed immediately?
      * @var string
      * @access private
      */
-    var $_buffering = false;
+    private $_buffering = false;
 
     /**
      * String holding the buffered output.
      * @var string
      * @access private
      */
-    var $_buffer = '';
+    private $_buffer = '';
 
     /**
      * String containing the format of a log line.
      * @var string
      * @access private
      */
-    var $_lineFormat = '%1$s %2$s [%3$s] %4$s';
+    private $_lineFormat = '%1$s %2$s [%3$ -5s] %4$s';
 
     /**
      * String containing the timestamp format.  It will be passed directly to
@@ -53,7 +58,7 @@ class sfLog_console extends sfLog
      * @var string
      * @access private
      */
-    var $_timeFormat = '%b %d %H:%M:%S';
+    private $_timeFormat = '%b %d %H:%M:%S';
 
     /**
      * Hash that maps canonical format keys to position arguments for the
@@ -61,9 +66,9 @@ class sfLog_console extends sfLog
      * @var array
      * @access private
      */
-    var $_formatMap = array('%{timestamp}'  => '%1$s',
+    private $_formatMap = array('%{timestamp}'  => '%1$s',
                             '%{ident}'      => '%2$s',
-                            '%{priority}'   => '%3$s',
+                            '%{priority}'   => '%3$ -5s',
                             '%{message}'    => '%4$s',
                             '%\{'           => '%%{');
 
@@ -100,6 +105,11 @@ class sfLog_console extends sfLog
         if (!empty($conf['timeFormat'])) {
             $this->_timeFormat = $conf['timeFormat'];
         }
+        
+        /**
+         * Open the stream for writing 
+         */
+        $this->_fp = fopen($this->_stream, "w");
 
         /*
          * If output buffering has been requested, we need to register a
@@ -116,6 +126,9 @@ class sfLog_console extends sfLog
     function _sfLog_console()
     {
         $this->flush();
+        if ( !is_null($this->_fp)) { 
+        	fclose($this->_fp);
+        }
     }
 
     /**
@@ -131,7 +144,7 @@ class sfLog_console extends sfLog
          * the output stream.
          */
         if ($this->_buffering && (strlen($this->_buffer) > 0)) {
-            fwrite($this->_stream, $this->_buffer);
+            fwrite($this->_fp, $this->_buffer);
             $this->_buffer = '';
         }
  
@@ -177,7 +190,7 @@ class sfLog_console extends sfLog
         if ($this->_buffering) {
             $this->_buffer .= $line;
         } else {
-            fwrite($this->_stream, $line);
+            fwrite($this->_fp, $line);
         }
 
         /* Notify observers about this log message. */
@@ -186,5 +199,3 @@ class sfLog_console extends sfLog
         return true;
     }
 }
-
-?>

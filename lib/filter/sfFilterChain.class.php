@@ -20,7 +20,7 @@
  */
 class sfFilterChain
 {
-  private
+  protected
     $chain = array(),
     $index = -1;
 
@@ -28,20 +28,35 @@ class sfFilterChain
    * Execute the next filter in this chain.
    *
    * @return void
-   *
-   * @author Sean Kerr (skerr@mojavi.org)
-   * @since  3.0.0
    */
   public function execute ()
   {
     // skip to the next filter
-    $this->index++;
+    ++$this->index;
 
     if ($this->index < count($this->chain))
     {
+      if (sfConfig::get('sf_logging_active'))
+      {
+        sfContext::getInstance()->getLogger()->info(sprintf('{sfFilterChain} executing filter "%s"', get_class($this->chain[$this->index])));
+      }
+
       // execute the next filter
       $this->chain[$this->index]->execute($this);
     }
+  }
+
+  public function hasFilter($class)
+  {
+    foreach ($this->chain as $filter)
+    {
+      if ($filter instanceof $class)
+      {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   /**
@@ -50,14 +65,9 @@ class sfFilterChain
    * @param Filter A Filter implementation instance.
    *
    * @return void
-   *
-   * @author Sean Kerr (skerr@mojavi.org)
-   * @since  3.0.0
    */
   public function register ($filter)
   {
     $this->chain[] = $filter;
   }
 }
-
-?>

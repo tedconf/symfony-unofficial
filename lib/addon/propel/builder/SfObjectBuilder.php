@@ -2,18 +2,49 @@
 
 require_once 'propel/engine/builder/om/php5/PHP5ComplexObjectBuilder.php';
 
-class sfObjectBuilder extends PHP5ComplexObjectBuilder
+/*
+ * This file is part of the symfony package.
+ * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+/**
+ * @package    symfony
+ * @subpackage addon
+ * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
+ * @version    SVN: $Id$
+ */
+class SfObjectBuilder extends PHP5ComplexObjectBuilder
 {
+  public function build()
+  {
+    if (!DataModelBuilder::getBuildProperty('builderAddComments'))
+    {
+      return sfToolkit::stripComments(parent::build());
+    }
+    
+    return parent::build();
+  }
+
   protected function addIncludes(&$script)
   {
+    if (!DataModelBuilder::getBuildProperty('builderAddIncludes'))
+    {
+      return;
+    }
+
     parent::addIncludes($script);
 
     // include the i18n classes if needed
     if ($this->getTable()->getAttribute('isI18N'))
     {
+      $relatedTable   = $this->getDatabase()->getTable($this->getTable()->getAttribute('i18nTable'));
+
       $script .= '
-require_once \''.$this->getFilePath($this->getStubObjectBuilder()->getPackage().'.'.$this->getStubObjectBuilder()->getClassName().'I18nPeer').'\';
-require_once \''.$this->getFilePath($this->getStubObjectBuilder()->getPackage().'.'.$this->getStubObjectBuilder()->getClassName().'I18n').'\';
+require_once \''.$this->getFilePath($this->getStubObjectBuilder()->getPackage().'.'.$relatedTable->getPhpName().'Peer').'\';
+require_once \''.$this->getFilePath($this->getStubObjectBuilder()->getPackage().'.'.$relatedTable->getPhpName()).'\';
 ';
     }
   }
@@ -34,6 +65,32 @@ require_once \''.$this->getFilePath($this->getStubObjectBuilder()->getPackage().
 
       $this->addI18nMethods($script);
     }
+
+    if (DataModelBuilder::getBuildProperty('builderAddBehaviors'))
+    {
+      $this->addCall($script);
+    }
+  }
+
+  protected function addCall(&$script)
+  {
+    $script .= "
+
+  public function __call(\$method, \$parameters)
+  {
+    return sfMixer::callMixins();
+  }
+
+";
+  }
+  
+  protected function addConstants(&$script)
+  {
+    parent::addConstants($script);
+    $script .= "
+	/** the default database name for this class */
+	const DATABASE_NAME = '{$this->getDatabase()->getName()}';
+";
   }
 
   protected function addAttributes(&$script)
@@ -146,58 +203,135 @@ $script .= '
     }
   }
 
+  protected function addDoSave(&$script)
+  {
+    $tmp = '';
+    parent::addDoSave($tmp);
+    // add autosave to i18n object even if the base object is not changed
+    $tmp = preg_replace_callback('#(\$this\->(.+?)\->isModified\(\))#', array($this, 'i18nDoSaveCallback'), $tmp);
+
+    $script .= $tmp;
+  }
+
+  private function i18nDoSaveCallback($matches)
+  {
+    $value = $matches[1];
+
+    // get the related class to see if it is a i18n one
+    $table = $this->getTable();
+    $column = null;
+    foreach ($table->getForeignKeys() as $fk)
+    {
+      if ($matches[2] == $this->getFKVarName($fk))
+      {
+        $column = $fk;
+        break;
+      }
+    }
+    $foreign_table = $this->getDatabase()->getTable($fk->getForeignTableName());
+    if ($foreign_table->getAttribute('isI18N'))
+    {
+      $foreign_tables_i18n_table = $this->getDatabase()->getTable($foreign_table->getAttribute('i18nTable'));
+      $value .= ' || $this->'.$matches[2].'->getCurrent'.$foreign_tables_i18n_table->getPhpName().'()->isModified()';
+    }
+
+    return $value;
+  }
+
+  protected function addDelete(&$script)
+  {
+    $tmp = '';
+    parent::addDelete($tmp);
+
+    if (DataModelBuilder::getBuildProperty('builderAddBehaviors'))
+    {
+      // add sfMixer call
+      $pre_mixer_script = "
+
+    foreach (sfMixer::getCallables('".$this->getClassname().":delete:pre') as \$callable)
+    {
+      \$ret = call_user_func(\$callable, \$this, \$con);
+      if (\$ret)
+      {
+        return;
+      }
+    }
+
+";
+      $post_mixer_script = "
+
+    sfMixer::callMixins('post');
+
+";
+      $tmp = preg_replace('/{/', '{'.$pre_mixer_script, $tmp, 1);
+      $tmp = preg_replace('/}\s*$/', $post_mixer_script.'  }', $tmp);
+    }
+
+    // update current script
+    $script .= $tmp;
+  }
+
   protected function addSave(&$script)
   {
     $tmp = '';
     parent::addSave($tmp);
 
+    // add support for created_(at|on) and updated_(at|on) columns
     $date_script = '';
-
     $updated = false;
     $created = false;
     foreach ($this->getTable()->getColumns() as $col)
     {
       $clo = strtolower($col->getName());
 
-      if (!$updated && $clo == 'updated_at')
+      if (!$updated && in_array($clo, array('updated_at', 'updated_on')))
       {
-        // add automatic UpdatedAt updating
         $updated = true;
-        $date_script .= "        \$this->setUpdatedAt(time());\n";
-      }
-      else if (!$updated && $clo == 'updated_on')
-      {
-        // add automatic UpdatedOn updating
-        $updated = true;
-        $date_script .= "        \$this->setUpdatedOn(time());\n";
-      }
-      else if (!$created && $clo == 'created_at')
-      {
-        // add automatic CreatedAt updating
-        $created = true;
         $date_script .= "
-    if (\$this->isNew())
+    if (\$this->isModified() && !\$this->isColumnModified(".$this->getColumnConstant($col)."))
     {
-      \$this->setCreatedAt(time());
+      \$this->set".$col->getPhpName()."(time());
     }
 ";
       }
-      else if (!$created && $clo == 'created_on')
+      else if (!$created && in_array($clo, array('created_at', 'created_on')))
       {
-        // add automatic CreatedOn updating
         $created = true;
         $date_script .= "
-    if (\$this->isNew())
+    if (\$this->isNew() && !\$this->isColumnModified(".$this->getColumnConstant($col)."))
     {
-      \$this->setCreatedOn(time());
+      \$this->set".$col->getPhpName()."(time());
     }
 ";
+      }
+    }
+    $tmp = preg_replace('/{/', '{'.$date_script, $tmp, 1);
+
+    if (DataModelBuilder::getBuildProperty('builderAddBehaviors'))
+    {
+      // add sfMixer call
+      $pre_mixer_script = "
+
+    foreach (sfMixer::getCallables('".$this->getClassname().":save:pre') as \$callable)
+    {
+      \$affectedRows = call_user_func(\$callable, \$this, \$con);
+      if (is_int(\$affectedRows))
+      {
+        return \$affectedRows;
       }
     }
 
-    $tmp = preg_replace('/{/', '{'.$date_script, $tmp, 1);
+";
+      $post_mixer_script = <<<EOF
+
+    sfMixer::callMixins('post');
+
+EOF;
+      $tmp = preg_replace('/{/', '{'.$pre_mixer_script, $tmp, 1);
+      $tmp = preg_replace('/}\s*$/', $post_mixer_script.'  }', $tmp);
+    }
+
+    // update current script
     $script .= $tmp;
   }
 }
-
-?>

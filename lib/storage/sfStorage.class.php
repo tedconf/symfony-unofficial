@@ -20,7 +20,7 @@
  */
 abstract class sfStorage
 {
-  private
+  protected
     $parameter_holder = null,
     $context = null;
 
@@ -150,5 +150,3 @@ abstract class sfStorage
     return $this->parameter_holder->set($name, $value, $ns);
   }
 }
-
-?>

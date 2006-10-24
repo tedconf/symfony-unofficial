@@ -35,17 +35,25 @@ class sfYaml
    */
   public static function load ($input)
   {
-    // syck is prefered over spyc
-    if (function_exists('syck_load')) {
-      if (!empty($input) && is_readable($input))
-      {
-        $input = file_get_contents($input);
-      }
+    $input = self::getIncludeContents($input);
 
-      return syck_load($input);
+    // if an array is returned by the config file assume it's in plain php form else in yaml
+    if (is_array($input))
+    {
+      return $input;
+    }
+
+    // syck is prefered over spyc
+    if (function_exists('syck_load'))
+    {
+      $retval = syck_load($input);
+
+      return (is_array($retval)) ? $retval : array();
     }
     else
     {
+      require_once(dirname(__FILE__).'/Spyc.class.php');
+
       $spyc = new Spyc();
 
       return $spyc->load($input);
@@ -67,6 +75,29 @@ class sfYaml
 
     return $spyc->dump($array);
   }
+
+  protected static function getIncludeContents($input)
+  {
+    // if input is a file, process it
+    if (strpos($input, "\n") === false && is_file($input))
+    {
+      ob_start();
+      $retval = include($input);
+      $contents = ob_get_clean();
+
+      // if an array is returned by the config file assume it's in plain php form else in yaml
+      return is_array($retval) ? $retval : $contents;
+    }
+
+    // else return original input
+    return $input;
+  }
 }
 
-?>
+/**
+ * Wraps echo to automatically provide a newline
+ */
+function echoln($string)
+{
+  echo $string."\n";
+}

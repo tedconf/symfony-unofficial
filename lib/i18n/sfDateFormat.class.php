@@ -11,9 +11,10 @@
  * The latest version of PRADO can be obtained from:
  * {@link http://prado.sourceforge.net/}
  *
- * @author Wei Zhuo <weizhuo[at]gmail[dot]com>
- * @version $Revision$  $Date$
- * @package System.I18N.core
+ * @author     Wei Zhuo <weizhuo[at]gmail[dot]com>
+ * @version    $Id$
+ * @package    symfony
+ * @subpackage i18n
  */
 
 /**
@@ -105,7 +106,7 @@ class sfDateFormat
    */
   public function format($time, $pattern='F', $charset='UTF-8')
   {
-    if(is_string($time))
+    if(!ctype_digit((string) $time))
       $time = @strtotime($time);
     
     if(is_null($pattern))
@@ -371,8 +372,7 @@ class sfDateFormat
         return $this->formatInfo->DayNames[$day];
         break;
       default:
-        throw new sfException('The pattern for day of the week '.
-            'is "E", "EE", "EEE", or "EEEE".');
+        throw new sfException('The pattern for day of the week is "E", "EE", "EEE", or "EEEE".');
     }
   }
 
@@ -393,9 +393,10 @@ class sfDateFormat
         return $day;
       case 'dd':
         return str_pad($day, 2,'0',STR_PAD_LEFT);
+      case 'dddd':
+        return $this->getDayInWeek($date);
       default:
-        throw new sfException('The pattern for day of '.
-            'the month is "d" or "dd".');
+        throw new sfException('The pattern for day of the month is "d", "dd" or "dddd".');
     }
   }
 
@@ -635,5 +636,3 @@ class sfDateFormat
   }
 
 }
-
-?>

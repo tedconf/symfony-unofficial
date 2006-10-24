@@ -3,6 +3,7 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
+ * (c) 2004 David Heinemeier Hansson
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -15,6 +16,7 @@
  * @subpackage helper
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  * @author     John Christopher <john.christopher@symfony-project.com>
+ * @author     David Heinemeier Hansson
  * @version    SVN: $Id$
  */
 
@@ -82,10 +84,42 @@
    */
   function link_to_function($name, $function, $html_options = array())
   {
-    $html_options['href'] = '#';
+    $html_options = _parse_attributes($html_options);
+
+    $html_options['href'] = isset($html_options['href']) ? $html_options['href'] : '#';
     $html_options['onclick'] = $function.'; return false;';
 
     return content_tag('a', $name, $html_options);
+  }
+
+  /**
+   * Returns a button that'll trigger a javascript function using the
+   * onclick handler and return false after the fact.
+   *
+   * Examples:
+   *   <?php echo button_to_function('Greeting', "alert('Hello world!')") ?>
+   */
+  function button_to_function($name, $function, $html_options = array())
+  {
+    $html_options = _parse_attributes($html_options);
+
+    $html_options['onclick'] = $function.'; return false;';
+    $html_options['type']    = 'button';
+    $html_options['value']   = $name;
+
+    return tag('input', $html_options);
+  }
+  
+  /**
+   * Returns an html button to a remote action defined by 'url' (using the
+   * 'url_for()' format) that's called in the background using XMLHttpRequest.
+   *
+   * See link_to_remote() for details.
+   *
+   */
+  function button_to_remote($name, $options = array(), $html_options = array())
+  {
+    return button_to_function($name, remote_function($options), $html_options);
   }
 
   /**
@@ -242,23 +276,22 @@
    *  Returns a button input tag that will submit form using XMLHttpRequest in the background instead of regular
    *  reloading POST arrangement. The '$options' argument is the same as in 'form_remote_tag()'.
    */
-  function submit_to_remote($name, $value, $options = array())
+  function submit_to_remote($name, $value, $options = array(), $options_html = array())
   {
+    $options = _parse_attributes($options);
+    $options_html = _parse_attributes($options_html);
+
     if (!isset($options['with']))
     {
       $options['with'] = 'Form.serialize(this.form)';
     }
 
-    if (!isset($options['html']))
-    {
-      $options['html'] = array();
-    }
-    $options['html']['type'] = 'button';
-    $options['html']['onclick'] = remote_function($options).'; return false;';
-    $options['html']['name'] = $name;
-    $options['html']['value'] = $value;
+    $options_html['type'] = 'button';
+    $options_html['onclick'] = remote_function($options).'; return false;';
+    $options_html['name'] = $name;
+    $options_html['value'] = $value;
 
-    return tag('input', $options['html'], false);
+    return tag('input', $options_html, false);
   }
 
   /**
@@ -307,11 +340,7 @@
    */
   function update_element_function($element_id, $options = array())
   {
-    sfContext::getInstance()->getRequest()->setAttribute(
-      'javascript_update_element_function',
-      array('/sf/js/prototype/prototype'),
-      'helper/asset/auto/javascript'
-    );
+    sfContext::getInstance()->getResponse()->addJavascript(sfConfig::get('sf_prototype_web_dir').'/js/prototype');
 
     $content = escape_javascript(isset($options['content']) ? $options['content'] : '');
 
@@ -319,7 +348,7 @@
     switch ($value)
     {
       case 'update':
-        if ($options['position'])
+        if (isset($options['position']) && $options['position'])
         {
           $javascript_function = "new Insertion.".sfInflector::camelize($options['position'])."('$element_id','$content')";
         }
@@ -343,7 +372,7 @@
 
     $javascript_function .= ";\n";
 
-    return ($options['binding'] ? $javascript_function.$options['binding'] : $javascript_function);
+    return (isset($options['binding']) ? $javascript_function.$options['binding'] : $javascript_function);
   }
 
   /**
@@ -368,11 +397,7 @@
    */
   function remote_function($options)
   {
-    sfContext::getInstance()->getRequest()->setAttribute(
-      'javascript_remote_function',
-      array('/sf/js/prototype/prototype'),
-      'helper/asset/auto/javascript'
-    );
+    sfContext::getInstance()->getResponse()->addJavascript(sfConfig::get('sf_prototype_web_dir').'/js/prototype');
 
     $javascript_options = _options_for_ajax($options);
 
@@ -415,6 +440,10 @@
     if (isset($options['confirm']))
     {
       $function = "if (confirm('".escape_javascript($options['confirm'])."')) { $function; }";
+      if (isset($options['cancel']))
+      {
+        $function = $function.' else { '.$options['cancel'].' }';
+      }
     }
 
     return $function;
@@ -447,11 +476,7 @@
    */
   function observe_field($field_id, $options = array())
   {
-    sfContext::getInstance()->getRequest()->setAttribute(
-      'javascript_observe_field',
-      array('/sf/js/prototype/prototype'),
-      'helper/asset/auto/javascript'
-    );
+    sfContext::getInstance()->getResponse()->addJavascript(sfConfig::get('sf_prototype_web_dir').'/js/prototype');
 
     if (isset($options['frequency']) && $options['frequency'] > 0)
     {
@@ -471,11 +496,7 @@
    */
   function observe_form($form_id, $options = array())
   {
-    sfContext::getInstance()->getRequest()->setAttribute(
-      'javascript_observe_form',
-      array('/sf/js/prototype/prototype'),
-      'helper/asset/auto/javascript'
-    );
+    sfContext::getInstance()->getResponse()->addJavascript(sfConfig::get('sf_prototype_web_dir').'/js/prototype');
 
     if (isset($options['frequency']) && $options['frequency'] > 0)
     {
@@ -514,17 +535,16 @@
    */
   function visual_effect($name, $element_id = false, $js_options = array())
   {
-    sfContext::getInstance()->getRequest()->setAttribute(
-      'javascript_visual_effect',
-      array('/sf/js/prototype/prototype', '/sf/js/prototype/builder', '/sf/js/prototype/effects'),
-      'helper/asset/auto/javascript'
-    );
+    $response = sfContext::getInstance()->getResponse();
+    $response->addJavascript(sfConfig::get('sf_prototype_web_dir').'/js/prototype');
+    $response->addJavascript(sfConfig::get('sf_prototype_web_dir').'/js/builder');
+    $response->addJavascript(sfConfig::get('sf_prototype_web_dir').'/js/effects');
 
     $element = $element_id ? "'$element_id'" : 'element';
 
     if (in_array($name, array('toggle_appear', 'toggle_blind', 'toggle_slide')))
     {
-      return "new Effect.toggle($element, ". substr($name, 7)  .", "._options_for_javascript($js_options).");";
+      return "new Effect.toggle($element, '".substr($name, 7)."', "._options_for_javascript($js_options).");";
     }
     else
     {
@@ -552,11 +572,11 @@
    */
   function sortable_element($element_id, $options = array())
   {
-    sfContext::getInstance()->getRequest()->setAttribute(
-      'javascript_sortable_element',
-      array('/sf/js/prototype/prototype', '/sf/js/prototype/builder', '/sf/js/prototype/effects', '/sf/js/prototype/dragdrop'),
-      'helper/asset/auto/javascript'
-    );
+    $response = sfContext::getInstance()->getResponse();
+    $response->addJavascript(sfConfig::get('sf_prototype_web_dir').'/js/prototype');
+    $response->addJavascript(sfConfig::get('sf_prototype_web_dir').'/js/builder');
+    $response->addJavascript(sfConfig::get('sf_prototype_web_dir').'/js/effects');
+    $response->addJavascript(sfConfig::get('sf_prototype_web_dir').'/js/dragdrop');
 
     if (!isset($options['with']))
     {
@@ -586,6 +606,11 @@
       $options['containment'] = _array_or_string_for_javascript($options['containment']);
     }
 
+    if (isset($options['hoverclass']))
+    {
+      $options['hoverclass'] = "'{$options['hoverclass']}'";
+    }
+
     if (isset($options['only']))
     {
       $options['only'] = _array_or_string_for_javascript($options['only']);
@@ -607,11 +632,11 @@
    */
   function draggable_element($element_id, $options = array())
   {
-    sfContext::getInstance()->getRequest()->setAttribute(
-      'javascript_draggable_element',
-      array('/sf/js/prototype/prototype', '/sf/js/prototype/builder', '/sf/js/prototype/effects', '/sf/js/prototype/dragdrop'),
-      'helper/asset/auto/javascript'
-    );
+    $response = sfContext::getInstance()->getResponse();
+    $response->addJavascript(sfConfig::get('sf_prototype_web_dir').'/js/prototype');
+    $response->addJavascript(sfConfig::get('sf_prototype_web_dir').'/js/builder');
+    $response->addJavascript(sfConfig::get('sf_prototype_web_dir').'/js/effects');
+    $response->addJavascript(sfConfig::get('sf_prototype_web_dir').'/js/dragdrop');
 
     return javascript_tag("new Draggable('$element_id', "._options_for_javascript($options).")");
   }
@@ -631,11 +656,11 @@
    */
   function drop_receiving_element($element_id, $options = array())
   {
-    sfContext::getInstance()->getRequest()->setAttribute(
-      'javascript_drop_receiving_element',
-      array('/sf/js/prototype/prototype', '/sf/js/prototype/builder', '/sf/js/prototype/effects', '/sf/js/prototype/dragdrop'),
-      'helper/asset/auto/javascript'
-    );
+    $response = sfContext::getInstance()->getResponse();
+    $response->addJavascript(sfConfig::get('sf_prototype_web_dir').'/js/prototype');
+    $response->addJavascript(sfConfig::get('sf_prototype_web_dir').'/js/builder');
+    $response->addJavascript(sfConfig::get('sf_prototype_web_dir').'/js/effects');
+    $response->addJavascript(sfConfig::get('sf_prototype_web_dir').'/js/dragdrop');
 
     if (!isset($options['with']))
     {
@@ -694,23 +719,19 @@
   {
     $context = sfContext::getInstance();
 
-    $context->getRequest()->setAttribute(
-      'input_auto_complete_tag',
-      array('/sf/js/prototype/prototype', '/sf/js/prototype/controls', '/sf/js/prototype/effects'),
-      'helper/asset/auto/javascript'
-    );
+    $response = $context->getResponse();
+    $response->addJavascript(sfConfig::get('sf_prototype_web_dir').'/js/prototype');
+    $response->addJavascript(sfConfig::get('sf_prototype_web_dir').'/js/effects');
+    $response->addJavascript(sfConfig::get('sf_prototype_web_dir').'/js/controls');
 
     $comp_options = _convert_options($completion_options);
-    if (isset($comp_options['use_style']) && $comp_options['use_style'] == 'true')
+    if (isset($comp_options['use_style']) && $comp_options['use_style'] == true)
     {
-      $context->getRequest()->setAttribute('input_auto_complete_tag',
-        array('/sf/css/sf_helpers/input_auto_complete_tag'),
-        'helper/asset/auto/stylesheet'
-      );
+      $response->addStylesheet(sfConfig::get('sf_prototype_web_dir').'/css/input_auto_complete_tag');
     }
 
     $javascript  = input_tag($name, $value, $tag_options);
-    $javascript .= content_tag('div', '' , array('id' => "{$name}_auto_complete", 'class' => 'auto_complete'));
+    $javascript .= content_tag('div', '' , array('id' => (isset($tag_options['id']) ? $tag_options['id'] : $name).'_auto_complete', 'class' => 'auto_complete'));
     $javascript .= _auto_complete_field($name, $url, $comp_options);
 
     return $javascript;
@@ -726,16 +747,35 @@
    */
   function input_in_place_editor_tag($name, $url, $editor_options = array())
   {
-    sfContext::getInstance()->getRequest()->setAttribute(
-      'input_in_place_editor_tag',
-      array('/sf/js/prototype/prototype', '/sf/js/prototype/controls', '/sf/js/prototype/effects'),
-      'helper/asset/auto/javascript'
-    );
+    $response = sfContext::getInstance()->getResponse();
+    $response->addJavascript(sfConfig::get('sf_prototype_web_dir').'/js/prototype');
+    $response->addJavascript(sfConfig::get('sf_prototype_web_dir').'/js/effects');
+    $response->addJavascript(sfConfig::get('sf_prototype_web_dir').'/js/controls');
 
     $editor_options = _convert_options($editor_options);
     $default_options = array('tag' => 'span', 'id' => '\''.$name.'_in_place_editor', 'class' => 'in_place_editor_field');
 
     return _in_place_editor($name, $url, array_merge($default_options, $editor_options));
+  }
+
+  /**
+   * Mark the start of a block that should only be shown in the browser if JavaScript
+   * is switched on.
+   */
+  function if_javascript()
+  {
+    ob_start();
+  }
+
+  /**
+   * Mark the end of a block that should only be shown in the browser if JavaScript
+   * is switched on.
+   */
+  function end_if_javascript()
+  {
+    $content = ob_get_clean();
+
+    echo javascript_tag("document.write('" . esc_js_no_entities($content) . "');");
   }
 
   /*
@@ -815,6 +855,10 @@
       {
         $js_options['highlightendcolor'] = "'".$options['highlightendcolor']."'";
       }
+      if(isset($options['loadTextURL']))
+      {
+        $js_options['loadTextURL'] =  "'".$options['loadTextURL']."'";
+      }
 
       $javascript .= ', '._options_for_javascript($js_options);
       $javascript .= ');';
@@ -868,7 +912,19 @@
     }
     if (isset($options['min_chars']))
     {
-      $js_options['min_chars'] = $options['min_chars'];
+      $js_options['minChars'] = $options['min_chars'];
+    }
+    if (isset($options['frequency']))
+    {
+      $js_options['frequency'] = $options['frequency'];
+    }
+    if (isset($options['update_element']))
+    {
+      $js_options['updateElement'] = $options['update_element'];
+    }
+    if (isset($options['after_update_element']))
+    {
+      $js_options['afterUpdateElement'] = $options['after_update_element'];
     }
 
     $javascript .= ', '._options_for_javascript($js_options).');';
@@ -904,10 +960,10 @@
   {
     $js_options = _build_callbacks($options);
 
-    $js_options['asynchronous'] = (isset($options['type'])) ? ($options['type'] != 'synchronous') : 'true';
+    $js_options['asynchronous'] = (isset($options['type']) && ($options['type'] == 'synchronous')) ? 'false' : 'true';
     if (isset($options['method'])) $js_options['method'] = _method_option_to_s($options['method']);
-    if (isset($options['insertion'])) $js_options['insertion'] = "Insertion.".sfInflector::camelize($options['position']);
-    $js_options['evalScripts'] = (!isset($options['script']) || $options['script'] == 'false') ? 'false' : 'true';
+    if (isset($options['position'])) $js_options['insertion'] = "Insertion.".sfInflector::camelize($options['position']);
+    $js_options['evalScripts'] = (!isset($options['script']) || $options['script'] == '0' || $options['script'] == false) ? 'false' : 'true';
 
     if (isset($options['form']))
     {
@@ -927,7 +983,7 @@
 
   function _method_option_to_s($method)
   {
-    return (is_string($method) && $method[0] != "'") ? $method : "'$method'";
+    return (is_string($method) && $method[0] != "'") ? "'$method'" : $method;
   }
 
   function _build_observer($klass, $name, $options = array())
@@ -959,10 +1015,9 @@
       {
         $name = 'on'.ucfirst($callback);
         $code = $options[$callback];
-        $callbacks[$name] = 'function(request){'.$code.'}';
+        $callbacks[$name] = 'function(request, json){'.$code.'}';
       }
     }
 
     return $callbacks;
   }
-?>

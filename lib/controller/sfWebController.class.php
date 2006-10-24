@@ -28,7 +28,7 @@ abstract class sfWebController extends sfController
    *
    * @return string A URL to a symfony resource.
    */
-  public function genURL($url = null, $parameters = array(), $absolute = false)
+  public function genUrl($parameters = array(), $absolute = false)
   {
     // absolute URL or symfony URL?
     if (!is_array($parameters) && preg_match('#^[a-z]+\://#', $parameters))
@@ -44,17 +44,25 @@ abstract class sfWebController extends sfController
     $url = '';
     if (!($sf_no_script_name = sfConfig::get('sf_no_script_name')))
     {
-      $url = $_SERVER['SCRIPT_NAME'];
+      $url = $this->getContext()->getRequest()->getScriptName();
     }
-    else if (($sf_relative_url_root = sfConfig::get('sf_relative_url_root')) && $sf_no_script_name)
+    else if (($sf_relative_url_root = $this->getContext()->getRequest()->getRelativeUrlRoot()) && $sf_no_script_name)
     {
       $url = $sf_relative_url_root;
     }
 
     $route_name = '';
+    $fragment = '';
 
     if (!is_array($parameters))
     {
+      // strip fragment
+      if (false !== ($pos = strpos($parameters, '#')))
+      {
+        $fragment = substr($parameters, $pos + 1);
+        $parameters = substr($parameters, 0, $pos);
+      }
+
       list($route_name, $parameters) = $this->convertUrlStringToParameters($parameters);
     }
 
@@ -63,14 +71,14 @@ abstract class sfWebController extends sfController
       // use PATH format
       $divider = '/';
       $equals  = '/';
-      $url    .= '/';
+      $querydiv = '/';
     }
     else
     {
       // use GET format
       $divider = ini_get('arg_separator.output');
       $equals  = '=';
-      $url    .= '?';
+      $querydiv = '?';
     }
 
     // default module
@@ -86,10 +94,9 @@ abstract class sfWebController extends sfController
     }
 
     $r = sfRouting::getInstance();
-    if ($r->hasRoutes() && $generated_url = $r->generate($route_name, $parameters, $divider, $equals))
+    if ($r->hasRoutes() && $generated_url = $r->generate($route_name, $parameters, $querydiv, $divider, $equals))
     {
-      // strip off first divider character
-      $url .= ltrim($generated_url, $divider);
+      $url .= $generated_url;
     }
     else
     {
@@ -97,7 +104,7 @@ abstract class sfWebController extends sfController
 
       if (sfConfig::get('sf_url_format') == 'PATH')
       {
-        $query = strtr($query, ini_get(arg_separator.output).'=', '/');
+        $query = strtr($query, ini_get('arg_separator.output').'=', '/');
       }
 
       $url .= $query;
@@ -105,7 +112,13 @@ abstract class sfWebController extends sfController
 
     if ($absolute)
     {
-      $url = 'http://'.$this->getContext()->getRequest()->getHost().$url;
+      $request = $this->getContext()->getRequest();
+      $url = 'http'.($request->isSecure() ? 's' : '').'://'.$request->getHost().$url;
+    }
+
+    if ($fragment)
+    {
+      $url .= '#'.$fragment;
     }
 
     return $url;
@@ -114,6 +127,7 @@ abstract class sfWebController extends sfController
   public function convertUrlStringToParameters($url)
   {
     $params       = array();
+    $query_string = '';
     $route_name   = '';
 
     // empty url?
@@ -125,7 +139,7 @@ abstract class sfWebController extends sfController
     // we get the query string out of the url
     if ($pos = strpos($url, '?'))
     {
-      parse_str(substr($url, $pos + 1), $params);
+      $query_string = substr($url, $pos + 1);
       $url = substr($url, 0, $pos);
     }
 
@@ -153,6 +167,24 @@ abstract class sfWebController extends sfController
       $params['action'] = isset($tmp[1]) ? $tmp[1] : sfConfig::get('sf_default_action');
     }
 
+    $url_params = explode('&', $query_string);
+    $ind_max = count($url_params) - 1;
+    for ($i = 0; $i <= $ind_max; $i++)
+    {
+      if (!$url_params[$i]) continue;
+
+      $pos = strpos($url_params[$i], '=');
+      if ($pos === false)
+      {
+        $error = 'Unable to parse url ("%s").';
+        $error = sprintf($error, $url);
+
+        throw new sfParseException($error);
+      }
+
+      $params[substr($url_params[$i], 0, $pos)] = substr($url_params[$i], $pos + 1);
+    }
+
     return array($route_name, $params);
   }
 
@@ -167,28 +199,16 @@ abstract class sfWebController extends sfController
    */
   public function redirect ($url, $delay = 0)
   {
+    $response = $this->getContext()->getResponse();
+
     // redirect
-    header('Location: '.$url);
+    $response->setHttpHeader('Location', $url);
+    $response->setContent(sprintf('<html><head><meta http-equiv="refresh" content="%d;url=%s"/></head></html>', $delay, htmlentities($url)));
 
-    printf('<html><head><meta http-equiv="refresh" content="%d;url=%s"/></head></html>',
-      $delay, $url);
-
-    // empty any buffers
-    flush();
-    ob_end_flush();
-  }
-
-  /**
-   * Set the content type for this request.
-   *
-   * @param string A content type.
-   *
-   * @return void
-   */
-  public function setContentType ($type)
-  {
-    $this->contentType = $type;
+    if (!sfConfig::get('sf_test'))
+    {
+      $response->sendHttpHeaders();
+    }
+    $response->sendContent();
   }
 }
-
-?>

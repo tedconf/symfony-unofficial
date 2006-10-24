@@ -70,7 +70,7 @@ class sfInflector
    * @param string Class name.
    * @param boolean Seperate with underscore.
    *
-   * @return
+   * @return strong Foreign key
    */
   public static function foreign_key($class_name, $separate_class_name_and_id_with_underscore = true)
   {
@@ -116,5 +116,3 @@ class sfInflector
     return ucfirst(str_replace('_', ' ', $lower_case_and_underscored_word));
   }
 }
-
-?>

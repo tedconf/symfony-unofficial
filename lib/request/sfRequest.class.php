@@ -4,7 +4,7 @@
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
  * (c) 2004-2006 Sean Kerr.
- * 
+ *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -40,12 +40,10 @@ abstract class sfRequest
    */
   const POST = 4;
 
-  private
-    $errors  = array(),
-    $context = null,
-    $method  = null;
-
   protected
+    $errors           = array(),
+    $context          = null,
+    $method           = null,
     $parameter_holder = null,
     $config           = null,
     $attribute_holder = null;
@@ -63,7 +61,8 @@ abstract class sfRequest
   {
     $array = array();
 
-    foreach ($this->parameters as $key => &$value)
+    $parameters =& $this->parameter_holder->getAll();
+    foreach ($parameters as $key => &$value)
     {
       if (in_array($key, $names))
       {
@@ -81,7 +80,7 @@ abstract class sfRequest
    *
    * @return string An error message, if the error exists, otherwise null.
    */
-  public function getError ($name)
+  public function getError ($name, $catalogue = 'messages')
   {
     $retval = null;
 
@@ -93,7 +92,7 @@ abstract class sfRequest
     // translate error message if needed
     if (sfConfig::get('sf_i18n'))
     {
-      $retval = $this->context->getI18N()->__($retval);
+      $retval = $this->context->getI18N()->__($retval, null, $catalogue);
     }
 
     return $retval;
@@ -328,6 +327,9 @@ abstract class sfRequest
    * @return void
    */
   abstract function shutdown ();
-}
 
-?>
+  public function __call($method, $arguments)
+  {
+    return sfMixer::callMixins();
+  }
+}

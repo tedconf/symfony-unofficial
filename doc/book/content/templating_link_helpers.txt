@@ -26,14 +26,14 @@ Imagine that you want to add a hyperlink to this page in a template. In PHP, you
 This is a bad idea, because: 
 
 * by writing `index.php`, you point to a particular environment (in this case, the production environment). All links must be environment-independent if you don't want to accidentally change environment while navigating
-* if you later decide to change the **routing** policy (you can learn more about this feature in the [routing chapter](routing.txt) chapter), and to display another format of URL, you would have to parse all of your template files and replace by hand the URLs already entered to URLs like:
+* if you later decide to change the **routing** policy (you can learn more about this feature in the [routing chapter](routing.txt)), and to display another format of URL, you would have to parse all of your template files and replace by hand the URLs already entered to URLs like:
 
           [php]
           <a href="/index.php/articles/europe/france/finance.html">Finance in France</a>
 
 If you ever built a website, you know that these problems occur all the time.
 
-The link helpers are there for you. They allow symfony to create URLs and hyperlinks to actions compliant to the routing policy, without any dependence to the environment.
+The link helpers are there for you. They allow symfony to create URLs and hyperlinks to actions compliant to the routing policy, without any dependence on the environment.
 
 Link helpers
 ------------
@@ -49,14 +49,14 @@ The `url_for()` helper returns an URL, the `link_to()` helper returns a hyperlin
     
     <?php echo link_to('interesting article', 'article/read?title=Finance_in_France') ?>
     // will generate in HTML
-    <a href="http://myapp.example.com/index.php/article/read/title/Finance_in_France" title="interesting article">interesting article</a>
+    <a href="http://myapp.example.com/index.php/article/read/title/Finance_in_France">interesting article</a>
     
-Notice that the default routing rules transform all the `?`, `=` and `&` characters into `/`. Also note that the `link_to()` helper gives a bonus `title` attribute for the `<a>` tag, based on the content of the tag that is provided.
+Notice that the default routing rules transform all the `?`, `=` and `&` characters into `/`. 
 
 Enter in the link helper exactly the same URL as you would have written in a `<a href="...` tag, and it will transform it for you into a "smart" link according to the current routing policy. And when the customer decides to change some of the rules, just modify the `routing.yml` configuration file and the generated URL can now look like:
 
     [php]
-    <a href="http://myapp.example.com/articles/europe/france/finance.html" title="interesting article">interesting article</a>
+    <a href="http://myapp.example.com/articles/europe/france/finance.html">interesting article</a>
 
 Link helpers are the key to a double way routing. Interpreting URLs is not a big deal, but generating them requires that all hyperlink tags pass by the same filter. That's why these helpers are compulsory as soon as you may use the routing feature. Make sure you take a look at the [routing chapter](routing.txt) to see how to change the shape of URLs, get rid of the controller name or add a '.html' to the generated URLs for more efficient caching and indexing.
 
@@ -123,7 +123,7 @@ This `<a>` tag has an `href` attribute, so browsers without javascript support w
 
 It is a good habit to tag as POST the links that actually post data. Don't hesitate to use this possibility.
 
-### Additionnal options
+### Additional options
 
 In addition to the `post` option, the `link_to` helper accepts two other options : `confirm` and `popup`.
 
@@ -150,6 +150,25 @@ The options can be combined:
     <?php echo link_to('add to cart', 'shoppingCart/add?id=100', 'confirm=Are you sure? popup=true') ?>
     // will generate in HTML
     <a onclick="if (confirm('Are you sure?')) { window.open(this.href); };return false;" href="/fo_dev.php/shoppingCart/add/id/100.html">add to cart</a>
+
+### Forcing GET variables
+
+According to your routing rules, variables passed as parameters to a `link_to()` are transformed into patterns. The default rule transforms `?key=value` into `/key/value`:
+
+    [php]
+    <?php echo link_to('interesting article', 'article/read?title=Finance_in_France') ?>
+    // will generate in the URL
+    http://myapp.example.com/index.php/article/read/title/Finance_in_France
+
+But what if you actually need to keep the GET syntax, i.e. to output an url like:
+
+    [php]
+    http://myapp.example.com/index.php/article/read?title=Finance_in_France
+
+You should then put the variables that have to be forced outside of the `url` parameter, in the `query_string` option:
+
+    [php]
+    <?php echo link_to('interesting article', 'article/read', array('query_string' => 'title=Finance_in_France')) ?>
 
 button_to helper
 ----------------
@@ -182,19 +201,19 @@ mail_to helper
 
 The reason why symfony ships a `mail_to()` helper is that nowadays, email harvesting robots prowl about the web, and you can't display an email address on a website without becoming a spam victim within days.
 
-This helper takes two parameters : the actual email address, and a secure flag. If the flag is set to `false`, the email address is written non-crypted:
+This helper takes three parameters : the actual email address, the string that should be displayed and an array of options. If the third parameter is not set the email address is written non-crypted:
 
     [php]
-    <?php echo mail_to('myaddress@mydomain.com', false) ?>
+    <?php echo mail_to('myaddress@mydomain.com', 'contact address') ?>
     // will generate in HTML
-    <a href="mailto:myaddress@mydomain.com'>myaddress@mydomain.com</a>
+    <a href="mailto:myaddress@mydomain.com'>contact address</a>
 
-If the flag is set to `true`, and this is the default behavior, the displayed and pointed addresses are processed by a random decimal and hexadecimal entity encoder. This will probably not stop all address-harvesting spambots, but it will keep most of them away. Future versions of this helper will probably evolve as the harvesting techniques become more accurate.
+If the flag is set to array('encode' => true) the displayed and pointed addresses are processed by a random decimal and hexadecimal entity encoder. This will probably not stop all address-harvesting spambots, but it will keep most of them away. Future versions of this helper will probably evolve as the harvesting techniques become more accurate.
 
     [php]
-    <?php echo mail_to('myaddress@mydomain.com') ?>
+    <?php echo mail_to('myaddress@mydomain.com', 'contact address', array('encode' => true)) ?>
     // will generate in HTML something like
-    <a href="&#x6d;&#x61;&#x69;&#108;&#116;&#x6f;&#x3a;&#109;&#x79;&#x61;&#x64;&#x64;re&#x73;&#115;&#64;m&#121;&#100;&#111;&#109;&#x61;&#105;&#x6e;.&#99;&#111;&#x6d;">myaddress@mydomain.com</a>
+    <a href="&#109;&#x61;&#105;&#108;&#x74;&#x6f;&#58;&#x6d;&#121;&#x61;&#x64;&#x64;&#114;&#101;&#x73;&#115;&#64;&#x6d;&#x79;&#100;o&#x6d;&#97;&#105;&#110;&#46;&#x63;&#111;&#x6d;">&#x63;&#111;&#110;&#x74;&#x61;c&#x74;&#32;&#x61;d&#100;&#114;e&#115;&#x73;</a>
 
 Image helper
 ------------
@@ -248,24 +267,35 @@ To keep the code readable and let you write templates fast, the options argument
     // will generate in HTML
     <img href="/my_images/test.gif" alt="My new car" width="100" height="20" class="shortImage" onclick="showNextImage();" />
 
-Javascript helper
+JavaScript helper
 -----------------
 
-To link to javascript files, you can omit the path and the suffix: 
+To link to JavaScript files, you can omit the path and the suffix: 
 
     [php]
-    <?php echo javascript_tag('myscript') ?>
+    <?php echo javascript_include_tag('myscript') ?>
     // will generate in HTML
     <script language="javascript" type="text/javascript" src="/js/myscript.js">
 
 Once again, the default location can be overridden in a function call for quick needs, or redefined for the whole site in the configuration files for major changes.
 
-If you read the whole documentation, you will see that symfony gives you three different ways to require an additional javascript file. You should use them with this order of preference:
+If you read the whole documentation, you will see that symfony gives you three different ways to require an additional JavaScript file. You should use them with this order of preference:
 
-* parameter definition in the `view.yml` file: most of the time, the best solution
-* `addJavascript()` function call from the action: when the name of the files to include depend on calculations made in the action
-* `javascript_tag` helpers in the template: to include a javascript file at a given position inside a template and not in the head.
+* parameter definition in the `view.yml` file: Most of the time, the best solution
+* `$this->getResponse()->addJavascript()` method call from the action: When the name of the files to include depend on calculations made in the action
+* `javascript_include_tag()` helpers in the template: To include a JavaScript file at a given position inside a template and not in the head.
 
-The last solution is rarely good; if you need it, check whether your code needs some refactoring (for instance write a javascript function call in the code and require the script inclusion in the head). However, you sometimes don't have the choice, for instance if you have to include traffic measure scripts at the end of your pages.
+The last solution is rarely good; if you need it, check whether your code needs some refactoring (for instance write a JavaScript function call in the code and require the script inclusion in the head). However, you sometimes don't have the choice, for instance if you have to include traffic measure scripts at the end of your pages.
 
->**Note**: you may be looking for a `stylesheet_tag()` helper, but there is none. If you need to include a custom stylesheet, you should not do it in the template but rather in the view or in the action, as described in the [view configuration chapter](templating_configuration.txt).
+>**Note**: You may be looking for a `stylesheet_tag()` helper, but there is none. If you need to include a custom stylesheet, you should not do it in the template but rather in the view or in the action, as described in the [view configuration chapter](templating_configuration.txt). This way, the declaration appears in the `<head>` instead of in the `<body>`.
+
+Absolute paths
+--------------
+
+The url and asset helpers generate relative paths by default. You can easily add an `absolute=true` parameter to force the output to absolute paths, for instance for inclusions of links in an email, a RSS feed, or an API response.
+
+    [php]
+    <?php echo url_for('module/action', true) ?>
+    <?php echo link_to('my link', 'module/action', 'absolute=true') ?>
+    <?php echo image_tag('test', 'absolute=true') ?>
+    <?php echo javascript_include_tag('myscript', 'absolute=true') ?>

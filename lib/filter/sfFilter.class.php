@@ -21,20 +21,25 @@
  */
 abstract class sfFilter
 {
-  private
-    $parameter_holder = null;
-
   protected
+    $parameter_holder = null,
+    $filterCalled     = array(),
     $context          = null;
 
-  /**
-   * Execute this filter.
-   *
-   * @param FilterChain A FilterChain instance.
-   *
-   * @return void
-   */
-  abstract function execute ($filterChain);
+  protected function isFirstCall ()
+  {
+    $class = get_class($this);
+    if (isset($this->filterCalled[$class]))
+    {
+      return false;
+    }
+    else
+    {
+      $this->filterCalled[$class] = true;
+
+      return true;
+    }
+  }
 
   /**
    * Retrieve the current application context.
@@ -86,5 +91,3 @@ abstract class sfFilter
     return $this->parameter_holder->set($name, $value, $ns);
   }
 }
-
-?>

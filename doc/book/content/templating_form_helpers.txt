@@ -25,17 +25,22 @@ To create a form, you have to use the symfony `form_tag` function since it trans
     [php]
     <?php echo form_tag('test/save') ?>
     // will generate in HTML
-    <form method="post" enctype="multipart/form-data" action="http://www.mysite.com/index.php/test/save">
+    <form method="post" action="http://www.mysite.com/index.php/test/save">
 
 This will route the form to the `save` action of the `test` module. You can learn more about the URL management in the [routing chapter](routing.txt).
 
-To change the default `method`, the default `enctype` or to specify other attributes, use  the second argument:
+To change the default `method`, the default [`enctype`][1] or to specify other attributes, use the second argument:
 
     [php]
     // options argument with the associative array syntax
-    <?php echo form_tag('test/save', Array('method' => 'get', 'id' => 'myForm', 'class' => 'simpleForm')) ?>
+    <?php echo form_tag('test/save', Array('multipart' => true, 'id' => 'myForm')) ?>
+    // will generate in HTML
+    <form method="post" enctype="multipart/form-data" id="myForm" action="http://www.mysite.com/index.php/test/save">
+    
     // options argument with the string syntax
-    <?php echo form_tag('test/save', 'method=get id=myForm class=simpleForm') ?>
+    <?php echo form_tag('test/save', 'method=get class=simpleForm') ?>
+    // will generate in HTML
+    <form method="get" class="simpleForm" action="http://www.mysite.com/index.php/test/save">
 
 As there is no need for a closing form helper, you should use the HTML `</form>` tag, even if it doesn't look good in your source code.
 
@@ -56,7 +61,7 @@ Here are the standard form element helpers:
  * long text field (textarea):
 
         [php]
-        <?php echo textarea_tag('name', 'default content', 'size=10x20')) ?>
+        <?php echo textarea_tag('name', 'default content', 'size=10x20') ?>
         // will generate in HTML
         <textarea name="name" id="name" rows="20" cols="10">default content</textarea>
 
@@ -72,18 +77,16 @@ Here are the standard form element helpers:
  * radio button:
 
         [php]
-        <?php echo radiobutton_tag('status', 'value1', true) ?>
-        <?php echo radiobutton_tag('status', 'value2', false) ?>
+        <?php echo radiobutton_tag('status[]', 'value1', true) ?>
+        <?php echo radiobutton_tag('status[]', 'value2', false) ?>
         // will generate in HTML
-        <input type="radio" name="status" value="value1" checked="checked" />
-        <input type="radio" name="status" value="value2" />
-
-> Note that the `id` attribute is not defined by default with the value of the `name` attribute for the radio button helper. That's because you need to have several radio button tags with the same name to obtain the automated 'deselecting the previous one when selecting another' feature, and that would imply having several HTML tags with the same `id` attribute in your page - which is strictly forbidden.
+        <input type="radio" name="status[]" id="status_value1" value="value1" checked="checked" />
+        <input type="radio" name="status[]" id="status_value2" value="value2" />
 
  * value selection field (select):
 
         [php]
-        <?php echo select_tag('name', options_for_select(Array('Steve' => '0', 'Bob' => '1', 'Albert' => '2', 'Ian' => '3', 'Buck' => '4'), 3)) ?>
+        <?php echo select_tag('name', options_for_select(Array('0' => 'Steve', '1' => 'Bob', '2' => 'Albert', '3' => 'Ian', '4' => 'Buck'), 3)) ?>
         // will generate in HTML
         <select name="name" id="name">
           <option value="0">Steve</option>
@@ -93,7 +96,9 @@ Here are the standard form element helpers:
           <option value="4">Buck</option>
         </select>
         
-        // When the value is the same as the text to display, use an array instead of an associative array
+    When the value is the same as the text to display, use an array instead of an associative array
+    
+        [php]
         <?php echo select_tag('payment', options_for_select(Array('Visa', 'Eurocard', 'Mastercard'), 'Visa')) ?>
         // will generate in HTML
         <select name="payment" id="payment">
@@ -102,8 +107,10 @@ Here are the standard form element helpers:
           <option>Mastercard</option>
         </select>
         
-        //Multiple selection field uses the same syntax, and the selected values can then be an array
-         <?php echo select_tag('payment', options_for_select(Array('Visa', 'Eurocard', 'Mastercard'), Array('Visa', 'Mastecard'), 'multiple=multiple') ?>
+    Multiple selection field uses the same syntax, and the selected values can then be an array
+    
+        [php]
+        <?php echo select_tag('payment', options_for_select(Array('Visa', 'Eurocard', 'Mastercard'), Array('Visa', 'Mastecard')), 'multiple=multiple') ?>
         // will generate in HTML
         <select name="payment" id="payment" multiple="multiple">
           <option selected="selected">Visa</option>
@@ -111,12 +118,12 @@ Here are the standard form element helpers:
           <option selected="selected">Mastercard</option>
         </select>
         
-        // When the data needed to set the value and the text to display can be obtained via methods of an object, you can
-        // simply pass an array of the objects, and the names of the methods to use to retrieve the value and display text.
+    When the data needed to set the value and the text to display can be obtained via methods of an object, you can simply pass an array of the objects, and the names of the methods to use to retrieve the value and display text.
+    
+        [php]
         <?php echo select_tag('articles', objects_for_select($articles, 'getId', 'getTitle', 1) ) ?> 
-        // This will iterate through the $articles array, using the current object by calling the getId() for the value, and getTitle() 
-        // for the display text. 
-               
+
+    This will iterate through the `$articles` array, using the current object by calling the `getId()` method for the value, and `getTitle()` for the display text. 
 
  * field to upload a file:
 
@@ -158,7 +165,9 @@ Here are the standard form element helpers:
 Rich form elements
 ------------------
 
-Forms are often used to get **dates**. Date format is also culture dependent, and wrong dates is the main reason of unvalidated forms. The `input_date_tag` can assists the user with a javascript calendar:
+### Dates
+
+Forms are often used to get **dates**. Date format is also culture dependent, and wrong dates is the main reason for form validation failures. The `input_date_tag` can assists the user with a javascript calendar:
 
     [php]
     <?php echo input_date_tag('dateofbirth', '2005-05-03', 'rich=true') ?>
@@ -167,12 +176,51 @@ Forms are often used to get **dates**. Date format is also culture dependent, an
 
 The last argument specifies that the rich form has to be used. If it was set to `false` (which is the default value), the normal date entry widget (three text inputs for day, month and year) would be used in place.
 
-**Rich text editing** in a textarea is also possible, since symfony implements the [TinyMCE](http://tinymce.moxiecode.com/) widget that inputs html code:
+The accepted date values are the ones recognized by the `strtotime()` [php function](http://www.php.net/manual/en/function.strtotime.php). Beware that, in some limit cases, the results can be surprising:
+
+    // Can be used
+    
+    // work fine
+    <?php echo input_date_tag('test', '2006-04-01', 'rich=true') ?>
+    <?php echo input_date_tag('test', 1143884373, 'rich=true') ?>
+    <?php echo input_date_tag('test', 'now', 'rich=true') ?>
+    <?php echo input_date_tag('test', '23 October 2005', 'rich=true') ?>
+    <?php echo input_date_tag('test', 'next tuesday', 'rich=true') ?>
+    <?php echo input_date_tag('test', '1 week 2 days 4 hours 2 seconds', 'rich=true') ?>
+    // returns NULL
+    <?php echo input_date_tag('test', null, 'rich=true') ?>
+    <?php echo input_date_tag('test', '', 'rich=true') ?>
+    
+    // Not to be used
+    
+    // date zero = 01/01/1970
+    <?php echo input_date_tag('test', 0, 'rich=true') ?>
+    // non-English date formats don't work
+    <?php echo input_date_tag('test', '01/04/2006', 'rich=true') ?>
+
+### Rich text
+
+**Rich text editing** in a textarea is also possible, since symfony provides an interface with the [TinyMCE](http://tinymce.moxiecode.com/) widget that inputs html code.
+
+In order to use TinyMCE, you have to download it first from [this page](http://tinymce.moxiecode.com/download.php) and unpack it in a temporary folder. Copy the `tinymce/jscripts/tiny_mce` directory into your project `web/js/` directory, and add to your `settings.yml`:
+
+    all:
+      .settings:      
+        rich_text_js_dir:  js/tiny_mce
+
+Now you can run the rich version of the textarea input tag:
 
     [php]
     <?php echo textarea_tag('name', 'default content', 'rich=true size=10x20')) ?>
     // will generate in HTML
-    // a rich text edition zone powered by TinyMCE
+    // a rich text edit zone powered by TinyMCE
+
+If you want to specify custom options for TinyMCE, use the `tinymce_options` option:
+
+    [php]
+    <?php echo textarea_tag('name', 'default content', 'rich=true size=10x20 tinymce_options=language:"fr",theme_advanced_buttons2:"separator"')) ?>
+
+### Country
 
 You will probably need to display a **country selection field**. The `select_country_tag` helper can do it for you; it uses the default culture to choose in which language the countries will be displayed.
 
@@ -209,6 +257,11 @@ So simply add the `object_` prefix in front of the name of the form helpers to g
     object_checkbox_tag($object, $method, $options)
     ...
 
+>**Note**: Contrary to the regular for helpers, the object form helpers are only available if you declare explicitly the use of the `Object` helper in your template:
+
+    [php]
+    <?php echo use_helper('Object') ?>
+    
 The most useful helper of this type is the `object_select_tag`, since it can get the list of values from another table. For instance, imagine that you have an `Article` and an `Author` table, where one or more articles are written by one author. This means that the `Article` table has a `author_id` column:
 
 | Article   | Author |
@@ -224,12 +277,17 @@ Now, picture a form built to edit the data of an article. There is an easy way t
 
 Symfony will use the `->toString()` method of the `Author` class to display the names of the authors in a list. If the method is undefined, the primary key (in the example, the `id` column) of the `Author` table is used instead.
 
+By default, the list of authors will be the complete list ordered by creation date, but you can specify another `AuthorPeer` method to display a custom array of authors, in the order you want, with the `peer_method` parameter:
+
+    [php]
+    object_select_tag($article, 'getAuthorId', 'related_class=Author peer_method=getFamousAuthorsOrderedByBirthDate')
+
 A few other options can define the content of an object select tag. `include_title` and `include_blank` allow to add a title or a first empty line to the list:
 
     [php]
     object_select_tag($article, 'getAuthorId', 'related_class=Author')
-    object_select_tag($article, 'getAuthorId', 'related_class=Author include_blank')
-    object_select_tag($article, 'getAuthorId', 'related_class=Author include_title')
+    object_select_tag($article, 'getAuthorId', 'related_class=Author include_blank=true')
+    object_select_tag($article, 'getAuthorId', 'related_class=Author include_title=true')
     //will display three selects with lists of values looking like:
     -------      -------      -------
     |Steve |     |      |     |Author|
@@ -262,10 +320,12 @@ Then the `update` action of the `author` module can simply use the `fromArray` m
     {
       $author = AuthorPeer::retrieveByPk($this->getRequestParameter('id'));
   
-      $this->forward404_unless($author instanceof Author);
+      $this->forward404Unless($author instanceof Author);
 
       $author->fromArray($this->getRequest()->getParameterHolder()->getAll(), Author::TYPE_FIELDNAME);
       $author->save();
   
       return $this->redirect('/author/show?id='.$author->getId());
     }
+
+[1]: http://www.w3.org/TR/REC-html40/interact/forms.html#form-content-type   "HTML Form enctype attribute"

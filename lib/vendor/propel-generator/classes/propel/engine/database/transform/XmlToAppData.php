@@ -1,7 +1,7 @@
 <?php
 
 /*
- *  $Id: XmlToAppData.php 304 2005-12-19 20:35:50Z hans $
+ *  $Id: XmlToAppData.php 337 2006-02-15 14:41:54Z hans $
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -35,7 +35,7 @@ include_once 'phing/system/io/FileReader.php';
  * @author Jason van Zyl <jvanzyl@apache.org> (Torque)
  * @author Martin Poeschl <mpoeschl@marmot.at> (Torque)
  * @author Daniel Rall <dlr@collab.net> (Torque)
- * @version $Revision: 304 $
+ * @version $Revision: 337 $
  * @package propel.engine.database.transform
  */
 class XmlToAppData extends AbstractHandler {
@@ -83,7 +83,7 @@ class XmlToAppData extends AbstractHandler {
 		$this->firstPass = true;
 		$this->encoding = $encoding;
 	}
-
+	
 	/**
 	 * Parses a XML input file and returns a newly created and
 	 * populated AppData structure.
@@ -101,25 +101,10 @@ class XmlToAppData extends AbstractHandler {
 		$domDocument = new DomDocument('1.0', 'UTF-8');
 		$domDocument->load($xmlFile);
 
-		$xsl = new XsltProcessor();
-		$xsl->importStyleSheet(DomDocument::load(realpath(dirname(__FILE__) . "/xsl/database.xsl")));
-		$transformed = $xsl->transformToDoc($domDocument);
-
-		$xmlFile = $xmlFile . "transformed.xml";
-		$transformed->save($xmlFile);
-
 		// store current schema file path
 		$this->schemasTagsStack[$xmlFile] = array();
 
-		$this->currentXmlFile = $xmlFile;
-
-
-		if ($transformed->getElementsByTagName("database")->item(0)->getAttribute("noxsd") != "true") {
-			$xsdFile = realpath(dirname(__FILE__) . "/xsd/database.xsd");
-			if (!$transformed->schemaValidate($xsdFile)) {
-				throw new EngineException("XML schema does not validate (using schema file $xsdFile).  See warnings above for reasons validation failed (make sure error_reporting is set to show E_WARNING if you don't see any).");		
-			}
-		}
+		$this->currentXmlFile = $xmlFile;		
 
 		try {
 			$fr = new FileReader($xmlFile);

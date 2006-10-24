@@ -18,37 +18,10 @@
  * @author     Sean Kerr <skerr@mojavi.org>
  * @version    SVN: $Id$
  */
-abstract class sfAction
+abstract class sfAction extends sfComponent
 {
-  const ALL = 'ALL';
-
-  private
-    $context                  = null,
-    $var_holder               = null,
-    $security                 = array(),
-    $request                  = null,
-    $request_parameter_holder = null,
-    $template                 = '';
-
-  /**
-   * Execute any application/business logic for this action.
-   *
-   * In a typical database-driven application, execute() handles application
-   * logic itself and then proceeds to create a model instance. Once the model
-   * instance is initialized it handles all business logic for the action.
-   *
-   * A model should represent an entity in your application. This could be a
-   * user account, a shopping cart, or even a something as simple as a
-   * single product.
-   *
-   * @return mixed A string containing the view name associated with this action.
-   *
-   *               Or an array with the following indices:
-   *
-   *               - The parent module of the view that will be executed.
-   *               - The view that will be executed.
-   */
-  abstract function execute ();
+  protected
+    $security = array();
 
   /**
    * Gets current module name
@@ -79,67 +52,34 @@ abstract class sfAction
    */
   public function initialize($context)
   {
-    $this->context                  = $context;
-    $this->var_holder               = new sfParameterHolder();
-    $this->request                  = $context->getRequest();
-    $this->request_parameter_holder = $this->request->getParameterHolder();
+    parent::initialize($context);
 
     // include security configuration
-    require(sfConfigCache::getInstance()->checkConfig('modules/'.$this->getModuleName().'/'.sfConfig::get('sf_app_module_config_dir_name').'/security.yml', true, array('moduleName' => $this->getModuleName())));
+    require(sfConfigCache::getInstance()->checkConfig(sfConfig::get('sf_app_module_dir_name').'/'.$this->getModuleName().'/'.sfConfig::get('sf_app_module_config_dir_name').'/security.yml', true));
 
     return true;
   }
 
+  /**
+   * Execute an application defined process prior to execution of this Action.
+   *
+   * By Default, this method is empty.
+   */
   public function preExecute ()
   {
   }
 
+  /**
+   * Execute an application defined process immediately after execution of this Action.
+   *
+   * By Default, this method is empty.
+   */
   public function postExecute ()
   {
   }
 
   /**
-   * Retrieve the current application context.
-   *
-   * @return sfContext The current sfContext instance.
-   */
-  public final function getContext ()
-  {
-    return $this->context;
-  }
-
-  /**
-   * Retrieve the current logger instance.
-   *
-   * @return sfLogger The current sfLogger instance.
-   */
-  public final function getLogger ()
-  {
-    return $this->context->getLogger();
-  }
-
-  /**
-   * Log $message using sfLogger object.
-   * 
-   * @param mixed  String or object containing the message to log.
-   * @param string The priority of the message
-   *               (available priorities: emerg, alert, crit, err, warning, notice, info, debug).
-   */
-  public function logMessage ($message, $priority = 'info')
-  {
-    return $this->context->getLogger()->log($message, constant('SF_PEAR_LOG_'.strtoupper($priority)));
-  }
-
-  public function debugMessage ($message)
-  {
-    if (sfConfig::get('sf_web_debug'))
-    {
-      sfWebDebug::getInstance()->logShortMessage($message);
-    }
-  }
-
-  /**
-   * Returns true if current action template will be executed by the view.
+   * DEPRECATED: Returns true if current action template will be executed by the view.
    *
    * This is the case if:
    * - cache is off;
@@ -150,49 +90,57 @@ abstract class sfAction
    *
    * @return boolean
    */
-  // FIXME: does not work for fragment because config is created in template, too late...
-  public function mustExecute($suffix = 'slot')
+  public function mustExecute()
   {
+    if (sfConfig::get('sf_logging_active'))
+    {
+      $this->getContext()->getLogger()->err('This method is deprecated.');
+    }
+
     if (!sfConfig::get('sf_cache'))
     {
       return 1;
     }
 
-    // ignore cache? (only in debug mode)
-    if (sfConfig::get('sf_debug') && $this->request->getParameter('ignore_cache', false, 'symfony/request/sfWebRequest') == true)
-    {
-      return 1;
-    }
-
     $cache = $this->getContext()->getViewCacheManager();
-    $moduleName = $this->getModuleName();
-    $actionName = $this->getActionName();
 
-    return (!$cache->has($moduleName, $actionName, $suffix));
+    return (!$cache->has(sfRouting::getInstance()->getCurrentInternalUri()));
   }
 
   /**
    * Forwards current action to the default 404 error action
    *
    */
-  public function forward404 ()
+  public function forward404 ($message = '')
   {
-    throw new sfError404Exception();
+    throw new sfError404Exception($message);
   }
 
-  public function forward404Unless ($condition)
+  /**
+   * Forwards current action to the default 404 error action
+   * unless the specified condition is true.
+   *
+   * @param bool A condition that evaluates to true or false.
+   */
+  public function forward404Unless ($condition, $message = '')
   {
     if (!$condition)
     {
-      throw new sfError404Exception();
+      throw new sfError404Exception($message);
     }
   }
 
-  public function forward404If ($condition)
+  /**
+   * Forwards current action to the default 404 error action
+   * if the specified condition is true.
+   *
+   * @param bool A condition that evaluates to true or false.
+   */
+  public function forward404If ($condition, $message = '')
   {
     if ($condition)
     {
-      throw new sfError404Exception();
+      throw new sfError404Exception($message);
     }
   }
 
@@ -214,7 +162,7 @@ abstract class sfAction
    *
    * @param  string module name
    * @param  string action name
-   * @return sfView::NONE
+   * @throws sfStopException always
    */
   public function forward ($module, $action)
   {
@@ -222,9 +170,24 @@ abstract class sfAction
 
     $this->getController()->forward($module, $action);
 
-    throw new sfActionStopException();
+    throw new sfStopException();
   }
 
+  /**
+   * If the condition is true, forwards current action to a new one (without browser redirection).
+   *
+   * This method must be called as with a return:
+   *
+   * <code>
+   *  $condition = true
+   *  return $this->forwardIf($condition, 'module', 'action')
+   * </code>
+   *
+   * @param  bool   A condition that evaluates to true or false.
+   * @param  string module name
+   * @param  string action name
+   * @throws sfStopException always
+   */
   public function forwardIf ($condition, $module, $action)
   {
     if ($condition)
@@ -233,6 +196,21 @@ abstract class sfAction
     }
   }
 
+  /**
+   * Unless the condition is true, forwards current action to a new one (without browser redirection).
+   *
+   * This method must be called as with a return:
+   *
+   * <code>
+   *  $condition = false
+   *  return $this->forwardUnless($condition, 'module', 'action')
+   * </code>
+   *
+   * @param  bool   A condition that evaluates to true or false.
+   * @param  string module name
+   * @param  string action name
+   * @throws sfStopException always
+   */
   public function forwardUnless ($condition, $module, $action)
   {
     if (!$condition)
@@ -243,13 +221,7 @@ abstract class sfAction
 
   public function sendEmail($module, $action)
   {
-    $presentation = $this->getPresentationFor($module, $action, 'sfMail');
-
-    // error? (like a security forwarding)
-    if (!$presentation)
-    {
-      throw new sfException('There was an error when trying to send this email.');
-    }
+    return $this->getPresentationFor($module, $action, 'sfMail');
   }
 
   public function getPresentationFor($module, $action, $viewName = null)
@@ -289,15 +261,29 @@ abstract class sfAction
     $controller->setRenderMode($renderMode);
 
     // remove the action entry
-    for ($i = $index; $i < $actionStack->getSize(); $i++)
+    $nb = $actionStack->getSize() - $index;
+    while ($nb-- > 0)
     {
-      $actionEntry = $actionStack->removeEntry($i);
+      $actionEntry = $actionStack->popEntry();
+
+      if ($actionEntry->getModuleName() == sfConfig::get('sf_login_module') && $actionEntry->getActionName() == sfConfig::get('sf_login_action'))
+      {
+        $error = 'Your mail action is secured but the user is not authenticated.';
+
+        throw new sfException($error);
+      }
+      else if ($actionEntry->getModuleName() == sfConfig::get('sf_secure_module') && $actionEntry->getActionName() == sfConfig::get('sf_secure_action'))
+      {
+        $error = 'Your mail action is secured but the user does not have access.';
+
+        throw new sfException($error);
+      }
     }
 
     // remove viewName
     if ($viewName)
     {
-      $this->getRequest()->setAttribute($module.'_'.$action.'_view_name', '', 'symfony/action/view');
+      $this->getRequest()->getAttributeHolder()->remove($module.'_'.$action.'_view_name', 'symfony/action/view');
     }
 
     return $presentation;
@@ -315,28 +301,54 @@ abstract class sfAction
    * <code>return $this->redirect('/ModuleName/ActionName')</code>
    *
    * @param  string url
-   * @return sfView::NONE
+   * @throws sfStopException always
    */
   public function redirect($url)
   {
-    $url = $this->getController()->genUrl(null, $url);
+    $url = $this->getController()->genUrl($url, true);
 
     if (sfConfig::get('sf_logging_active')) $this->getContext()->getLogger()->info('{sfAction} redirect to "'.$url.'"');
 
     $this->getController()->redirect($url);
 
-    throw new sfActionStopException();
+    throw new sfStopException();
   }
 
-  public function redirect_if ($condition, $url)
+  /**
+   * Redirects current request to a new URL, only if specified condition is true.
+   *
+   * @see redirect
+   *
+   * This method must be called as with a return:
+   *
+   * <code>return $this->redirectIf($condition, '/ModuleName/ActionName')</code>
+   *
+   * @param  bool   A condition that evaluates to true or false.
+   * @param  string url
+   * @throws sfStopException always
+   */
+  public function redirectIf ($condition, $url)
   {
     if ($condition)
     {
-      $this->redirecti($url);
+      $this->redirect($url);
     }
   }
 
-  public function redirect_unless ($condition, $url)
+  /**
+   * Redirects current request to a new URL, unless specified condition is true.
+   *
+   * @see redirect
+   *
+   * This method must be called as with a return:
+   *
+   * <code>return $this->redirectUnless($condition, '/ModuleName/ActionName')</code>
+   *
+   * @param  bool   A condition that evaluates to true or false.
+   * @param  string url
+   * @throws sfStopException always
+   */
+  public function redirectUnless ($condition, $url)
   {
     if (!$condition)
     {
@@ -355,50 +367,6 @@ abstract class sfAction
     echo $text;
 
     return sfView::NONE;
-  }
-
-  /**
-   * Returns the value of a request parameter.
-   *
-   * This is a proxy method equivalent to:
-   *
-   * <code>$this->getRequest()->getParameterHolder()->get($name)</code>
-   *
-   * @param  $name parameter name
-   * @return string
-   */
-  public function getRequestParameter($name, $default = null)
-  {
-    return $this->request_parameter_holder->get($name, $default);
-  }
-
-  /**
-   * Returns true if a request parameter exists.
-   *
-   * This is a proxy method equivalent to:
-   *
-   * <code>$this->getRequest()->getParameterHolder()->has($name)</code>
-   *
-   * @param  $name parameter name
-   * @return boolean
-   */
-  public function hasRequestParameter($name)
-  {
-    return $this->request_parameter_holder->has($name);
-  }
-
-  /**
-   * Returns the current request object.
-   *
-   * This is a proxy method equivalent to:
-   *
-   * <code>$this->getContext()->getRequest()</code>
-   *
-   * @return object current request object
-   */
-  public function getRequest()
-  {
-    return $this->request;
   }
 
   /**
@@ -454,7 +422,7 @@ abstract class sfAction
   /**
    * Manually register validators for this action.
    *
-   * @param ValidatorManager A ValidatorManager instance.
+   * @param sfValidatorManager A sfValidatorManager instance.
    *
    * @return void
    */
@@ -472,26 +440,29 @@ abstract class sfAction
     return true;
   }
 
+  public function getSecurityConfiguration()
+  {
+    return $this->security;
+  }
+
+  public function setSecurityConfiguration($security)
+  {
+    $this->security = $security;
+  }
+
   /**
    * Indicates that this action requires security.
    *
-   * @param  string action name (defaults to the current action)
    * @return bool true, if this action requires security, otherwise false.
    */
   public function isSecure()
   {
-    // disable security on [sf_login_module] / [sf_login_action]
-    if ((sfConfig::get('sf_login_module') == $this->getModuleName()) && (sfConfig::get('sf_login_action') == $this->getActionName()))
-    {
-      return false;
-    }
-
-    // read security.yml configuration
     if (isset($this->security[$this->getActionName()]['is_secure']))
     {
       return $this->security[$this->getActionName()]['is_secure'];
     }
-    else if (isset($this->security['all']) && isset($this->security['all']['is_secure']))
+
+    if (isset($this->security['all']['is_secure']))
     {
       return $this->security['all']['is_secure'];
     }
@@ -502,7 +473,6 @@ abstract class sfAction
   /**
    * Gets credentials the user must have to access this action.
    *
-   * @param  string action name (defaults to the current action)
    * @return mixed
    */
   public function getCredential()
@@ -511,7 +481,7 @@ abstract class sfAction
     {
       $credentials = $this->security[$this->getActionName()]['credentials'];
     }
-    else if (isset($this->security['all']) && isset($this->security['all']['credentials']))
+    else if (isset($this->security['all']['credentials']))
     {
       $credentials = $this->security['all']['credentials'];
     }
@@ -523,133 +493,67 @@ abstract class sfAction
     return $credentials;
   }
 
-  public function getController()
-  {
-    return $this->getContext()->getController();
-  }
-
-  public function getUser()
-  {
-    return $this->getContext()->getUser();
-  }
-
+  /**
+   * Sets an alternate template for this Action.
+   *
+   * See 'Naming Conventions' in the 'Symfony View' documentation.
+   *
+   * @param string template name
+   */
   public function setTemplate($name)
   {
-    if (sfConfig::get('sf_logging_active')) $this->getContext()->getLogger()->info('{sfAction} change template to "'.$name.'"');
+    if (sfConfig::get('sf_logging_active'))
+    {
+      $this->getContext()->getLogger()->info('{sfAction} change template to "'.$name.'"');
+    }
 
-    $this->template = $name;
+    $this->getResponse()->setParameter($this->getModuleName().'_'.$this->getActionName().'_template', $name, 'symfony/action/view');
   }
 
+  /**
+   * Gets the name of the alternate template for this Action.
+   *
+   * WARNING: It only returns the template you set with the setTemplate() method,
+   *          and does not return the template that you configured in your view.yml.
+   *
+   * See 'Naming Conventions' in the 'Symfony View' documentation.
+   *
+   * @return string
+   */
   public function getTemplate()
   {
-    return $this->template;
-  }
-
-  public function setVar($name, $value)
-  {
-    $this->var_holder->set($name, $value);
-  }
-
-  public function getVar($name)
-  {
-    return $this->var_holder->get($name);
-  }
-
-  public function getVarHolder()
-  {
-    return $this->var_holder;
+    return $this->getResponse()->getParameter($this->getModuleName().'_'.$this->getActionName().'_template', null, 'symfony/action/view');
   }
 
   /**
-   * Sets a variable for the template.
+   * Sets an alternate layout for this Component.
    *
-   * This is just really a shortcut for:
-   * <code>$this->setVar('name', 'value')</code>
+   * To de-activate the layout, set the layout name to false.
    *
-   * @param  string key
-   * @param  string value
-   * @return boolean always true
+   * To revert the layout to the one configured in the view.yml, set the template name to null.
+   *
+   * @param string layout name
    */
-  public function __set($key, $value)
+  public function setLayout($name)
   {
-    return $this->var_holder->setByRef($key, $value);
+    if (sfConfig::get('sf_logging_active'))
+    {
+      $this->getContext()->getLogger()->info('{sfAction} change layout to "'.$name.'"');
+    }
+
+    $this->getResponse()->setParameter($this->getModuleName().'_'.$this->getActionName().'_layout', $name, 'symfony/action/view');
   }
 
   /**
-   * Gets a variable for the template.
+   * Gets the name of the alternate layout for this Component.
    *
-   * This is just really a shortcut for:
-   * <code>$this->getVar('name')</code>
+   * WARNING: It only returns the layout you set with the setLayout() method,
+   *          and does not return the layout that you configured in your view.yml.
    *
-   * @param  string key
-   * @return mixed
+   * @return string
    */
-  public function __get($key)
+  public function getLayout()
   {
-    return $this->var_holder->get($key);
-  }
-
-  public function addHttpMeta($key, $value, $override = true)
-  {
-    if ($override || !$this->request->hasAttribute($key, 'helper/asset/auto/httpmeta'))
-    {
-      $this->request->setAttribute($key, $value, 'helper/asset/auto/httpmeta');
-    }
-  }
-
-  public function addMeta($key, $value, $override = true)
-  {
-    if ($override || !$this->request->hasAttribute($key, 'helper/asset/auto/meta'))
-    {
-      $this->request->setAttribute($key, $value, 'helper/asset/auto/meta');
-    }
-  }
-
-  public function setTitle($title)
-  {
-    $this->request->getAttributeHolder()->set('title', $title, 'helper/asset/auto/meta');
-  }
-
-  public function addStylesheet($css, $position = '')
-  {
-    if ($position == 'first')
-    {
-      $this->request->setAttribute($css, $css, 'helper/asset/auto/stylesheet/first');
-    }
-    else if ($position == 'last')
-    {
-      $this->request->setAttribute($css, $css, 'helper/asset/auto/stylesheet/last');
-    }
-    else
-    {
-      $this->request->setAttribute($css, $css, 'helper/asset/auto/stylesheet');
-    }
-  }
-
-  public function addJavascript($js)
-  {
-    $this->request->setAttribute($js, $js, 'helper/asset/auto/javascript');
-  }
-
-  public function setFlash($name, $value, $persist = true)
-  {
-    $this->getUser()->setAttribute($name, $value, 'symfony/flash');
-
-    if (!$persist)
-    {
-      $this->getUser()->setAttribute($name, true, 'symfony/flash/remove');
-    }
-  }
-
-  public function getFlash($name)
-  {
-    return $this->getUser()->getAttribute($name, null, 'symfony/flash');
-  }
-
-  public function hasFlash($name)
-  {
-    return $this->getUser()->hasAttribute($name, 'symfony/flash');
+    return $this->getResponse()->getParameter($this->getModuleName().'_'.$this->getActionName().'_layout', null, 'symfony/action/view');
   }
 }
-
-?>

@@ -12,9 +12,10 @@
  * The latest version of PRADO can be obtained from:
  * {@link http://prado.sourceforge.net/}
  *
- * @author Wei Zhuo <weizhuo[at]gmail[dot]com>
- * @version $Revision$  $Date$
- * @package System.I18N.core
+ * @author     Wei Zhuo <weizhuo[at]gmail[dot]com>
+ * @version    $Id$
+ * @package    symfony
+ * @subpackage i18n
  */
 
 /**
@@ -54,8 +55,8 @@ class sfHTTPNegotiator
     if (!isset($_SERVER['HTTP_ACCEPT_LANGUAGE']))
             return $this->languages;
 
-    //$basedir = CultureInfo::dataDir();
-    //$ext = CultureInfo::fileExt();
+    //$basedir = sfCultureInfo::dataDir();
+    //$ext = sfCultureInfo::fileExt();
 
     foreach(explode(',', $_SERVER['HTTP_ACCEPT_LANGUAGE']) as $lang) 
     {
@@ -86,7 +87,7 @@ class sfHTTPNegotiator
         }
             }
 
-      if(CultureInfo::validCulture($lang))
+      if(sfCultureInfo::validCulture($lang))
         $this->languages[] = $lang;
         }
     
@@ -116,5 +117,3 @@ class sfHTTPNegotiator
     return $this->charsets;
   }
 }
-
-?>

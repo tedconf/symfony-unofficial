@@ -29,9 +29,6 @@ class sfConsoleController extends sfController
   {
     try
     {
-      // use plain text for errors
-      sfException::setFormat('plain');
-
       // set parameters
       $this->getContext()->getRequest()->getParameterHolder()->add($parameters);
 
@@ -44,12 +41,9 @@ class sfConsoleController extends sfController
     }
     catch (Exception $e)
     {
-      // most likely an exception from a third-party library
-      $e = new sfException($e->getMessage());
-
-      $e->printStackTrace();
+      // wrap non symfony exceptions
+      $sfException = new sfException();
+      $sfException->printStackTrace($e);
     }
   }
 }
-
-?>

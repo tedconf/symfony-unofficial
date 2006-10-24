@@ -12,9 +12,10 @@
  * The latest version of PRADO can be obtained from:
  * {@link http://prado.sourceforge.net/}
  *
- * @author Wei Zhuo <weizhuo[at]gmail[dot]com>
- * @version $Revision$  $Date$
- * @package System.I18N.core
+ * @author     Wei Zhuo <weizhuo[at]gmail[dot]com>
+ * @version    $Id$
+ * @package    symfony
+ * @subpackage i18n
  */
 
 
@@ -147,6 +148,7 @@
    */
   function I18N_toUTF8($string, $from)
   {
+    $from = strtoupper($from);
     if($from != 'UTF-8')
     {
       $s = iconv($from,'UTF-8',$string); //to UTF-8
@@ -163,6 +165,7 @@
    */
   function I18N_toEncoding($string, $to)
   {
+    $to = strtoupper($to);
     if($to != 'UTF-8')
     {
       $s = iconv('UTF-8', $to, $string);
@@ -170,5 +173,3 @@
     }
     return $string;
   }
-
-?>

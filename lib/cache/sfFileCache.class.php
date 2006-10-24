@@ -12,8 +12,8 @@
  * Cache class to cache the HTML results for actions and templates.
  *
  * This class is based on the PEAR_Cache_Lite class.
- * All cache files are stored in files in the [sf_root_dir].'/cache/'.[sf_app].'/html' directory.
- * To disable all caching, you can set to false [sf_cache] constant.
+ * All cache files are stored in files in the [sf_root_dir].'/cache/'.[sf_app].'/template' directory.
+ * To disable all caching, you can set to false [sf_cache] setting.
  *
  * @package    symfony
  * @subpackage cache
@@ -50,7 +50,7 @@ class sfFileCache extends sfCache
   *
   * @var boolean $writeControl
   */
-  protected $writeControl = true;
+  protected $writeControl = false;
 
   /**
   * Enable / disable read control
@@ -94,7 +94,7 @@ class sfFileCache extends sfCache
   */
   protected $hashedDirectoryLevel = 0;
 
-  private
+  protected
     $suffix = '.cache';
 
   /**
@@ -110,6 +110,17 @@ class sfFileCache extends sfCache
   public function __construct($cacheDir)
   {
     $this->setCacheDir($cacheDir);
+  }
+
+  public function initialize($options = array())
+  {
+    foreach (array('fileLocking', 'writeControl', 'readControl', 'fileNameProtection', 'automaticCleaningFactor', 'hashedDirectoryLevel') as $option)
+    {
+      if (array_key_exists($option, $options))
+      {
+        $this->$option = $options[$option];
+      }
+    }
   }
 
   public function setSuffix($suffix)
@@ -150,28 +161,17 @@ class sfFileCache extends sfCache
     */
     public function setCacheDir($cacheDir)
     {
+      // remove last DIRECTORY_SEPARATOR
+      if (DIRECTORY_SEPARATOR == substr($cacheDir, -1))
+      {
+        $cacheDir = substr($cacheDir, 0, -1);
+      }
+
       // create cache dir if needed
       if (!is_dir($cacheDir))
       {
-        $dirs = explode(DIRECTORY_SEPARATOR, $cacheDir);
-        $root = '';
-        $current_umask = umask();
-        umask(0000);
-        foreach($dirs as $dir)
-        {
-          if ($root == '')
-          {
-            $root = $dir.DIRECTORY_SEPARATOR;
-          }
-          else
-          {
-            $root = $root.DIRECTORY_SEPARATOR.$dir;
-          }
-          if (!is_dir($root))
-          {
-            @mkdir($root, 0777);
-          }
-        }
+        $current_umask = umask(0000);
+        @mkdir($cacheDir, 0777, true);
         umask($current_umask);
       }
 
@@ -212,14 +212,7 @@ class sfFileCache extends sfCache
       }
     }
 
-    if ($data)
-    {
-      return $data;
-    }
-    else
-    {
-      return null;
-    }
+    return $data ? $data : null;
   }
 
   public function has($id, $namespace = self::DEFAULT_NAMESPACE, $doNotTestCacheValidity = false)
@@ -262,21 +255,11 @@ class sfFileCache extends sfCache
 
     if ($this->writeControl)
     {
-      if (!$this->writeAndControl($path, $file, $data))
-      {
-        @touch($path.$file, time() - 2 * abs($this->lifeTime));
-        return false;
-      }
-      else
-      {
-        return true;
-      }
+      $this->writeAndControl($path, $file, $data);
     }
     else
     {
-      $ret = $this->write($path, $file, $data);
-
-      return $ret;
+      $this->write($path, $file, $data);
     }
   }
 
@@ -323,7 +306,7 @@ class sfFileCache extends sfCache
   * @param string $id cache id
   * @param string $namespace name of the namespace
   */
-  private function getFileName($id, $namespace)
+  protected function getFileName($id, $namespace)
   {
     $file = ($this->fileNameProtection) ? md5($id).$this->suffix : $id.$this->suffix;
 
@@ -354,7 +337,7 @@ class sfFileCache extends sfCache
   * @param string $file complete file path and name
   * @return boolean true if no problem
   */
-  private function unlink($file)
+  protected function unlink($file)
   {
     return @unlink($file) ? 1 : 0;
   }
@@ -367,7 +350,7 @@ class sfFileCache extends sfCache
   * @param  string  $mode flush cache mode : 'old', 'all'
   * @return boolean true if no problem
   */
-  private function cleanDir($dir, $mode)
+  protected function cleanDir($dir, $mode)
   {
     if (!($dh = opendir($dir)))
     {
@@ -412,7 +395,7 @@ class sfFileCache extends sfCache
   *
   * @return string content of the cache file
   */
-  private function read($path, $file)
+  protected function read($path, $file)
   {
     $fp = @fopen($path.$file, "rb");
     if ($this->fileLocking)
@@ -459,7 +442,7 @@ class sfFileCache extends sfCache
   * @param  string  $data data to put in cache
   * @return boolean true if ok
   */
-  private function write($path, $file, $data)
+  protected function write($path, $file, $data)
   {
     $try = 1;
     while ($try <= 2)
@@ -496,18 +479,8 @@ class sfFileCache extends sfCache
         if ($try == 1 && !is_dir($path))
         {
           // create directory structure if needed
-          $dirs = explode(DIRECTORY_SEPARATOR, substr($path, strlen($this->cacheDir)));
-          $root = $this->cacheDir.DIRECTORY_SEPARATOR;
-          $current_umask = umask();
-          umask(0000);
-          foreach($dirs as $dir)
-          {
-            $root = $root.DIRECTORY_SEPARATOR.$dir;
-            if (!is_dir($root))
-            {
-              @mkdir($root, 0777);
-            }
-          }
+          $current_umask = umask(0000);
+          @mkdir($path, 0777, true);
           umask($current_umask);
 
           $try = 2;
@@ -528,7 +501,7 @@ class sfFileCache extends sfCache
   * @param string $data data to put in cache
   * @return boolean true if the test is ok
   */
-  private function writeAndControl($path, $file, $data)
+  protected function writeAndControl($path, $file, $data)
   {
     $this->write($path, $file, $data);
     $dataRead = $this->read($path, $file);
@@ -542,10 +515,8 @@ class sfFileCache extends sfCache
   * @param string $data data
   * @return string control key
   */
-  private function hash($data)
+  protected function hash($data)
   {
     return sprintf('% 32d', crc32($data));
   }
 }
-
-?>

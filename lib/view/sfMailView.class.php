@@ -24,40 +24,37 @@ class sfMailView extends sfPHPView
    *
    * @return null
    */
-  public function &getEngine()
+  public function getEngine()
   {
     return 'sfMail';
   }
 
-  public function configure($extension = '.php')
+  public function configure()
   {
     // view.yml configure
     parent::configure();
 
     // require our configuration
-    $viewConfigFile = $this->moduleName.'/'.sfConfig::get('sf_app_module_config_dir_name').'/mailer.yml';
-    require(sfConfigCache::getInstance()->checkConfig(sfConfig::get('sf_app_module_dir_name').'/'.$viewConfigFile, array('prefix' => $this->moduleName.'_')));
+    $moduleName = $this->moduleName;
+    require(sfConfigCache::getInstance()->checkConfig(sfConfig::get('sf_app_module_dir_name').'/'.$this->moduleName.'/'.sfConfig::get('sf_app_module_config_dir_name').'/mailer.yml'));
   }
 
   /**
    * Render the presentation and send the email to the client.
    *
    */
-  public function &render()
+  public function render($templateVars = null)
   {
     $template         = $this->getDirectory().'/'.$this->getTemplate();
     $actionStackEntry = $this->getContext()->getActionStack()->getLastEntry();
     $actionInstance   = $actionStackEntry->getActionInstance();
-
-    $moduleName = $actionInstance->getModuleName();
-    $actionName = $actionInstance->getActionName();
 
     $retval = null;
 
     // execute pre-render check
     $this->preRenderCheck();
 
-    if ($sf_logging_active = sfConfig::get('sf_logging_active'))
+    if (sfConfig::get('sf_logging_active'))
     {
       $this->getContext()->getLogger()->info('{sfMailView} render "'.$template.'"');
     }
@@ -66,39 +63,32 @@ class sfMailView extends sfPHPView
     $mail = $actionInstance->getVarHolder()->get('mail');
     if (!$mail)
     {
-      $error = 'You must define a sfMail object named $action in your action to be able to use a sfMailView.';
+      $error = 'You must define a sfMail object named $mail ($this->mail) in your action to be able to use a sfMailView.';
       throw new sfActionException($error);
     }
 
-// FIXME: cache support (be careful: must implement cache for alternate templates!)
-//    $retval = $this->getCacheContent();
+    // assigns some variables to the template
+    $this->attribute_holder->add($this->getGlobalVars());
+    $this->attribute_holder->add($actionInstance->getVarHolder()->getAll());
 
-    // render template if no cache
-//    if ($retval === null)
-//    {
-      // render main template
-      $retval = $this->renderFile($template);
+    // render main template
+    $retval = $this->renderFile($template);
 
-      // render main and alternate templates
-      $all_template_dir  = dirname($template);
-      $all_template_regex = preg_replace('/\\.php$/', '\..+\.php', basename($template));
-      $all_templates = sfFinder::type('file')->name('/^'.$all_template_regex.'$/')->in($all_template_dir);
-      $all_retvals = array();
-      foreach ($all_templates as $templateFile)
+    // render main and alternate templates
+    $all_template_dir  = dirname($template);
+    $all_template_regex = preg_replace('/\\.php$/', '\..+\.php', basename($template));
+    $all_templates = sfFinder::type('file')->name('/^'.$all_template_regex.'$/')->in($all_template_dir);
+    $all_retvals = array();
+    foreach ($all_templates as $templateFile)
+    {
+      if (preg_match('/\.([^.]+?)\.php$/', $templateFile, $matches))
       {
-        if (preg_match('/\.(.+?)\.php$/', $templateFile, $matches))
-        {
-          $all_retvals[$matches[1]] = $this->renderFile($templateFile);
-        }
+        $all_retvals[$matches[1]] = $this->renderFile($templateFile);
       }
-
-//      $retval = $this->setCacheContent($retval);
-//    }
-
-//    $this->setPageCacheContent($retval);
+    }
 
     // send email
-    if ($sf_logging_active)
+    if (sfConfig::get('sf_logging_active'))
     {
       $this->getContext()->getLogger()->info('{sfMailView} send email to client');
     }
@@ -115,7 +105,7 @@ class sfMailView extends sfPHPView
     {
       $setter = 'set'.sfInflector::camelize($var);
       $getter = 'get'.sfInflector::camelize($var);
-      $value  = $mail->$getter() ? $mail->$getter() : sfConfig::get($config_prefix.strtolower($var));
+      $value  = $mail->$getter() !== null ? $mail->$getter() : sfConfig::get($config_prefix.strtolower($var));
       $mail->$setter($value);
     }
 
@@ -145,12 +135,6 @@ class sfMailView extends sfPHPView
       $mail->send();
     }
 
-    $header = $mail->getRawHeader();
-    $body   = $mail->getRawBody();
-    $retval = $header.$body;
-
-    return $retval;
+    return $mail->getRawHeader().$mail->getRawBody();
   }
 }
-
-?>

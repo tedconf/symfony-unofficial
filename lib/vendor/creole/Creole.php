@@ -177,10 +177,14 @@ class Creole {
         }
 		
 		// gather any flags from the DSN
-		if (!empty($dsninfo['persistent'])) $flags |= Creole::PERSISTENT;
-		if (!empty($dsninfo['compat_assoc_lower'])) $flags |= Creole::COMPAT_ASSOC_LOWER;
-		if (!empty($dsninfo['compat_rtrim_string'])) $flags |= Creole::COMPAT_RTRIM_STRING;
-		if (!empty($dsninfo['compat_all'])) $flags |= Creole::COMPAT_ALL;
+		if ( isset ( $dsninfo['persistent'] ) && ! empty ( $dsninfo['persistent'] ) )
+			$flags |= Creole::PERSISTENT;
+		if ( isset ( $dsninfo['compat_assoc_lower'] ) && ! empty ( $dsninfo['compat_assoc_lower'] ) )
+			$flags |= Creole::COMPAT_ASSOC_LOWER;
+		if ( isset ( $dsninfo['compat_rtrim_string'] ) && ! empty ( $dsninfo['compat_rtrim_string'] ) )
+			$flags |= Creole::COMPAT_RTRIM_STRING;
+		if ( isset ( $dsninfo['compat_all'] ) && ! empty ( $dsninfo['compat_all'] ) )
+			$flags |= Creole::COMPAT_ALL;
 		
 		if ($flags & Creole::NO_ASSOC_LOWER) {
 			trigger_error("The Creole::NO_ASSOC_LOWER flag has been deprecated, and is now the default behavior. Use Creole::COMPAT_ASSOC_LOWER to lowercase resulset keys.", E_USER_WARNING);
@@ -348,22 +352,26 @@ class Creole {
      *                      - if after loading file class still does not exist
      */
     public static function import($class) {
-        if (!class_exists($class, false)) {
+        $pos = strrpos($class, '.');
+        // get just classname ('path.to.ClassName' -> 'ClassName')
+        if ($pos !== false) {
+            $classname = substr($class, $pos + 1);
+        }
+        else
+        {
+          $classname = $class;
+        }
+        if (!class_exists($classname, false)) {
             $path = strtr($class, '.', DIRECTORY_SEPARATOR) . '.php';
             $ret = include_once($path);
             if ($ret === false) {
                 throw new SQLException("Unable to load driver class: " . $class);
             }
-            // get just classname ('path.to.ClassName' -> 'ClassName')
-            $pos = strrpos($class, '.');
-            if ($pos !== false) {
-                $class = substr($class, $pos + 1);
-            }
-            if (!class_exists($class)) {
-                throw new SQLException("Unable to find loaded class: $class (Hint: make sure classname matches filename)");
+            if (!class_exists($classname)) {
+                throw new SQLException("Unable to find loaded class: $classname (Hint: make sure classname matches filename)");
             }
         }
-        return $class;
+        return $classname;
     }
 
 }

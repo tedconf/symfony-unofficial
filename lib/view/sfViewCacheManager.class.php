@@ -9,39 +9,31 @@
  */
 
 /**
- * Cache class to cache the HTML results for Actions and Templates.
+ * Cache class to cache the HTML results for actions and templates.
  *
- * This class is based on the PEAR_Cache_Liste class.
+ * This class users viewCacheClassName to serialize cache.
  * All cache files are stored in files in the [sf_root_dir].'/cache/'.[sf_app].'/html' directory.
  * To disable all caching, you can set to false [sf_cache] constant.
  *
  * @package    symfony
  * @subpackage view
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
- * @copyright  2004-2005 Fabien Potencier <fabien.potencier@symfony-project.com>
  * @version    SVN: $Id$
  */
 class sfViewCacheManager
 {
-  const
-    CURRENT_URI         = 1;
-
-  private
+  protected
     $cache              = null,
     $cacheConfig        = array(),
     $viewCacheClassName = '',
+    $viewCacheOptions   = array(),
     $context            = null,
-    $controller         = null;
+    $controller         = null,
+    $loaded             = array();
 
   public function initialize($context)
   {
     $this->context = $context;
-
-    // cache only works with routing
-    if (!sfConfig::get('sf_routing'))
-    {
-      throw new sfConfigurationException('You must activate routing to use cache system');
-    }
 
     $this->controller = $context->getController();
 
@@ -50,6 +42,14 @@ class sfViewCacheManager
 
     // create cache instance
     $this->cache = new $this->viewCacheClassName(sfConfig::get('sf_template_cache_dir'));
+    $this->cache->initialize($this->viewCacheOptions);
+
+    // register a named route for our partial cache (at the end)
+    $r = sfRouting::getInstance();
+    if (!$r->hasRouteName('_sf_cache_partial'))
+    {
+      $r->connect('_sf_cache_partial', '/_sf_cache_partial/:module/:action/:sf_cache_key.', array(), array());
+    }
   }
 
   public function getContext()
@@ -69,187 +69,274 @@ class sfViewCacheManager
     $this->viewCacheClassName = $className;
   }
 
+  /**
+   * Set the options to pass to the sfCache class to use
+   *
+   * @param array An array of sfCache class options
+   *
+   * @return void
+   */
+  public function setViewCacheOptions($options)
+  {
+    $this->viewCacheOptions = $options;
+  }
+
   public function generateNamespace($internalUri)
   {
-    // generate uri
-    $uri = $this->controller->genUrl(null, $internalUri);
+    if ($callable = sfConfig::get('sf_cache_namespace_callable'))
+    {
+      if (!is_callable($callable))
+      {
+        throw new sfException(sprintf('"%s" cannot be called as a function.', var_export($callable, true)));
+      }
 
-    // add hostname to uri
+      return call_user_func($callable, $internalUri);
+    }
+
+    // generate uri
+    if ($this->isContextual($internalUri))
+    {
+      list($route_name, $params) = $this->controller->convertUrlStringToParameters($internalUri);
+      $uri = $this->controller->genUrl(sfRouting::getInstance()->getCurrentInternalUri()).sprintf('/%s/%s/%s', $params['module'], $params['action'], $params['sf_cache_key']);
+    }
+    else
+    {
+      $uri = $this->controller->genUrl($internalUri);
+    }
+
+    // prefix with vary headers
+    $varyHeaders = $this->getVary($internalUri);
+    if ($varyHeaders)
+    {
+      sort($varyHeaders);
+      $request = $this->getContext()->getRequest();
+      $vary = '';
+
+      foreach ($varyHeaders as $header)
+      {
+        $vary .= $request->getHttpHeader($header).'|';
+      }
+
+      $vary = $vary;
+    }
+    else
+    {
+      $vary = 'all';
+    }
+
+    // prefix with hostname
     $request = $this->context->getRequest();
     $hostName = $request->getHost();
     $hostName = preg_replace('/[^a-z0-9]/i', '_', $hostName);
-    $hostName = preg_replace('/_+/', '_', $hostName);
-    $uri = '/'.$hostName.'/'.$uri;
+    $hostName = strtolower(preg_replace('/_+/', '_', $hostName));
+
+    $uri = '/'.$hostName.'/'.$vary.'/'.$uri;
 
     // replace multiple /
     $uri = preg_replace('#/+#', '/', $uri);
 
-    return $uri;
+    return array(dirname($uri), basename($uri));
   }
 
-  public function addCache($moduleName, $actionName, $suffix = 'slot', $lifeTime)
+  public function addCache($moduleName, $actionName, $options = array())
   {
-    $entry = $moduleName.'_'.$actionName.'_'.$suffix;
-    $this->cacheConfig[$entry] = array(
-      'lifeTime' => $lifeTime,
+    // normalize vary headers
+    foreach ($options['vary'] as $key => $name)
+    {
+      $options['vary'][$key] = strtr(strtolower($name), '_', '-');
+    }
+
+    $options['lifeTime'] = isset($options['lifeTime']) ? $options['lifeTime'] : 0;
+    if (!isset($this->cacheConfig[$moduleName]))
+    {
+      $this->cacheConfig[$moduleName] = array();
+    }
+    $this->cacheConfig[$moduleName][$actionName] = array(
+      'withLayout'     => isset($options['withLayout']) ? $options['withLayout'] : false,
+      'lifeTime'       => $options['lifeTime'],
+      'clientLifeTime' => isset($options['clientLifeTime']) && $options['clientLifeTime'] ? $options['clientLifeTime'] : $options['lifeTime'],
+      'contextual'     => isset($options['contextual']) ? $options['contextual'] : false,
+      'vary'           => isset($options['vary']) ? $options['vary'] : array(),
     );
   }
 
-  public function getLifeTime($internalUri, $suffix = 'slot')
+  public function registerConfiguration($moduleName)
   {
-    list($route_name, $params) = $this->controller->convertUrlStringToParameters($internalUri);
-
-    $entry = $params['module'].'_'.$params['action'].'_'.$suffix;
-
-    $lifeTime = 0;
-    if (isset($this->cacheConfig[$entry]['lifeTime']))
+    if (!isset($loaded[$moduleName]))
     {
-      $lifeTime = $this->cacheConfig[$entry]['lifeTime'];
+      require(sfConfigCache::getInstance()->checkConfig(sfConfig::get('sf_app_module_dir_name').'/'.$moduleName.'/'.sfConfig::get('sf_app_module_config_dir_name').'/cache.yml'));
+      $loaded[$moduleName] = true;
     }
-    else if (isset($this->cacheConfig[$params['module'].'_DEFAULT_'.$suffix]['lifeTime']))
-    {
-      $lifeTime = $this->cacheConfig[$params['module'].'_DEFAULT_'.$suffix]['lifeTime'];
-    }
-
-    return $lifeTime;
   }
 
-  private function hasCacheConfig($internalUri, $suffix)
+  public function withLayout($internalUri)
+  {
+    return $this->getCacheConfig($internalUri, 'withLayout', false);
+  }
+
+  public function getLifeTime($internalUri)
+  {
+    return $this->getCacheConfig($internalUri, 'lifeTime', 0);
+  }
+
+  public function getClientLifeTime($internalUri)
+  {
+    return $this->getCacheConfig($internalUri, 'clientLifeTime', 0);
+  }
+
+  public function isContextual($internalUri)
+  {
+    return $this->getCacheConfig($internalUri, 'contextual', false);
+  }
+
+  public function getVary($internalUri)
+  {
+    return $this->getCacheConfig($internalUri, 'vary', array());
+  }
+
+  protected function getCacheConfig($internalUri, $key, $defaultValue = null)
   {
     list($route_name, $params) = $this->controller->convertUrlStringToParameters($internalUri);
-    $entry = $params['module'].'_'.$params['action'].'_'.$suffix;
 
-    if (isset($this->cacheConfig[$entry]) || isset($this->cacheConfig[$params['module'].'_DEFAULT_'.$suffix]))
+    $value = $defaultValue;
+    if (isset($this->cacheConfig[$params['module']][$params['action']][$key]))
     {
+      $value = $this->cacheConfig[$params['module']][$params['action']][$key];
+    }
+    else if (isset($this->cacheConfig[$params['module']]['DEFAULT'][$key]))
+    {
+      $value = $this->cacheConfig[$params['module']]['DEFAULT'][$key];
+    }
+
+    return $value;
+  }
+
+  public function isCacheable($internalUri)
+  {
+    list($route_name, $params) = $this->controller->convertUrlStringToParameters($internalUri);
+
+    if (isset($this->cacheConfig[$params['module']][$params['action']]))
+    {
+      return ($this->cacheConfig[$params['module']][$params['action']]['lifeTime'] > 0);
+    }
+    else if (isset($this->cacheConfig[$params['module']]['DEFAULT']))
+    {
+      return ($this->cacheConfig[$params['module']]['DEFAULT']['lifeTime'] > 0);
+    }
+
+    return false;
+  }
+
+  public function get($internalUri)
+  {
+    // no cache or no cache set for this action
+    if (!$this->isCacheable($internalUri) || $this->ignore())
+    {
+      return null;
+    }
+
+    list($namespace, $id) = $this->generateNamespace($internalUri);
+
+    $this->cache->setLifeTime($this->getLifeTime($internalUri));
+
+    $retval = $this->cache->get($id, $namespace);
+
+    if (sfConfig::get('sf_logging_active'))
+    {
+      $this->getContext()->getLogger()->info(sprintf('{sfViewCacheManager} cache for "%s" %s', $internalUri, ($retval !== null ? 'exists' : 'does not exist')));
+    }
+
+    return $retval;
+  }
+
+  public function has($internalUri)
+  {
+    if (!$this->isCacheable($internalUri) || $this->ignore())
+    {
+      return null;
+    }
+
+    list($namespace, $id) = $this->generateNamespace($internalUri);
+
+    $this->cache->setLifeTime($this->getLifeTime($internalUri));
+
+    return $this->cache->has($id, $namespace);
+  }
+
+  protected function ignore()
+  {
+    // ignore cache parameter? (only available in debug mode)
+    if (sfConfig::get('sf_debug') && $this->getContext()->getRequest()->getParameter('_sf_ignore_cache', false, 'symfony/request/sfWebRequest') == true)
+    {
+      if (sfConfig::get('sf_logging_active'))
+      {
+        $this->getContext()->getLogger()->info('{sfViewCacheManager} discard cache');
+      }
+
       return true;
     }
 
     return false;
   }
 
-  public function get($internalUri, $suffix = 'slot')
+  public function set($data, $internalUri)
   {
-    // no cache or no cache set for this action
-    if (!sfConfig::get('sf_cache') || !$this->hasCacheConfig($internalUri, $suffix))
+    if (!$this->isCacheable($internalUri))
     {
-      return null;
+      return false;
     }
 
-    $namespace = $this->generateNamespace($internalUri);
-    $id        = $suffix;
+    list($namespace, $id) = $this->generateNamespace($internalUri);
 
-    $this->cache->setLifeTime($this->getLifeTime($internalUri, $suffix));
-
-    $data = $this->cache->get($id, $namespace);
-
-    if (sfConfig::get('sf_web_debug') && $data)
+    try
     {
-      $data = sfWebDebug::getInstance()->decorateContentWithDebug($internalUri, $suffix, $data, '#f00', '#ff9');
+      $ret = $this->cache->set($id, $namespace, $data);
+    }
+    catch (Exception $e)
+    {
+      return false;
     }
 
-    return $data;
+    if (sfConfig::get('sf_logging_active'))
+    {
+      $this->context->getLogger()->info(sprintf('{sfViewCacheManager} save cache for "%s"', $internalUri));
+    }
+
+    return true;
   }
 
-  public function has($internalUri, $suffix = 'slot')
+  public function remove($internalUri)
   {
-    if (!sfConfig::get('sf_cache') || !$this->hasCacheConfig($internalUri, $suffix))
+    list($namespace, $id) = $this->generateNamespace($internalUri);
+
+    if (sfConfig::get('sf_logging_active'))
     {
-      return null;
+      $this->context->getLogger()->info(sprintf('{sfViewCacheManager} remove cache for "%s"', $internalUri));
     }
 
-    $namespace = $this->generateNamespace($internalUri);
-    $id        = $suffix;
-
-    $this->cache->setLifeTime($this->getLifeTime($internalUri, $suffix));
-
-    return $this->cache->has($id, $namespace);
-  }
-
-  public function set($data, $internalUri, $suffix = 'slot')
-  {
-    if (!sfConfig::get('sf_cache') || !$this->hasCacheConfig($internalUri, $suffix))
+    if ($this->cache->has($id, $namespace))
     {
-      return $data;
+      $this->cache->remove($id, $namespace);
     }
-
-    $namespace = $this->generateNamespace($internalUri);
-    $id        = $suffix;
-
-    if ($sf_logging_active = sfConfig::get('sf_logging_active'))
-    {
-      $length = strlen($data);
-    }
-
-    $ret = $this->cache->set($id, $namespace, $data);
-    if ($sf_logging_active)
-    {
-      if (!$ret)
-      {
-        if (sfConfig::get('sf_logging_active')) $this->context->getLogger()->err('{sfViewCacheManager} error writing cache for "'.$namespace.'" and id "'.$id.'"');
-      }
-      else
-      {
-        if (strlen($data) - $length)
-        {
-          if (sfConfig::get('sf_logging_active')) $this->context->getLogger()->info('{sfViewCacheManager} save optimized content ('.sprintf('%d', strlen($data) - $length).' &raquo; '.sprintf('%.0f', ((strlen($data) - $length) / $length) * 100).'%)');
-        }
-        else
-        {
-          if (sfConfig::get('sf_logging_active')) $this->context->getLogger()->info('{sfViewCacheManager} save content');
-        }
-      }
-    }
-
-    if (sfConfig::get('sf_web_debug'))
-    {
-      $data = sfWebDebug::getInstance()->decorateContentWithDebug($internalUri, $suffix, $data, '#f00', '#9ff');
-    }
-
-    return $data;
-  }
-
-  public function remove($internalUri, $suffix = null)
-  {
-    if (!sfConfig::get('sf_cache'))
-    {
-      return null;
-    }
-
-    if ($suffix !== null)
-    {
-      $this->doRemove($internalUri, $suffix);
-    }
-    else
-    {
-      $namespace = $this->generateNamespace($internalUri);
-      $this->clean($namespace);
-    }
-  }
-
-  public function doRemove($internalUri, $suffix)
-  {
-    $namespace = $this->generateNamespace($internalUri);
-    $id        = $suffix;
-
-    if (sfConfig::get('sf_logging_active')) $this->context->getLogger()->info('{sfViewCacheManager} remove cache for "'.$internalUri.'" / "'.$suffix.'"');
-
-    $this->cache->remove($id, $namespace);
   }
 
   public function clean($namespace = null, $mode = 'all')
   {
-    $this->cache->clean($namespace, $mode);
+    try
+    {
+      $this->cache->clean($namespace, $mode);
+    }
+    catch (sfCacheException $e) {}
   }
 
-  public function lastModified($internalUri, $suffix = 'slot')
+  public function lastModified($internalUri)
   {
-    if (!sfConfig::get('sf_cache') || !$this->hasCacheConfig($internalUri, $suffix))
+    if (!$this->isCacheable($internalUri))
     {
       return null;
     }
 
-    $namespace = $this->generateNamespace($internalUri);
-    $id        = $suffix;
+    list($namespace, $id) = $this->generateNamespace($internalUri);
 
     return $this->cache->lastModified($id, $namespace);
   }
@@ -260,18 +347,21 @@ class sfViewCacheManager
   * @param  string  unique fragment name
   * @return boolean cache life time
   */
-  public function start($suffix, $lifeTime)
+  public function start($name, $lifeTime, $clientLifeTime = null, $vary = array())
   {
-    $suffix = 'fragment_'.$suffix;
-
     $internalUri = sfRouting::getInstance()->getCurrentInternalUri();
+
+    if (!$clientLifeTime)
+    {
+      $clientLifeTime = $lifeTime;
+    }
 
     // add cache config to cache manager
     list($route_name, $params) = $this->controller->convertUrlStringToParameters($internalUri);
-    $this->addCache($params['module'], $params['action'], $suffix, $lifeTime);
+    $this->addCache($params['module'], $params['action'], array('withLayout' => false, 'lifeTime' => $lifeTime, 'clientLifeTime' => $clientLifeTime, 'vary' => $vary));
 
     // get data from cache if available
-    $data = $this->get($internalUri, $suffix);
+    $data = $this->get($internalUri.(strpos($internalUri, '?') ? '&' : '?').'_key='.$name);
     if ($data !== null)
     {
       return $data;
@@ -288,15 +378,19 @@ class sfViewCacheManager
   /**
   * Stop the cache
   */
-  public function stop($suffix)
+  public function stop($name)
   {
-    $suffix = 'fragment_'.$suffix;
-
     $data = ob_get_clean();
 
     // save content to cache
     $internalUri = sfRouting::getInstance()->getCurrentInternalUri();
-    $data        = $this->set($data, $internalUri, $suffix);
+    try
+    {
+      $this->set($data, $internalUri.(strpos($internalUri, '?') ? '&' : '?').'_key='.$name);
+    }
+    catch (Exception $e)
+    {
+    }
 
     return $data;
   }
@@ -310,5 +404,3 @@ class sfViewCacheManager
   {
   }
 }
-
-?>

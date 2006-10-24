@@ -32,12 +32,16 @@ class sfToolkit
     $retval = null;
 
     if (self::isPathAbsolute($filename))
+    {
       $filename = basename($filename);
+    }
 
     $pattern = '/(.*?)\.(class|interface)\.php/i';
 
     if (preg_match($pattern, $filename, $match))
+    {
       $retval = $match[1];
+    }
 
     return $retval;
   }
@@ -120,7 +124,7 @@ class sfToolkit
    *
    * @return bool true, if the lock file is present, otherwise false.
    */
-  public static function hasLockFile($lockFile, $maxLockFileLifeTime)
+  public static function hasLockFile($lockFile, $maxLockFileLifeTime = 0)
   {
     $isLocked = false;
     if (is_readable($lockFile) && ($last_access = fileatime($lockFile)))
@@ -128,7 +132,7 @@ class sfToolkit
       $now = time();
       $timeDiff = $now - $last_access;
 
-      if ($timeDiff < $maxLockFileLifeTime)
+      if (!$maxLockFileLifeTime || $timeDiff < $maxLockFileLifeTime)
       {
         $isLocked = true;
       }
@@ -143,7 +147,7 @@ class sfToolkit
 
   public static function stripComments ($source)
   {
-    if (!sfConfig::get('sf_strip_comments'))
+    if (!sfConfig::get('sf_strip_comments', true))
     {
       return $source;
     }
@@ -189,7 +193,31 @@ class sfToolkit
     return $output;
   }
 
-  public static function array_deep_merge()
+  public static function stripslashesDeep($value)
+  {
+    return is_array($value) ? array_map(array('sfToolkit', 'stripslashesDeep'), $value) : stripslashes($value);
+  }
+
+  // code from php at moechofe dot com (array_merge comment on php.net)
+  /*
+   * array arrayDeepMerge ( array array1 [, array array2 [, array ...]] )
+   *
+   * Like array_merge
+   *
+   *  arrayDeepMerge() merges the elements of one or more arrays together so
+   * that the values of one are appended to the end of the previous one. It
+   * returns the resulting array.
+   *  If the input arrays have the same string keys, then the later value for
+   * that key will overwrite the previous one. If, however, the arrays contain
+   * numeric keys, the later value will not overwrite the original value, but
+   * will be appended.
+   *  If only one array is given and the array is numerically indexed, the keys
+   * get reindexed in a continuous way.
+   *
+   * Different from array_merge
+   *  If string keys have arrays for values, these arrays will merge recursively.
+   */
+  public static function arrayDeepMerge()
   {
     switch (func_num_args())
     {
@@ -208,7 +236,7 @@ class sfToolkit
             $isKey1 = array_key_exists($key, $args[1]);
             if (is_string($key) && $isKey0 && $isKey1 && is_array($args[0][$key]) && is_array($args[1][$key]))
             {
-              $args[2][$key] = self::array_deep_merge($args[0][$key], $args[1][$key]);
+              $args[2][$key] = self::arrayDeepMerge($args[0][$key], $args[1][$key]);
             }
             else if (is_string($key) && $isKey0 && $isKey1)
             {
@@ -216,8 +244,15 @@ class sfToolkit
             }
             else if (is_integer($key) && $isKey0 && $isKey1)
             {
-              $args[2][] = $args[0][$key];
-              $args[2][] = $args[1][$key];
+              if ($isKey0 == $isKey1)
+              {
+                $args[2][] = $args[1][$key];
+              }
+              else
+              {
+                $args[2][] = $args[0][$key];
+                $args[2][] = $args[1][$key];
+              }
             }
             else if (is_integer($key) && $isKey0)
             {
@@ -244,8 +279,10 @@ class sfToolkit
         }
       default :
         $args = func_get_args();
-        $arr = self::array_deep_merge($args[0], $args[1]);
-        return $arr;
+        $args[1] = sfToolkit::arrayDeepMerge($args[0], $args[1]);
+        array_shift($args);
+        return call_user_func_array(array('sfToolkit', 'arrayDeepMerge'), $args);
+        break;
     }
   }
 
@@ -265,21 +302,110 @@ class sfToolkit
     $attributes = array();
     foreach ($matches as $val)
     {
-      $attributes[$val[1]] = $val[3];
+      $attributes[$val[1]] = self::literalize($val[3]);
     }
 
     return $attributes;
   }
 
-    /**
-     * Returns subject replaced with regular expression matchs
-     *
-     * @param mixed subject to search
-     * @param array array of search => replace pairs
-     */
-    public static function pregtr($search, $replacePairs) {
-        return preg_replace(array_keys($replacePairs), array_values($replacePairs), $search);
-    }
-}
+  /**
+   * Finds the type of the passed value, returns the value as the new type.
+   *
+   * @param  string
+   * @return mixed
+   */
+  public static function literalize($value, $quoted = false)
+  {
+    // lowercase our value for comparison
+    $value  = trim($value);
+    $lvalue = strtolower($value);
 
-?>
+    if (in_array($lvalue, array('null', '~', '')))
+    {
+      $value = null;
+    }
+    else if (in_array($lvalue, array('true', 'on', '+', 'yes')))
+    {
+      $value = true;
+    }
+    else if (in_array($lvalue, array('false', 'off', '-', 'no')))
+    {
+      $value = false;
+    }
+    else if (ctype_digit($value))
+    {
+      $value = (int) $value;
+    }
+    else if (is_numeric($value))
+    {
+      $value = (float) $value;
+    }
+    else
+    {
+      $value = self::replaceConstants($value);
+      if ($quoted)
+      {
+        $value = '\''.str_replace('\'', '\\\'', $value).'\'';
+      }
+    }
+
+    return $value;
+  }
+
+  /**
+   * Replaces constant identifiers in a scalar value.
+   *
+   * @param string the value to perform the replacement on
+   * @return string the value with substitutions made
+   */
+  public static function replaceConstants($value)
+  {
+    return is_string($value) ? preg_replace('/%(.+?)%/e', 'sfConfig::get(strtolower("\\1")) ? sfConfig::get(strtolower("\\1")) : "%\\1%"', $value) : $value;
+  }
+
+  /**
+   * Returns subject replaced with regular expression matchs
+   *
+   * @param mixed subject to search
+   * @param array array of search => replace pairs
+   */
+  public static function pregtr($search, $replacePairs)
+  {
+    return preg_replace(array_keys($replacePairs), array_values($replacePairs), $search);
+  }
+
+  public static function isArrayValuesEmpty($array)
+  {
+    static $isEmpty = true;
+    foreach($array as $value)
+    {
+      $isEmpty = (is_array($value)) ? self::isArrayValuesEmpty($value) : (strlen($value) == 0);
+      if (!$isEmpty) break;
+    }
+  
+    return $isEmpty;
+  }
+
+  /**
+   * Check if a string is an utf8 using a W3C regular expression
+   * http://fr3.php.net/manual/en/function.mb-detect-encoding.php#50087
+   *
+   * @param string
+   *
+   * @return bool true if $string is valid UTF-8 and false otherwise.
+   */
+  public static function isUTF8($string)
+  {
+    // from http://w3.org/International/questions/qa-forms-utf-8.html
+    return preg_match('%^(?:
+             [\x09\x0A\x0D\x20-\x7E]            # ASCII
+           | [\xC2-\xDF][\x80-\xBF]             # non-overlong 2-byte
+           |  \xE0[\xA0-\xBF][\x80-\xBF]        # excluding overlongs
+           | [\xE1-\xEC\xEE\xEF][\x80-\xBF]{2}  # straight 3-byte
+           |  \xED[\x80-\x9F][\x80-\xBF]        # excluding surrogates
+           |  \xF0[\x90-\xBF][\x80-\xBF]{2}     # planes 1-3
+           | [\xF1-\xF3][\x80-\xBF]{3}          # planes 4-15
+           |  \xF4[\x80-\x8F][\x80-\xBF]{2}     # plane 16
+       )*$%xs', $string);
+  }
+}

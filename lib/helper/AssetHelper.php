@@ -3,6 +3,7 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
+ * (c) 2004 David Heinemeier Hansson
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -14,234 +15,352 @@
  * @package    symfony
  * @subpackage helper
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
+ * @author     David Heinemeier Hansson
  * @version    SVN: $Id$
  */
 
-  /**
-      # Returns a link tag that browsers and news readers can use to auto-detect a RSS or ATOM feed for this page. The +type+ can
-      # either be <tt>:rss</tt> (default) or <tt>:atom</tt> and the +options+ follow the url_for style of declaring a link target.
-      #
-      # Examples:
-      #   auto_discovery_link_tag # =>
-      #     <link rel="alternate" type="application/rss+xml" title="RSS" href="http://www.curenthost.com/controller/action" />
-      #   auto_discovery_link_tag(:atom) # =>
-      #     <link rel="alternate" type="application/atom+xml" title="ATOM" href="http://www.curenthost.com/controller/action" />
-      #   auto_discovery_link_tag(:rss, :action => "feed") # =>
-      #     <link rel="alternate" type="application/atom+xml" title="ATOM" href="http://www.curenthost.com/controller/feed" />
-  */
-  function auto_discovery_link_tag($type = 'rss', $options = array())
+/**
+ * Returns a <link> tag that browsers and news readers
+ * can use to auto-detect a RSS or ATOM feed for the current page,
+ * to be included in the <head> section of a HTML document.
+ *
+ * <b>Options:</b>
+ * - rel - defaults to 'alternate'
+ * - type - defaults to 'application/rss+xml'
+ * - title - defaults to the feed type in upper case
+ *
+ * <b>Examples:</b>
+ * <code>
+ *  echo auto_discovery_link_tag('rss', 'module/feed');
+ *    => <link rel="alternate" type="application/rss+xml" title="RSS" href="http://www.curenthost.com/module/feed" />
+ *  echo auto_discovery_link_tag('rss', 'module/feed', array('title' => 'My RSS'));
+ *    => <link rel="alternate" type="application/rss+xml" title="My RSS" href="http://www.curenthost.com/module/feed" />
+ * </code>
+ *
+ * @param  string feed type ('rss', 'atom')
+ * @param  string 'module/action' or '@rule' of the feed
+ * @param  array additional HTML compliant <link> tag parameters
+ * @return string XHTML compliant <link> tag
+ */
+function auto_discovery_link_tag($type = 'rss', $url_options = array(), $tag_options = array())
+{
+  return tag('link', array(
+    'rel'   => isset($tag_options['rel']) ? $tag_options['rel'] : 'alternate',
+    'type'  => isset($tag_options['type']) ? $tag_options['type'] : 'application/'.$type.'+xml',
+    'title' => isset($tag_options['title']) ? $tag_options['title'] : ucfirst($type),
+    'href'  => url_for($url_options, true)
+  ));
+}
+
+/**
+ * Returns the path to a JavaScript asset.
+ *
+ * <b>Example:</b>
+ * <code>
+ *  echo javascript_path('myscript');
+ *    => /js/myscript.js
+ * </code>
+ *
+ * <b>Note:</b> The asset name can be supplied as a...
+ * - full path, like "/my_js/myscript.css"
+ * - file name, like "myscript.js", that gets expanded to "/js/myscript.js"
+ * - file name without extension, like "myscript", that gets expanded to "/js/myscript.js"
+ *
+ * @param  string asset name
+ * @param  bool return absolute path ?
+ * @return string file path to the JavaScript file
+ * @see    javascript_include_tag
+ */
+function javascript_path($source, $absolute = false)
+{
+  return _compute_public_path($source, 'js', 'js', $absolute);
+}
+
+/**
+ * Returns a <script> include tag per source given as argument.
+ *
+ * <b>Examples:</b>
+ * <code>
+ *  echo javascript_include_tag('xmlhr');
+ *    => <script language="JavaScript" type="text/javascript" src="/js/xmlhr.js"></script>
+ *  echo javascript_include_tag('common.javascript', '/elsewhere/cools');
+ *    => <script language="JavaScript" type="text/javascript" src="/js/common.javascript"></script>
+ *       <script language="JavaScript" type="text/javascript" src="/elsewhere/cools.js"></script>
+ * </code>
+ *
+ * @param  string asset names
+ * @return string XHTML compliant <script> tag(s)
+ * @see    javascript_path 
+ */
+function javascript_include_tag()
+{
+  $html = '';
+  foreach (func_get_args() as $source)
   {
-    return tag('link', array('rel' => 'alternate', 'type' => 'application/'.$type.'+xml', 'title' => ucfirst($type), 'href' => url_for($options, true)));
+    $source = javascript_path($source);
+    $html .= content_tag('script', '', array('type' => 'text/javascript', 'src' => $source))."\n";
   }
 
-  /*
-      # Returns path to a javascript asset. Example:
-      #
-      #   javascript_path "xmlhr" # => /js/xmlhr.js
-  */
-  function javascript_path($source)
+  return $html;
+}
+
+/**
+ * Returns the path to a stylesheet asset.
+ *
+ * <b>Example:</b>
+ * <code>
+ *  echo stylesheet_path('style');
+ *    => /css/style.css
+ * </code>
+ *
+ * <b>Note:</b> The asset name can be supplied as a...
+ * - full path, like "/my_css/style.css"
+ * - file name, like "style.css", that gets expanded to "/css/style.css"
+ * - file name without extension, like "style", that gets expanded to "/css/style.css"
+ *
+ * @param  string asset name
+ * @param  bool return absolute path ?
+ * @return string file path to the stylesheet file
+ * @see    stylesheet_tag  
+ */
+function stylesheet_path($source, $absolute = false)
+{
+  return _compute_public_path($source, 'css', 'css', $absolute);
+}
+
+/**
+ * Returns a css <link> tag per source given as argument,
+ * to be included in the <head> section of a HTML document.
+ *
+ * <b>Options:</b>
+ * - rel - defaults to 'stylesheet'
+ * - type - defaults to 'text/css'
+ * - media - defaults to 'screen'
+ *
+ * <b>Examples:</b>
+ * <code>
+ *  echo stylesheet_tag('style');
+ *    => <link href="/stylesheets/style.css" media="screen" rel="stylesheet" type="text/css" />
+ *  echo stylesheet_tag('style', array('media' => 'all'));
+ *    => <link href="/stylesheets/style.css" media="all" rel="stylesheet" type="text/css" />
+ *  echo stylesheet_tag('random.styles', '/css/stylish');
+ *    => <link href="/stylesheets/random.styles" media="screen" rel="stylesheet" type="text/css" />
+ *       <link href="/css/stylish.css" media="screen" rel="stylesheet" type="text/css" />
+ * </code>
+ *
+ * @param  string asset names
+ * @param  array additional HTML compliant <link> tag parameters
+ * @return string XHTML compliant <link> tag(s)
+ * @see    stylesheet_path 
+ */
+function stylesheet_tag()
+{
+  $sources = func_get_args();
+  $sourceOptions = (func_num_args() > 1 && is_array($sources[func_num_args() - 1])) ? array_pop($sources) : array();
+
+  $html = '';
+  foreach ($sources as $source)
   {
-    return _compute_public_path($source, 'js', 'js');
+    $source  = stylesheet_path($source);
+    $options = array_merge(array('rel' => 'stylesheet', 'type' => 'text/css', 'media' => 'screen', 'href' => $source), $sourceOptions);
+    $html   .= tag('link', $options)."\n";
   }
 
-  /**
-      # Returns a script include tag per source given as argument. Examples:
-      #
-      #   javascript_include_tag "xmlhr" # =>
-      #     <script language="JavaScript" type="text/javascript" src="/js/xmlhr.js"></script>
-      #
-      #   javascript_include_tag "common.javascript", "/elsewhere/cools" # =>
-      #     <script language="JavaScript" type="text/javascript" src="/js/common.javascript"></script>
-      #     <script language="JavaScript" type="text/javascript" src="/elsewhere/cools.js"></script>
-  */
-  function javascript_include_tag()
-  {
-    $html = '';
-    foreach (func_get_args() as $source)
-    {
-      $source = javascript_path($source);
-      $html .= content_tag('script', '', array('type' => 'text/javascript', 'src' => $source))."\n";
-    }
+  return $html;
+}
 
-    return $html;
+/**
+ * Adds a stylesheet to the response object.
+ *
+ * @see sfResponse->addStylesheet()
+ */
+function use_stylesheet($css, $position = '', $options = array())
+{
+  sfContext::getInstance()->getResponse()->addStylesheet($css, $position, $options);
+}
+
+/**
+ * Adds a javascript to the response object.
+ *
+ * @see sfResponse->addJavascript()
+ */
+function use_javascript($js, $position = '')
+{
+  sfContext::getInstance()->getResponse()->addJavascript($js, $position);
+}
+
+/**
+ * Returns the path to an image asset.
+ *
+ * <b>Example:</b>
+ * <code>
+ *  echo image_path('foobar');
+ *    => /images/foobar.png
+ * </code>
+ *
+ * <b>Note:</b> The asset name can be supplied as a...
+ * - full path, like "/my_images/image.gif"
+ * - file name, like "rss.gif", that gets expanded to "/images/rss.gif"
+ * - file name without extension, like "logo", that gets expanded to "/images/logo.png"
+ * 
+ * @param  string asset name
+ * @param  bool return absolute path ?
+ * @return string file path to the image file
+ * @see    image_tag  
+ */
+function image_path($source, $absolute = false)
+{
+  return _compute_public_path($source, 'images', 'png', $absolute);
+}
+
+/**
+ * Returns an <img> image tag for the asset given as argument.
+ *
+ * <b>Options:</b>
+ * - 'absolute' - to output absolute file paths, useful for embedded images in emails
+ * - 'alt'  - defaults to the file name part of the asset (capitalized and without the extension)
+ * - 'size' - Supplied as "XxY", so "30x45" becomes width="30" and height="45"
+ *
+ * <b>Examples:</b>
+ * <code>
+ *  echo image_tag('foobar');
+ *    => <img src="images/foobar.png" alt="Foobar" />
+ *  echo image_tag('/my_images/image.gif', array('alt' => 'Alternative text', 'size' => '100x200'));
+ *    => <img src="/my_images/image.gif" alt="Alternative text" width="100" height="200" />
+ * </code>
+ *
+ * @param  string image asset name
+ * @param  array additional HTML compliant <img> tag parameters
+ * @return string XHTML compliant <img> tag
+ * @see    image_path 
+ */
+function image_tag($source, $options = array())
+{
+  if (!$source)
+  {
+    return '';
   }
 
-  /*
-      # Returns path to a stylesheet asset. Example:
-      #
-      #   stylesheet_path "style" # => /css/style.css
-  */
-  function stylesheet_path($source)
+  $options = _parse_attributes($options);
+
+  $absolute = false;
+  if (isset($options['absolute']))
   {
-    return _compute_public_path($source, 'css', 'css');
+    unset($options['absolute']);
+    $absolute = true;
   }
 
-  /**
-      # Returns a css link tag per source given as argument. Examples:
-      #
-      #   stylesheet_link_tag "style" # =>
-      #     <link href="/css/style.css" media="screen" rel="Stylesheet" type="text/css" />
-      #
-      #   stylesheet_link_tag "random.styles", "/css/stylish" # =>
-      #     <link href="/css/random.styles" media="screen" rel="Stylesheet" type="text/css" />
-      #     <link href="/css/stylish.css" media="screen" rel="Stylesheet" type="text/css" />
-  */
-  function stylesheet_tag()
-  {
-    $html = '';
-    foreach (func_get_args() as $source)
-    {
-      $source = stylesheet_path($source);
-      $html .= tag('link', array('rel' => 'stylesheet', 'type' => 'text/css', 'media' => 'screen', 'href' => $source))."\n";
-    }
+  $options['src'] = image_path($source, $absolute);
 
-    return $html;
+  if (!isset($options['alt']))
+  {
+    $path_pos = strrpos($source, '/');
+    $dot_pos = strrpos($source, '.');
+    $begin = $path_pos ? $path_pos + 1 : 0;
+    $nb_str = ($dot_pos ? $dot_pos : strlen($source)) - $begin;
+    $options['alt'] = ucfirst(substr($source, $begin, $nb_str));
   }
 
-  /*
-      # Returns path to an image asset. Example:
-      #
-      # The +src+ can be supplied as a...
-      # * full path, like "/my_images/image.gif"
-      # * file name, like "rss.gif", that gets expanded to "/images/rss.gif"
-      # * file name without extension, like "logo", that gets expanded to "/images/logo.png"
-  */
-  function image_path($source)
+  if (isset($options['size']))
   {
-    return _compute_public_path($source, 'images', 'png');
+    list($options['width'], $options['height']) = split('x', $options['size'], 2);
+    unset($options['size']);
   }
 
-  /**
-      # Returns an image tag converting the +options+ instead html options on the tag, but with these special cases:
-      #
-      # * <tt>:alt</tt>  - If no alt text is given, the file name part of the +src+ is used (capitalized and without the extension)
-      # * <tt>:size</tt> - Supplied as "XxY", so "30x45" becomes width="30" and height="45"
-      #
-      # The +src+ can be supplied as a...
-      # * full path, like "/my_images/image.gif"
-      # * file name, like "rss.gif", that gets expanded to "/images/rss.gif"
-      # * file name without extension, like "logo", that gets expanded to "/images/logo.png"
-  */
-  function image_tag($source, $options = array())
+  return tag('img', $options);
+}
+
+function _compute_public_path($source, $dir, $ext, $absolute = false)
+{
+  if (strpos($source, '://'))
   {
-    if (!$source)
-    {
-      return '';
-    }
-
-    $options = _parse_attributes($options);
-
-    $options['src'] = image_path($source);
-
-    if (!isset($options['alt']))
-    {
-      $path_pos = strrpos($source, '/');
-      $dot_pos = strrpos($source, '.');
-      $begin = $path_pos ? $path_pos + 1 : 0;
-      $nb_str = ($dot_pos ? $dot_pos : strlen($source)) - $begin;
-      $options['alt'] = ucfirst(substr($source, $begin, $nb_str));
-    }
-
-    if (isset($options['size']))
-    {
-      list($options['width'], $options['height']) = split('x', $options['size'], 2);
-      unset($options['size']);
-    }
-
-    return tag('img', $options);
-  }
-
-  function _compute_public_path($source, $dir, $ext)
-  {
-    if (strpos($source, '://'))
-    {
-      return $source;
-    }
-
-    $sf_relative_url_root = sfConfig::get('sf_relative_url_root');
-    if (strpos($source, '/') !== 0)
-    {
-      $source = $sf_relative_url_root.'/'.$dir.'/'.$source;
-    }
-    if (strpos(basename($source), '.') === false)
-    {
-      $source .= '.'.$ext;
-    }
-    if ($sf_relative_url_root && strpos($source, $sf_relative_url_root) !== 0)
-    {
-      $source = $sf_relative_url_root.$source;
-    }
-
     return $source;
   }
 
-  function include_stylesheets()
+  $request = sfContext::getInstance()->getRequest();
+  $sf_relative_url_root = $request->getRelativeUrlRoot();
+  if (strpos($source, '/') !== 0)
   {
-    $already_seen = array();
-    foreach (array('/first', '', '/last') as $position)
-    {
-      foreach (sfContext::getInstance()->getRequest()->getAttributeHolder()->getAll('helper/asset/auto/stylesheet'.$position) as $files)
-      {
-        if (!is_array($files))
-        {
-          $files = array($files);
-        }
-
-        foreach ($files as $file)
-        {
-          $file = stylesheet_path($file);
-
-          if (isset($already_seen[$file])) continue;
-
-          $already_seen[$file] = 1;
-          echo stylesheet_tag($file);
-        }
-      }
-    }
+    $source = $sf_relative_url_root.'/'.$dir.'/'.$source;
+  }
+  if (strpos(basename($source), '.') === false)
+  {
+    $source .= '.'.$ext;
+  }
+  if ($sf_relative_url_root && strpos($source, $sf_relative_url_root) !== 0)
+  {
+    $source = $sf_relative_url_root.$source;
   }
 
-  function include_javascripts()
+  if ($absolute)
   {
-    $already_seen = array();
-    foreach (sfContext::getInstance()->getRequest()->getAttributeHolder()->getAll('helper/asset/auto/javascript') as $files)
-    {
-      if (!is_array($files))
-      {
-        $files = array($files);
-      }
-
-      foreach ($files as $file)
-      {
-        $file = javascript_path($file);
-
-        if (isset($already_seen[$file])) continue;
-
-        $already_seen[$file] = 1;
-        echo javascript_include_tag($file);
-      }
-    }
+    $source = 'http'.($request->isSecure() ? 's' : '').'://'.$request->getHost().$source;
   }
 
-  function include_metas()
-  {
-    foreach (sfContext::getInstance()->getRequest()->getAttributeHolder()->getAll('helper/asset/auto/meta') as $name => $content)
-    {
-      echo tag('meta', array('name' => $name, 'content' => $content))."\n";
-    }
-  }
+  return $source;
+}
 
-  function include_http_metas()
+/**
+ * Returns a set of <meta> tags according to the response attributes,
+ * to be included in the <head> section of a HTML document.
+ *
+ * <b>Examples:</b>
+ * <code>
+ *  echo include_metas();
+ *    => <meta name="title" content="symfony - open-source PHP5 web framework" />
+ *       <meta name="robots" content="index, follow" />
+ *       <meta name="description" content="symfony - open-source PHP5 web framework" />
+ *       <meta name="keywords" content="symfony, project, framework, php, php5, open-source, mit, symphony" />
+ *       <meta name="language" content="en" /><link href="/stylesheets/style.css" media="screen" rel="stylesheet" type="text/css" />
+ * </code>
+ *
+ * <b>Note:</b> Modify the sfResponse object or the view.yml to change, add or remove metas.
+ *
+ * @return string XHTML compliant <meta> tag(s)
+ * @see    include_http_metas 
+ */
+function include_metas()
+{
+  foreach (sfContext::getInstance()->getResponse()->getMetas() as $name => $content)
   {
-    foreach (sfContext::getInstance()->getRequest()->getAttributeHolder()->getAll('helper/asset/auto/httpmeta') as $httpequiv => $value)
-    {
-      echo tag('meta', array('http-equiv' => $httpequiv, 'content' => $value))."\n";
-    }
+    echo tag('meta', array('name' => $name, 'content' => $content))."\n";
   }
+}
 
-  function include_title()
+/**
+ * Returns a set of <meta http-equiv> tags according to the response attributes,
+ * to be included in the <head> section of a HTML document.
+ *
+ * <b>Examples:</b>
+ * <code>
+ *  echo include_http_metas();
+ *    => <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+ * </code>
+ *
+ * <b>Note:</b> Modify the sfResponse object or the view.yml to change, add or remove metas.
+ *
+ * @return string XHTML compliant <meta> tag(s)
+ * @see    include_metas 
+ */
+function include_http_metas()
+{
+  foreach (sfContext::getInstance()->getResponse()->getHttpMetas() as $httpequiv => $value)
   {
-    $title = sfContext::getInstance()->getRequest()->getAttributeHolder()->get('title', '', 'helper/asset/auto/meta');
-    echo content_tag('title', $title)."\n";
+    echo tag('meta', array('http-equiv' => $httpequiv, 'content' => $value))."\n";
   }
+}
 
-?>
+/**
+ * Returns the title of the current page according to the response attributes,
+ * to be included in the <title> section of a HTML document.
+ *
+ * <b>Note:</b> Modify the sfResponse object or the view.yml to modify the title of a page.
+ *
+ * @return string page title
+ */
+function include_title()
+{
+  $title = sfContext::getInstance()->getResponse()->getTitle();
+
+  echo content_tag('title', $title)."\n";
+}

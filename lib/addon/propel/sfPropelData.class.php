@@ -3,7 +3,7 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- * 
+ *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -17,7 +17,7 @@
  */
 class sfPropelData
 {
-  private
+  protected
     $deleteCurrentData = true,
     $maps              = array(),
     $object_references = array();
@@ -33,13 +33,12 @@ class sfPropelData
   }
 
   // symfony load-data (file|dir)
-  // todo: symfony dump-data
-  public function loadData($directory_or_file = null, $connectionName = 'default')
+  public function loadData($directory_or_file = null, $connectionName = 'propel')
   {
     $fixture_files = $this->getFiles($directory_or_file);
 
-    // wrap all databases operations in a single transaction
-    $con = sfContext::getInstance()->getDatabaseConnection($connectionName);
+    // wrap all database operations in a single transaction
+    $con = Propel::getConnection();
     try
     {
       $con->begin();
@@ -60,8 +59,20 @@ class sfPropelData
   protected function doLoadDataFromFile($fixture_file)
   {
     // import new datas
-    $main_datas = sfYaml::load($fixture_file);
-    foreach ($main_datas as $class => $datas)
+    $data = sfYaml::load($fixture_file);
+
+    $this->loadDataFromArray($data);
+  }
+
+  public function loadDataFromArray($data)
+  {
+    if ($data === null)
+    {
+      // no data
+      return;
+    }
+
+    foreach ($data as $class => $datas)
     {
       $class = trim($class);
 
@@ -75,55 +86,59 @@ class sfPropelData
       $column_names = call_user_func_array(array($peer_class, 'getFieldNames'), array(BasePeer::TYPE_FIELDNAME));
 
       // iterate through datas for this class
-      foreach ($datas as $key => $data)
+      // might have been empty just for force a table to be emptied on import
+      if (is_array($datas))
       {
-        // create a new entry in the database
-        $obj = new $class();
-        foreach ($data as $name => $value)
+        foreach ($datas as $key => $data)
         {
-          // foreign key?
-          try
+          // create a new entry in the database
+          $obj = new $class();
+          foreach ($data as $name => $value)
           {
-            $column = $tableMap->getColumn($name);
-            if ($column->isForeignKey())
+            // foreign key?
+            try
             {
-              $relatedTable = $this->maps[$class]->getDatabaseMap()->getTable($column->getRelatedTableName());
-              if (!isset($this->object_references[$relatedTable->getPhpName().'_'.$value]))
+              $column = $tableMap->getColumn($name);
+              if ($column->isForeignKey())
               {
-                $error = 'The object "%s" from class "%s" is not defined in your data file.';
-                $error = sprintf($error, $value, $relatedTable->getPhpName());
-                throw new sfException($error);
+                $relatedTable = $this->maps[$class]->getDatabaseMap()->getTable($column->getRelatedTableName());
+                if (!isset($this->object_references[$relatedTable->getPhpName().'_'.$value]))
+                {
+                  $error = 'The object "%s" from class "%s" is not defined in your data file.';
+                  $error = sprintf($error, $value, $relatedTable->getPhpName());
+                  throw new sfException($error);
+                }
+                $value = $this->object_references[$relatedTable->getPhpName().'_'.$value];
               }
-              $value = $this->object_references[$relatedTable->getPhpName().'_'.$value];
+            }
+            catch (PropelException $e)
+            {
+            }
+
+            $pos = array_search($name, $column_names);
+            $method = 'set'.sfInflector::camelize($name);
+            if ($pos)
+            {
+              $obj->setByPosition($pos, $value);
+            }
+            else if (is_callable(array($obj, $method)))
+            {
+              $obj->$method($value);
+            }
+            else
+            {
+              $error = 'Column "%s" does not exist for class "%s"';
+              $error = sprintf($error, $name, $class);
+              throw new sfException($error);
             }
           }
-          catch (PropelException $e)
-          {
-          }
+          $obj->save();
 
-          $pos = array_search($name, $column_names);
-          $method = 'set'.sfInflector::camelize($name);
-          if ($pos)
+          // save the id for future reference
+          if (method_exists($obj, 'getPrimaryKey'))
           {
-            $obj->setByPosition($pos, $value);
+            $this->object_references[$class.'_'.$key] = $obj->getPrimaryKey();
           }
-          else if (method_exists($obj, $method))
-          {
-            $obj->$method($value);
-          }
-          else
-          {
-            $error = 'Column "%s" does not exist for class "%s"';
-            $error = sprintf($error, $name, $class);
-            throw new sfException($error);
-          }
-        }
-        $obj->save();
-
-        // save the id for future reference
-        if (method_exists($obj, 'getPrimaryKey'))
-        {
-          $this->object_references[$class.'_'.$key] = $obj->getPrimaryKey();
         }
       }
     }
@@ -149,14 +164,26 @@ class sfPropelData
       rsort($fixture_files);
       foreach ($fixture_files as $fixture_file)
       {
-        $main_datas = sfYaml::load($fixture_file);
-        $classes = array_keys($main_datas);
+        $data = sfYaml::load($fixture_file);
+
+        if ($data === null)
+        {
+          // no data
+          continue;
+        }
+
+        $classes = array_keys($data);
         krsort($classes);
         foreach ($classes as $class)
         {
           $peer_class = trim($class.'Peer');
 
-          require_once(sfConfig::get('sf_model_lib_dir').'/'.$peer_class.'.php');
+          if (!$classPath = sfCore::getClassPath($peer_class))
+          {
+            throw new sfException(sprintf('Unable to find path for class "%s".', $peer_class));
+          }
+
+          require_once($classPath);
 
           call_user_func(array($peer_class, 'doDeleteAll'));
         }
@@ -189,16 +216,111 @@ class sfPropelData
     return $fixture_files;
   }
 
-  private function loadMapBuilder($class)
+  protected function loadMapBuilder($class)
   {
     $class_map_builder = $class.'MapBuilder';
     if (!isset($this->maps[$class]))
     {
-      require_once(sfConfig::get('sf_model_lib_dir').'/map/'.$class_map_builder.'.php');
+      if (!$classPath = sfCore::getClassPath($class_map_builder))
+      {
+        throw new sfException(sprintf('Unable to find path for class "%s".', $class_map_builder));
+      }
+
+      require_once($classPath);
       $this->maps[$class] = new $class_map_builder();
       $this->maps[$class]->doBuild();
     }
   }
-}
 
-?>
+  /**
+   * Dumps data to fixture from 1 or more tables.
+   *
+   * @param string directory or file to dump to
+   * @param mixed name or names of tables to dump
+   * @param string connection name
+   */
+  public function dumpData($directory_or_file = null, $tables = 'all', $connectionName = 'propel')
+  {
+    $sameFile = true;
+    if (is_dir($directory_or_file))
+    {
+      // multi files
+      $sameFile = false;
+    }
+    else
+    {
+      // same file
+      // delete file
+    }
+
+    $con = sfContext::getInstance()->getDatabaseConnection($connectionName);
+
+    // get tables
+    if ('all' === $tables || null === $tables)
+    {
+      $tables = sfFinder::type('file')->name('/(?<!Peer)\.php$/')->maxdepth(0)->in(sfConfig::get('sf_model_lib_dir'));
+      foreach ($tables as &$table)
+      {
+        $table = basename($table, '.php');
+      }
+    }
+    else if (!is_array($tables))
+    {
+      $tables = array($tables);
+    }
+
+    $dumpData = array();
+
+    // load map classes
+    array_walk($tables, array($this, 'loadMapBuilder'));
+
+    foreach ($tables as $table)
+    {
+      $tableMap = $this->maps[$table]->getDatabaseMap()->getTable(constant($table.'Peer::TABLE_NAME'));
+
+      // get db info
+      $rs = $con->executeQuery('SELECT * FROM '.constant($table.'Peer::TABLE_NAME'));
+
+      $dumpData[$table] = array();
+
+      while ($rs->next()) {
+        $pk = '';
+        foreach ($tableMap->getColumns() as $column)
+        {
+          $col = strtolower($column->getColumnName());
+
+          if ($column->isPrimaryKey())
+          {
+            $pk .= '_' .$rs->get($col);
+            continue;
+          }
+          else if ($column->isForeignKey())
+          {
+            $relatedTable = $this->maps[$table]->getDatabaseMap()->getTable($column->getRelatedTableName());
+
+            $dumpData[$table][$table.$pk][$col] = $relatedTable->getPhpName().'_'.$rs->get($col);
+          }
+          else
+          {
+            $dumpData[$table][$table.$pk][$col] = $rs->get($col);
+          }
+        } // foreach
+      } // while
+    }
+
+    // save to file(s)
+    if ($sameFile)
+    {
+      $yaml = Spyc::YAMLDump($dumpData);
+      file_put_contents($directory_or_file, $yaml);
+    }
+    else
+    {
+      foreach ($dumpData as $table => $data)
+      {
+        $yaml = Spyc::YAMLDump($data);
+        file_put_contents($directory_or_file."/$table.yml", $yaml);
+      }
+    }
+  }
+}

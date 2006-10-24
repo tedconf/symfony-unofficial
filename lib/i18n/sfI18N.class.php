@@ -44,35 +44,27 @@ class sfI18N
 
   public function createMessageSource($dir)
   {
-    $messageSource = sfMessageSource::factory(sfConfig::get('sf_i18n_source'), $dir);
+    if (in_array(sfConfig::get('sf_i18n_source'), array('Creole', 'MySQL', 'SQLite')))
+    {
+      $messageSource = sfMessageSource::factory(sfConfig::get('sf_i18n_source'), sfConfig::get('sf_i18n_database', 'default'));
+    }
+    else
+    {
+      $messageSource = sfMessageSource::factory(sfConfig::get('sf_i18n_source'), $dir);
+    }
 
     if (sfConfig::get('sf_i18n_cache'))
     {
-      $subdir = str_replace(sfConfig::get('sf_root_dir'), '', $dir);
+      $subdir = preg_replace('|'.preg_quote(sfConfig::get('sf_app_dir')).'(.*)[\/\\\\]'.sfConfig::get('sf_app_i18n_dir_name').'|', '\\1', $dir);
 
-      $cache_dir = sfConfig::get('sf_i18n_cache_dir').DIRECTORY_SEPARATOR.$subdir;
+      $cache_dir = sfConfig::get('sf_i18n_cache_dir').$subdir;
 
       // create cache dir if needed
       if (!is_dir($cache_dir))
       {
-        $dirs = explode(DIRECTORY_SEPARATOR, str_replace('/', DIRECTORY_SEPARATOR, $cache_dir));
-        $root = '';
+        $cache_dir = str_replace('/', DIRECTORY_SEPARATOR, $cache_dir);
         $current_umask = umask(0000);
-        foreach($dirs as $dir)
-        {
-          if ($root == '')
-          {
-            $root = $dir.DIRECTORY_SEPARATOR;
-          }
-          else
-          {
-            $root = $root.DIRECTORY_SEPARATOR.$dir;
-          }
-          if (!is_dir($root))
-          {
-            @mkdir($root, 0777);
-          }
-        }
+        @mkdir($cache_dir, 0777, true);
         umask($current_umask);
       }
 
@@ -84,7 +76,7 @@ class sfI18N
 
   public function createMessageFormat($source)
   {
-    $messageFormat = new sfMessageFormat($source);
+    $messageFormat = new sfMessageFormat($source, sfConfig::get('sf_charset'));
 
     if (sfConfig::get('sf_debug') && sfConfig::get('sf_i18n_debug'))
     {
@@ -182,11 +174,14 @@ class sfI18N
     $datePositions = array_flip($c);
 
     // We find all elements
-    preg_match("~$dateRegexp~", $date, $matches);
-
-    // We get matching timestamp
-    return array($matches[$datePositions['d']], $matches[$datePositions['m']], $matches[$datePositions['y']]);
+    if (preg_match("~$dateRegexp~", $date, $matches))
+    {
+      // We get matching timestamp
+      return array($matches[$datePositions['d']], $matches[$datePositions['m']], $matches[$datePositions['y']]);
+    }
+    else
+    {
+      return null;
+    }
   }
 }
-
-?>

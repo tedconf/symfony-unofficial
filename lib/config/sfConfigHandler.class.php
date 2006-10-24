@@ -26,23 +26,9 @@ abstract class sfConfigHandler
     $parameter_holder = null;
 
   /**
-   * Add a set of replacement values.
-   *
-   * @param string The old value.
-   * @param string The new value which will replace the old value.
-   *
-   * @return void
-   */
-  public function addReplacement($oldValue, $newValue)
-  {
-    $this->oldValues[] = $oldValue;
-    $this->newValues[] = $newValue;
-  }
-
-  /**
    * Execute this configuration handler.
    *
-   * @param string An absolute filesystem path to a configuration file.
+   * @param array An array of filesystem path to a configuration file.
    *
    * @return string Data to be written to a cache file.
    *
@@ -51,7 +37,7 @@ abstract class sfConfigHandler
    * @throws <b>sfParseException</b> If a requested configuration file is
    *                               improperly formatted.
    */
-  abstract function execute($configPath, $param = array());
+  abstract public function execute($configFiles);
 
   /**
    * Initialize this ConfigHandler.
@@ -64,68 +50,31 @@ abstract class sfConfigHandler
    */
   public function initialize($parameters = null)
   {
-    $this->getParameterHolder()->add($parameters);
-  }
-
-  public function __construct()
-  {
     $this->parameter_holder = new sfParameterHolder();
+    $this->parameter_holder->add($parameters);
   }
 
   /**
-   * Literalize a string value.
+   * Replace constant identifiers in a value.
    *
-   * @param string The value to literalize.
-   *
-   * @return string A literalized value.
-   */
-  public static function literalize($value)
-  {
-    static
-      $keys = array("\\", "%'", "'"),
-      $reps = array("\\\\", "\"", "\\'");
-
-    if ($value == null)
-    {
-      // null value
-      return 'null';
-    }
-
-    // lowercase our value for comparison
-    $value  = trim($value);
-    $lvalue = strtolower($value);
-
-    if ($lvalue == 'on' || $lvalue == 'yes' || $lvalue == 'true')
-    {
-      // replace values 'on' and 'yes' with a boolean true value
-      return 'true';
-    }
-    else if ($lvalue == 'off' || $lvalue == 'no' || $lvalue == 'false')
-    {
-      // replace values 'off' and 'no' with a boolean false value
-      return 'false';
-    }
-    else if (!is_numeric($value))
-    {
-      $value = str_replace($keys, $reps, $value);
-
-      return "'".$value."'";
-    }
-
-    // numeric value
-    return $value;
-  }
-
-  /**
-   * Replace constant identifiers in a string.
-   *
-   * @param string The value on which to run the replacement procedure.
+   * If the value is an array replacements are made recursively.
+   * 
+   * @param mixed The value on which to run the replacement procedure.
    *
    * @return string The new value.
    */
   public static function replaceConstants($value)
   {
-    return preg_replace('/%(.+?)%/e', 'sfConfig::get(strtolower("\\1"))', $value);
+    if (is_array($value))
+    {
+      array_walk_recursive($value, create_function('&$value', '$value = sfToolkit::replaceConstants($value);'));
+    }
+    else
+    {
+      $value = sfToolkit::replaceConstants($value);
+    }
+
+    return $value;
   }
 
   /**
@@ -151,5 +100,3 @@ abstract class sfConfigHandler
     return $this->parameter_holder;
   }
 }
-
-?>

@@ -22,28 +22,27 @@
  */
 class sfActionStackEntry
 {
-  private
+  protected
     $actionInstance = null,
     $actionName     = null,
     $moduleName     = null,
     $presentation   = null,
-    $isSlot         = false;
+    $viewInstance   = null;
 
   /**
    * Class constructor.
    *
    * @param string A module name.
    * @param string An action name.
-   * @param Action An action implementation instance.
+   * @param sfAction An action implementation instance.
    *
    * @return void
    */
-  public function __construct ($moduleName, $actionName, $actionInstance, $isSlot = false)
+  public function __construct ($moduleName, $actionName, $actionInstance)
   {
     $this->actionName     = $actionName;
     $this->actionInstance = $actionInstance;
     $this->moduleName     = $moduleName;
-    $this->isSlot         = $isSlot;
   }
 
   /**
@@ -59,7 +58,7 @@ class sfActionStackEntry
   /**
    * Retrieve this entry's action instance.
    *
-   * @return Action An action implementation instance.
+   * @return sfAction An action implementation instance.
    */
   public function getActionInstance ()
   {
@@ -67,13 +66,25 @@ class sfActionStackEntry
   }
 
   /**
-   * Is this action used in a slot context?
+   * Retrieve this entry's view instance.
    *
-   * @return string An action name.
+   * @return sfView A view implementation instance.
    */
-  public function isSlot ()
+  public function getViewInstance ()
   {
-    return $this->isSlot;
+    return $this->viewInstance;
+  }
+
+  /**
+   * set this entry's view instance.
+   *
+   * @param sfView A view implementation instance.
+   *
+   * @return void
+   */
+  public function setViewInstance ($viewInstance)
+  {
+    $this->viewInstance = $viewInstance;
   }
 
   /**
@@ -111,5 +122,3 @@ class sfActionStackEntry
     $this->presentation =& $presentation;
   }
 }
-
-?>

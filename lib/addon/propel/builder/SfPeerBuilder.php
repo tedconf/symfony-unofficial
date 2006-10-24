@@ -2,8 +2,42 @@
 
 require_once 'propel/engine/builder/om/php5/PHP5ComplexPeerBuilder.php';
 
-class sfPeerBuilder extends PHP5ComplexPeerBuilder
+/*
+ * This file is part of the symfony package.
+ * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+/**
+ * @package    symfony
+ * @subpackage addon
+ * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
+ * @version    SVN: $Id$
+ */
+class SfPeerBuilder extends PHP5ComplexPeerBuilder
 {
+  public function build()
+  {
+    if (!DataModelBuilder::getBuildProperty('builderAddComments'))
+    {
+      return sfToolkit::stripComments(parent::build());
+    }
+
+    return parent::build();
+  }
+
+  protected function addIncludes(&$script)
+  {
+    if (!DataModelBuilder::getBuildProperty('builderAddIncludes'))
+    {
+      return;
+    }
+
+    parent::addIncludes($script);
+  }
+
   protected function addSelectMethods(&$script)
   {
     parent::addSelectMethods($script);
@@ -60,8 +94,13 @@ class sfPeerBuilder extends PHP5ComplexPeerBuilder
    * @throws PropelException Any exceptions caught during processing will be
    *     rethrown wrapped into a PropelException.
    */
-  public static function doSelectWithI18n(Criteria \$c, \$culture, \$con = null)
+  public static function doSelectWithI18n(Criteria \$c, \$culture = null, \$con = null)
   {
+    if (\$culture === null)
+    {
+      \$culture = sfContext::getInstance()->getUser()->getCulture();
+    }
+
     // Set the correct dbName if it has not been overridden
     if (\$c->getDbName() == Propel::getDefaultDB())
     {
@@ -89,7 +128,7 @@ class sfPeerBuilder extends PHP5ComplexPeerBuilder
               $script .= "
       \$omClass = ".$this->getPeerClassname()."::getOMClass();
 ";
-            } 
+            }
             $script .= "
       \$cls = Propel::import(\$omClass);
       \$obj1 = new \$cls();
@@ -99,7 +138,7 @@ class sfPeerBuilder extends PHP5ComplexPeerBuilder
               $script .= "
       \$omClass = ".$i18nTablePeerBuilder->getPeerClassname()."::getOMClass(\$rs, \$startcol);
 ";
-//            } else { 
+//            } else {
 //              $script .= "
 //      \$omClass = ".$i18nTablePeerBuilder->getPeerClassname()."::getOMClass();
 //";
@@ -119,6 +158,39 @@ class sfPeerBuilder extends PHP5ComplexPeerBuilder
   }
 ";
   }
-}
 
-?>
+  protected function addDoValidate(&$script)
+  {
+      $tmp = '';
+      parent::addDoValidate($tmp);
+
+      $script .= str_replace("return {$this->basePeerClassname}::doValidate(".$this->getPeerClassname()."::DATABASE_NAME, ".$this->getPeerClassname()."::TABLE_NAME, \$columns);\n",
+        "\$res =  {$this->basePeerClassname}::doValidate(".$this->getPeerClassname()."::DATABASE_NAME, ".$this->getPeerClassname()."::TABLE_NAME, \$columns);\n".
+        "    if (\$res !== true) {\n".
+        "        \$request = sfContext::getInstance()->getRequest();\n".
+        "        foreach (\$res as \$failed) {\n".
+        "            \$col = ".$this->getPeerClassname()."::translateFieldname(\$failed->getColumn(), BasePeer::TYPE_COLNAME, BasePeer::TYPE_PHPNAME);\n".
+        "            \$request->setError(\$col, \$failed->getMessage());\n".
+        "        }\n".
+        "    }\n\n".
+        "    return \$res;\n", $tmp);
+  }
+
+  protected function addDoSelectRS(&$script)
+  {
+    $tmp = '';
+    parent::addDoSelectRS($tmp);
+
+    if (DataModelBuilder::getBuildProperty('builderAddBehaviors'))
+    {
+      $mixer_script = "
+
+    sfMixer::callMixins();
+
+";
+      $tmp = preg_replace('/{/', '{'.$mixer_script, $tmp, 1);
+    }
+
+    $script .= $tmp;
+  }
+}

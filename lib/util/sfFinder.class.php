@@ -37,16 +37,16 @@
  */
 class sfFinder
 {
-  private $type        = 'file';
-  private $names       = array();
-  private $prunes      = array();
-  private $discards    = array();
-  private $execs       = array();
-  private $mindepth    = 0;
-  private $sizes       = array();
-  private $maxdepth    = 1000000;
-  private $relative    = false;
-  private $follow_link = false;
+  protected $type        = 'file';
+  protected $names       = array();
+  protected $prunes      = array();
+  protected $discards    = array();
+  protected $execs       = array();
+  protected $mindepth    = 0;
+  protected $sizes       = array();
+  protected $maxdepth    = 1000000;
+  protected $relative    = false;
+  protected $follow_link = false;
 
   /**
    * Sets maximum directory depth.
@@ -112,7 +112,7 @@ class sfFinder
   /*
    * glob, patterns (must be //) or strings
    */
-  private function to_regex($str)
+  protected function to_regex($str)
   {
     if ($str{0} == '/' && $str{strlen($str) - 1} == '/')
     {
@@ -124,7 +124,7 @@ class sfFinder
     }
   }
 
-  private function args_to_array($arg_list, $not = false)
+  protected function args_to_array($arg_list, $not = false)
   {
     $list = array();
 
@@ -228,6 +228,20 @@ class sfFinder
     $this->discards = array_merge($this->discards, $this->args_to_array($args));
 
     return $this;
+  }
+
+  /**
+   * Ignores version control directories.
+   *
+   * Currently supports subversion, CVS, DARCS, Gnu Arch, Monotone, Bazaar-NG
+   *
+   * @return object current pakeFinder object
+   */
+  public function ignore_version_control()
+  {
+    $ignores = array('.svn', 'CVS', '_darcs', '.arch-params', '.monotone', '.bzr');
+
+    return $this->discard($ignores)->prune($ignores);
   }
 
   /**
@@ -336,7 +350,7 @@ class sfFinder
     return array_unique($files);
   }
 
-  private function search_in($dir, $depth = 0)
+  protected function search_in($dir, $depth = 0)
   {
     if ($depth > $this->maxdepth)
     {
@@ -353,7 +367,7 @@ class sfFinder
     if (is_dir($dir))
     {
       $current_dir = opendir($dir);
-      while ($entryname = readdir($current_dir))
+      while (false !== $entryname = readdir($current_dir))
       {
         if ($entryname == '.' || $entryname == '..') continue;
 
@@ -389,7 +403,7 @@ class sfFinder
     return $files;
   }
 
-  private function match_names($dir, $entry)
+  protected function match_names($dir, $entry)
   {
     if (!count($this->names)) return true;
 
@@ -441,7 +455,7 @@ class sfFinder
     }
   }
 
-  private function size_ok($dir, $entry)
+  protected function size_ok($dir, $entry)
   {
     if (!count($this->sizes)) return true;
 
@@ -456,7 +470,7 @@ class sfFinder
     return true;
   }
 
-  private function is_pruned($dir, $entry)
+  protected function is_pruned($dir, $entry)
   {
     if (!count($this->prunes)) return false;
 
@@ -469,7 +483,7 @@ class sfFinder
     return false;
   }
 
-  private function is_discarded($dir, $entry)
+  protected function is_discarded($dir, $entry)
   {
     if (!count($this->discards)) return false;
 
@@ -482,7 +496,7 @@ class sfFinder
     return false;
   }
 
-  private function exec_ok($dir, $entry)
+  protected function exec_ok($dir, $entry)
   {
     if (!count($this->execs)) return true;
 
@@ -510,10 +524,35 @@ class sfFinder
   }
 }
 
+/**
+ * Match globbing patterns against text.
+ *
+ *   if match_glob("foo.*", "foo.bar") echo "matched\n";
+ *
+ * // prints foo.bar and foo.baz
+ * $regex = glob_to_regex("foo.*");
+ * for (array('foo.bar', 'foo.baz', 'foo', 'bar') as $t)
+ * {
+ *   if (/$regex/) echo "matched: $car\n";
+ * }
+ *
+ * sfGlobToRegex implements glob(3) style matching that can be used to match
+ * against text, rather than fetching names from a filesystem.
+ *
+ * based on perl Text::Glob module.
+ *
+ * @package    symfony
+ * @subpackage util
+ * @author     Fabien Potencier <fabien.potencier@gmail.com> php port
+ * @author     Richard Clamp <richardc@unixbeard.net> perl version
+ * @copyright  2004-2005 Fabien Potencier <fabien.potencier@gmail.com>
+ * @copyright  2002 Richard Clamp <richardc@unixbeard.net>
+ * @version    SVN: $Id$
+ */
 class sfGlobToRegex
 {
-  private static $strict_leading_dot = true;
-  private static $strict_wildcard_slash = true;
+  protected static $strict_leading_dot = true;
+  protected static $strict_wildcard_slash = true;
 
   public static function setStrictLeadingDot($boolean)
   {
@@ -607,9 +646,34 @@ class sfGlobToRegex
   }
 }
 
+/**
+ * Numeric comparisons.
+ *
+ * sfNumberCompare compiles a simple comparison to an anonymous
+ * subroutine, which you can call with a value to be tested again.
+
+ * Now this would be very pointless, if sfNumberCompare didn't understand
+ * magnitudes.
+
+ * The target value may use magnitudes of kilobytes (k, ki),
+ * megabytes (m, mi), or gigabytes (g, gi).  Those suffixed
+ * with an i use the appropriate 2**n version in accordance with the
+ * IEC standard: http://physics.nist.gov/cuu/Units/binary.html
+ *
+ * based on perl Number::Compare module.
+ *
+ * @package    symfony
+ * @subpackage util
+ * @author     Fabien Potencier <fabien.potencier@gmail.com> php port
+ * @author     Richard Clamp <richardc@unixbeard.net> perl version
+ * @copyright  2004-2005 Fabien Potencier <fabien.potencier@gmail.com>
+ * @copyright  2002 Richard Clamp <richardc@unixbeard.net>
+ * @see        http://physics.nist.gov/cuu/Units/binary.html
+ * @version    SVN: $Id$
+ */
 class sfNumberCompare
 {
-  private $test = '';
+  protected $test = '';
 
   public function __construct($test)
   {
@@ -657,5 +721,3 @@ class sfNumberCompare
     return false;
   }
 }
-
-?>

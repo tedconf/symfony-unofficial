@@ -1,12 +1,132 @@
 SVN
 ---
 
+WARNING: All deprecated function, methods and tasks has been removed (see r1631, r1638 and r1799).
+
+If you try to use this release with 0.6.X projects, you must upgrade them with: symfony upgrade 0.8
+When you upgrade your 0.9 release, re-run the upgrade script (you can safely run the upgrade several times).
+
+* added new sfOptimizer classes
+* greater credential flexibility
+* symfony is now compatible with magic_quotes_gpc set to on
+* refactored sfFilter class (executeBeforeExecution, executeBeforeRendering)
+* new coverage script for symfony core
+* new encoding parameter in databases.yml
+* new functional and unit tests for the core framework
+* new sfMixin class to allow adding methods to core classes without inheritance
+* new sfBrowser, sfTestBrowser and sfDomCssSelector classes to ease functional tests writing
+* new unit test library (lime)
+* major partial and component refactoring (big speed improvement)
+* output escaping is now a global setting
+* new helpers: use_stylesheet() and use_javascript()
+* new time information in the symfony log and debug toolbar
+* major performance improvements
+* new sfLoader class
+* symfony command line now works out the box (for PEAR, SVN or .tgz)
+* new plugin system
+* propel-build-all now works as expected
+* major cache refactoring (new settings: with_layout and contextual)
+* autoloading is now more flexible
+* AJAX actions have now layout to off by default
+* new slot support
+* added setLayout() method to sfComponent
+* better exception handling in symfony command line (try -t)
+* symfony command line now in color (only for *nix)
+* bundled pake and phing (symfony has no external dependancy)
+* better i18n support thanks to the new charset setting (FillInFilter, translations, ...)
+* added a new charset setting
+* updated creole, Propel and scriptaculous (1.6.2)
+* many-to-many relationship support in admin generator
+* removed my* classes from skeleton except myUser
+* new classes :sfProcessCache, sfLogManager
+* removed all deprecated functions, methods and tasks.
+* removed old php, css and js files that are not used anymore
+* strip comments in production environment by default
+* better sfTextBrowser with POST support and redirects
+* support for database schema in YAML format
+* updated calendar language files (js, ca)
+* new tasks: init-batch, propel-convert-yaml-schema, propel-load-data, propel-build-all, propel-build-all-load
+             init-controller, clear-controllers, rotate-log, purge-logs, freeze, unfreeze, enable, disable,
+             plugin-list
+* new validators: sfDateValidator, sfUrlValidator, sfCallbackValidator
+* and more than 200 bug fixes and small enhancements
+
+For more detailed information on bugs fixed in this release, see the trac ticket list for 0.6.4:
+http://www.symfony-project.com/trac/report/10
+
+Version 0.6.3
+-------------
+
+WARNING: If you use i18n Propel support in your schema.xml or if you have problems
+         building you Propel model/sql (XML schema file (PATH/config/schema.xml) does not validate)
+         you can add a propel.schema.validate = false at the end of your config/propel.ini file.
+
+WARNING: Actions in the routing are now case sensitive. If you have a page with an 'index' action name,
+         your action must be named 'executeIndex' ('fooBar' => 'executeFooBar').
+
+* updated calendar language files (pl, zh, nl, no, it)
+* new options for the sfFillInFilter filter
+* major sfWebDebug refactoring (no more dependency on prototype)
+* position option to stylesheets in view.yml 
+* native support for JSON/AJAX actions
+* better exception layout
+* new sfPropelUniqueValidator validator
+* added component and partial cache
+* updated creole and propel
+* zend framework and ez components bridges
+* new hooks in admin generator generated classes
+* better date support in admin generator
+* lot of small tweaks and enhancements in admin generator
+* lot of bugs fixes and small enhancements
+
+For more detailed changelog, look at:
+http://www.symfony-project.com/trac/wiki/SymfonyWeek18
+http://www.symfony-project.com/trac/wiki/SymfonyWeek19
+http://www.symfony-project.com/trac/wiki/SymfonyWeek20
+http://www.symfony-project.com/trac/wiki/SymfonyWeek21
+http://www.symfony-project.com/trac/wiki/SymfonyWeek22
+http://www.symfony-project.com/trac/wiki/SymfonyWeek23
+http://www.symfony-project.com/trac/wiki/SymfonyWeek24
+http://www.symfony-project.com/trac/wiki/SymfonyWeek25
+
+or the trac ticket list for 0.6.3:
+http://www.symfony-project.com/trac/report/9
+
+Version 0.6.2
+-------------
+
+* lot of bugs fixes
+* new output escaping system (to automatically prevent XSS)
+* better form repopulation system
+* fixed sfMailView
+* cache system tweaks
+* better exception page in debug mode and internal server error page in production mode
+* added some more information in the debug toolbar
+
+Version 0.6.1
+-------------
+
+* [fabien] lot of bugs fixes
+* [faiben] updated scriptaculous to 1.5.3
+* [fabien] added a new sfFileValidator validator
+* [fabien] lots of bug fixes and new features in the admin generator (file upload, credentials, ...)
+* [fabien] stylesheets, javascripts, ... are now part of the sfWebResponse object
+           DEPRECATED methods:
+             $action->addStylesheet(), $action->addJavascript(), $action->setTitle()
+             $action->addHttpMeta(), $action->addMeta()
+* [fabien] debug environment is much faster now
+
 Version 0.6.0
 -------------
 
 WARNING: This release breaks backward compatibility.
 Please read the UPGRADE file before upgrading your projects.
 
+* [fabien] new symfony web server (alpha)
+* [fabien] support for etags, conditionnal get, vary headers...
+* [fabien] new sfResponse object
+* [fabien] new filtering system
+* [fabien] added new components system (slots are now deprecated)
 * [fabien] updated propel/creole
 * [fabien] updated script.aculo.us to 1.5.1
 * [rovert] console controller

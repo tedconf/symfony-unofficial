@@ -12,13 +12,13 @@
  * sfConfig stores all configuration information for a symfony application.
  *
  * @package    symfony
- * @subpackage core
+ * @subpackage config
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  * @version    SVN: $Id$
  */
 class sfConfig
 {
-  private static
+  protected static
     $config = array();
 
   /**
@@ -69,7 +69,7 @@ class sfConfig
    *
    * @return array An associative array of configuration parameters.
    */
-  public function getAll ()
+  public static function getAll ()
   {
     return self::$config;
   }
@@ -85,5 +85,3 @@ class sfConfig
     self::$config = array();
   }
 }
-
-?>

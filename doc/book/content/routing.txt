@@ -4,7 +4,7 @@ How to setup a routing policy
 Overview
 --------
 
-One of the main problems faced by frameworks is the aspect of the generated URLs : they are generally long, complex and not search engine friendly. SymFony introduces a new *routing* system that brings you total control on the urls of your applications.
+One of the main problems faced by frameworks is the aspect of the generated URLs : they are generally long, complex and not search engine friendly. Symfony introduces a new *routing* system that brings you total control on the urls of your applications.
 
 Introduction
 ------------
@@ -199,7 +199,7 @@ If you have the `mod_rewrite` module activated, use the following configuration 
     RewriteRule ^(.*)$ index.php [QSA,L]
     
     # big crash from our front web controller
-    ErrorDocument 500 "<h2>Application error</h2>SymFony application failed to start properly"
+    ErrorDocument 500 "<h2>Application error</h2>Symfony application failed to start properly"
 
 Now a call to 
 
@@ -226,7 +226,7 @@ To read more about this helper, check the chapter about [link helpers](templatin
     [php]
     <a href="/index.php/article/read/id/100">my_article_title</a>
 
-But since you wrote routing rules, symfony will automatially interpret them in the other way and generate:
+But since you wrote routing rules, symfony will automatically interpret them in the other way and generate:
 
     [php]
     <a href="/index.php/article/100">my_article_title</a>
@@ -274,29 +274,6 @@ It is sometimes necessary to specify a suffix for a unique routing rule. In that
     update_directory:
       url:          /updates/
       param:        { module: update, action: list }
-
-Routing activation
-------------------
-
-The routing can be activated and deactivated on demand without any modification of the application code, provided that all the URLs generated in the templates use the `link_to()` helper.
-
-By default, the routing is activated. To deactivate it, change the value of the `routing` parameter in the `settings.yml` file:
-
-    all:
-      .settings:
-        routing:        off
-
-You can have a different value for each environment.
-
-With routing deactivated, a call to 
-
-    [php]
-    <?php echo link_to($article->getTitle(), '/article/read?id='.$article->getId()) ?>
-
-will generate in HTML
-
-    [php]
-    <a href="/index.php?module=article&action=read&id=100">my_article_title</a>
     
 Retrieve information about the current route
 --------------------------------------------
@@ -326,9 +303,9 @@ The URIs returned by the `->getCurrentInternalUri()` method can be used in a cal
 
 In addition, you might want to get the first or the last action called in a template. The following variables are automatically updated at each request and are available to templates:
 
-    $first_action
-    $first_module
-    $last_action
-    $last_module
+    $sf_first_action
+    $sf_first_module
+    $sf_last_action
+    $sf_last_module
 
-You might ask: why can't I simply retrieve the current module/action ? Because the calls to actions is a stack, and several calls can be made for a unique request. For instance, if the end of an action contents a `forward` statement, or if the layout of the view contains a slot, several actions will be called.    
+You might ask: Why can't I simply retrieve the current module/action ? Because the calls to actions is a stack, and several calls can be made for a unique request. For instance, if the end of an action contents a `forward` statement, several actions will be called.    

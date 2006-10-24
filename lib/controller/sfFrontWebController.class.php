@@ -34,32 +34,18 @@ class sfFrontWebController extends sfWebController
   {
     try
     {
-      // get the application context
-      $context = $this->getContext();
-
-      if ($sf_logging_active = sfConfig::get('sf_logging_active'))
+      if (sfConfig::get('sf_logging_active'))
       {
         $this->getContext()->getLogger()->info('{sfFrontWebController} dispatch request');
       }
 
       // determine our module and action
-      $moduleName = $context->getRequest()->getParameter(sfConfig::get('sf_module_accessor'));
-      $actionName = $context->getRequest()->getParameter(sfConfig::get('sf_action_accessor'));
-
-      // register sfWebDebug assets
-      if ($sf_web_debug = sfConfig::get('sf_web_debug'))
-      {
-        sfWebDebug::getInstance()->registerAssets();
-      }
+      $request    = $this->getContext()->getRequest();
+      $moduleName = $request->getParameter('module');
+      $actionName = $request->getParameter('action');
 
       // make the first request
       $this->forward($moduleName, $actionName);
-
-      // send web debug information if needed
-      if ($sf_web_debug)
-      {
-        sfWebDebug::getInstance()->printResults();
-      }
     }
     catch (sfException $e)
     {
@@ -67,12 +53,9 @@ class sfFrontWebController extends sfWebController
     }
     catch (Exception $e)
     {
-      // unknown exception
-      $e = new sfException($e->getMessage());
-
-      $e->printStackTrace();
+      // wrap non symfony exceptions
+      $sfException = new sfException();
+      $sfException->printStackTrace($e);
     }
   }
 }
-
-?>

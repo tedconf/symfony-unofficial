@@ -12,14 +12,15 @@
  *
  * sfMail class.
  *
- * @package    symfony.runtime.addon
+ * @package    symfony
+ * @subpackage addon
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  * @version    SVN: $Id$
  */
 class sfMail
 {
   protected $mailer;
-
+  
   public function __construct()
   {
     require_once(sfConfig::get('sf_symfony_lib_dir').'/addon/sfMail/phpmailer/class.phpmailer.php');
@@ -92,12 +93,13 @@ class sfMail
     return $this->mailer->Body;
   }
 
-  public function setMailer($type = 'mail')
+  public function setMailer($type = 'mail', $options = array())
   {
     switch($type)
     {
       case 'smtp':
         $this->mailer->IsSMTP();
+        if (isset($options['keep_alive'])) $this->mailer->SMTPKeepAlive = true;
         break;
       case 'sendmail':
         $this->mailer->IsSendmail();
@@ -107,7 +109,7 @@ class sfMail
         break;
     }
   }
-
+  
   public function getMailer()
   {
     return $this->mailer->Mailer;
@@ -170,7 +172,7 @@ class sfMail
     {
       foreach ($addresses as $address)
       {
-        list($address, $name) = $this->splitAddress($recipient);
+        list($address, $name) = $this->splitAddress($address);
         $this->mailer->AddAddress($address, $name);
       }
     }
@@ -236,7 +238,7 @@ class sfMail
 
   public function clearAddresses()
   {
-    $this->mailer->ClearAdresses();
+    $this->mailer->ClearAddresses();
   }
 
   public function clearCcs()
@@ -316,6 +318,11 @@ class sfMail
     }
   }
 
+  public function smtpClose()
+  {
+    $this->mailer->SmtpClose();
+  }
+  
   public function getRawHeader()
   {
     return $this->mailer->CreateHeader();
@@ -397,5 +404,3 @@ class sfMail
     return $this->mailer->AltBody;
   }
 }
-
-?>

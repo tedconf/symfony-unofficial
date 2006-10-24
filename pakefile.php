@@ -25,59 +25,29 @@
 pake_import('pear');
 
 pake_desc('launch symfony test suite');
-pake_task('alltests');
+pake_task('test');
 
 pake_desc('release a new symfony version');
-//pake_task('release', 'alltests');
+pake_task('release', 'test');
 
 pake_task('release');
 
-function run_alltests($task, $args)
+function run_test($task, $args)
 {
-  set_include_path(
-    dirname(__FILE__).'/lib'.PATH_SEPARATOR.
-    get_include_path()
-  );
+  require_once(dirname(__FILE__).'/lib/vendor/lime/lime.php');
 
-  // initialize our test environment
-  require_once(dirname(__FILE__).'/lib/util/sfToolkit.class.php');
-  sfToolkit::clearDirectory('/tmp/symfonytest');
-  $root_dir = tempnam('/tmp/symfonytest', 'tmp');
-  unlink($root_dir);
-  $tmp_dir = $root_dir.DIRECTORY_SEPARATOR.md5(uniqid(rand(), true));
-  if (!is_dir($tmp_dir))
-  {
-    mkdir($tmp_dir, 0777, true);
-  }
+  $h = new lime_harness(new lime_output_color());
 
-  require_once(dirname(__FILE__).'/lib/config/sfConfig.class.php');
-  sfConfig::add(array(
-    'sf_root_dir'         => $tmp_dir,
-    'sf_app'              => 'test',
-    'sf_environment'      => 'test',
-    'sf_debug'            => true,
-    'sf_symfony_lib_dir'  => dirname(__FILE__).'/lib',
-    'sf_symfony_data_dir' => dirname(__FILE__).'/data',
-    'sf_test'             => false,
-    'sf_version'          => 'test',
-  ));
-  mkdir($tmp_dir.'/apps');
-  mkdir($tmp_dir.'/apps/test');
-  mkdir($tmp_dir.'/apps/test/modules');
-  require_once(dirname(__FILE__).'/data/config/constants.php');
-  require_once(dirname(__FILE__).'/lib/symfony_autoload.php');
-  require_once(dirname(__FILE__).'/lib/core/sfContext.class.php');
+  $h->base_dir = realpath(dirname(__FILE__).'/test');
 
-  pake_import('simpletest', false);
+  // unit tests
+  $h->register_glob($h->base_dir.'/unit/*/*Test.php');
 
-  try {
-    pakeSimpletestTask::run_test($task, $args);
-  } catch(Exception $e) {}
+  // functional tests
+  $h->register_glob($h->base_dir.'/functional/*Test.php');
+  $h->register_glob($h->base_dir.'/functional/*/*Test.php');
 
-  // cleanup our test enviroment
-  sfToolkit::clearDirectory($tmp_dir);
-  rmdir($tmp_dir);
-  rmdir($root_dir);
+  $h->run();
 }
 
 function run_create_pear_package($task, $args)
@@ -103,7 +73,7 @@ function run_create_pear_package($task, $args)
   pake_copy(getcwd().'/package.xml.tmpl', getcwd().'/package.xml');
 
   // add class files
-  $finder = pakeFinder::type('file')->prune('.svn')->discard('.svn')->relative();
+  $finder = pakeFinder::type('file')->ignore_version_control()->relative();
   $xml_classes = '';
   $dirs = array('lib' => 'php', 'data' => 'data');
   foreach ($dirs as $dir => $role)
@@ -145,8 +115,7 @@ function run_release($task, $args)
     $version_prefix = $args[0];
 
     $result = pake_sh('svn status -u '.getcwd());
-
-    if (preg_match('/(\d+)\s*$/is', $result, $match))
+    if (preg_match('/Status against revision\:\s+(\d+)\s*$/im', $result, $match))
     {
       $version = $match[1];
     }
@@ -176,5 +145,3 @@ function run_release($task, $args)
   // copy .tgz as symfony-latest.tgz
   pake_copy(getcwd().'/symfony-'.$version.'.tgz', getcwd().'/symfony-latest.tgz');
 }
-
-?>

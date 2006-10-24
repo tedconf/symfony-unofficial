@@ -38,7 +38,7 @@
  * @license     PHP License
  */
 
-require_once dirname(__FILE__).'/TGettext.php';
+require_once dirname(__FILE__).'/TGettext.class.php';
 
 /** 
  * File_Gettext_MO
@@ -352,4 +352,3 @@ class TGettext_MO extends TGettext
         return true;
     }
 }
-?>

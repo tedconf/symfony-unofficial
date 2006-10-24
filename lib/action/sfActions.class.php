@@ -20,8 +20,6 @@
  */
 abstract class sfActions extends sfAction
 {
-  const ALL = 'ALL';
-
   /**
    * Execute any application/business logic for this action.
    *
@@ -42,17 +40,20 @@ abstract class sfActions extends sfAction
    */
   public function execute()
   {
-    // Dispatch action
+    // dispatch action
     $actionToRun = 'execute'.ucfirst($this->getActionName());
-    if (!method_exists($this, $actionToRun))
+    if (!is_callable(array($this, $actionToRun)))
     {
       // action not found
-      $error = 'sfAction initialization failed for module "%s", action "%s"';
-      $error = sprintf($error, $this->getModuleName(), $this->getActionName());
+      $error = 'sfAction initialization failed for module "%s", action "%s". You must create a "%s" method.';
+      $error = sprintf($error, $this->getModuleName(), $this->getActionName(), $actionToRun);
       throw new sfInitializationException($error);
     }
 
-    if (sfConfig::get('sf_logging_active')) $this->getContext()->getLogger()->info('{sfActions} call "'.get_class($this).'->'.$actionToRun.'()'.'"');
+    if (sfConfig::get('sf_logging_active'))
+    {
+      $this->getContext()->getLogger()->info('{sfActions} call "'.get_class($this).'->'.$actionToRun.'()'.'"');
+    }
 
     // run action
     $ret = $this->$actionToRun();
@@ -60,5 +61,3 @@ abstract class sfActions extends sfAction
     return $ret;
   }
 }
-
-?>

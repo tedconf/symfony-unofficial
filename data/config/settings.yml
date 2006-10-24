@@ -21,11 +21,6 @@ default:
   .settings:
     available:              on
 
-    module_accessor:        module
-    action_accessor:        action
-
-    content_type:           html
-
     path_info_array:        SERVER
     path_info_key:          PATH_INFO
 
@@ -36,8 +31,6 @@ default:
     use_security:           on
 
     compressed:             off
-
-    tidy:                   off
 
     i18n:                   off
 
@@ -51,24 +44,38 @@ default:
 
     web_debug:              off
 
-    cache:                  on
-    default_cache_lifetime: 86400
+    cache:                  off
 
-    routing:                on
-    no_script_name:         on
-    relative_url_root:
+    no_script_name:         off
 
-    stats:                  off
-
-    # E_COMPILE_ERROR | E_ERROR | E_CORE_ERROR | E_USER_ERROR = 337
-    error_reporting:        337
+    # E_PARSE | E_COMPILE_ERROR | E_ERROR | E_CORE_ERROR | E_USER_ERROR = 341
+    error_reporting:        341
 
     rich_text_js_dir:       js/tiny_mce
-
-    safe_slot:              on
 
     use_flash:              on
 
     activated_modules:      [default]
 
-    strip_comments:         off
+    strip_comments:         on
+
+    etag:                   on
+
+    validation_error_prefix:    ' &darr;&nbsp;'
+    validation_error_suffix:    ' &nbsp;&darr;'
+    validation_error_class:     form_error
+    validation_error_id_prefix: error_for_
+
+    autoloading_functions: ~
+
+    charset: utf-8
+
+    escaping_strategy: bc
+    escaping_method:   ESC_ENTITIES
+
+    prototype_web_dir: /sf/prototype
+    admin_web_dir:     /sf/sf_admin
+    web_debug_web_dir: /sf/sf_web_debug
+
+    check_lock:            off
+    check_symfony_version: off

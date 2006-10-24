@@ -15,8 +15,6 @@
  * @since   Horde 1.3
  * @since   sfLog 1.0
  * @package sfLog
- *
- * @example observer_mail.php   An example sfLog_observer implementation.
  */
 class sfLog_observer
 {
@@ -122,5 +120,3 @@ class sfLog_observer
         print_r($event);
     }
 }
-
-?>

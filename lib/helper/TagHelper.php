@@ -3,6 +3,7 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
+ * (c) 2004 David Heinemeier Hansson
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -14,6 +15,7 @@
  * @package    symfony
  * @subpackage helper
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
+ * @author     David Heinemeier Hansson
  * @version    SVN: $Id$
  */
 
@@ -51,8 +53,8 @@ function cdata_section($content)
 }
 
 /**
-  # Escape carrier returns and single and double quotes for Javascript segments.
-*/
+ * Escape carrier returns and single and double quotes for Javascript segments.
+ */
 function escape_javascript($javascript = '')
 {
   $javascript = preg_replace('/\r\n|\n|\r/', "\\n", $javascript);
@@ -93,5 +95,3 @@ function _get_option(&$options, $name, $default = null)
 
   return $value;
 }
-
-?>

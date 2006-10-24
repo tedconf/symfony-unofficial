@@ -24,10 +24,10 @@
  */
 class sfRouting
 {
-  private static
+  protected static
     $instance           = null;
 
-  private
+  protected
     $current_route_name = '',
     $routes             = array();
 
@@ -46,7 +46,7 @@ class sfRouting
     return self::$instance;
   }
 
-  private function setCurrentRouteName($name)
+  protected function setCurrentRouteName($name)
   {
     $this->current_route_name = $name;
   }
@@ -60,7 +60,7 @@ class sfRouting
   {
     if ($this->current_route_name)
     {
-      list($url, $regexp, $names, $names_hash, $defaults, $requirements, $suffix) = $this->routes[$this->current_route_name];
+      list($url, $regexp, $names, $names_hash, $defaults, $suffix) = $this->routes[$this->current_route_name];
 
       $request = sfContext::getInstance()->getRequest();
 
@@ -88,7 +88,8 @@ class sfRouting
       {
         foreach ($request->getParameterHolder()->getAll() as $key => $value)
         {
-          if ($key == 'module' || $key == 'action' || in_array($key, $names)) {
+          if ($key == 'module' || $key == 'action' || in_array($key, $names))
+          {
             continue;
           }
 
@@ -123,6 +124,11 @@ class sfRouting
     return count($this->routes) ? true : false;
   }
 
+  public function hasRouteName($name)
+  {
+    return isset($this->routes[$name]) ? true : false;
+  }
+
   /**
    * Get a route by its name.
    *
@@ -137,7 +143,7 @@ class sfRouting
 
     if (!isset($this->routes[$name]))
     {
-      $error = 'The route "%s" does not exist.';
+      $error = 'The route "%s" does not exist';
       $error = sprintf($error, $name);
 
       throw new sfConfigurationException($error);
@@ -167,7 +173,7 @@ class sfRouting
   * - :string: :string denotes a named paramater (available later as $request->getParameter('string'))
   * - *: * match an indefinite number of parameters in a route
   *
-  * Here is the a very common rule in a symfony project:
+  * Here is a very common rule in a symfony project:
   *
   * <code>
   * $r->connect('/:module/:action/*');
@@ -200,7 +206,7 @@ class sfRouting
     if (($route == '') || ($route == '/'))
     {
       $regexp = '/^[\/]*$/';
-      $this->routes[$name] = array($route, $regexp, array(), array(), $default, $requirements, $suffix);
+      $this->routes[$name] = array($route, $regexp, array(), array(), $default, $suffix);
     }
     else
     {
@@ -237,9 +243,29 @@ class sfRouting
       {
         if (preg_match('/^:(.+)$/', $element, $r))
         {
-          $parsed[] = '(?:\/([^\/]+))?';
-          $names[] = $r[1];
-          $names_hash[$r[1]] = 1;
+          $element = $r[1];
+
+          // regex is [^\/]+ or the requirement regex
+          if (isset($requirements[$element]))
+          {
+            $regex = $requirements[$element];
+            if (0 === strpos($regex, '^'))
+            {
+              $regex = substr($regex, 1);
+            }
+            if (strlen($regex) - 1 === strpos($regex, '$'))
+            {
+              $regex = substr($regex, 0, -1);
+            }
+          }
+          else
+          {
+            $regex = '[^\/]+';
+          }
+
+          $parsed[] = '(?:\/('.$regex.'))?';
+          $names[] = $element;
+          $names_hash[$element] = 1;
         }
         elseif (preg_match('/^\*$/', $element, $r))
         {
@@ -252,7 +278,7 @@ class sfRouting
       }
       $regexp = '#^'.join('', $parsed).$regexp_suffix.'$#';
 
-      $this->routes[$name] = array($route, $regexp, $names, $names_hash, $default, $requirements, $suffix);
+      $this->routes[$name] = array($route, $regexp, $names, $names_hash, $default, $suffix);
     }
 
     if (sfConfig::get('sf_logging_active'))
@@ -271,7 +297,7 @@ class sfRouting
   * @param  string equal sign to use between key and value
   * @return string url
   */
-  public function generate($name, $params, $divider, $equals)
+  public function generate($name, $params, $querydiv = '/', $divider = '/', $equals = '/')
   {
     $global_defaults = sfConfig::get('sf_routing_defaults', null);
 
@@ -286,10 +312,19 @@ class sfRouting
         throw new sfConfigurationException($error);
       }
 
-      list($url, $regexp, $names, $names_hash, $defaults, $requirements, $suffix) = $this->routes[$name];
+      list($url, $regexp, $names, $names_hash, $defaults, $suffix) = $this->routes[$name];
       if ($global_defaults !== null)
       {
         $defaults = array_merge($defaults, $global_defaults);
+      }
+
+      // all params must be given
+      foreach ($names as $tmp)
+      {
+        if (!isset($params[$tmp]) && !isset($defaults[$tmp]))
+        {
+          throw new sfException(sprintf('Route named "%s" have a mandatory "%s" parameter', $name, $tmp));
+        }
       }
     }
     else
@@ -298,16 +333,18 @@ class sfRouting
       $found = false;
       foreach ($this->routes as $name => $route)
       {
-        list($url, $regexp, $names, $names_hash, $defaults, $requirements, $suffix) = $route;
+        list($url, $regexp, $names, $names_hash, $defaults, $suffix) = $route;
         if ($global_defaults !== null)
         {
           $defaults = array_merge($defaults, $global_defaults);
         }
 
+        $tparams = array_merge($defaults, $params);
+
         // we must match all names (all $names keys must be in $params array)
         foreach ($names as $key)
         {
-          if (!isset($params[$key])) continue 2;
+          if (!isset($tparams[$key])) continue 2;
         }
 
         // we must match all defaults with value except if present in names
@@ -315,13 +352,13 @@ class sfRouting
         {
           if (isset($names_hash[$key])) continue;
 
-          if (!isset($params[$key]) || $params[$key] != $value) continue 2;
+          if (!isset($tparams[$key]) || $tparams[$key] != $value) continue 2;
         }
 
         // we must have consumed all $params keys if there is no * in route
         if (!strpos($url, '*'))
         {
-          if (count(array_diff(array_keys($params), $names, array_keys($defaults))))
+          if (count(array_diff(array_keys($tparams), $names, array_keys($defaults))))
           {
             continue;
           }
@@ -341,12 +378,15 @@ class sfRouting
       }
     }
 
+    $params = array_merge($defaults, $params);
+
     $real_url = preg_replace('/\:([^\/]+)/e', 'urlencode($params["\\1"])', $url);
 
     // we add all other params if *
     if (strpos($real_url, '*'))
     {
       $tmp = '';
+
       foreach ($params as $key => $value)
       {
         if (isset($names_hash[$key]) || isset($defaults[$key])) continue;
@@ -354,15 +394,20 @@ class sfRouting
         if (is_array($value))
         {
           foreach ($value as $v)
+          {
             $tmp .= $key.$equals.urlencode($v).$divider;
+          }
         }
         else
         {
           $tmp .= urlencode($key).$equals.urlencode($value).$divider;
         }
       }
-
-      $real_url = preg_replace('/\*(\/|$)/', $tmp, $real_url);
+      if (strlen($tmp) > 0)
+      {
+        $tmp = $querydiv.$tmp;
+      }
+      $real_url = preg_replace('/\/\*(\/|$)/', $tmp, $real_url);
     }
 
     // strip off last divider character
@@ -409,7 +454,7 @@ class sfRouting
       $out = array();
       $r = null;
 
-      list($route, $regexp, $names, $names_hash, $defaults, $requirements, $suffix) = $route;
+      list($route, $regexp, $names, $names_hash, $defaults, $suffix) = $route;
 
       $break = false;
 
@@ -442,38 +487,26 @@ class sfRouting
           // if $found is a named url element (i.e. ':action')
           if (isset($names[$pos]))
           {
-            // check requirements
-            if (isset($requirements[$names[$pos]]) && !preg_match('/'.$requirements[$names[$pos]].'/', $found))
-            {
-              $break = false;
-              break;
-            }
             $out[$names[$pos]] = urldecode($found);
           }
           // unnamed elements go in as 'pass'
           else
           {
             $pass = explode('/', $found);
+            $found = '';
             for ($i = 0, $max = count($pass); $i < $max; $i += 2)
             {
               if (!isset($pass[$i + 1])) continue;
 
-              $key = $pass[$i];
-              $value = $pass[$i + 1];
-
+              $found .= $pass[$i].'='.$pass[$i + 1].'&';
+            }
+            parse_str($found, $pass);
+            foreach ($pass as $key => $value)
+            {
               // we add this parameters if not in conflict with named url element (i.e. ':action')
               if (!isset($names_hash[$key]))
               {
-                // array parameters?
-                if (substr($key, -2) == '[]')
-                {
-                  if (!isset($out[$key])) $out[$key] = array();
-                  $out[$key][] = urldecode($value);
-                }
-                else
-                {
-                  $out[$key] = urldecode($value);
-                }
+                $out[$key] = $value;
               }
             }
           }
@@ -483,7 +516,8 @@ class sfRouting
         // we must have found all :var stuffs in url? except if default values exists
         foreach ($names as $name)
         {
-          if ($out[$name] == null) {
+          if ($out[$name] == null)
+          {
             $break = false;
           }
         }
@@ -511,5 +545,3 @@ class sfRouting
     return $out;
   }
 }
-
-?>

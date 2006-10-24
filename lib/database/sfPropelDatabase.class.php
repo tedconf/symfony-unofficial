@@ -30,26 +30,32 @@ class sfPropelDatabase extends sfCreoleDatabase
 {
   static $config = array();
 
-  public function initialize ($parameters = null, $datasource = 'symfony')
+  public function initialize ($parameters = null, $name = null)
   {
     parent::initialize($parameters);
 
-    $this->addConfig($datasource);
+    if (!$this->hasParameter('datasource'))
+    {
+      $this->setParameter('datasource', $name);
+    }
+
+    $this->addConfig();
 
     $is_default = $this->getParameter('is_default', false);
 
     // first defined if none listed as default
     if ($is_default || count(self::$config['propel']['datasources']) == 1)
     {
-      $this->setDefaultConfig($datasource);
+      $this->setDefaultConfig();
     }
   }
 
-  public function setDefaultConfig ($datasource) {
-    self::$config['propel']['datasources']['default'] = $this->getParameter('datasource', $datasource);
+  public function setDefaultConfig ()
+  {
+    self::$config['propel']['datasources']['default'] = $this->getParameter('datasource');
   }
 
-  public function addConfig ($datasource)
+  public function addConfig ()
   {
     $dsn = $this->getParameter('dsn');
 
@@ -59,23 +65,26 @@ class sfPropelDatabase extends sfCreoleDatabase
       $params = Creole::parseDSN($dsn);
 
       $this->setParameter('phptype',  $params['phptype']);
-      $this->setParameter('hostspec', $params['hostspec']);
+      $this->setParameter('hostspec', $params['hostspec'] ? $params['hostspec'] : ($params['host'] ? $params['host'] : null));
       $this->setParameter('database', $params['database']);
       $this->setParameter('username', $params['username']);
       $this->setParameter('password', $params['password']);
+      $this->setParameter('port',     $params['port']);
+      $this->setParameter('encoding', isset($params['encoding']) ? $params['encoding'] : null);
     }
 
-    $datasource = $this->getParameter('datasource', $datasource);
-    self::$config['propel']['datasources'][$datasource] =
+    self::$config['propel']['datasources'][$this->getParameter('datasource')] =
       array(
-        'adapter' =>    $this->getParameter('phptype'),
+        'adapter'    => $this->getParameter('phptype'),
         'connection' =>
         array(
           'phptype'  => $this->getParameter('phptype'),
-          'hostspec' => $this->getParameter('hostspec'),
+          'hostspec' => $this->getParameter('hostspec') ? $this->getParameter('hostspec') : ($this->getParameter('host') ? $this->getParameter('host') : null),
           'database' => $this->getParameter('database'),
           'username' => $this->getParameter('username'),
           'password' => $this->getParameter('password'),
+          'port'     => $this->getParameter('port'),
+          'encoding' => $this->getParameter('encoding'),
         ),
       );
   }
@@ -84,6 +93,41 @@ class sfPropelDatabase extends sfCreoleDatabase
   {
     return self::$config;
   }
-}
 
-?>
+  public function setConnectionParameter ($key, $value)
+  {
+    if ($key == 'host')
+    {
+      $key = 'hostspec';
+    }
+
+    self::$config['propel']['datasources'][$this->getParameter('datasource')]['connection'][$key] = $value;
+    $this->setParameter($key, $value);
+  }
+
+  public function retrieveObjects($class, $peerMethod = null)
+  {
+    if (!$classPath = sfCore::getClassPath($class.'Peer'))
+    {
+      throw new sfException(sprintf('Unable to find path for class "%s".', $class.'Peer'));
+    }
+
+    require_once($classPath);
+
+    if (!$peerMethod)
+    {
+      $peerMethod = 'doSelect';
+    }
+
+    $classPeer = $class.'Peer';
+
+    if (!is_callable(array($classPeer, $peerMethod)))
+    {
+      throw new sfException(sprintf('Peer method "%s" not found for class "%s"', $peerMethod, $classPeer));
+    }
+
+    $objects = call_user_func(array($classPeer, $peerMethod), new Criteria());
+
+    return $objects;
+  }
+}

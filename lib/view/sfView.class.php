@@ -49,6 +49,11 @@ abstract class sfView
   const SUCCESS = 'Success';
 
   /**
+    * Skip view rendering but output http headers
+    */
+  const HEADER_ONLY = 'Headers';
+
+  /**
    * Render the presentation to the client.
    */
   const RENDER_CLIENT = 2;
@@ -63,73 +68,22 @@ abstract class sfView
    */
   const RENDER_VAR = 4;
 
-  private
+  protected
     $context            = null,
     $decorator          = false,
     $decoratorDirectory = null,
     $decoratorTemplate  = null,
     $directory          = null,
-    $slots              = array(),
-    $template           = null;
-
-  protected
+    $componentSlots     = array(),
+    $template           = null,
+    $escaping           = null,
+    $escapingMethod     = null,
     $attribute_holder   = null,
+    $parameter_holder   = null,
     $moduleName         = '',
-    $viewName           = '';
-
-  /**
-   * Loop through all template slots and fill them in with the results of presentation data.
-   *
-   * @param string A chunk of decorator content.
-   *
-   * @return string A decorated template.
-   */
-  protected function & decorate (&$content)
-  {
-    // alias controller
-    $controller = $this->getContext()->getController();
-
-    // get original render mode
-    $renderMode = $controller->getRenderMode();
-
-    // set render mode to var
-    $controller->setRenderMode(self::RENDER_VAR);
-
-    // grab the action stack
-    $actionStack = $controller->getActionStack();
-
-    // loop through our slots, and replace them one-by-one in the
-    // decorator template
-    $slots =& $this->getSlots();
-
-    foreach ($slots as $name => &$slot)
-    {
-      // grab this next forward's action stack index
-      $index = $actionStack->getSize();
-
-      // forward to the first slot action
-      $controller->forward($slot['module_name'], $slot['action_name'], true);
-
-      // grab the action entry from this forward
-      $actionEntry = $actionStack->getEntry($index);
-
-      // set the presentation data as a template attribute
-      $presentation =& $actionEntry->getPresentation();
-
-      $this->attribute_holder->setByRef($name, $presentation);
-    }
-
-    // put render mode back
-    $controller->setRenderMode($renderMode);
-
-    // set the decorator content as an attribute
-    $this->attribute_holder->setByRef('content', $content);
-
-    // return a null value to satisfy the requirement
-    $retval = null;
-
-    return $retval;
-  }
+    $actionName         = '',
+    $viewName           = '',
+    $extension          = '.php';
 
   /**
    * Execute any presentation logic and set template attributes.
@@ -143,7 +97,7 @@ abstract class sfView
    *
    * @return void
    */
-  abstract function configure ($extension = '.php');
+  abstract function configure ();
 
   /**
    * Retrieve the current application context.
@@ -192,17 +146,7 @@ abstract class sfView
    *
    * @return mixed A template engine instance.
    */
-  abstract function & getEngine ();
-
-  /**
-   * Retrieve an array of specified slots for the decorator template.
-   *
-   * @return array An associative array of decorator slots.
-   */
-  protected function & getSlots ()
-  {
-    return $this->slots;
-  }
+  abstract function getEngine ();
 
   /**
    * Retrieve this views template.
@@ -212,6 +156,45 @@ abstract class sfView
   public function getTemplate ()
   {
     return $this->template;
+  }
+
+  /**
+   * Gets the default escaping strategy associated with this view.
+   *
+   * The escaping strategy specifies how the variables get passed to the view.
+   *
+   * @return string the escaping strategy.
+   */
+  public function getEscaping()
+  {
+    return null === $this->escaping ? sfConfig::get('sf_escaping_strategy') : $this->escaping;
+  }
+
+  /**
+   * Returns the name of the function that is to be used as the escaping method.
+   *
+   * If the escaping method is empty, then that is returned. The default value
+   * specified by the sub-class will be used. If the method does not exist (in
+   * the sense there is no define associated with the method) and exception is
+   * thrown.
+   *
+   * @return string the escaping method as the name of the function to use
+   */
+  public function getEscapingMethod()
+  {
+    $method = null === $this->escapingMethod ? sfConfig::get('sf_escaping_method') : $this->escapingMethod;
+
+    if (empty($method))
+    {
+      return $method;
+    }
+
+    if (!defined($method))
+    {
+      throw new sfException(sprintf('Escaping method "%s" is not available; perhaps another helper needs to be loaded in?', $method));
+    }
+
+    return constant($method);
   }
 
   /**
@@ -296,7 +279,9 @@ abstract class sfView
         if ($errors)
         {
           if ($request->hasError($name))
+          {
             $this->setAttribute($name.'_error', $request->getError($name));
+          }
           else
           {
             // set empty error
@@ -311,23 +296,29 @@ abstract class sfView
    *
    * @param Context The current application context.
    * @param string The module name for this view.
+   * @param string The action name for this view.
    * @param string The view name.
    *
    * @return bool true, if initialization completes successfully, otherwise false.
    */
-  public function initialize ($context, $moduleName, $viewName)
+  public function initialize ($context, $moduleName, $actionName, $viewName)
   {
+    if (sfConfig::get('sf_logging_active'))
+    {
+      $context->getLogger()->info(sprintf('{sfView} initialize view for "%s/%s"', $moduleName, $actionName));
+    }
+
     $this->moduleName = $moduleName;
+    $this->actionName = $actionName;
     $this->viewName   = $viewName;
 
     $this->context = $context;
     $this->attribute_holder = new sfParameterHolder();
+    $this->parameter_holder = new sfParameterHolder();
 
-    // set the currently executing module's template directory as the default template directory
-    $module = $context->getModuleName();
+    $this->parameter_holder->add(sfConfig::get('mod_'.strtolower($moduleName).'_view_param', array()));
 
-    $this->decoratorDirectory = sfConfig::get('sf_app_module_dir').'/'.$module.'/'.sfConfig::get('sf_app_module_template_dir_name');
-    $this->directory          = $this->decoratorDirectory;
+    $this->decoratorDirectory = sfConfig::get('sf_app_template_dir');
 
     // include view configuration
     $this->configure();
@@ -355,6 +346,26 @@ abstract class sfView
     return $this->attribute_holder->set($name, $value, $ns);
   }
 
+  public function getParameterHolder()
+  {
+    return $this->parameter_holder;
+  }
+
+  public function getParameter($name, $default = null, $ns = null)
+  {
+    return $this->parameter_holder->get($name, $default, $ns);
+  }
+
+  public function hasParameter($name, $ns = null)
+  {
+    return $this->parameter_holder->has($name, $ns);
+  }
+
+  public function setParameter($name, $value, $ns = null)
+  {
+    return $this->parameter_holder->set($name, $value, $ns);
+  }
+
   /**
    * Indicates that this view is a decorating view.
    *
@@ -363,6 +374,11 @@ abstract class sfView
   public function isDecorator ()
   {
     return $this->decorator;
+  }
+
+  public function setDecorator ($boolean)
+  {
+    $this->decorator = (boolean) $boolean;
   }
 
   /**
@@ -388,10 +404,7 @@ abstract class sfView
     if (!is_readable($template))
     {
       // the template isn't readable
-      $error = 'The template "%s" does not exist or is unreadable';
-      $error = sprintf($error, $template);
-
-      throw new sfRenderException($error);
+      throw new sfRenderException(sprintf('The template "%s" does not exist in: %s', $template, $this->directory));
     }
 
     // check to see if this is a decorator template
@@ -416,11 +429,12 @@ abstract class sfView
    * When the controller render mode is sfView::RENDER_CLIENT, this method will
    * render the presentation directly to the client and null will be returned.
    *
+   * @param  array  An array with variables that will be extracted for the template
+   *                If empty, the current actions var holder will be extracted.
    * @return string A string representing the rendered presentation, if
-   *                the controller render mode is sfView::RENDER_VAR, otherwise
-   *                null.
+   *                the controller render mode is sfView::RENDER_VAR, otherwise null.
    */
-  abstract function & render ();
+  abstract function render ($templateVars = null);
 
   /**
    * Set the decorator template directory for this view.
@@ -432,6 +446,16 @@ abstract class sfView
   public function setDecoratorDirectory ($directory)
   {
     $this->decoratorDirectory = $directory;
+  }
+
+  public function setEscaping($escaping)
+  {
+    $this->escaping = $escaping;
+  }
+
+  public function setEscapingMethod($method)
+  {
+    $this->escapingMethod = $method;
   }
 
   /**
@@ -452,7 +476,14 @@ abstract class sfView
       $this->decoratorTemplate  = basename($template);
     }
     else
+    {
       $this->decoratorTemplate = $template;
+    }
+
+    if (!strpos($this->decoratorTemplate, '.'))
+    {
+      $this->decoratorTemplate .= $this->getExtension();
+    }
 
     // set decorator status
     $this->decorator = true;
@@ -476,26 +507,42 @@ abstract class sfView
    *
    * @param string A template attribute name.
    * @param string A module name.
-   * @param string An action name.
+   * @param string A omponent name.
    *
    * @return void
    */
-  public function setSlot ($attributeName, $moduleName, $actionName)
+  public function setComponentSlot ($attributeName, $moduleName, $componentName)
   {
-    $this->slots[$attributeName]                = array();
-    $this->slots[$attributeName]['module_name'] = $moduleName;
-    $this->slots[$attributeName]['action_name'] = $actionName;
+    $this->componentSlots[$attributeName]                   = array();
+    $this->componentSlots[$attributeName]['module_name']    = $moduleName;
+    $this->componentSlots[$attributeName]['component_name'] = $componentName;
   }
 
   /**
-   * Indicates whether or not a slot exists.
+   * Indicates whether or not a component slot exists.
    *
-   * @param  string slot name
-   * @return bool true, if the slot exists, otherwise false.
+   * @param  string component slot name
+   * @return bool true, if the component slot exists, otherwise false.
    */
-  public function hasSlot($name)
+  public function hasComponentSlot($name)
   {
-    return array_key_exists($name, $this->slots);
+    return isset($this->componentSlots[$name]);
+  }
+
+  /**
+   * Get a component slot.
+   *
+   * @param  string component slot name
+   * @return array component slot.
+   */
+  public function getComponentSlot($name)
+  {
+    if (isset($this->componentSlots[$name]) && $this->componentSlots[$name]['module_name'] && $this->componentSlots[$name]['component_name'])
+    {
+      return array($this->componentSlots[$name]['module_name'], $this->componentSlots[$name]['component_name']);
+    }
+
+    return null;
   }
 
   /**
@@ -516,8 +563,23 @@ abstract class sfView
       $this->template  = basename($template);
     }
     else
+    {
       $this->template = $template;
+    }
+  }
+
+  public function getExtension ()
+  {
+    return $this->extension;
+  }
+
+  public function setExtension ($ext)
+  {
+    $this->extension = $ext;
+  }
+
+  public function __call($method, $arguments)
+  {
+    return sfMixer::callMixins();
   }
 }
-
-?>

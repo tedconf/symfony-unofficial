@@ -22,10 +22,10 @@
  */
 class sfConfigCache
 {
-  private
+  protected
     $handlers = array();
 
-  private static
+  protected static
     $instance = null;
 
   public static function getInstance()
@@ -42,7 +42,7 @@ class sfConfigCache
    * Load a configuration handler.
    *
    * @param string The handler to use when parsing a configuration file.
-   * @param string An absolute filesystem path to a configuration file.
+   * @param array  An array of absolute filesystem paths to configuration files.
    * @param string An absolute filesystem path to the cache file that will be written.
    *
    * @return void
@@ -50,7 +50,7 @@ class sfConfigCache
    * @throws <b>sfConfigurationException</b> If a requested configuration file
    *                                       does not have an associated configuration handler.
    */
-  private function callHandler($handler, $config, $cache, $param = array())
+  protected function callHandler($handler, $configs, $cache)
   {
     if (count($this->handlers) == 0)
     {
@@ -58,28 +58,20 @@ class sfConfigCache
       $this->loadConfigHandlers();
     }
 
+    // handler to call for this configuration file
+    $handlerToCall = null;
+
     // grab the base name of the handler
     $basename = basename($handler);
     if (isset($this->handlers[$handler]))
     {
       // we have a handler associated with the full configuration path
-
-      // call the handler and retrieve the cache data
-      $data = $this->handlers[$handler]->execute($config, $param);
-
-      $this->writeCacheFile($config, $cache, $data);
-
-      return;
+      $handlerToCall = $this->handlers[$handler];
     }
     else if (isset($this->handlers[$basename]))
     {
       // we have a handler associated with the configuration base name
-
-      // call the handler and retrieve the cache data
-      $data = $this->handlers[$basename]->execute($config, $param);
-      $this->writeCacheFile($config, $cache, $data);
-
-      return;
+      $handlerToCall = $this->handlers[$basename];
     }
     else
     {
@@ -88,27 +80,49 @@ class sfConfigCache
       foreach ($this->handlers as $key => $handlerInstance)
       {
         // replace wildcard chars in the configuration
-        $pattern = strtr($key, array('.' => '\.',
-                                     '*' => '.*?'));
+        $pattern = strtr($key, array('.' => '\.', '*' => '.*?'));
 
         // create pattern from config
         if (preg_match('#'.$pattern.'#', $handler))
         {
           // we found a match!
+          $handlerToCall = $this->handlers[$key];
 
-          // call the handler and retrieve the cache data
-          $data = $this->handlers[$key]->execute($config, $param);
-
-          $this->writeCacheFile($config, $cache, $data);
-
-          return;
+          break;
         }
       }
     }
 
-    // we do not have a registered handler for this file
-    $error = sprintf('Configuration file "%s" does not have a registered handler', $config);
-    throw new sfConfigurationException($error);
+    if ($handlerToCall)
+    {
+      // call the handler and retrieve the cache data
+      $data = $handlerToCall->execute($configs);
+
+      $this->writeCacheFile($handler, $cache, $data);
+    }
+    else
+    {
+      // we do not have a registered handler for this file
+      $error = sprintf('Configuration file "%s" does not have a registered handler', implode(', ', $configs));
+
+      throw new sfConfigurationException($error);
+    }
+  }
+
+  public function findConfigPaths($configPath)
+  {
+    $configs = array();
+
+    $files = sfLoader::getConfigDirs($configPath);
+    foreach (array_unique($files) as $file)
+    {
+      if (is_readable($file))
+      {
+        $configs[] = $file;
+      }
+    }
+
+    return $configs;
   }
 
   /**
@@ -124,37 +138,67 @@ class sfConfigCache
    *
    * @throws <b>sfConfigurationException</b> If a requested configuration file does not exist.
    */
-  public function checkConfig($configPath, $param = array())
+  public function checkConfig($configPath, $optional = false)
   {
-    // full filename path to the config
-    $filename = $configPath;
-
-    if (!sfToolkit::isPathAbsolute($filename))
+    if (sfConfig::get('sf_debug') && sfConfig::get('sf_logging_active'))
     {
-      if (!is_readable(sfConfig::get('sf_app_dir').'/'.$filename))
-      {
-        $filename = sfConfig::get('sf_symfony_data_dir').'/config/'.basename($filename);
-      }
-      else
-      {
-        $filename = sfConfig::get('sf_app_dir').'/'.$filename;
-      }
-    }
-
-    if (!is_readable($filename))
-    {
-      // configuration file does not exist
-      $error = sprintf('Configuration file "%s" does not exist or is unreadable', $filename);
-      throw new sfConfigurationException($error);
+      $timer = sfTimerManager::getTimer('Configuration');
     }
 
     // the cache filename we'll be using
     $cache = $this->getCacheName($configPath);
 
-    if (!is_readable($cache) || filemtime($filename) > filemtime($cache))
+    if (sfConfig::get('sf_in_bootstrap') && is_readable($cache))
     {
-      // configuration file has changed so we need to reparse it
-      $this->callHandler($configPath, $filename, $cache, $param);
+      if (sfConfig::get('sf_debug') && sfConfig::get('sf_logging_active'))
+      {
+        $timer->addTime();
+      }
+
+      return $cache;
+    }
+
+    if (!sfToolkit::isPathAbsolute($configPath))
+    {
+      $files = $this->findConfigPaths($configPath);
+    }
+    else
+    {
+      $files = is_readable($configPath) ? array($configPath) : array();
+    }
+
+    if (!isset($files[0]))
+    {
+      if ($optional)
+      {
+        return null;
+      }
+
+      // configuration does not exist
+      $error = sprintf('Configuration "%s" does not exist or is unreadable', $configPath);
+
+      throw new sfConfigurationException($error);
+    }
+
+    // find the more recent configuration file last modification time
+    $mtime = 0;
+    foreach ($files as $file)
+    {
+      if (filemtime($file) > $mtime)
+      {
+        $mtime = filemtime($file);
+      }
+    }
+
+    if (!is_readable($cache) || $mtime > filemtime($cache))
+    {
+      // configuration has changed so we need to reparse it
+      $this->callHandler($configPath, $files, $cache);
+    }
+
+    if (sfConfig::get('sf_debug') && sfConfig::get('sf_logging_active'))
+    {
+      $timer->addTime();
     }
 
     return $cache;
@@ -186,7 +230,7 @@ class sfConfigCache
     }
 
     // replace unfriendly filename characters with an underscore
-    $config  = str_replace(array('\\', '/'), '_', $config);
+    $config  = str_replace(array('\\', '/', ' '), '_', $config);
     $config .= '.php';
 
     return sfConfig::get('sf_config_cache_dir').'/'.$config;
@@ -203,10 +247,14 @@ class sfConfigCache
    *
    * @return void
    */
-  public function import($config, $once = true, $param = array())
+  public function import($config, $once = true, $optional = false)
   {
-    // check the config file
-    $cache = $this->checkConfig($config, $param);
+    $cache = $this->checkConfig($config, $optional);
+
+    if ($optional && !$cache)
+    {
+      return;
+    }
 
     // include cache file
     if ($once)
@@ -227,7 +275,7 @@ class sfConfigCache
    * @throws <b>sfConfigurationException</b> If a configuration related error
    *                                       occurs.
    */
-  private function loadConfigHandlers()
+  protected function loadConfigHandlers()
   {
     // manually create our config_handlers.yml handler
     $this->handlers['config_handlers.yml'] = new sfRootConfigHandler();
@@ -292,18 +340,10 @@ class sfConfigCache
    *
    * @throws sfCacheException If the cache file cannot be written.
    */
-  private function writeCacheFile($config, $cache, &$data)
+  protected function writeCacheFile($config, $cache, &$data)
   {
     $fileCache = new sfFileCache(dirname($cache));
     $fileCache->setSuffix('');
-    if (!$fileCache->set(basename($cache), '', $data))
-    {
-      // cannot write cache file
-      $error = sprintf('Failed to write cache file "%s" generated from configuration file "%s"',
-                       $cache, $config);
-      throw new sfCacheException($error);
-    }
+    $fileCache->set(basename($cache), '', $data);
   }
 }
-
-?>

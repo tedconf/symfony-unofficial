@@ -31,12 +31,10 @@ class sfUser
 
   const CULTURE_NAMESPACE = 'symfony/user/sfUser/culture';
 
-  private
+  protected
     $parameter_holder = null,
     $attribute_holder = null,
-    $culture = null;
-
-  protected
+    $culture          = null,
     $context          = null;
 
   /**
@@ -80,9 +78,9 @@ class sfUser
     }
 
     $culture = $this->getContext()->getStorage()->read(self::CULTURE_NAMESPACE);
-    if ($this->culture == null)
+    if ($culture === null)
     {
-      $culture = sfConfig::get('sf_i18n_default_culture');
+      $culture = sfConfig::get('sf_i18n_default_culture') ? sfConfig::get('sf_i18n_default_culture') : 'en';
     }
 
     $this->setCulture($culture);
@@ -203,7 +201,12 @@ class sfUser
 
     // write culture to the storage
     $storage->write(self::CULTURE_NAMESPACE, $this->culture);
+
+    session_write_close();
+  }
+
+  public function __call($method, $arguments)
+  {
+    return sfMixer::callMixins();
   }
 }
-
-?>
