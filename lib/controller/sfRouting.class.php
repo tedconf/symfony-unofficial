@@ -266,12 +266,14 @@ class sfRouting
  /**
   * Generates a valid URLs for parameters.
   *
+  * @param  string route name (empty if not known)
   * @param  array  parameter values
+  * @param  string divider between path and query
   * @param  string divider between key/value pairs
   * @param  string equal sign to use between key and value
   * @return string url
   */
-  public function generate($name, $params, $divider, $equals)
+  public function generate($name, $params, $querydiv, $divider, $equals)
   {
     $global_defaults = sfConfig::get('sf_routing_defaults', null);
 
@@ -376,7 +378,11 @@ class sfRouting
         }
       }
 
-      $real_url = preg_replace('/\*(\/|$)/', $tmp, $real_url);
+      if (strlen($tmp) > 0)
+      {
+        $tmp = $querydiv.$tmp;
+      }
+      $real_url = preg_replace('/\/\*(\/|$)/', $tmp, $real_url);
     }
 
     // strip off last divider character
