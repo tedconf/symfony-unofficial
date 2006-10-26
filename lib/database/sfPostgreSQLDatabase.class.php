@@ -114,7 +114,7 @@ class sfPostgreSQLDatabase extends sfDatabase
    *
    * @return string A connection string.
    */
-  protected function loadParameters (&$array)
+  private function loadParameters (&$array)
   {
     $database = $this->getParameter('database');
     $host     = $this->getParameter('host');

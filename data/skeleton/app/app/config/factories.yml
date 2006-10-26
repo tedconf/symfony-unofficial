@@ -1,8 +1,8 @@
 cli:
   controller:
-    class: sfConsoleController
+    class: myConsoleController
   request:
-    class: sfConsoleRequest
+    class: myConsoleRequest
 
 test:
   storage:
@@ -10,10 +10,10 @@ test:
 
 all:
 #  controller:
-#    class: sfFrontWebController
+#    class: myFrontWebController
 #
 #  request:
-#    class: sfWebRequest
+#    class: myWebRequest
 #
 #  user:
 #    class: myUser

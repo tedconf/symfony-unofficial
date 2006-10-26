@@ -97,11 +97,6 @@ class PgSQLTableInfo extends TableInfo {
             throw new SQLException("Could not list fields for table: " . $this->name, pg_last_error($this->conn->getResource()));
         }
         while($row = pg_fetch_assoc($result)) {
-        	
-        	$size = null;
-        	$precision = null;
-        	$scale = null;
-        	
         	// Check to ensure that this column isn't an array data type
         	if (((int) $row['isarray']) === 1)
         	{
@@ -114,8 +109,7 @@ class PgSQLTableInfo extends TableInfo {
             	$arrDomain = $this->processDomain ($row['typname']);
             	$type = $arrDomain['type'];
             	$size = $arrDomain['length'];
-            	$precision = $size;
-            	$scale = $arrDomain['scale'];
+            	$scale = $arrDomain['precision'];
             	$boolHasDefault = (strlen (trim ($row['atthasdef'])) > 0) ? $row['atthasdef'] : $arrDomain['hasdefault'];
             	$default = (strlen (trim ($row['adsrc'])) > 0) ? $row['adsrc'] : $arrDomain['default'];
             	$is_nullable = (strlen (trim ($row['attnotnull'])) > 0) ? $row['attnotnull'] : $arrDomain['notnull'];
@@ -124,10 +118,9 @@ class PgSQLTableInfo extends TableInfo {
             else
             {
 	            $type = $row['typname'];
-	            $arrLengthPrecision = $this->processLengthScale ($row['atttypmod'], $type);
+	            $arrLengthPrecision = $this->processLengthPrecision ($row['atttypmod'], $type);
 	            $size = $arrLengthPrecision['length'];
-	            $precision = $size;
-	            $scale = $arrLengthPrecision['scale'];
+	            $scale = $arrLengthPrecision['precision'];
 	            $boolHasDefault = $row['atthasdef'];
 	            $default = $row['adsrc'];
 	            $is_nullable = (($row['attnotnull'] == 't') ? false : true);
@@ -154,16 +147,16 @@ class PgSQLTableInfo extends TableInfo {
             	$default = null;
             } // else (($boolHasDefault == 't') && (strlen (trim ($default)) > 0))
 
-            $this->columns[$name] = new ColumnInfo($this, $name, PgSQLTypes::getType($type), $type, $size, $precision, $scale, $is_nullable, $default, $autoincrement);
+            $this->columns[$name] = new ColumnInfo($this, $name, PgSQLTypes::getType($type), $type, $size, $scale, $is_nullable, $default, $autoincrement);
         }
 
         $this->colsLoaded = true;
     } // protected function initColumns ()
 
-    private function processLengthScale ($intTypmod, $strName)
+    private function processLengthPrecision ($intTypmod, $strName)
     {
     	// Define the return array
-    	$arrRetVal = array ('length'=>null, 'scale'=>null);
+    	$arrRetVal = array ('length'=>null, 'precision'=>null);
 
     	// Some datatypes don't have a Typmod
     	if ($intTypmod == -1)
@@ -182,7 +175,7 @@ class PgSQLTableInfo extends TableInfo {
     			$intPrec = sprintf ("%ld", $intPrec);
     		} // if ($intPrec)
     		$arrRetVal['length'] = $intLen;
-    		$arrRetVal['scale'] = $intPrec;
+    		$arrRetVal['precision'] = $intPrec;
     	} // if ($strName == PgSQLTypes::getNativeType (CreoleTypes::NUMERIC))
     	elseif ($strName == PgSQLTypes::getNativeType (CreoleTypes::TIME) || $strName == 'timetz'
     		|| $strName == PgSQLTypes::getNativeType (CreoleTypes::TIMESTAMP) || $strName == 'timestamptz'
@@ -195,7 +188,7 @@ class PgSQLTableInfo extends TableInfo {
     		$arrRetVal['length'] = sprintf ("%ld", ($intTypmod - 4));
     	} // else
     	return $arrRetVal;
-    } // private function processLengthScale ($intTypmod, $strName)
+    } // private function processLengthPrecision ($intTypmod, $strName)
 
     private function processDomain ($strDomain)
     {
@@ -228,9 +221,9 @@ class PgSQLTableInfo extends TableInfo {
         } // if (!$row)
         $arrDomain = array ();
         $arrDomain['type'] = $row['basetype'];
-	    $arrLengthPrecision = $this->processLengthScale ($row['typtypmod'], $row['basetype']);
+	    $arrLengthPrecision = $this->processLengthPrecision ($row['typtypmod'], $row['basetype']);
 	    $arrDomain['length'] = $arrLengthPrecision['length'];
-	    $arrDomain['scale'] = $arrLengthPrecision['scale'];
+	    $arrDomain['precision'] = $arrLengthPrecision['precision'];
 	    $arrDomain['notnull'] = $row['typnotnull'];
 	    $arrDomain['default'] = $row['typdefault'];
 	    $arrDomain['hasdefault'] = (strlen (trim ($row['typdefault'])) > 0) ? 't' : 'f';

@@ -34,8 +34,19 @@ abstract class sfGenerator
 
   protected function generatePhpFiles($generatedModuleName, $templateFiles = array())
   {
+    // template directory
+    $template_dir = sfConfig::get('sf_symfony_data_dir').'/generator/'.$this->getGeneratorClass().'/'.$this->getTheme().'/template';
+
+    // default template directory
+    $default_template_dir = sfConfig::get('sf_symfony_data_dir').'/generator/'.$this->getGeneratorClass().'/default/template';
+
     // eval actions file
-    $retval = $this->evalTemplate('actions/actions.class.php');
+    $action_template = $template_dir.'/actions/actions.class.php';
+    if (!is_readable($action_template))
+    {
+      $action_template = $default_template_dir.'/actions/actions.class.php';
+    }
+    $retval = $this->evalTemplate($action_template);
 
     // save actions class
     $this->getGeneratorManager()->getCache()->set('actions.class.php', $generatedModuleName.DIRECTORY_SEPARATOR.'actions', $retval);
@@ -44,20 +55,28 @@ abstract class sfGenerator
     foreach ($templateFiles as $template)
     {
       // eval template file
-      $retval = $this->evalTemplate('templates/'.$template);
+      $template_template = $template_dir.'/templates/'.$template;
+      if (!is_readable($template_template))
+      {
+        $template_template = $default_template_dir.'/templates/'.$template;
+        if (!is_readable($template_template))
+        {
+          // this template does not exist for this generator
+          continue;
+        }
+      }
+      $retval = $this->evalTemplate($template_template);
 
-      // save template file
+      // save actions class
       $this->getGeneratorManager()->getCache()->set($template, $generatedModuleName.DIRECTORY_SEPARATOR.'templates', $retval);
     }
   }
 
-  protected function evalTemplate($templateFile)
+  protected function evalTemplate($template_file)
   {
-    $templateFile = sfLoader::getGeneratorTemplate($this->getGeneratorClass(), $this->getTheme(), $templateFile);
-
-    // eval template file
+    // eval template template file
     ob_start();
-    require($templateFile);
+    require($template_file);
     $content = ob_get_clean();
 
     // replace [?php and ?]
@@ -74,7 +93,11 @@ abstract class sfGenerator
   protected function replacePhpMarks($text)
   {
     // replace [?php and ?]
-    return str_replace(array('[?php', '[?=', '?]'), array('<?php', '<?php echo', '?>'), $text);
+    $text = str_replace('[?php', '<?php',      $text);
+    $text = str_replace('[?=',   '<?php echo', $text);
+    $text = str_replace('?]',    '?>',         $text);
+
+    return $text;
   }
 
   public function getGeneratorClass()
@@ -120,10 +143,5 @@ abstract class sfGenerator
   public function setTheme($theme)
   {
     $this->theme = $theme;
-  }
-
-  public function __call($method, $arguments)
-  {
-    return sfMixer::callMixins();
   }
 }

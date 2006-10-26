@@ -1,15 +1,26 @@
 <?php
 
-include(dirname(__FILE__).'/../../bootstrap/functional.php');
+class ##MODULE_NAME##ActionsWebBrowserTest extends UnitTestCase
+{
+  private
+    $browser = null;
 
-// create a new test browser
-$browser = new sfTestBrowser();
-$browser->initialize();
+  public function setUp ()
+  {
+    // create a new test browser
+    $this->browser = new sfTestBrowser();
+    $this->browser->initialize('hostname');
+  }
 
-$browser->
-  get('/##MODULE_NAME##/index')->
-  isStatusCode(200)->
-  isRequestParameter('module', '##MODULE_NAME##')->
-  isRequestParameter('action', 'index')->
-  checkResponseElement('body', '/##MODULE_NAME##/')
-;
+  public function tearDown ()
+  {
+    $this->browser->shutdown();
+  }
+
+  public function test_simple()
+  {
+    $url = '/##MODULE_NAME##/index';
+    $html = $this->browser->get($url);
+    $this->assertWantedPattern('/##MODULE_NAME##/', $html);
+  }
+}

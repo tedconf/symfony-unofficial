@@ -24,12 +24,10 @@ class sfBasicSecurityUser extends sfUser implements sfSecurityUser
   const AUTH_NAMESPACE = 'symfony/user/sfUser/authenticated';
   const CREDENTIAL_NAMESPACE = 'symfony/user/sfUser/credentials';
 
-  protected $lastRequest = null;
+  private $lastRequest = null;
 
-  protected $credentials = null;
-  protected $authenticated = null;
-
-  protected $timedout = false;
+  private $credentials = null;
+  private $authenticated = null;
 
   /**
    * Clears all credentials.
@@ -104,48 +102,48 @@ class sfBasicSecurityUser extends sfUser implements sfSecurityUser
     }
   }
 
-  
   /**
    * Returns true if user has credential.
    *
-   * @param  mixed credentials
-   * @param boolean useAnd specify the mode, either AND or OR
+   * @param  mixed credential
    * @return boolean
    *
-   * @author Olivier Verdier <Olivier.Verdier@free.fr>
+   * @author David Zuelke <dz@bitxtender.com>
    */
-  public function hasCredential($credentials, $useAnd = true)
+  public function hasCredential($credential)
   {
-    if (!is_array($credentials))
+    if (is_array($credential))
     {
-      return (in_array($credentials, $this->credentials, true));
-    }
-      
-    // now we assume that $credentials is an array
-    $test = false;
-    
-    foreach($credentials as $credential)
-    {
-      // recursively check the credential with a switched AND/OR mode
-      $test = $this->hasCredential($credential, ($useAnd ? false : true));
-      
-      if ($useAnd)
+      $credentials = (array)$credential;
+      foreach ($credentials as $credential)
       {
-        $test = ($test ? false : true);
+        if (is_array($credential))
+        {
+          foreach ($credential as $subcred)
+          {
+            if (in_array($subcred, $this->credentials, true))
+            {
+              continue 2;
+            }
+          }
+
+          return false;
+        }
+        else
+        {
+          if (!in_array($credential, $this->credentials, true))
+          {
+            return false;
+          }
+        }
       }
-      
-      if ($test) // either passed one in OR mode or failed one in AND mode
-      {
-        break; // the matter is settled
-      }
+
+      return true;
     }
-    
-    if ($useAnd) // in AND mode we succeed if $test is false
+    else
     {
-      $test = ($test ? false : true);
+      return in_array($credential, $this->credentials, true);
     }
-    
-    return $test;
   }
 
   /**
@@ -165,7 +163,7 @@ class sfBasicSecurityUser extends sfUser implements sfSecurityUser
    */
   public function setAuthenticated($authenticated)
   {
-    if (sfConfig::get('sf_logging_active')) $this->getContext()->getLogger()->info('{sfUser} user is '.($authenticated === true ? '' : 'not ').'authenticated');
+    if (sfConfig::get('sf_logging_active')) $this->getContext()->getLogger()->info('{sfUser} user is '.($authenticated === true ? '' : 'not').' authenticated');
 
     if ($authenticated === true)
     {
@@ -176,16 +174,6 @@ class sfBasicSecurityUser extends sfUser implements sfSecurityUser
       $this->authenticated = false;
       $this->clearCredentials();
     }
-  }
-
-  public function setTimedOut()
-  {
-    $this->timedout = true;
-  }
-
-  public function isTimedOut()
-  {
-    return $this->timedout;
   }
 
   /**
@@ -217,10 +205,9 @@ class sfBasicSecurityUser extends sfUser implements sfSecurityUser
     }
 
     // Automatic logout if no request for more than [sf_timeout]
-    if (null !== $this->lastRequest && (time() - $this->lastRequest) > sfConfig::get('sf_timeout'))
+    if ((time() - $this->lastRequest) > sfConfig::get('sf_timeout'))
     {
       if (sfConfig::get('sf_logging_active')) $this->getContext()->getLogger()->info('{sfUser} automatic user logout');
-      $this->setTimedOut();
       $this->clearCredentials();
       $this->setAuthenticated(false);
     }

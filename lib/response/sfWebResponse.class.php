@@ -20,8 +20,9 @@
  */
 class sfWebResponse extends sfResponse
 {
-  protected
+  private
     $cookies    = array(),
+    $headers    = array(),
     $statusCode = 200,
     $statusText = 'OK',
     $statusTexts = array();
@@ -92,7 +93,7 @@ class sfWebResponse extends sfResponse
    *
    * @return void
    */
-  public function setCookie ($name, $value, $expire = null, $path = '/', $domain = '', $secure = false, $httpOnly = false)
+  public function setCookie ($name, $value, $expire = null, $path = '/', $domain = '', $secure = false)
   {
     if ($expire !== null)
     {
@@ -111,13 +112,12 @@ class sfWebResponse extends sfResponse
     }
 
     $this->cookies[] = array(
-      'name'     => $name,
-      'value'    => $value,
-      'expire'   => $expire,
-      'path'     => $path,
-      'domain'   => $domain,
-      'secure'   => $secure ? true : false,
-      'httpOnly' => $httpOnly,
+      'name'   => $name,
+      'value'  => $value,
+      'expire' => $expire,
+      'path'   => $path,
+      'domain' => $domain,
+      'secure' => $secure ? true : false,
     );
   }
 
@@ -132,7 +132,7 @@ class sfWebResponse extends sfResponse
   public function setStatusCode ($code, $name = null)
   {
     $this->statusCode = $code;
-    $this->statusText = null !== $name ? $name : $this->statusTexts[$code];
+    $this->statusText = $name ? $name : $this->statusTexts[$code];
   }
 
   public function getStatusCode ()
@@ -151,24 +151,19 @@ class sfWebResponse extends sfResponse
   public function setHttpHeader ($name, $value, $replace = true)
   {
     $name = $this->normalizeHeaderName($name);
+    $exists = isset($this->headers[$name]);
 
-    if ('Content-Type' == $name)
+    if ($exists && !$replace)
     {
-      if ($replace)
-      {
-        $this->setContentType($value);
-      }
-
       return;
     }
 
-    if (!$replace)
+    if (!$exists || $replace)
     {
-      $current = $this->getParameter($name, '', 'symfony/response/http/headers');
-      $value = ($current ? $current.', ' : '').$value;
+      $this->headers[$name] = array();
     }
 
-    $this->setParameter($name, $value, 'symfony/response/http/headers');
+    $this->headers[$name][] = $value;
   }
 
   /**
@@ -176,19 +171,16 @@ class sfWebResponse extends sfResponse
    *
    * @return array
    */
-  public function getHttpHeader ($name, $default = null)
+  public function getHttpHeader ($name, $defaultValue = null)
   {
-    return $this->getParameter($this->normalizeHeaderName($name), $default, 'symfony/response/http/headers');
-  }
+    $retval = array($defaultValue);
 
-  /**
-   * Has a HTTP header.
-   *
-   * @return boolean
-   */
-  public function hasHttpHeader ($name)
-  {
-    return $this->hasParameter($this->normalizeHeaderName($name), 'symfony/response/http/headers');
+    if (isset($this->headers[$this->normalizeHeaderName($name)]))
+    {
+      $retval = $this->headers[$this->normalizeHeaderName($name)];
+    }
+
+    return $retval;
   }
 
   /**
@@ -200,13 +192,7 @@ class sfWebResponse extends sfResponse
    */
   public function setContentType ($value)
   {
-    // add charset if needed
-    if (false === stripos($value, 'charset'))
-    {
-      $value .= '; charset='.sfConfig::get('sf_charset');
-    }
-
-    $this->setParameter('Content-Type', $value, 'symfony/response/http/headers');
+    $this->setHttpHeader('Content-Type', $value, true);
   }
 
   /**
@@ -216,7 +202,19 @@ class sfWebResponse extends sfResponse
    */
   public function getContentType ()
   {
-    return $this->getHttpHeader('Content-Type', 'text/html; charset='.sfConfig::get('sf_charset'));
+    $ct = $this->getHttpHeader('Content-Type', 'text/html');
+
+    return $ct[0];
+  }
+
+  /**
+   * Has a HTTP header.
+   *
+   * @return boolean
+   */
+  public function hasHttpHeader ($name)
+  {
+    return isset($this->headers[$this->normalizeHeaderName($name)]);
   }
 
   /**
@@ -227,16 +225,7 @@ class sfWebResponse extends sfResponse
   public function sendHttpHeaders ()
   {
     // status
-    if (substr(php_sapi_name(), 0, 3) == 'cgi' && isset($_SERVER['SERVER_SOFTWARE']) && false !== stripos($_SERVER['SERVER_SOFTWARE'], 'apache/2'))
-    {
-      // fix bug http://www.symfony-project.com/trac/ticket/669 for apache2/mod_fastcgi
-      $status = 'Status: '.$this->statusCode.' '.$this->statusText;
-    }
-    else
-    {
-      $status = 'HTTP/1.0 '.$this->statusCode.' '.$this->statusText;
-    }
-
+    $status = 'HTTP/1.0 '.$this->statusCode.' '.$this->statusText;
     header($status);
 
     if (sfConfig::get('sf_logging_active'))
@@ -245,27 +234,23 @@ class sfWebResponse extends sfResponse
     }
 
     // headers
-    foreach ($this->getParameterHolder()->getAll('symfony/response/http/headers') as $name => $value)
+    foreach ($this->headers as $name => $values)
     {
-      header($name.': '.$value);
-
-      if (sfConfig::get('sf_logging_active') && $value != '')
+      foreach ($values as $value)
       {
-        $this->getContext()->getLogger()->info('{sfWebResponse} send header "'.$name.'": "'.$value.'"');
+        header($name.': '.$value);
+
+        if (sfConfig::get('sf_logging_active') && $value != '')
+        {
+          $this->getContext()->getLogger()->info('{sfWebResponse} send header "'.$name.'": "'.$value.'"');
+        }
       }
     }
 
     // cookies
     foreach ($this->cookies as $cookie)
     {
-      if (version_compare(phpversion(), '5.2', '>='))
-      {
-        setrawcookie($cookie['name'], $cookie['value'], $cookie['expire'], $cookie['path'], $cookie['domain'], $cookie['secure'], $cookie['httpOnly']);
-      }
-      else
-      {
-        setrawcookie($cookie['name'], $cookie['value'], $cookie['expire'], $cookie['path'], $cookie['domain'], $cookie['secure']);
-      }
+      setrawcookie($cookie['name'], $cookie['value'], $cookie['expire'], $cookie['path'], $cookie['domain'], $cookie['secure']);
 
       if (sfConfig::get('sf_logging_active'))
       {
@@ -274,8 +259,13 @@ class sfWebResponse extends sfResponse
     }
   }
 
-  protected function normalizeHeaderName($name)
+  private function normalizeHeaderName($name)
   {
+    if (strtolower($name) == 'etag')
+    {
+      return 'ETag';
+    }
+
     return preg_replace('/\-(.)/e', "'-'.strtoupper('\\1')", strtr(ucfirst(strtolower($name)), '_', '-'));
   }
 
@@ -339,75 +329,60 @@ class sfWebResponse extends sfResponse
 
   public function getHttpMetas()
   {
-    return $this->getParameterHolder()->getAll('helper/asset/auto/httpmeta');
+    return $this->parameter_holder->getAll('helper/asset/auto/httpmeta');
   }
 
-  public function addHttpMeta($key, $value, $replace = true)
+  public function addHttpMeta($key, $value, $override = true)
   {
-    $key = $this->normalizeHeaderName($key);
-
-    // set HTTP header
-    $this->setHttpHeader($key, $value, $replace);
-
-    if ('Content-Type' == $key)
+    if ($override || !$this->hasParameter($key, 'helper/asset/auto/httpmeta'))
     {
-      $value = $this->getContentType();
-    }
+      $this->setParameter($key, $value, 'helper/asset/auto/httpmeta');
 
-    if (!$replace)
-    {
-      $current = $this->getParameter($key, '', 'helper/asset/auto/httpmeta');
-      $value = ($current ? $current.', ' : '').$value;
+      // set HTTP header
+      $this->setHttpHeader($key, $value, false);
     }
-
-    $this->setParameter($key, $value, 'helper/asset/auto/httpmeta');
   }
 
   public function getMetas()
   {
-    return $this->getParameterHolder()->getAll('helper/asset/auto/meta');
+    return $this->parameter_holder->getAll('helper/asset/auto/meta');
   }
 
-  public function addMeta($key, $value, $replace = true, $escape = true)
+  public function addMeta($key, $value, $override = true, $doNotEscape = false)
   {
-    $key = $this->normalizeHeaderName($key);
-
-    if (sfConfig::get('sf_i18n'))
+    if ($override || !$this->hasParameter($key, 'helper/asset/auto/meta'))
     {
-      $value = sfConfig::get('sf_i18n_instance')->__($value);
-    }
+      if (sfConfig::get('sf_i18n'))
+      {
+        $value = sfConfig::get('sf_i18n_instance')->__($value);
+      }
 
-    if ($escape)
-    {
-      $value = htmlentities($value, ENT_QUOTES, sfConfig::get('sf_charset'));
-    }
+      if (!$doNotEscape)
+      {
+        $value = htmlentities($value, ENT_QUOTES, 'UTF-8');
+      }
 
-    if (!$replace)
-    {
-      $current = $this->getParameter($key, '', 'helper/asset/auto/meta');
-      $value = ($current ? $current.', ' : '').$value;
+      $this->setParameter($key, $value, 'helper/asset/auto/meta');
     }
-
-    $this->setParameter($key, $value, 'helper/asset/auto/meta');
   }
 
   public function getTitle()
   {
-    $metas = $this->getParameterHolder()->getAll('helper/asset/auto/meta');
-
-    return (array_key_exists('title', $metas)) ? $metas['title'] : '';
+    $metas = $this->parameter_holder->getAll('helper/asset/auto/meta');
+	
+    return (array_key_exists('title', $metas)) ? $metas['title'] : false;
   }
 
-  public function setTitle($title, $escape = true)
+  public function setTitle($title, $doNotEscape = false)
   {
-    if (sfConfig::get('sf_i18n'))
+    if (!$doNotEscape)
     {
-      $title = sfConfig::get('sf_i18n_instance')->__($title);
-    }
+      if (sfConfig::get('sf_i18n'))
+      {
+        $title = sfConfig::get('sf_i18n_instance')->__($title);
+      }
 
-    if ($escape)
-    {
-      $title = htmlentities($title, ENT_QUOTES, sfConfig::get('sf_charset'));
+      $title = htmlentities($title, ENT_QUOTES, 'UTF-8');
     }
 
     $this->setParameter('title', $title, 'helper/asset/auto/meta');
@@ -420,7 +395,7 @@ class sfWebResponse extends sfResponse
       $position = '/'.$position;
     }
 
-    return $this->getParameterHolder()->getAll('helper/asset/auto/stylesheet'.$position);
+    return $this->parameter_holder->getAll('helper/asset/auto/stylesheet'.$position);
   }
 
   public function addStylesheet($css, $position = '', $options = array())
@@ -440,7 +415,7 @@ class sfWebResponse extends sfResponse
       $position = '/'.$position;
     }
 
-    return $this->getParameterHolder()->getAll('helper/asset/auto/javascript'.$position);
+    return $this->parameter_holder->getAll('helper/asset/auto/javascript'.$position);
   }
 
   public function addJavascript($js, $position = '')
@@ -466,35 +441,21 @@ class sfWebResponse extends sfResponse
 
   public function getHttpHeaders()
   {
-    return $this->getParameterHolder()->getAll('symfony/response/http/headers');
-  }
-
-  public function clearHttpHeaders()
-  {
-    $this->getParameterHolder()->removeNamespace('symfony/response/http/headers');
+    return $this->headers;
   }
 
   public function mergeProperties($response)
   {
-    $ph  = $this->getParameterHolder();
-    $phn = $response->getParameterHolder();
-
-    // slots
-    $ph->add($phn->getAll('symfony/view/sfView/slot'), 'symfony/view/sfView/slot');
-
-    // view configuration
-    $ph->add($phn->getAll('symfony/action/view'), 'symfony/action/view');
-
     // add stylesheets
     foreach (array('first', '', 'last') as $position)
     {
-      $ph->add($response->getStylesheets($position), 'helper/asset/auto/stylesheet'.$position);
+      $this->getParameterHolder()->add($response->getStylesheets($position), 'helper/asset/auto/stylesheet'.$position);
     }
 
     // add javascripts
     foreach (array('first', '', 'last') as $position)
     {
-      $ph->add($response->getJavascripts($position), 'helper/asset/auto/javascript'.$position);
+      $this->getParameterHolder()->add($response->getJavascripts($position), 'helper/asset/auto/javascript'.$position);
     }
 
     // add headers
@@ -505,15 +466,6 @@ class sfWebResponse extends sfResponse
         $this->setHttpHeader($name, $value);
       }
     }
-  }
-
-  public function __sleep()
-  {
-    return array('content', 'statusCode', 'statusText', 'parameter_holder');
-  }
-
-  public function __wakeup()
-  {
   }
 
   /**

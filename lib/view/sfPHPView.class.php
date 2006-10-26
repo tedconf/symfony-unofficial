@@ -65,31 +65,55 @@ class sfPHPView extends sfView
     }
 
     $coreHelpersLoaded = 1;
+
     $core_helpers = array('Helper', 'Url', 'Asset', 'Tag', 'Escaping');
     $standard_helpers = sfConfig::get('sf_standard_helpers');
 
     $helpers = array_unique(array_merge($core_helpers, $standard_helpers));
-    sfLoader::loadHelpers($helpers);
+    $this->loadHelpers($helpers);
+  }
+
+  /**
+   * Loads all template helpers.
+   *
+   * helpers defined in templates (set with use_helper())
+   */
+  protected function loadHelpers($helpers)
+  {
+    $helper_base_dir = sfConfig::get('sf_symfony_lib_dir').'/helper/';
+    foreach ($helpers as $helperName)
+    {
+      if (is_readable($helper_base_dir.$helperName.'Helper.php'))
+      {
+        include_once($helper_base_dir.$helperName.'Helper.php');
+      }
+      else
+      {
+        include_once('helper/'.$helperName.'Helper.php');
+      }
+    }
   }
 
   protected function renderFile($_sfFile)
   {
-    if (sfConfig::get('sf_logging_active'))
+    if ($sf_logging_active = sfConfig::get('sf_logging_active'))
     {
       $this->getContext()->getLogger()->info('{sfPHPView} render "'.$_sfFile.'"');
     }
 
     $this->loadCoreAndStandardHelpers();
 
-    $_escaping = $this->getEscaping();
-    if ($_escaping === false || $_escaping === 'bc')
+    $_escaping       = $this->getEscaping();
+    $_escapingMethod = $this->getEscapingMethod();
+
+    if (($_escaping === false) || ($_escaping === 'bc'))
     {
       extract($this->attribute_holder->getAll());
     }
 
     if ($_escaping !== false)
     {
-      $sf_data = sfOutputEscaper::escape($this->getEscapingMethod(), $this->attribute_holder->getAll());
+      $sf_data = sfOutputEscaper::escape($_escapingMethod, $this->attribute_holder->getAll());
 
       if ($_escaping === 'both')
       {
@@ -100,12 +124,13 @@ class sfPHPView extends sfView
       }
     }
 
-    // render
+    // render to variable
     ob_start();
     ob_implicit_flush(0);
     require($_sfFile);
+    $retval = ob_get_clean();
 
-    return ob_get_clean();
+    return $retval;
   }
 
   /**
@@ -115,27 +140,80 @@ class sfPHPView extends sfView
    *
    * @return null
    */
-  public function getEngine()
+  public function &getEngine()
   {
     return null;
   }
 
   public function configure()
   {
+    $context          = $this->getContext();
+    $actionStackEntry = $context->getController()->getActionStack()->getLastEntry();
+    $action           = $actionStackEntry->getActionInstance();
+
     // store our current view
-    $actionStackEntry = $this->getContext()->getController()->getActionStack()->getLastEntry();
     if (!$actionStackEntry->getViewInstance())
     {
       $actionStackEntry->setViewInstance($this);
     }
 
+    // all directories to look for templates
+    $dirs = array(
+      // application
+      $this->getDirectory(),
+
+      // local plugin
+      sfConfig::get('sf_plugin_data_dir').'/modules/'.$this->moduleName.'/templates',
+
+      // core modules or global plugins
+      sfConfig::get('sf_symfony_data_dir').'/modules/'.$this->moduleName.'/templates',
+
+      // generated templates in cache
+      sfConfig::get('sf_module_cache_dir').'/auto'.ucfirst($this->moduleName).'/templates',
+    );
+
     // require our configuration
-    $context = $this->getContext();
     $viewConfigFile = $this->moduleName.'/'.sfConfig::get('sf_app_module_config_dir_name').'/view.yml';
     require(sfConfigCache::getInstance()->checkConfig(sfConfig::get('sf_app_module_dir_name').'/'.$viewConfigFile));
 
+    if (preg_match('/^(.+?)'.sfView::GLOBAL_PARTIAL.'$/i', $this->viewName, $match))
+    {
+      // global partial
+      $templateFile = '_'.$match[1].$this->extension;
+      $dirs = array(sfConfig::get('sf_app_template_dir'));
+    }
+    else if (preg_match('/^(.+?)'.sfView::PARTIAL.'$/i', $this->viewName, $match))
+    {
+      // partial
+      $templateFile = '_'.$match[1].$this->extension;
+    }
+    else if (preg_match('/^'.$action->getActionName().'(.+)$/i', $this->viewName, $match))
+    {
+      $templateFile = $templateName.$match[1].$this->extension;
+    }
+    else
+    {
+      $templateFile = $this->viewName.$this->extension;
+    }
+
+    // set template name
+    $this->setTemplate($templateFile);
+
     // set template directory
-    $this->setDirectory(sfLoader::getTemplateDir($this->moduleName, $this->getTemplate()));
+    foreach ($dirs as $dir)
+    {
+      if (is_readable($dir.'/'.$templateFile))
+      {
+        $this->setDirectory($dir);
+
+        break;
+      }
+    }
+
+    if (sfConfig::get('sf_logging_active'))
+    {
+      $context->getLogger()->info(sprintf('{sfPHPView} execute view for template "%s"', $templateFile));
+    }
   }
 
   /**
@@ -146,7 +224,7 @@ class sfPHPView extends sfView
    *
    * @return string A decorated template.
    */
-  protected function decorate($content)
+  protected function &decorate(&$content)
   {
     $template = $this->getDecoratorDirectory().'/'.$this->getDecoratorTemplate();
 
@@ -155,11 +233,8 @@ class sfPHPView extends sfView
       $this->getContext()->getLogger()->info('{sfPHPView} decorate content with "'.$template.'"');
     }
 
-    // set the decorator content as an attribute
-    $this->attribute_holder->set('sf_content', $content);
-
-    // for backwards compatibility with old layouts; remove at 0.8.0?
-    $this->attribute_holder->set('content', $content);
+    // call our parent decorate() method
+    parent::decorate($content);
 
     // render the decorator template and return the result
     $retval = $this->renderFile($template);
@@ -176,92 +251,88 @@ class sfPHPView extends sfView
    * @return string A string representing the rendered presentation, if
    *                the controller render mode is sfView::RENDER_VAR, otherwise null.
    */
-  public function render($templateVars = null)
+  public function &render($templateVars = null)
   {
+    $retval = null;
+
     $context = $this->getContext();
 
     // get the render mode
     $mode = $context->getController()->getRenderMode();
 
-    if ($mode == sfView::RENDER_NONE)
+    if ($mode != sfView::RENDER_NONE)
     {
-      return null;
-    }
-
-    $retval = null;
-    $response = $context->getResponse();
-    if (sfConfig::get('sf_cache'))
-    {
-      $key   = $response->getParameterHolder()->remove('current_key', 'symfony/cache/current');
-      $cache = $response->getParameter($key, null, 'symfony/cache');
-      if ($cache !== null)
+      $retval = null;
+      if (sfConfig::get('sf_cache'))
       {
-        $cache  = unserialize($cache);
-        $retval = $cache['content'];
-        $vars   = $cache['vars'];
-        $response->mergeProperties($cache['response']);
-      }
-    }
-
-    // decorator
-    $layout = $response->getParameter($this->moduleName.'_'.$this->actionName.'_layout', null, 'symfony/action/view');
-    if (false === $layout)
-    {
-      $this->setDecorator(false);
-    }
-    else if (null !== $layout)
-    {
-      $this->setDecoratorTemplate($layout.$this->getExtension());
-    }
-
-    // template variables
-    if ($templateVars === null)
-    {
-      $actionInstance   = $context->getActionStack()->getLastEntry()->getActionInstance();
-      $templateVars     = $actionInstance->getVarHolder()->getAll();
-    }
-
-    // assigns some variables to the template
-    $this->attribute_holder->add($this->getGlobalVars());
-    $this->attribute_holder->add($retval !== null ? $vars : $templateVars);
-
-    // render template if no cache
-    if ($retval === null)
-    {
-      // execute pre-render check
-      $this->preRenderCheck();
-
-      // render template file
-      $template = $this->getDirectory().'/'.$this->getTemplate();
-      $retval = $this->renderFile($template);
-
-      if (sfConfig::get('sf_cache') && $key !== null)
-      {
-        $cache = array(
-          'content'   => $retval,
-          'vars'      => $templateVars,
-          'view_name' => $this->viewName,
-          'response'  => $context->getResponse(),
-        );
-        $response->setParameter($key, serialize($cache), 'symfony/cache');
-
-        if (sfConfig::get('sf_web_debug'))
+        $response = $context->getResponse();
+        $key   = $response->getParameterHolder()->remove('current_key', 'symfony/cache/current');
+        $cache = $response->getParameter($key, null, 'symfony/cache');
+        if ($cache !== null)
         {
-          $retval = sfWebDebug::getInstance()->decorateContentWithDebug($key, $retval, true);
+          $cache  = unserialize($cache);
+          $retval = $cache['content'];
+          $vars   = $cache['vars'];
+          $response->mergeProperties($cache['response']);
         }
       }
-    }
 
-    // now render decorator template, if one exists
-    if ($this->isDecorator())
-    {
-      $retval = $this->decorate($retval);
-    }
+      // template variables
+      if ($templateVars === null)
+      {
+        $actionStackEntry = $context->getActionStack()->getLastEntry();
+        $actionInstance   = $actionStackEntry->getActionInstance();
+        $templateVars     = $actionInstance->getVarHolder()->getAll();
+      }
 
-    // render to client
-    if ($mode == sfView::RENDER_CLIENT)
-    {
-      $context->getResponse()->setContent($retval);
+      // assigns some variables to the template
+      $this->attribute_holder->add($this->getGlobalVars());
+      $this->attribute_holder->add($retval !== null ? $vars : $templateVars);
+
+      // render template if no cache
+      if ($retval === null)
+      {
+        // execute pre-render check
+        $this->preRenderCheck();
+
+        // render template file
+        $template = $this->getDirectory().'/'.$this->getTemplate();
+        $retval = $this->renderFile($template);
+
+        // tidy our cache content
+        if (sfConfig::get('sf_tidy'))
+        {
+          $retval = sfTidy::tidy($retval, $template);
+        }
+
+        if (sfConfig::get('sf_cache') && $key !== null)
+        {
+          $cache = array(
+            'content'   => $retval,
+            'vars'      => $templateVars,
+            'view_name' => $this->viewName,
+            'response'  => $context->getResponse(),
+          );
+          $response->setParameter($key, serialize($cache), 'symfony/cache');
+
+          if (sfConfig::get('sf_web_debug'))
+          {
+            $retval = sfWebDebug::getInstance()->decorateContentWithDebug($key, '', $retval, true);
+          }
+        }
+      }
+
+      // now render decorator template, if one exists
+      if ($this->isDecorator())
+      {
+        $retval =& $this->decorate($retval);
+      }
+
+      // render to client
+      if ($mode == sfView::RENDER_CLIENT)
+      {
+        $context->getResponse()->setContent($retval);
+      }
     }
 
     return $retval;

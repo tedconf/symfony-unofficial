@@ -27,9 +27,14 @@
 <?php endif; ?>
 
 */
-function cache($name, $lifeTime = 86400)
+function cache($suffix, $lifeTime = null)
 {
   $context = sfContext::getInstance();
+
+  if ($lifeTime === null)
+  {
+    $lifeTime = sfConfig::get('sf_default_cache_lifetime');
+  }
 
   if (!sfConfig::get('sf_cache'))
   {
@@ -44,12 +49,12 @@ function cache($name, $lifeTime = 86400)
     throw new sfCacheException('Cache already started');
   }
 
-  $data = $cache->start($name, $lifeTime);
+  $data = $cache->start($suffix, $lifeTime);
 
   if ($data === null)
   {
     $request->setAttribute('started', 1, 'symfony/action/sfAction/cache');
-    $request->setAttribute('current_name', $name, 'symfony/action/sfAction/cache');
+    $request->setAttribute('current_suffix', $suffix, 'symfony/action/sfAction/cache');
 
     return 0;
   }
@@ -77,12 +82,12 @@ function cache_save()
     throw new sfCacheException('Cache not started');
   }
 
-  $name = $request->getAttribute('current_name', '', 'symfony/action/sfAction/cache');
+  $suffix = $request->getAttribute('current_suffix', '', 'symfony/action/sfAction/cache');
 
-  $data = $context->getViewCacheManager()->stop($name);
+  $data = $context->getViewCacheManager()->stop($suffix);
 
   $request->setAttribute('started', null, 'symfony/action/sfAction/cache');
-  $request->setAttribute('current_name', null, 'symfony/action/sfAction/cache');
+  $request->setAttribute('current_suffix', null, 'symfony/action/sfAction/cache');
 
   echo $data;
 }

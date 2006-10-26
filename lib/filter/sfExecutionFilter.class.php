@@ -52,11 +52,11 @@ class sfExecutionFilter extends sfFilter
 
     if (sfConfig::get('sf_cache') && !sfConfig::get('sf_cache_always_execute_action', false))
     {
-      $uri = sfRouting::getInstance()->getCurrentInternalUri();
-      if (null !== $context->getResponse()->getParameter($uri.'_action', null, 'symfony/cache'))
+      list($uri, $suffix) = $context->getViewCacheManager()->getInternalUri('slot');
+      if ($context->getResponse()->getParameter($uri.'_'.$suffix, null, 'symfony/cache') !== null)
       {
         // action in cache, so go to the view
-        $viewName = sfView::SUCCESS;
+        $viewName = sfView::RENDER_CACHE;
       }
     }
 
@@ -79,12 +79,11 @@ class sfExecutionFilter extends sfFilter
 
         // get the current action validation configuration
         $validationConfig = $moduleName.'/'.sfConfig::get('sf_app_module_validate_dir_name').'/'.$actionName.'.yml';
-
-        // load validation configuration
-        // do NOT use require_once
-        if (null !== $validateFile = sfConfigCache::getInstance()->checkConfig(sfConfig::get('sf_app_module_dir_name').'/'.$validationConfig, true))
+        if (is_readable(sfConfig::get('sf_app_module_dir').'/'.$validationConfig))
         {
-          require($validateFile);
+          // load validation configuration
+          // do NOT use require_once
+          require(sfConfigCache::getInstance()->checkConfig(sfConfig::get('sf_app_module_dir_name').'/'.$validationConfig));
         }
 
         // manually load validators
@@ -102,13 +101,9 @@ class sfExecutionFilter extends sfFilter
         // - or automatic validation returns false but errors have been 'removed' by manual validation
         $validated = ($manualValidated && $validated) || ($manualValidated && !$validated && !$context->getRequest()->hasErrors());
 
+        $sf_logging_active = sfConfig::get('sf_logging_active');
         if ($validated)
         {
-          if (sfConfig::get('sf_debug') && sfConfig::get('sf_logging_active'))
-          {
-            $timer = sfTimerManager::getTimer(sprintf('Action "%s/%s"', $moduleName, $actionName));
-          }
-
           // execute the action
           $actionInstance->preExecute();
           $viewName = $actionInstance->execute();
@@ -117,15 +112,10 @@ class sfExecutionFilter extends sfFilter
             $viewName = sfView::SUCCESS;
           }
           $actionInstance->postExecute();
-
-          if (sfConfig::get('sf_debug') && sfConfig::get('sf_logging_active'))
-          {
-            $timer->addTime();
-          }
         }
         else
         {
-          if (sfConfig::get('sf_logging_active'))
+          if ($sf_logging_active)
           {
             $this->context->getLogger()->info('{sfExecutionFilter} action validation failed');
           }
@@ -133,10 +123,6 @@ class sfExecutionFilter extends sfFilter
           // validation failed
           $handleErrorToRun = 'handleError'.ucfirst($actionName);
           $viewName = method_exists($actionInstance, $handleErrorToRun) ? $actionInstance->$handleErrorToRun() : $actionInstance->handleError();
-          if ($viewName == '')
-          {
-            $viewName = sfView::ERROR;
-          }
         }
 
         // register fill-in filter
@@ -149,45 +135,74 @@ class sfExecutionFilter extends sfFilter
 
     if ($viewName == sfView::HEADER_ONLY)
     {
+      $filterChain->executionFilterDone();
+
       // execute next filter
       $filterChain->execute();
     }
     else if ($viewName != sfView::NONE)
     {
-      if (sfConfig::get('sf_debug') && sfConfig::get('sf_logging_active'))
+      if (is_array($viewName))
       {
-        $timer = sfTimerManager::getTimer(sprintf('View "%s" for "%s/%s"', $viewName, $moduleName, $actionName));
+        // we're going to use an entirely different action for this view
+        $moduleName = $viewName[0];
+        $viewName   = $viewName[1];
+      }
+      else
+      {
+        // use a view related to this action
+        $viewName = $actionName.$viewName;
+      }
+
+      // display this view
+      if (!$controller->viewExists($moduleName, $actionName, $viewName))
+      {
+        // the requested view doesn't exist
+        $file = sfConfig::get('sf_app_module_dir').'/'.$moduleName.'/'.sfConfig::get('sf_app_module_view_dir_name').'/'.$viewName.'View.class.php';
+
+        $error = 'Module "%s" does not contain the view "%sView" or the file "%s" is unreadable';
+        $error = sprintf($error, $moduleName, $viewName, $file);
+
+        throw new sfViewException($error);
       }
 
       // get the view instance
       $viewInstance = $controller->getView($moduleName, $actionName, $viewName);
 
-      $viewInstance->initialize($context, $moduleName, $actionName, $viewName);
-
-      $viewInstance->execute();
-
-      // render the view and if data is returned, stick it in the
-      // action entry which was retrieved from the execution chain
-      $viewData = $viewInstance->render();
-
-      if (sfConfig::get('sf_debug') && sfConfig::get('sf_logging_active'))
+      // initialize the view
+      if ($viewInstance->initialize($context, $moduleName, $viewName))
       {
-        $timer->addTime();
-      }
+        // view initialization completed successfully
+        $viewInstance->execute();
 
-      if ($controller->getRenderMode() == sfView::RENDER_VAR)
-      {
-        $actionEntry->setPresentation($viewData);
+        // render the view and if data is returned, stick it in the
+        // action entry which was retrieved from the execution chain
+        $viewData =& $viewInstance->render();
+
+        if ($controller->getRenderMode() == sfView::RENDER_VAR)
+        {
+          $actionEntry->setPresentation($viewData);
+        }
+        else
+        {
+          $filterChain->executionFilterDone();
+
+          // execute next filter
+          $filterChain->execute();
+        }
       }
       else
       {
-        // execute next filter
-        $filterChain->execute();
+        // view failed to initialize
+        $error = 'View initialization failed for module "%s", view "%sView"';
+        $error = sprintf($error, $moduleName, $viewName);
+
+        throw new sfInitializationException($error);
       }
     }
   }
 
-  protected function registerFillInFilter($filterChain, $parameters)
+  private function registerFillInFilter($filterChain, $parameters)
   {
     // automatically register the fill in filter if it is not already loaded in the chain
     if (isset($parameters['activate']) && $parameters['activate'] && !$filterChain->hasFilter('sfFillInFormFilter'))

@@ -44,7 +44,7 @@ abstract class sfWebController extends sfController
     $url = '';
     if (!($sf_no_script_name = sfConfig::get('sf_no_script_name')))
     {
-      $url = $this->getContext()->getRequest()->getScriptName();
+      $url = $_SERVER['SCRIPT_NAME'];
     }
     else if (($sf_relative_url_root = $this->getContext()->getRequest()->getRelativeUrlRoot()) && $sf_no_script_name)
     {
@@ -71,14 +71,14 @@ abstract class sfWebController extends sfController
       // use PATH format
       $divider = '/';
       $equals  = '/';
-      $querydiv = '/';
+      $url    .= '/';
     }
     else
     {
       // use GET format
       $divider = ini_get('arg_separator.output');
       $equals  = '=';
-      $querydiv = '?';
+      $url    .= '?';
     }
 
     // default module
@@ -94,9 +94,10 @@ abstract class sfWebController extends sfController
     }
 
     $r = sfRouting::getInstance();
-    if ($r->hasRoutes() && $generated_url = $r->generate($route_name, $parameters, $querydiv, $divider, $equals))
+    if ($r->hasRoutes() && $generated_url = $r->generate($route_name, $parameters, $divider, $equals))
     {
-      $url .= $generated_url;
+      // strip off first divider character
+      $url .= ltrim($generated_url, $divider);
     }
     else
     {
@@ -104,7 +105,7 @@ abstract class sfWebController extends sfController
 
       if (sfConfig::get('sf_url_format') == 'PATH')
       {
-        $query = strtr($query, ini_get('arg_separator.output').'=', '/');
+        $query = strtr($query, ini_get(arg_separator.output).'=', '/');
       }
 
       $url .= $query;
@@ -202,14 +203,10 @@ abstract class sfWebController extends sfController
     $response = $this->getContext()->getResponse();
 
     // redirect
-    $response->clearHttpHeaders();
     $response->setHttpHeader('Location', $url);
     $response->setContent(sprintf('<html><head><meta http-equiv="refresh" content="%d;url=%s"/></head></html>', $delay, htmlentities($url)));
 
-    if (!sfConfig::get('sf_test'))
-    {
-      $response->sendHttpHeaders();
-    }
+    $response->sendHttpHeaders();
     $response->sendContent();
   }
 }

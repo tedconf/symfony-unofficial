@@ -265,9 +265,7 @@ You may often need to include some HTML or PHP code into several pages, to avoid
 * If the logic is heavier (for instance if you need to access the data model and/or modify the content according to the session), you will prefer to separate the presentation from the logic. For that, you will use a **component**
 * If the nature of the fragment depends on the context (for instance if the fragment needs to be different for the actions of a given module), you will use a **component slot**.
 
-In addition, symfony provides a technique to define a zone in the layout that can be overridden by a template, and it's called a **slot**. It is an alternative to component slots for when you have no heavy logic.
-
-These helpers are available from any symfony template.
+These three helpers are available from any symfony template.
 
 ### Include
 
@@ -426,41 +424,6 @@ Component slots can be used for breadcrumbs, contextual navigations, and dynamic
 >       components:
 >         sidebar:  [ ]
 
-### Slots
-
-Managing a component slot obliges you to create a component, a partial, and a configuration file. It is really useful when you want reusability. If your need is to define an additional zone in the layout that can be overriden action by action, then there is a faster solution: the slots.
-
-A slot is a code chunk stored globally in the response. It can be defined anywhere (in the layout, in a template, in a partial) and can be included anywhere as well. Just remember that the layout is executed after the template, and that the partials are executed when they are called in a template, to be sure to define a slot before including it. 
-
-To define a slot, use the `slot()` and `end_slot()` helpers. For instance, a template will define the content of a 'sidebar' slot as follows:
-
-    [php]
-    ...
-    <?php slot('sidebar') ?>
-      <h1>User <?php echo $user ?>'s details</h1>
-      <p>email: <?php echo $user->getEmail() ?></p>
-      <p><?php echo link_to('do things', 'user/dothings?id='.$user->getId()) ?>
-    <?php end_slot() ?>
-
-The code between the `slot()` and `end_slot()` helpers is not output in the template, but in a placeholder in the response, waiting to be included somewhere else.
-
-To include a slot, use the `include_slot()` helper. Using the `has_slot()` helper, you can even manage default slot values. For instance, the layout can display the 'sidebar' slot in a `<div>`. If the slot has been defined earlier (by a template, as in the previous example), then it is displayed. If not, the default content takes its place. Note that since `include_slot()` returns nothing if the slot is not defined, the use of `has_slot()` is not compulsory.
-
-    [php]
-    ...
-    <div id="sidebar">
-      <?php if(has_slot('sidebar')): ?>
-        <?php include_slot('sidebar') ?>
-      <?php else: ?>
-        <!-- default sidebar code -->
-        <h1>Contextual zone</h1>
-        <p>This zone contains links and information relative to the main content of the page.</p>
-      <?php endif; ?>
-    </div>
-    
-One common usage of slots is the addition of special tags in the `<head>` section, for instance when you want to include RSS links in the header for some specific actions. A layout with more than one dynamic zone, for instance the main content plus the secondary navigation, is another commun use. As they can be included anywhere, with fallback mechanisms, slots are very powerful and allow for a very modular conception of layouts and templates. Eventually, slots are much faster than component slots, so feel free to use them extensively.
-
->**Note**: Slots were present in earlier versions of symfony, but with a slightly different meaning. 
 
 [1]: http://en.wikipedia.org/wiki/Model-view-controller "Model-View-Controller definition at Wikipedia"
 [2]: http://en.wikipedia.org/wiki/Decorator_pattern     "Decorator pattern definition at Wikipedia"

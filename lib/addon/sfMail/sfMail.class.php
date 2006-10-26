@@ -20,7 +20,7 @@
 class sfMail
 {
   protected $mailer;
-  
+
   public function __construct()
   {
     require_once(sfConfig::get('sf_symfony_lib_dir').'/addon/sfMail/phpmailer/class.phpmailer.php');
@@ -93,13 +93,12 @@ class sfMail
     return $this->mailer->Body;
   }
 
-  public function setMailer($type = 'mail', $options = array())
+  public function setMailer($type = 'mail')
   {
     switch($type)
     {
       case 'smtp':
         $this->mailer->IsSMTP();
-        if (isset($options['keep_alive'])) $this->mailer->SMTPKeepAlive = true;
         break;
       case 'sendmail':
         $this->mailer->IsSendmail();
@@ -109,7 +108,7 @@ class sfMail
         break;
     }
   }
-  
+
   public function getMailer()
   {
     return $this->mailer->Mailer;
@@ -318,11 +317,6 @@ class sfMail
     }
   }
 
-  public function smtpClose()
-  {
-    $this->mailer->SmtpClose();
-  }
-  
   public function getRawHeader()
   {
     return $this->mailer->CreateHeader();

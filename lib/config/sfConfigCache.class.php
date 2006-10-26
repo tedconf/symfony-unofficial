@@ -22,10 +22,10 @@
  */
 class sfConfigCache
 {
-  protected
+  private
     $handlers = array();
 
-  protected static
+  private static
     $instance = null;
 
   public static function getInstance()
@@ -50,7 +50,7 @@ class sfConfigCache
    * @throws <b>sfConfigurationException</b> If a requested configuration file
    *                                       does not have an associated configuration handler.
    */
-  protected function callHandler($handler, $configs, $cache)
+  private function callHandler($handler, $configs, $cache)
   {
     if (count($this->handlers) == 0)
     {
@@ -103,7 +103,7 @@ class sfConfigCache
     else
     {
       // we do not have a registered handler for this file
-      $error = sprintf('Configuration file "%s" does not have a registered handler', implode(', ', $configs));
+      $error = sprintf('Configuration file "%s" does not have a registered handler', $config);
 
       throw new sfConfigurationException($error);
     }
@@ -113,7 +113,17 @@ class sfConfigCache
   {
     $configs = array();
 
-    $files = sfLoader::getConfigDirs($configPath);
+    $globalConfigPath = basename(dirname($configPath)).'/'.basename($configPath);
+    $files = array(
+      sfConfig::get('sf_symfony_data_dir').'/'.$globalConfigPath, // default symfony configuration
+      sfConfig::get('sf_app_dir').'/'.$globalConfigPath,          // default project configuration
+      sfConfig::get('sf_plugin_data_dir').'/'.$configPath,        // used for plugin modules
+      sfConfig::get('sf_symfony_data_dir').'/'.$configPath,       // core modules or global plugins
+      sfConfig::get('sf_root_dir').'/'.$globalConfigPath,         // used for main configuration
+      sfConfig::get('sf_cache_dir').'/'.$configPath,              // used for generated modules
+      sfConfig::get('sf_app_dir').'/'.$configPath,
+    );
+
     foreach (array_unique($files) as $file)
     {
       if (is_readable($file))
@@ -140,21 +150,11 @@ class sfConfigCache
    */
   public function checkConfig($configPath, $optional = false)
   {
-    if (sfConfig::get('sf_debug') && sfConfig::get('sf_logging_active'))
-    {
-      $timer = sfTimerManager::getTimer('Configuration');
-    }
-
     // the cache filename we'll be using
     $cache = $this->getCacheName($configPath);
 
     if (sfConfig::get('sf_in_bootstrap') && is_readable($cache))
     {
-      if (sfConfig::get('sf_debug') && sfConfig::get('sf_logging_active'))
-      {
-        $timer->addTime();
-      }
-
       return $cache;
     }
 
@@ -196,11 +196,6 @@ class sfConfigCache
       $this->callHandler($configPath, $files, $cache);
     }
 
-    if (sfConfig::get('sf_debug') && sfConfig::get('sf_logging_active'))
-    {
-      $timer->addTime();
-    }
-
     return $cache;
   }
 
@@ -230,7 +225,7 @@ class sfConfigCache
     }
 
     // replace unfriendly filename characters with an underscore
-    $config  = str_replace(array('\\', '/', ' '), '_', $config);
+    $config  = str_replace(array('\\', '/'), '_', $config);
     $config .= '.php';
 
     return sfConfig::get('sf_config_cache_dir').'/'.$config;
@@ -275,7 +270,7 @@ class sfConfigCache
    * @throws <b>sfConfigurationException</b> If a configuration related error
    *                                       occurs.
    */
-  protected function loadConfigHandlers()
+  private function loadConfigHandlers()
   {
     // manually create our config_handlers.yml handler
     $this->handlers['config_handlers.yml'] = new sfRootConfigHandler();
@@ -340,10 +335,16 @@ class sfConfigCache
    *
    * @throws sfCacheException If the cache file cannot be written.
    */
-  protected function writeCacheFile($config, $cache, &$data)
+  private function writeCacheFile($config, $cache, &$data)
   {
     $fileCache = new sfFileCache(dirname($cache));
     $fileCache->setSuffix('');
-    $fileCache->set(basename($cache), '', $data);
+    if (!$fileCache->set(basename($cache), '', $data))
+    {
+      // cannot write cache file
+      $error = sprintf('Failed to write cache file "%s" generated from configuration file "%s"', $cache, $config);
+
+      throw new sfCacheException($error);
+    }
   }
 }

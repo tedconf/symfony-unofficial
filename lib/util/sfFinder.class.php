@@ -37,16 +37,16 @@
  */
 class sfFinder
 {
-  protected $type        = 'file';
-  protected $names       = array();
-  protected $prunes      = array();
-  protected $discards    = array();
-  protected $execs       = array();
-  protected $mindepth    = 0;
-  protected $sizes       = array();
-  protected $maxdepth    = 1000000;
-  protected $relative    = false;
-  protected $follow_link = false;
+  private $type        = 'file';
+  private $names       = array();
+  private $prunes      = array();
+  private $discards    = array();
+  private $execs       = array();
+  private $mindepth    = 0;
+  private $sizes       = array();
+  private $maxdepth    = 1000000;
+  private $relative    = false;
+  private $follow_link = false;
 
   /**
    * Sets maximum directory depth.
@@ -112,7 +112,7 @@ class sfFinder
   /*
    * glob, patterns (must be //) or strings
    */
-  protected function to_regex($str)
+  private function to_regex($str)
   {
     if ($str{0} == '/' && $str{strlen($str) - 1} == '/')
     {
@@ -124,7 +124,7 @@ class sfFinder
     }
   }
 
-  protected function args_to_array($arg_list, $not = false)
+  private function args_to_array($arg_list, $not = false)
   {
     $list = array();
 
@@ -228,20 +228,6 @@ class sfFinder
     $this->discards = array_merge($this->discards, $this->args_to_array($args));
 
     return $this;
-  }
-
-  /**
-   * Ignores version control directories.
-   *
-   * Currently supports subversion, CVS, DARCS, Gnu Arch, Monotone, Bazaar-NG
-   *
-   * @return object current pakeFinder object
-   */
-  public function ignore_version_control()
-  {
-    $ignores = array('.svn', 'CVS', '_darcs', '.arch-params', '.monotone', '.bzr');
-
-    return $this->discard($ignores)->prune($ignores);
   }
 
   /**
@@ -350,7 +336,7 @@ class sfFinder
     return array_unique($files);
   }
 
-  protected function search_in($dir, $depth = 0)
+  private function search_in($dir, $depth = 0)
   {
     if ($depth > $this->maxdepth)
     {
@@ -367,7 +353,7 @@ class sfFinder
     if (is_dir($dir))
     {
       $current_dir = opendir($dir);
-      while (false !== $entryname = readdir($current_dir))
+      while ($entryname = readdir($current_dir))
       {
         if ($entryname == '.' || $entryname == '..') continue;
 
@@ -403,7 +389,7 @@ class sfFinder
     return $files;
   }
 
-  protected function match_names($dir, $entry)
+  private function match_names($dir, $entry)
   {
     if (!count($this->names)) return true;
 
@@ -455,7 +441,7 @@ class sfFinder
     }
   }
 
-  protected function size_ok($dir, $entry)
+  private function size_ok($dir, $entry)
   {
     if (!count($this->sizes)) return true;
 
@@ -470,7 +456,7 @@ class sfFinder
     return true;
   }
 
-  protected function is_pruned($dir, $entry)
+  private function is_pruned($dir, $entry)
   {
     if (!count($this->prunes)) return false;
 
@@ -483,7 +469,7 @@ class sfFinder
     return false;
   }
 
-  protected function is_discarded($dir, $entry)
+  private function is_discarded($dir, $entry)
   {
     if (!count($this->discards)) return false;
 
@@ -496,7 +482,7 @@ class sfFinder
     return false;
   }
 
-  protected function exec_ok($dir, $entry)
+  private function exec_ok($dir, $entry)
   {
     if (!count($this->execs)) return true;
 
@@ -551,8 +537,8 @@ class sfFinder
  */
 class sfGlobToRegex
 {
-  protected static $strict_leading_dot = true;
-  protected static $strict_wildcard_slash = true;
+  private static $strict_leading_dot = true;
+  private static $strict_wildcard_slash = true;
 
   public static function setStrictLeadingDot($boolean)
   {
@@ -673,7 +659,7 @@ class sfGlobToRegex
  */
 class sfNumberCompare
 {
-  protected $test = '';
+  private $test = '';
 
   public function __construct($test)
   {

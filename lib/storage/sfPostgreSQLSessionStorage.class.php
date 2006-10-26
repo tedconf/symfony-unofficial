@@ -34,7 +34,7 @@
  */
 class sfPostgreSQLSessionStorage extends sfSessionStorage
 {
-  protected
+  private
     $resource = null;
 
   /**

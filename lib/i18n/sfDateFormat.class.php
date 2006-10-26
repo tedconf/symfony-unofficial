@@ -106,7 +106,7 @@ class sfDateFormat
    */
   public function format($time, $pattern='F', $charset='UTF-8')
   {
-    if(!ctype_digit((string) $time))
+    if(is_string($time))
       $time = @strtotime($time);
     
     if(is_null($pattern))

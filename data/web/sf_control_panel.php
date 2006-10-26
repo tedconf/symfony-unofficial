@@ -17,14 +17,33 @@ if ('127.0.0.1' != $_SERVER['REMOTE_ADDR'])
 define('SF_ROOT_DIR', realpath(dirname(__FILE__).'/..'));
 
 // symfony directories
-include(SF_ROOT_DIR.'/config/config.php');
+if (is_readable(SF_ROOT_DIR.'/lib/symfony/symfony.php'))
+{
+  // symlink exists
+  $sf_symfony_lib_dir  = SF_ROOT_DIR.'/lib/symfony';
+  $sf_symfony_data_dir = SF_ROOT_DIR.'/data/symfony';
+}
+else
+{
+  // PEAR config
+  if ((include('symfony/pear.php')) != 'OK')
+  {
+    throw new Exception('Unable to find symfony librairies');
+  }
+}
 
 // as we are in the web/ dir, we need to go up one level to get to the project root
 chdir(dirname(__FILE__).DIRECTORY_SEPARATOR.'..');
 
 // init pake
-require_once($sf_symfony_lib_dir.'/vendor/pake/pakeFunction.php');
-
+if (is_readable(SF_ROOT_DIR.'/bin/pake.php'))
+{
+  include_once(SF_ROOT_DIR.'/bin/pake.php');
+}
+else
+{
+  include_once('pake.php');
+}
 $pake = pakeApp::get_instance();
 $pakefile = $sf_symfony_data_dir.'/bin/pakefile.php';
 
@@ -38,8 +57,6 @@ $tasks = array(
   'propel-build-model',
   'propel-build-sql',
   'propel-insert-sql',
-  'propel-build-all',
-  'propel-load-data',
   'init-module',
   'propel-init-crud',
   'propel-generate-crud',
@@ -119,36 +136,32 @@ function lcfirst($name)
   return $first_letter.substr($name, 1, strlen($name)-1);
 }
 
-function link_to_file($filename, $path, $name = null, $br = true)
+function link_to_file($filename, $path, $name = null)
 {
-  return "<a href='".$_SERVER["SCRIPT_NAME"]."?task=show&amp;filename=".rawurlencode(str_replace('\\', '/', str_replace(SF_ROOT_DIR.DIRECTORY_SEPARATOR, '', realpath(SF_ROOT_DIR.'/'.$path.'/'.$filename))))."'>".($name === null ? $filename : $name)."</a>".($br ? "<br />":"");
+  return "<a href='".$_SERVER["SCRIPT_NAME"]."?task=show&filename=".rawurlencode(str_replace('\\', '/', str_replace(SF_ROOT_DIR.DIRECTORY_SEPARATOR, '', realpath(SF_ROOT_DIR.'/'.$path.'/'.$filename))))."'>".($name === null ? $filename : $name)."</a><br />";
 }
 
 // initialize variables needed at several places
 $tmp1 = str_replace('\\', '/', SF_ROOT_DIR);
 $tmp2 = explode('/', $tmp1);
 $project_name = end($tmp2);
-$model_files = pakeFinder::type('file')->maxdepth(0)->relative()->name("*Peer.php")->ignore_version_control()->in('lib/model');
-$apps = pakeFinder::type('dir')->maxdepth(0)->relative()->ignore_version_control()->in('apps');
+$model_files = pakeFinder::type('file')->maxdepth(0)->relative()->name("*Peer.php")->prune('.svn')->discard('.svn')->in('lib/model');
+$apps = pakeFinder::type('dir')->maxdepth(0)->relative()->prune('.svn')->discard('.svn')->in('apps');
 
-$batches = pakeFinder::type('file')->relative()->ignore_version_control()->maxdepth(3)->name("*.php")->in('batch');
-$controllers = pakeFinder::type('file')->relative()->ignore_version_control()->maxdepth(1)->name('*.php')->in('web');
+$batches = pakeFinder::type('file')->relative()->prune('.svn')->discard('.svn')->maxdepth(3)->name("*.php")->in('batch');
+$controllers = pakeFinder::type('file')->relative()->prune('.svn')->discard('.svn')->maxdepth(1)->name('*.php')->in('web');
 
 ?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
-   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
 <html>
   <head>
     <title>"<?php echo $project_name ?>" project - symfony control panel</title>
-    <style type="text/css">
+    <style>
       body, td
       {
        font-family: verdana, sans-serif;
-      }
-      body
-      {
        font-size: 0.8em;
-      }      
+      }
       h1
       {
         font-size: 1.5em;
@@ -245,7 +258,7 @@ $controllers = pakeFinder::type('file')->relative()->ignore_version_control()->m
         z-index: 1000;
       }
     </style>
-    <script type="text/javascript">
+    <script language="Javascript">
       function $()
       {
         var results = [], element;
@@ -275,10 +288,10 @@ $controllers = pakeFinder::type('file')->relative()->ignore_version_control()->m
       <h2>Application "<?php echo $app ?>"</h2>
 
       <blockquote>
-        <a class="task" href="<?php echo $_SERVER["SCRIPT_NAME"] ?>?task=clear-cache&amp;arg[0]=<?php echo $app ?>">Clear app cache</a><br />
-        <a class="task" href="<?php echo $_SERVER["SCRIPT_NAME"] ?>?task=clear-cache&amp;arg[0]=<?php echo $app ?>&amp;arg[1]=config">Clear config app cache</a><br />
-        <a class="task" href="<?php echo $_SERVER["SCRIPT_NAME"] ?>?task=clear-cache&amp;arg[0]=<?php echo $app ?>&amp;arg[1]=templates">Clear templates app cache</a><br />
-        <a class="task" href="<?php echo $_SERVER["SCRIPT_NAME"] ?>?task=test&amp;arg[0]=<?php echo $app ?>">Launch test suite</a><br />
+        <a class="task" href="<?php echo $_SERVER["SCRIPT_NAME"] ?>?task=clear-cache&arg[0]=<?php echo $app ?>">Clear app cache</a><br />
+        <a class="task" href="<?php echo $_SERVER["SCRIPT_NAME"] ?>?task=clear-cache&arg[0]=<?php echo $app ?>&arg[1]=config">Clear config app cache</a><br />
+        <a class="task" href="<?php echo $_SERVER["SCRIPT_NAME"] ?>?task=clear-cache&arg[0]=<?php echo $app ?>&arg[1]=templates">Clear templates app cache</a><br />
+        <a class="task" href="<?php echo $_SERVER["SCRIPT_NAME"] ?>?task=test&arg[0]=<?php echo $app ?>">Launch test suite</a><br />
       </blockquote>
 
       <h3>Environments</h3>
@@ -294,14 +307,14 @@ $controllers = pakeFinder::type('file')->relative()->ignore_version_control()->m
       </blockquote>
 
       <h3>Modules</h3>
-      <?php $modules = pakeFinder::type('dir')->maxdepth(0)->relative()->ignore_version_control()->in('apps/'.$app.'/modules') ?>
+      <?php $modules = pakeFinder::type('dir')->maxdepth(0)->relative()->prune('.svn')->discard('.svn')->in('apps/'.$app.'/modules') ?>
       <blockquote>
       <?php foreach ($modules as $module): ?>
           <a href="javascript:;" onclick="switchElement('<?php echo $app ?>_module_<?php echo $module ?>');return false"><?php echo $module ?></a><br />
           <blockquote id="<?php echo $app ?>_module_<?php echo $module ?>" style="display:none;">
 
           <?php try { ?>
-          <?php $action_files = pakeFinder::type('file')->name('*action*.class.php')->maxdepth(0)->ignore_version_control()->relative()->in('apps/'.$app.'/modules/'.$module.'/actions') ?>
+          <?php $action_files = pakeFinder::type('file')->name('*action*.class.php')->maxdepth(0)->prune('.svn')->discard('.svn')->relative()->in('apps/'.$app.'/modules/'.$module.'/actions') ?>
           <?php if ($action_files): ?>
             <h4>Actions</h4>
             <blockquote>
@@ -316,7 +329,7 @@ $controllers = pakeFinder::type('file')->relative()->ignore_version_control()->m
           <?php } catch (Exception $e) { } ?>
 
           <?php try { ?>
-          <?php $templates = pakeFinder::type('file')->name('*.php')->maxdepth(0)->relative()->ignore_version_control()->in('apps/'.$app.'/modules/'.$module.'/templates') ?>
+          <?php $templates = pakeFinder::type('file')->name('*.php')->maxdepth(0)->relative()->prune('.svn')->discard('.svn')->in('apps/'.$app.'/modules/'.$module.'/templates') ?>
           <?php if ($templates): ?>
             <h4>Templates</h4>
             <blockquote>
@@ -328,7 +341,7 @@ $controllers = pakeFinder::type('file')->relative()->ignore_version_control()->m
           <?php } catch (Exception $e) { } ?>
 
           <?php try { ?>
-          <?php $configurations = pakeFinder::type('file')->name('*.yml')->maxdepth(0)->relative()->ignore_version_control()->in('apps/'.$app.'/modules/'.$module.'/config') ?>
+          <?php $configurations = pakeFinder::type('file')->name('*.yml')->maxdepth(0)->relative()->prune('.svn')->discard('.svn')->in('apps/'.$app.'/modules/'.$module.'/config') ?>
           <?php if ($configurations): ?>
             <h4>Configuration</h4>
             <blockquote>
@@ -340,7 +353,7 @@ $controllers = pakeFinder::type('file')->relative()->ignore_version_control()->m
           <?php } catch (Exception $e) { } ?>
 
           <?php try { ?>
-          <?php $libraries = pakeFinder::type('file')->name('*.php')->relative()->ignore_version_control()->in('apps/'.$app.'/modules/'.$module.'/lib') ?>
+          <?php $libraries = pakeFinder::type('file')->name('*.php')->relative()->prune('.svn')->discard('.svn')->in('apps/'.$app.'/modules/'.$module.'/lib') ?>
           <?php if ($libraries): ?>
             <h4>Libraries</h4>
             <blockquote>
@@ -354,14 +367,10 @@ $controllers = pakeFinder::type('file')->relative()->ignore_version_control()->m
           </blockquote>
 
         <?php endforeach; ?>
-        
-        </blockquote>
-      
-        <blockquote>
-          <a class="task" href="#" onclick="switchElement('propel-task');return false">Create new module...</a><br />
-        
-        <form method="get" action="<?php echo $_SERVER["SCRIPT_NAME"] ?>" name="propel-task" id="propel-task" style="display: none;margin-top:10px">
-          <input type="hidden" name="arg[0]" value="<?php echo $app ?>" />
+        <br />
+
+        <form method="get" action="<?php echo $_SERVER["SCRIPT_NAME"] ?>" name="propel-task" id="propel-task">
+          <input type="hidden" name="arg[0]" value="<?php echo $app ?>">
 
           <label for="task">type</label>
           <select name="task" onChange=";if (String(this.value).indexOf('propel') == 0) divdisplay ='block'; else divdisplay ='none'; $('propel_module_models').style.display = divdisplay;">
@@ -374,7 +383,7 @@ $controllers = pakeFinder::type('file')->relative()->ignore_version_control()->m
           </select><br />
 
           <label for="arg[1]">name</label>
-          <input type="text" name="arg[1]" /><br />
+          <input type="text" name="arg[1]"><br />
 
           <?php if ($model_files): ?>
             <div id="propel_module_models" style="display:none">
@@ -390,14 +399,14 @@ $controllers = pakeFinder::type('file')->relative()->ignore_version_control()->m
           <?php endif; ?>
 
           <label>&nbsp;</label>
-          <input type="submit" value="Create a module" /><br />
+          <input type="submit" value="Create a module"><br />
         </form>
 
         </blockquote>
 
       <?php try { ?>
       <h3>Configuration</h3>
-      <?php $config_files = pakeFinder::type('file')->relative()->ignore_version_control()->in('apps/'.$app.'/config') ?>
+      <?php $config_files = pakeFinder::type('file')->relative()->prune('.svn')->discard('.svn')->in('apps/'.$app.'/config') ?>
       <blockquote>
       <?php foreach ($config_files as $config_file): ?>
           <?php echo link_to_file($config_file, '/apps/'.$app.'/config') ?>
@@ -406,7 +415,7 @@ $controllers = pakeFinder::type('file')->relative()->ignore_version_control()->m
       <?php } catch (Exception $e) { } ?>
 
       <?php try { ?>
-      <?php $libraries = pakeFinder::type('file')->name('*.php')->relative()->ignore_version_control()->in('apps/'.$app.'/lib') ?>
+      <?php $libraries = pakeFinder::type('file')->name('*.php')->relative()->prune('.svn')->discard('.svn')->in('apps/'.$app.'/lib') ?>
       <?php if ($libraries): ?>
         <h3>Libraries</h3>
         <blockquote>
@@ -417,14 +426,23 @@ $controllers = pakeFinder::type('file')->relative()->ignore_version_control()->m
       <?php endif; ?>
       <?php } catch (Exception $e) { } ?>
 
+
+    </blockquote>
+
   </div>
   <?php endforeach; ?>
 
   <div class="column">
     <h2>Model</h2>
 
+    <blockquote>
+      <a class="task" href="<?php echo $_SERVER["SCRIPT_NAME"] ?>?task=propel-build-model">Rebuild Model</a><br />
+      <a class="task" href="<?php echo $_SERVER["SCRIPT_NAME"] ?>?task=propel-build-sql">Build SQL</a><br />
+      <a class="task" href="<?php echo $_SERVER["SCRIPT_NAME"] ?>?task=propel-insert-sql">Insert SQL</a>
+    </blockquote>
+
     <?php try { ?>
-    <?php $schema_files = pakeFinder::type('file')->maxdepth(3)->relative()->name("*schema.*ml")->prune('web')->prune('lib')->prune('data')->ignore_version_control()->in('./') ?>
+    <?php $schema_files = pakeFinder::type('file')->maxdepth(3)->relative()->name("*schema.xml")->prune('web')->prune('lib')->prune('data')->prune('.svn')->discard('.svn')->in('./') ?>
     <?php if ($schema_files): ?>
       <h3>Schema</h3>
       <blockquote>
@@ -432,21 +450,11 @@ $controllers = pakeFinder::type('file')->relative()->ignore_version_control()->m
         <?php echo link_to_file($schema_file, '') ?>
       <?php endforeach; ?>
     </blockquote>
-    <blockquote style="float:left">
-      <a class="task" href="<?php echo $_SERVER["SCRIPT_NAME"] ?>?task=propel-build-model">Rebuild Model</a><br />
-      <a class="task" href="<?php echo $_SERVER["SCRIPT_NAME"] ?>?task=propel-build-sql">Build SQL</a><br />
-      <a class="task" href="<?php echo $_SERVER["SCRIPT_NAME"] ?>?task=propel-insert-sql">Insert SQL</a>
-    </blockquote>
-    <blockquote style="float:left">
-      <br />
-      <a class="task" href="<?php echo $_SERVER["SCRIPT_NAME"] ?>?task=propel-build-all">Rebuild Model and db</a>
-    </blockquote>
-    <br style="clear:left" />
     <?php endif; ?>
     <?php } catch (Exception $e) { } ?>
 
     <?php try { ?>
-    <?php $connection_files = pakeFinder::type('file')->maxdepth(3)->relative()->name('databases.yml')->prune('lib')->prune('lib')->prune('data')->ignore_version_control()->in('./') ?>
+    <?php $connection_files = pakeFinder::type('file')->maxdepth(3)->relative()->name('databases.yml')->prune('lib')->prune('lib')->prune('data')->prune('.svn')->discard('.svn')->in('./') ?>
     <?php if ($connection_files): ?>
       <h3>Connection settings</h3>
       <blockquote>
@@ -456,33 +464,17 @@ $controllers = pakeFinder::type('file')->relative()->ignore_version_control()->m
     </blockquote>
     <?php endif; ?>
     <?php } catch (Exception $e) { } ?>
-    
-    <?php try { ?>
-    <?php $fixtures_files = pakeFinder::type('file')->maxdepth(3)->relative()->name("*.yml")->ignore_version_control()->in('./data/fixtures') ?>
-    <?php if ($fixtures_files ): ?>
-      <h3>Test data</h3>
-      <blockquote>
-      <?php foreach ($fixtures_files as $fixtures_file): ?>
-        <?php echo link_to_file($fixtures_file, '/data/fixtures') ?>
-      <?php endforeach; ?>
-    </blockquote>
-    <blockquote>
-      <a class="task" href="<?php echo $_SERVER["SCRIPT_NAME"] ?>?task=propel-load-data">Insert into db</a>
-    </blockquote>
 
     <?php if ($model_files): ?>
       <h3>Classes</h3>
       <blockquote>
       <?php foreach ($model_files as $model): ?>
         <?php $model = substr($model, 0, strlen($model)-8) ?>
-        <?php echo link_to_file($model.'.php', '/lib/model', null, false) ?> (<?php echo link_to_file('Base'.$model.'.php', '/lib/model/om', 'base', false) ?>)<br />
-        <?php echo link_to_file($model.'Peer.php', '/lib/model', null, false) ?> (<?php echo link_to_file('Base'.$model.'Peer.php', '/lib/model/om', 'base', false) ?>)<br />
+        <?php echo link_to_file($model.'.php', '/lib/model') ?>
+        <?php echo link_to_file($model.'Peer.php', '/lib/model') ?>
       <?php endforeach; ?>
       </blockquote>
     <?php endif; ?>
-
-    <?php endif; ?>
-    <?php } catch (Exception $e) { } ?>
 
   </div>
   <div class="column">
@@ -501,7 +493,7 @@ $controllers = pakeFinder::type('file')->relative()->ignore_version_control()->m
     <?php endif; ?>
     <?php } catch (Exception $e) { } ?>
 
-    <?php $libraries = pakeFinder::type('file')->name('*.php')->prune('symfony')->prune('phing')->prune('pake')->prune('model')->relative()->ignore_version_control()->in('lib') ?>
+    <?php $libraries = pakeFinder::type('file')->name('*.php')->prune('symfony')->prune('phing')->prune('pake')->prune('model')->relative()->prune('.svn')->discard('.svn')->in('lib') ?>
     <?php if ($libraries): ?>
       <h2>Libraries</h2>
       <blockquote>

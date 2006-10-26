@@ -33,10 +33,9 @@ interface CallableStatement extends PreparedStatement {
     /**
      * Register a parameter as an output param.
      * @param string $paramIndex The stored procedure param name (e.g. @val1).
-     * @param int $sqlType The type of the parameter (e.g. Type::BIT)
-     * @param int $maxLength The maximum expected length (size) of output parameter.
+     * @param int $sqlType The type of the parameter (e.g. Type::BIT) .
      */
-    public function registerOutParameter($paramIndex, $sqlType, $maxLength = null);
+    public function registerOutParameter($paramIndex, $sqlType);
     
     /**
      * 

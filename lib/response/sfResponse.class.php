@@ -20,7 +20,9 @@
 abstract class sfResponse
 {
   protected
-    $parameter_holder = null,
+    $parameter_holder = null;
+
+  private
     $context = null,
     $content = '';
 
@@ -140,9 +142,4 @@ abstract class sfResponse
    * @return void
    */
   abstract function shutdown ();
-
-  public function __call($method, $arguments)
-  {
-    return sfMixer::callMixins();
-  }
 }

@@ -201,21 +201,20 @@ To have a custom title for every page, take advantage of the  `<?php echo includ
 If your title only depends on the view, you should specify `title` in the `view.yml`:
 
     indexSuccess:
-      metas:
-        title: Description
+      title: 'Description'
       
     indexError:
-      metas:
-        title: Problem while displaying the description
+      title: 'Problem while displaying the description'
     
     listSuccess:
-      metas:
-        title: Result list
+      title:  'Result list'
 
-On the other hand, if an action can result in a page with various titles, you should use the  `setTitle($title)` function:
+On the other hand, if an action can give pages with various titles, you should use the  `setTitle($title)` function:
 
     [php]
-    $this->getResponse()->setTitle($title);
+    $this->setTitle($title);
+
+>**Note**: the `<meta name="title"...` is not modified by the `setTitle` function. Modify the `head.yml` or use the `addMeta` function if you want to change it.
 
 File inclusion configuration
 ----------------------------
@@ -292,13 +291,6 @@ To give you more control over this cascade, you can remove an already included s
     indexSuccess:
       stylesheets: [special, -main]
 
-To remove all stylesheets or JavaScripts, use the following syntax:
-
-    # remove all stylesheets and JavaScripts
-    indexSuccess:
-      stylesheets: [-*]
-      javascripts: [-*]
-
 You can be more accurate from within an action and define an additional parameter to force the position where to include the file (`first` or `last` position):
 
     [php]
@@ -313,7 +305,7 @@ To specify a media for a stylesheet inclusion, you can change the default styles
 or
 
     [php]
-    $this->getResponse()->addStylesheet('main_for_print', '', array('media' => 'print'));
+    $this->getResponse()->addStylesheet('main_for_print', array('media' => 'print'));
 
 Layout configuration
 --------------------
@@ -363,7 +355,7 @@ Some views don't need any layout at all (for instance plain text pages). In that
 Or, in the action:
 
     [php]
-    $this->setLayout(false);
+    $this->hasLayout(false);
 
 Component slots configuration
 -----------------------------

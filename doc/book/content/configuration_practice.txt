@@ -32,7 +32,7 @@ Project configuration                                      {#project}
 There are a few project configuration files by default. Here are the files that can be found in the `myproject/config/` directory:
 
 * `apache.conf`: This file is not really a configuration file, since it is not used by the project. It is given as an example of an Apache configuration for a typical symfony project.
-* `config.php`: Contains the path to the symfony libraries. Can hold general project configuration. If you add some `define` statements in this file, the constants will be accessible from every application of the project. This file is empty by default. [_see more below_](#config)
+* `config.php`: Can hold general project configuration. If you add some `define` statements in this file, the constants will be accessible from every application of the project. This file is empty by default. Can also be used to override the default project file structure. This file is empty by default. [_see more below_](#config)
 * `properties.ini`: Holds a few parameters used by the pakefile (including the project name)
 * `rsync_exclude.txt`: this file specifies which directories have to be excluded from the [synchronization between environments](deployment.txt). The default content should illustrate its use very well:
 
@@ -44,7 +44,9 @@ There are a few project configuration files by default. Here are the files that 
         web/index.php
         config
 
-* `schema.yml` and `propel.ini` are data access configuration files used by Propel (symfony's [ORM layer](model.txt)). They are used to plug the Propel libraries with the symfony classes and the data of your project. The `schema.yml` contains a representation of the project's relational data model. The `propel.ini` is automatically generated, so you probably do not need to modify it. If you don't use Propel, these files are not needed.
+* `schema.xml` and `propel.ini` are data access configuration files used by Propel (symfony's [ORM layer](model.txt)). They are used to plug the Propel libraries with the symfony classes and the data of your project. The `schema.xml` contains an XML representation of the project's relational data model. The `propel.ini` is automatically generated, so you probably do not need to modify it. If you don't use Propel, these files are not needed.
+
+As yet, you probably do not realize the great benefit of the YAML format in symfony since none of the project configuration files use it. But there is a good reason for that: these files are used by external components or need to be processed even before any YAML parsing program can be loaded by the framework. The real benefits actually start accruing with the application configuration.
 
 Application configuration                                  {#application}
 -------------------------
@@ -54,7 +56,7 @@ The principal part of the configuration is the application configuration. The fi
 ### Overview
 
 * `app.yml*`: This file should contain the application-specific configuration, i.e. global variables that don't really need to be stored in a database. VAT rates, shipping fares, email addresses are often stored in this file. It is empty by default. See more in the [configuration chapter](configuration.txt).
-* `config.php`: This file bootstraps the application, which means that it does all the very basic initializations to allow the application to start. It normally defines the directory layout (by including the `constants.php` file), includes the project configuration (`myproject/config/config.php`), loads the necessary symfony classes, and includes some of the parsed `.yml` files of the application configuration (the others are loaded on demand). This configuration file is written in PHP rather than YAML because the YAML interpreter isn't loaded when `config.php` is processed. 
+* `config.php`: This file bootstraps the application, which means that it does all the very basic initializations to allow the application to start. It normally defines the include path to the framework libraries, defines the directory layout (by including the `constants.php` file), includes the project configuration (`myproject/config/config.php`), loads the necessary symfony classes, and includes some of the parsed `.yml` files of the application configuration (the others are loaded on demand). This configuration file is written in PHP rather than YAML because the YAML interpreter isn't loaded when `config.php` is processed. 
 * `databases.yml*`: This is where you define the access and the connection settings to the database (host, login, password, database name). [_see more below_](#database)
 * `factories.yml*`: By default, the symfony framework uses some specific classes for its operation; this file allows you to override this behavior by pointing to alternate classes to manage sessions, actions, front web controller, etc... You normally wouldn't change the content of this file, as will be explained a little further. [_see more below_](#factories)
 * `filters.yml`: Symfony allows the execution of filters before actions. For instance, the Security filter is configured by default to check credentials for restricted actions. If you need to add a custom filter, for instance to calculate the time to execute an action, this is the file that you need to modify.
@@ -127,7 +129,7 @@ Here is a list of some of the useful `.settings` parameters:
 * `use_security`: If your application has restricted areas, authentication and credentials, set this parameter to `on` (see the [security chapter](security.txt) for more details)
 * `compressed`: Activates the HTML compression to reduce bandwidth requirements and improve performance
 * `tidy`: Activates the use of [HTML Tidy][1]
-* `i18n`: Must be set to `on` for sites/applications available in multiple languages
+* `is_i18n`: Must be set to `on` for sites/applications available in multiple languages
 * `default_culture`: Specifies the default parameter used to format dates, numbers, currencies (`en` in the default configuration)
 * `web_debug`: Activation of the web debug frame, a tool that gives access to debug info on every page. The quantity of logged information is relative to the entries set in the `logging.yml` file, and it requires that the `SF_DEBUG` constant be set to `true` in the front controller. See more in the [debug chapter](debug.txt).
 * `cache`: Activates the caching feature to speed up page generation by recording chunks of compiled code
@@ -192,21 +194,23 @@ The `logging.yml` file defines the level of log messages recorded. By default, a
 
 ### `factories.yml`: Factories settings                    {#factories}
 
-Symfony uses classes such as `sfFrontWebController`, `sfRequest`, `sfUser`, that are part of the framework. In the `myproject/apps/myapp/lib/` directory, you can override them with your own `myFrontWebController`, `myRequest` classes (`myUser` already exists). They simply need inherit of the 'sf-' classes, and this allows you to customize their behavior. Teel the framework to use the 'my-' classes instead of the 'sf-' ones by changing the settings found in the `factories.yml` file:
+Symfony uses classes such as `sfFrontWebController`, `sfUser`, `sfRequest` that are part of the framework. In the `myproject/apps/myapp/lib/` directory, you will find some files defining classes called `myFrontWebController`, `myUser`, `myRequest`, etc. They all simply inherit of the 'sf-' classes, and this allows you to customize their behavior. The framework knows to use the 'my-' classes instead of the 'sf-' ones by the configuration setting found in the `factories.yml` file:
 
     ...
     all:
     #  controller:
-    #    class: sfFrontWebController
+    #    class: myFrontWebController
     #
     #  request:
-    #    class: sfWebRequest
+    #    class: myWebRequest
     #
     #  user:
     #    class: myUser
     ...
 
-Have a look at the existing `myUser` class to see how the inheritance allows for extension and overriding of **factories** classes. 
+This means that you have a prebuilt mechanism to change the **factories** of symfony, the big classes that run behind the curtain, by adding or inheriting methods in the 'my-' classes.
+
+But if you want to use completely different factories, well, you can. Just modify the `factories.yml` entries to point to your custom files. 
 
 ### Front controller configuration
 
@@ -335,7 +339,7 @@ As mentioned in the [configuration chapter](configuration.txt), the parameter is
     [php]
     $max_votes_parameter = sfConfig::get('mod_max_votes');
 
-But maybe you need a totally specific configuration file. In such cases, as in the case of custom app configuration, create a `myconfig.yml` file together with a `config_handlers.yml` file to handle its data (read the [configuration chapter](configuration.txt) for more information).
+But maybe you need a totally specific configuration file. In such cases, as in the case of custom app configuration, create a `myconfig.yml` file together with a `config_handlers.yml` file to handle its data (read the [configuration handler chapter](sfConfigHandler.txt) for more information).
 
 ### `security.yml`: Access restriction configuration       {#security}
 
@@ -436,24 +440,7 @@ The default layout for all the actions of this example module is set to `mylayou
 
 ### File structure settings                                {#config}
 
-The project `config.php` stores the absolute path to the symfony libraries:
-
-    <?php
-    
-    // symfony directories
-    $sf_symfony_lib_dir  = '/usr/lib/php/symfony';
-    $sf_symfony_data_dir = '/usr/lib/php/data/symfony';
-
-If you don't want to hardcode paths because the project is used in more than one server, you can put the symfony `lib/` and `data/` directories in your project's `lib/symfony/` and `data/symfony/` direcories (by using a symbolic link or a `svn:externals`) and then change your `config.php` to:
-
-    <?php
-    
-    // symfony directories
-    $sf_symfony_lib_dir  = dirname(__FILE__).'/../lib/symfony';
-    $sf_symfony_data_dir = dirname(__FILE__).'/../data/symfony';
-
-
-The application `config.php` file is often used to customize the directory layout, the directory separator, and everything that the framework needs to find your actions (normally in `actions`), your modules (normally in `modules`), your libraries (normally in `lib`), etc. 
+The `config.php` file is often used to customize the directory layout, the directory separator, and everything that the framework needs to find your actions (normally in `actions`), your modules (normally in `modules`), your libraries (normally in `lib`), etc. 
 
 Every path to a key directory is determined by a parameter ending with `_dir`. Here is an extract of the standard file structure configuration (located in `$pear_data_dir/symfony/config/constants.php`):
 
@@ -487,7 +474,9 @@ To learn more about the default tree structure, refer to the [file structure cha
 
 You will probably need to modify this file if you develop an application for a client who already has a defined directory structure and who is not willing to change it to comply with the symfony logic (how could that be possible ?).
 
-Projects inherit their file structure from the framework `constants.php`. This means that if you need to change the file structure of your project or application, you have to override the settings of the `constants.php`. This can be done in the application `config.php`. Beware that it is not empty, so if you need to include file structure definitions there, do it just after the inclusion of the project configuration.
+Projects inherit their file structure from the framework `constants.php`. This means that if you need to change the file structure of your project or application, you have to override the settings of the `constants.php`. This can be done in your project `config.php` file, to change the tree structure of all the applications of the project, or in the application `config.php`, to change the file structure of a single application.
+
+Beware that the application `config.php` is not empty, so if you need to include file structure definitions there, do it just after the inclusion of the project configuration.
 
 Browsing your own YAML file                                {#yaml}
 ---------------------------

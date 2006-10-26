@@ -35,7 +35,7 @@
  */
 class sfMySQLSessionStorage extends sfSessionStorage
 {
-  protected
+  private
     $resource = null;
 
   /**

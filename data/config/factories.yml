@@ -1,9 +1,9 @@
 default:
   controller:
-    class: sfFrontWebController
+    class: myFrontWebController
 
   request:
-    class: sfWebRequest
+    class: myWebRequest
 
   response:
     class: sfWebResponse
@@ -27,5 +27,3 @@ default:
 
   view_cache:
     class: sfFileCache
-    param:
-      automaticCleaningFactor: 0

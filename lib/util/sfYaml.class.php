@@ -37,12 +37,6 @@ class sfYaml
   {
     $input = self::getIncludeContents($input);
 
-    // if an array is returned by the config file assume it's in plain php form else in yaml
-    if (is_array($input))
-    {
-      return $input;
-    }
-
     // syck is prefered over spyc
     if (function_exists('syck_load'))
     {
@@ -52,11 +46,18 @@ class sfYaml
     }
     else
     {
-      require_once(dirname(__FILE__).'/Spyc.class.php');
-
       $spyc = new Spyc();
 
-      return $spyc->load($input);
+      try
+      {
+        return $spyc->load($input);
+      }
+      catch (Exception $e)
+      {
+        $error = str_replace(': Line', ': File '.$input.' line', $e->getMessage());
+        $e = new sfConfigurationException($error);
+        $e->printStackTrace();
+      }
     }
   }
 
@@ -76,28 +77,21 @@ class sfYaml
     return $spyc->dump($array);
   }
 
-  protected static function getIncludeContents($input)
+  private static function getIncludeContents($input)
   {
     // if input is a file, process it
     if (strpos($input, "\n") === false && is_file($input))
     {
+      require_once(sfConfig::get('sf_symfony_lib_dir').'/helper/TextHelper.php');
+
       ob_start();
-      $retval = include($input);
+      include($input);
       $contents = ob_get_clean();
 
-      // if an array is returned by the config file assume it's in plain php form else in yaml
-      return is_array($retval) ? $retval : $contents;
+      return $contents;
     }
 
     // else return original input
     return $input;
   }
-}
-
-/**
- * Wraps echo to automatically provide a newline
- */
-function echoln($string)
-{
-  echo $string."\n";
 }

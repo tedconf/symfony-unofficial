@@ -74,7 +74,7 @@ class Clob extends Lob {
             throw new Exception('No data to write to file');
         }
         $file = fopen($this->inFile, "wt");
-        if (fputs($file, $this->data) === false)
+        if (fputs($file, $data) === false)
             throw new Exception('Unable to write to file: '.$this->outFile);
         fclose($file);
     }

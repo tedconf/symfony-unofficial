@@ -22,7 +22,7 @@
  */
 class sfDatabaseManager
 {
-  protected
+  private
     $databases = array();
 
   /**
@@ -59,7 +59,7 @@ class sfDatabaseManager
   public function initialize ()
   {
     // load database configuration
-    require(sfConfigCache::getInstance()->checkConfig(sfConfig::get('sf_app_config_dir_name').'/databases.yml'));
+    require_once(sfConfigCache::getInstance()->checkConfig(sfConfig::get('sf_app_config_dir_name').'/databases.yml'));
   }
 
   /**

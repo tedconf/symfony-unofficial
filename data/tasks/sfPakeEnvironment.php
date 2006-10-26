@@ -1,13 +1,5 @@
 <?php
 
-/*
- * This file is part of the symfony package.
- * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- * 
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- */
-
 pake_desc('synchronise project with another machine');
 pake_task('sync', 'project_exists');
 
@@ -28,8 +20,22 @@ function run_sync($task, $args)
   }
 
   $host = $task->get_property('host', $env);
+  if (!$host)
+  {
+    throw new Exception('You must set "host" variable in your properties.ini file.');
+  }
+
   $user = $task->get_property('user', $env);
+  if (!$user)
+  {
+    throw new Exception('You must set "user" variable in your properties.ini file.');
+  }
+
   $dir = $task->get_property('dir', $env);
+  if (!$dir)
+  {
+    throw new Exception('You must set "dir" variable in your properties.ini file.');
+  }
 
   if (substr($dir, -1) != '/')
   {
@@ -38,24 +44,14 @@ function run_sync($task, $args)
 
   $ssh = 'ssh';
 
-  try
+  $port = $task->get_property('port', $env);
+  if ($port)
   {
-    $port = $task->get_property('port', $env);
     $ssh = '"ssh -p'.$port.'"';
-  }
-  catch (pakeException $e) {}
-
-  try
-  {
-    $parameters = $task->get_property('parameters', $env);
-  }
-  catch (pakeException $e)
-  {
-    $parameters = '-azC --exclude-from=config/rsync_exclude.txt --force --delete';
   }
 
   $dry_run = ($dryrun == 'go' || $dryrun == 'ok') ? '' : '--dry-run';
-  $cmd = "rsync --progress $dry_run $parameters -e $ssh ./ $user@$host:$dir";
+  $cmd = "rsync --progress $dry_run -azC --exclude-from=config/rsync_exclude.txt --force --delete -e $ssh ./ $user@$host:$dir";
 
   echo pake_sh($cmd);
 }

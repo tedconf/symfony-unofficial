@@ -355,7 +355,7 @@ class sfMessageSource_Creole extends sfMessageSource
   {
     $sql = 'SELECT name FROM catalogue ORDER BY name';
 
-    $rs = $this->db->executeQuery($sql, ResultSet::FETCHMODE_NUM);
+    $rs = $stmt->executeQuery($sql, ResultSet::FETCHMODE_NUM);
 
     $result = array();
     while ($rs->next())

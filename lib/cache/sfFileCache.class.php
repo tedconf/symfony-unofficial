@@ -50,7 +50,7 @@ class sfFileCache extends sfCache
   *
   * @var boolean $writeControl
   */
-  protected $writeControl = false;
+  protected $writeControl = true;
 
   /**
   * Enable / disable read control
@@ -94,7 +94,7 @@ class sfFileCache extends sfCache
   */
   protected $hashedDirectoryLevel = 0;
 
-  protected
+  private
     $suffix = '.cache';
 
   /**
@@ -110,17 +110,6 @@ class sfFileCache extends sfCache
   public function __construct($cacheDir)
   {
     $this->setCacheDir($cacheDir);
-  }
-
-  public function initialize($options = array())
-  {
-    foreach (array('fileLocking', 'writeControl', 'readControl', 'fileNameProtection', 'automaticCleaningFactor', 'hashedDirectoryLevel') as $option)
-    {
-      if (array_key_exists($option, $options))
-      {
-        $this->$option = $options[$option];
-      }
-    }
   }
 
   public function setSuffix($suffix)
@@ -161,12 +150,6 @@ class sfFileCache extends sfCache
     */
     public function setCacheDir($cacheDir)
     {
-      // remove last DIRECTORY_SEPARATOR
-      if (DIRECTORY_SEPARATOR == substr($cacheDir, -1))
-      {
-        $cacheDir = substr($cacheDir, 0, -1);
-      }
-
       // create cache dir if needed
       if (!is_dir($cacheDir))
       {
@@ -255,11 +238,21 @@ class sfFileCache extends sfCache
 
     if ($this->writeControl)
     {
-      $this->writeAndControl($path, $file, $data);
+      if (!$this->writeAndControl($path, $file, $data))
+      {
+        @touch($path.$file, time() - 2 * abs($this->lifeTime));
+        return false;
+      }
+      else
+      {
+        return true;
+      }
     }
     else
     {
-      $this->write($path, $file, $data);
+      $ret = $this->write($path, $file, $data);
+
+      return $ret;
     }
   }
 
@@ -306,7 +299,7 @@ class sfFileCache extends sfCache
   * @param string $id cache id
   * @param string $namespace name of the namespace
   */
-  protected function getFileName($id, $namespace)
+  private function getFileName($id, $namespace)
   {
     $file = ($this->fileNameProtection) ? md5($id).$this->suffix : $id.$this->suffix;
 
@@ -337,7 +330,7 @@ class sfFileCache extends sfCache
   * @param string $file complete file path and name
   * @return boolean true if no problem
   */
-  protected function unlink($file)
+  private function unlink($file)
   {
     return @unlink($file) ? 1 : 0;
   }
@@ -350,7 +343,7 @@ class sfFileCache extends sfCache
   * @param  string  $mode flush cache mode : 'old', 'all'
   * @return boolean true if no problem
   */
-  protected function cleanDir($dir, $mode)
+  private function cleanDir($dir, $mode)
   {
     if (!($dh = opendir($dir)))
     {
@@ -395,7 +388,7 @@ class sfFileCache extends sfCache
   *
   * @return string content of the cache file
   */
-  protected function read($path, $file)
+  private function read($path, $file)
   {
     $fp = @fopen($path.$file, "rb");
     if ($this->fileLocking)
@@ -442,7 +435,7 @@ class sfFileCache extends sfCache
   * @param  string  $data data to put in cache
   * @return boolean true if ok
   */
-  protected function write($path, $file, $data)
+  private function write($path, $file, $data)
   {
     $try = 1;
     while ($try <= 2)
@@ -501,7 +494,7 @@ class sfFileCache extends sfCache
   * @param string $data data to put in cache
   * @return boolean true if the test is ok
   */
-  protected function writeAndControl($path, $file, $data)
+  private function writeAndControl($path, $file, $data)
   {
     $this->write($path, $file, $data);
     $dataRead = $this->read($path, $file);
@@ -515,7 +508,7 @@ class sfFileCache extends sfCache
   * @param string $data data
   * @return string control key
   */
-  protected function hash($data)
+  private function hash($data)
   {
     return sprintf('% 32d', crc32($data));
   }

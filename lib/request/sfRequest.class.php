@@ -40,10 +40,12 @@ abstract class sfRequest
    */
   const POST = 4;
 
+  private
+    $errors  = array(),
+    $context = null,
+    $method  = null;
+
   protected
-    $errors           = array(),
-    $context          = null,
-    $method           = null,
     $parameter_holder = null,
     $config           = null,
     $attribute_holder = null;
@@ -327,9 +329,4 @@ abstract class sfRequest
    * @return void
    */
   abstract function shutdown ();
-
-  public function __call($method, $arguments)
-  {
-    return sfMixer::callMixins();
-  }
 }

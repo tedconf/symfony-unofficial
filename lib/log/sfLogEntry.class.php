@@ -23,6 +23,7 @@ class sfLogEntry
     $priority_string,
     $time,
     $message,
+    $elapsed_time,
     $type,
     $debug_stack;
 
@@ -54,6 +55,16 @@ class sfLogEntry
   public function setPriorityString($priority_string)
   {
     $this->priority_string = $priority_string;
+  }
+
+  public function getElapsedTime()
+  {
+    return $this->elapsed_time;
+  }
+
+  public function setElapsedTime($elapsed_time)
+  {
+    $this->elapsed_time = $elapsed_time;
   }
 
   public function getTime()

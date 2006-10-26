@@ -31,10 +31,12 @@ class sfUser
 
   const CULTURE_NAMESPACE = 'symfony/user/sfUser/culture';
 
-  protected
+  private
     $parameter_holder = null,
     $attribute_holder = null,
-    $culture          = null,
+    $culture = null;
+
+  protected
     $context          = null;
 
   /**
@@ -203,10 +205,5 @@ class sfUser
     $storage->write(self::CULTURE_NAMESPACE, $this->culture);
 
     session_write_close();
-  }
-
-  public function __call($method, $arguments)
-  {
-    return sfMixer::callMixins();
   }
 }

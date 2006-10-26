@@ -150,27 +150,28 @@ generator:
 </div>
 
 <div class="subcol">
-<h2>Validation & Repopulation</h2>
+<h2>Other configuration</h2>
 <div class="content">
 
+<h3>Validation & Repopulation</h3>
 <div style="float:right;">apps/backend/modules/post/validate/edit.yml</div>
 <pre>
 methods:
-    post:
-      - "post{title}"
-      - "post{body}"
+    post:           [title, body]
 names:
-  post{title}:
+  title:
     required:     Yes
     required_msg: You must provide a title
-  post{body}:
-    required:     No
-    validators:   [antiSpamValidator, MyStringValidator]
 fillin:
   activate:       on
 </pre>
-</div>
+<h3>Access restriction</h3>
+<div style="float:right;">apps/backend/config/security.yml</div>
+<pre>all:
+  is_secure:        on
+  credentials:      admin</pre>
 
+</div>
 </div>
 
 <!-- column end -->

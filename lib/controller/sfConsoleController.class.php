@@ -29,6 +29,9 @@ class sfConsoleController extends sfController
   {
     try
     {
+      // use plain text for errors
+      sfException::setFormat('plain');
+
       // set parameters
       $this->getContext()->getRequest()->getParameterHolder()->add($parameters);
 

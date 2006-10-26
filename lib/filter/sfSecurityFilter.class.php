@@ -21,6 +21,19 @@
  */
 abstract class sfSecurityFilter extends sfFilter
 {
+  /**
+   * Retrieve a new Controller implementation instance.
+   *
+   * @param string A Controller implementation name.
+   *
+   * @return Controller A Controller implementation instance.
+   *
+   * @throws <b>sfFactoryException</b> If a security filter implementation
+   *                                 instance cannot be created.
+   *
+   * @author Sean Kerr (skerr@mojavi.org)
+   * @since  3.0.0
+   */
   public static function newInstance ($class)
   {
     // the class exists

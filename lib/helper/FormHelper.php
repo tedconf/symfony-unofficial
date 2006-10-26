@@ -1,6 +1,6 @@
 <?php
 
-use_helper('Validation');
+require_once(sfConfig::get('sf_symfony_lib_dir').'/helper/ValidationHelper.php');
 
 /*
  * This file is part of the symfony package.
@@ -41,7 +41,7 @@ use_helper('Validation');
  *
  * <code>
  *  $card_list = array('VISA' => 'Visa', 'MAST' => 'MasterCard', 'AMEX' => 'American Express', 'DISC' => 'Discover');
- *  echo select_tag('cc_type', options_for_select($card_list, 'AMEX', array('include_custom' => '-- Select Credit Card Type --')));
+ *  echo select_tag('cc_type', options_for_select($card_list), 'AMEX', array('include_custom' => '-- Select Credit Card Type --'));
  * </code>
  *
  * <code>
@@ -470,22 +470,8 @@ function textarea_tag($name, $content = null, $options = array())
 
   if ($rich == 'tinymce')
   {
-    if (isset($options['tinymce_gzip']))
-    {
-      // use tinymce's gzipped js?
-      if ($options['tinymce_gzip'] === true)
-      {
-        $tinymce_file = '/tiny_mce_gzip.php';
-      }
-      unset($options['tinymce_gzip']);
-    }
-    // use standard tinymce js
-    else
-    {
-      $tinymce_file = '/tiny_mce.js';
-    }
     // tinymce installed?
-    $js_path = sfConfig::get('sf_rich_text_js_dir') ? '/'.sfConfig::get('sf_rich_text_js_dir').$tinymce_file : '/sf/tinymce/js'.$tinymce_file;
+    $js_path = sfConfig::get('sf_rich_text_js_dir') ? '/'.sfConfig::get('sf_rich_text_js_dir').'/tiny_mce.js' : '/sf/js/tinymce/tiny_mce.js';
     if (!is_readable(sfConfig::get('sf_web_dir').$js_path))
     {
       throw new sfConfigurationException('You must install TinyMCE to use this helper (see rich_text_js_dir settings).');
@@ -493,7 +479,7 @@ function textarea_tag($name, $content = null, $options = array())
 
     sfContext::getInstance()->getResponse()->addJavascript($js_path);
 
-    use_helper('Javascript');
+    require_once(sfConfig::get('sf_symfony_lib_dir').'/helper/JavascriptHelper.php');
 
     $tinymce_options = '';
     $style_selector  = '';
@@ -521,12 +507,10 @@ function textarea_tag($name, $content = null, $options = array())
       $style_selector   = 'styleselect,separator,';
     }
 
-    $culture = sfContext::getInstance()->getUser()->getCulture();
-
     $tinymce_js = '
 tinyMCE.init({
   mode: "exact",
-  language: "'.strtolower(substr($culture, 0, 2)).'",
+  language: "en",
   elements: "'.$id.'",
   plugins: "table,advimage,advlink,flash",
   theme: "advanced",
@@ -572,7 +556,7 @@ tinyMCE.init({
     error_reporting($error_reporting);
 
     $fckeditor           = new FCKeditor($name);
-    $fckeditor->BasePath = sfContext::getInstance()->getRequest()->getRelativeUrlRoot().'/'.sfConfig::get('sf_rich_text_fck_js_dir').'/';
+    $fckeditor->BasePath = '/'.sfConfig::get('sf_rich_text_fck_js_dir').'/';
     $fckeditor->Value    = $content;
 
     if (isset($options['width']))
@@ -682,6 +666,24 @@ function radiobutton_tag($name, $value, $checked = false, $options = array())
   if ($checked) $html_options['checked'] = 'checked';
 
   return tag('input', $html_options);
+}
+
+/**
+ * Returns an XHTML compliant <input> tag with type="file".
+ *
+ * Alias for input_file_tag
+ *
+ * <b>DEPRECIATED:</b> Use input_file_tag
+ * @see input_file_tag
+ */
+function input_upload_tag($name, $options = array())
+{
+  if (sfConfig::get('sf_logging_active'))
+  {
+    sfContext::getInstance()->getLogger()->err('This function is deprecated. Please use input_file_tag.');
+  }
+  
+  return input_file_tag($name, $options);
 }
 
 /**
@@ -815,17 +817,17 @@ function input_date_tag($name, $value, $options = array())
   }
 
   // register our javascripts and stylesheets
-  $langFile = '/sf/calendar/lang/calendar-'.strtolower(substr($culture, 0, 2));
+  $langFile = '/sf/js/calendar/lang/calendar-'.strtolower(substr($culture, 0, 2));
   $jss = array(
-    '/sf/calendar/calendar',
-    is_readable(sfConfig::get('sf_symfony_data_dir').'/web/'.$langFile.'.js') ? $langFile : '/sf/calendar/lang/calendar-en',
-    '/sf/calendar/calendar-setup',
+    '/sf/js/calendar/calendar',
+    is_readable(sfConfig::get('sf_symfony_data_dir').'/web/'.$langFile.'.js') ? $langFile : '/sf/js/calendar/lang/calendar-en',
+    '/sf/js/calendar/calendar-setup',
   );
   foreach ($jss as $js)
   {
     $context->getResponse()->addJavascript($js);
   }
-  $context->getResponse()->addStylesheet('/sf/calendar/skins/aqua/theme');
+  $context->getResponse()->addStylesheet('/sf/js/calendar/skins/aqua/theme');
 
   // date format
   $dateFormatInfo = sfDateTimeFormatInfo::getInstance($culture);
@@ -836,25 +838,21 @@ function input_date_tag($name, $value, $options = array())
   $calendar_date_format = strtr($calendar_date_format, array('M' => 'm', 'y' => 'Y'));
   $calendar_date_format = preg_replace('/([mdy])+/i', '%\\1', $calendar_date_format);
 
-  $id_inputField = (isset($options['id']))? $options['id'] : get_id_from_name($name);
-  $id_calendarButton = 'trigger_'.get_id_from_name($name);
   $js = '
-    document.getElementById("'.$id_calendarButton.'").disabled = false;
+    document.getElementById("trigger_'.$name.'").disabled = false;
     Calendar.setup({
-      inputField : "'.$id_inputField.'",
+      inputField : "'.get_id_from_name($name).'",
       ifFormat : "'.$calendar_date_format.'",
-      button : "'.$id_calendarButton.'"';
-
-  // calendar options
-  if (isset($options['calendar_options']))
-  {
-    $js .= ",\n".$options['calendar_options'];
-    unset($options['calendar_options']);
-  }
-
-  $js .= '
+      button : "trigger_'.$name.'"
     });
   ';
+
+  // construct html
+  if (!isset($options['size']))
+  {
+    $options['size'] = 9;
+  }
+  $html = input_tag($name, $value, $options);
 
   // calendar button
   $calendar_button = '...';
@@ -872,20 +870,13 @@ function input_date_tag($name, $value, $options = array())
     unset($options['calendar_button_txt']);
   }
 
-  // construct html
-  if (!isset($options['size']))
-  {
-    $options['size'] = 11;
-  }
-  $html = input_tag($name, $value, $options);
-
   if ($calendar_button_type == 'img')
   {
-    $html .= image_tag($calendar_button, array('id' => $id_calendarButton, 'style' => 'cursor: pointer; vertical-align: middle'));
+    $html .= image_tag($calendar_button, array('id' => 'trigger_'.$name, 'style' => 'cursor: pointer; vertical-align: middle'));
   }
   else
   {
-    $html .= content_tag('button', $calendar_button, array('type' => 'button', 'disabled' => 'disabled', 'onclick' => 'return false', 'id' => $id_calendarButton));
+    $html .= content_tag('button', $calendar_button, array('type' => 'button', 'disabled' => 'disabled', 'onclick' => 'return false', 'id' => 'trigger_'.$name));
   }
 
   if (isset($options['with_format']))
@@ -924,7 +915,7 @@ function input_date_tag($name, $value, $options = array())
  */
 function submit_tag($value = 'Save changes', $options = array())
 {
-  return tag('input', array_merge(array('type' => 'submit', 'name' => 'commit', 'value' => $value), _convert_options_to_javascript(_convert_options($options))));
+  return tag('input', array_merge(array('type' => 'submit', 'name' => 'commit', 'value' => $value), _convert_options($options)));
 }
 
 /**
@@ -977,15 +968,7 @@ function reset_tag($value = 'Reset', $options = array())
  */
 function submit_image_tag($source, $options = array())
 {
-  if (!isset($options['alt']))
-  {
-    $path_pos = strrpos($source, '/');
-    $dot_pos = strrpos($source, '.');
-    $begin = $path_pos ? $path_pos + 1 : 0;
-    $nb_str = ($dot_pos ? $dot_pos : strlen($source)) - $begin;
-    $options['alt'] = ucfirst(substr($source, $begin, $nb_str));
-  }
-  return tag('input', array_merge(array('type' => 'image', 'name' => 'commit', 'src' => image_path($source)), _convert_options_to_javascript(_convert_options($options))));
+  return tag('input', array_merge(array('type' => 'image', 'name' => 'commit', 'src' => image_path($source)), _convert_options($options)));
 }
 
 /**
@@ -1033,7 +1016,7 @@ function select_day_tag($name, $value = null, $options = array(), $html_options 
 
   for ($x = 1; $x < 32; $x++)
   {
-    $select_options[$x] = str_pad($x, 2, '0', STR_PAD_LEFT);
+    $select_options[$x] = _prepend_zeros($x, 2);
   }
 
   return select_tag($name, options_for_select($select_options, $value), $html_options);
@@ -1097,7 +1080,7 @@ function select_month_tag($name, $value = null, $options = array(), $html_option
   {
     for ($k = 1; $k < 13; $k++) 
     {
-      $select_options[$k] = str_pad($k, 2, '0', STR_PAD_LEFT);
+      $select_options[$k] = _prepend_zeros($k, 2);
     }
   }
   else
@@ -1379,7 +1362,7 @@ function select_second_tag($name, $value = null, $options = array(), $html_optio
   $second_step = _get_option($options, 'second_step', 1);
   for ($x = 0; $x < 60; $x += $second_step)
   {
-    $select_options[$x] = str_pad($x, 2, '0', STR_PAD_LEFT);
+    $select_options[$x] = _prepend_zeros($x, 2);
   }
 
   return select_tag($name, options_for_select($select_options, $value), $html_options);
@@ -1438,7 +1421,7 @@ function select_minute_tag($name, $value = null, $options = array(), $html_optio
   $minute_step = _get_option($options, 'minute_step', 1);
   for ($x = 0; $x < 60; $x += $minute_step)
   {
-    $select_options[$x] = str_pad($x, 2, '0', STR_PAD_LEFT);
+    $select_options[$x] = _prepend_zeros($x, 2);
   }
 
   return select_tag($name, options_for_select($select_options, $value), $html_options);
@@ -1475,6 +1458,11 @@ function select_minute_tag($name, $value = null, $options = array(), $html_optio
  */
 function select_hour_tag($name, $value = null, $options = array(), $html_options = array())
 {
+  if ($value === null)
+  {
+    $value = date('h');
+  }
+    
   $options = _parse_attributes($options);
   $select_options = array();
 
@@ -1489,17 +1477,12 @@ function select_hour_tag($name, $value = null, $options = array(), $html_options
 
   $_12hour_time = _get_option($options, '12hour_time');
 
-  if ($value === null)
-  {
-    $value = date($_12hour_time ? 'h' : 'H');
-  }
-
-  $start_hour = $_12hour_time ? 1  : 0;
-  $end_hour   = $_12hour_time ? 12 : 23;
+  $start_hour = ($_12hour_time) ? 1 : 0;
+  $end_hour = ($_12hour_time) ? 12 : 23;
 
   for ($x = $start_hour; $x <= $end_hour; $x++)
   {
-    $select_options[$x] = str_pad($x, 2, '0', STR_PAD_LEFT);
+    $select_options[$x] = _prepend_zeros($x, 2);
   }
 
   return select_tag($name, options_for_select($select_options, $value), $html_options);
@@ -1848,6 +1831,26 @@ function get_id_from_name($name, $value = null)
 }
 
 /**
+ * Prepends zeros to the begging of <i>$string</i> until the string reaches <i>$strlen</i> length.
+ *
+ * @param  string string to check
+ * @param  string required length of string
+ * @return string formatted string with zeros at the beginning of the string until it reaches <i>$strlen</i> length
+ */
+function _prepend_zeros($string, $strlen)
+{
+  if ($strlen > strlen($string))
+  {
+    for ($x = strlen($string); $x < $strlen; $x++)
+    {
+      $string = '0'.$string;
+    }
+  }
+
+  return $string;
+}
+
+/**
  * Retrieves the proper date format based on the specified <i>$culture</i> setting
  *
  * <b>Note:</b> If no <i>$culture</i> is defined, the user's culture setting will be used in its place.
@@ -1941,6 +1944,9 @@ function _convert_options($options)
   {
     $options = _boolean_attribute($options, $attribute);
   }
+  
+  // Parse any javascript options
+  $options = _convert_options_to_javascript($options);
 
   return $options;
 }

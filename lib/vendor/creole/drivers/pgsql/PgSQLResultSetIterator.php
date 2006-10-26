@@ -34,7 +34,6 @@ class PgSQLResultSetIterator implements SeekableIterator, Countable {
     private $pos = 0;
     private $fetchmode;
     private $row_count;
-    private $rs;
     
     /**
      * Construct the iterator.
@@ -44,8 +43,7 @@ class PgSQLResultSetIterator implements SeekableIterator, Countable {
     {
         $this->result = $rs->getResource();
         $this->fetchmode = $rs->getFetchmode();
-		$this->row_count = $rs->getRecordCount();
-		$this->rs = $rs; // This is to address reference count bug: http://creole.phpdb.org/trac/ticket/6
+	$this->row_count = $rs->getRecordCount();
     }
     
     /**
@@ -58,7 +56,7 @@ class PgSQLResultSetIterator implements SeekableIterator, Countable {
     
     function valid()
     {
-		return ( $this->pos < $this->row_count );
+	return ( $this->pos < $this->row_count );
     }
     
     /**
@@ -95,15 +93,15 @@ class PgSQLResultSetIterator implements SeekableIterator, Countable {
     function seek ( $index )
     {
     	if ( ! is_int ( $index ) ) {
-			throw new InvalidArgumentException ( 'Invalid arguement to seek' );
-		}
-		if ( $index < 0 || $index > $this->row_count ) {
-			throw new OutOfBoundsException ( 'Invalid seek position' );
-		}
-		$this->pos = $index;
+		throw new InvalidArgumentException ( 'Invalid arguement to seek' );
+	}
+	if ( $index < 0 || $index > $this->row_count ) {
+		throw new OutOfBoundsException ( 'Invalid seek position' );
+	}
+	$this->pos = $index;
     }
 
     function count ( ) {
-		return $this->row_count;
+	return $this->row_count;
     }
 }

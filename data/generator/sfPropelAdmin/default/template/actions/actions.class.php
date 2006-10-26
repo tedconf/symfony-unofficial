@@ -6,14 +6,14 @@
  * @package    ##PROJECT_NAME##
  * @subpackage <?php echo $this->getGeneratedModuleName() ?>
 
- * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
+ * @author     Your name here
  * @version    SVN: $Id$
  */
 class <?php echo $this->getGeneratedModuleName() ?>Actions extends sfActions
 {
   public function preExecute ()
   {
-    $this->getResponse()->addStylesheet('<?php echo $this->getParameterValue('css', sfConfig::get('sf_admin_web_dir').'/css/main') ?>');
+    $this->getResponse()->addStylesheet('<?php echo $this->getParameterValue('css', '/sf/css/sf_admin/main') ?>');
   }
 
   public function executeIndex ()
@@ -81,9 +81,8 @@ class <?php echo $this->getGeneratedModuleName() ?>Actions extends sfActions
     else
     {
       // add javascripts
-      $this->getResponse()->addJavascript(sfConfig::get('sf_prototype_web_dir').'/js/prototype');
-      $this->getResponse()->addJavascript(sfConfig::get('sf_admin_web_dir').'/js/collapse');
-      $this->getResponse()->addJavascript(sfConfig::get('sf_admin_web_dir').'/js/double_list');
+      $this->getResponse()->addJavascript('/sf/js/prototype/prototype');
+      $this->getResponse()->addJavascript('/sf/js/sf_admin/collapse');
     }
   }
 
@@ -92,21 +91,12 @@ class <?php echo $this->getGeneratedModuleName() ?>Actions extends sfActions
     $this-><?php echo $this->getSingularName() ?> = <?php echo $this->getClassName() ?>Peer::retrieveByPk(<?php echo $this->getRetrieveByPkParamsForAction(40) ?>);
     $this->forward404Unless($this-><?php echo $this->getSingularName() ?>);
 
-    try
-    {
-      $this->delete<?php echo $this->getClassName() ?>($this-><?php echo $this->getSingularName() ?>);
-      return $this->redirect('<?php echo $this->getModuleName() ?>/list');
-    }
-    catch (PropelException $e)
-    {
-      $this->getRequest()->setError('delete', 'Could not delete the selected <?php echo sfInflector::humanize($this->getSingularName()) ?>. Make sure it does not have any associated items.');
-      return $this->forward('<?php echo $this->getModuleName() ?>', 'list');
-    }
+    $this->delete<?php echo $this->getClassName() ?>($this-><?php echo $this->getSingularName() ?>);
 
 <?php foreach ($this->getColumnCategories('edit.display') as $category): ?>
 <?php foreach ($this->getColumns('edit.display', $category) as $name => $column): ?>
 <?php $input_type = $this->getParameterValue('edit.fields.'.$column->getName().'.type') ?>
-<?php if ($input_type == 'admin_input_file_tag'): ?>
+<?php if ($input_type == 'admin_input_upload_tag'): ?>
 <?php $upload_dir = $this->replaceConstants($this->getParameterValue('edit.fields.'.$column->getName().'.upload_dir')) ?>
       $currentFile = sfConfig::get('sf_upload_dir')."/<?php echo $upload_dir ?>/".$this-><?php echo $this->getSingularName() ?>->get<?php echo $column->getPhpName() ?>();
       if (is_file($currentFile))
@@ -132,62 +122,6 @@ class <?php echo $this->getGeneratedModuleName() ?>Actions extends sfActions
   protected function save<?php echo $this->getClassName() ?>($<?php echo $this->getSingularName() ?>)
   {
     $<?php echo $this->getSingularName() ?>->save();
-
-<?php foreach ($this->getColumnCategories('edit.display') as $category): ?>
-<?php foreach ($this->getColumns('edit.display', $category) as $name => $column): $type = $column->getCreoleType(); ?>
-<?php $name = $column->getName() ?>
-<?php if ($column->isPrimaryKey()) continue ?>
-<?php $credentials = $this->getParameterValue('edit.fields.'.$column->getName().'.credentials') ?>
-<?php $input_type = $this->getParameterValue('edit.fields.'.$column->getName().'.type') ?>
-<?php
-
-$user_params = $this->getParameterValue('edit.fields.'.$column->getName().'.params');
-$user_params = is_array($user_params) ? $user_params : sfToolkit::stringToArray($user_params);
-$through_class = isset($user_params['through_class']) ? $user_params['through_class'] : '';
-
-?>
-<?php if ($through_class): ?>
-<?php
-
-$class = $this->getClassName();
-$related_class = sfPropelManyToMany::getRelatedClass($class, $through_class);
-$related_table = constant($related_class.'Peer::TABLE_NAME');
-$middle_table = constant($through_class.'Peer::TABLE_NAME');
-$this_table = constant($class.'Peer::TABLE_NAME');
-
-$related_column = sfPropelManyToMany::getRelatedColumn($class, $through_class);
-$column = sfPropelManyToMany::getColumn($class, $through_class);
-
-?>
-<?php if ($input_type == 'admin_double_list' || $input_type == 'admin_check_list' || $input_type == 'admin_select_list'): ?>
-<?php if ($credentials): $credentials = str_replace("\n", ' ', var_export($credentials, true)) ?>
-    if ($this->getUser()->hasCredential(<?php echo $credentials ?>))
-    {
-<?php endif; ?>
-      // Update many-to-many for "<?php echo $name ?>"
-      $c = new Criteria();
-      $c->add(<?php echo $through_class ?>Peer::<?php echo strtoupper($column->getColumnName()) ?>, $<?php echo $this->getSingularName() ?>->getPrimaryKey());
-      <?php echo $through_class ?>Peer::doDelete($c);
-
-      $ids = $this->getRequestParameter('associated_<?php echo $name ?>');
-      if (is_array($ids))
-      {
-        foreach ($ids as $id)
-        {
-          $<?php echo ucfirst($through_class) ?> = new <?php echo $through_class ?>();
-          $<?php echo ucfirst($through_class) ?>->set<?php echo $column->getPhpName() ?>($<?php echo $this->getSingularName() ?>->getPrimaryKey());
-          $<?php echo ucfirst($through_class) ?>->set<?php echo $related_column->getPhpName() ?>($id);
-          $<?php echo ucfirst($through_class) ?>->save();
-        }
-      }
-
-<?php if ($credentials): ?>
-    }
-<?php endif; ?>
-<?php endif; ?>
-<?php endif; ?>
-<?php endforeach; ?>
-<?php endforeach; ?>
   }
 
   protected function delete<?php echo $this->getClassName() ?>($<?php echo $this->getSingularName() ?>)
@@ -209,7 +143,7 @@ $column = sfPropelManyToMany::getColumn($class, $through_class);
     if ($this->getUser()->hasCredential(<?php echo $credentials ?>))
     {
 <?php endif; ?>
-<?php if ($input_type == 'admin_input_file_tag'): ?>
+<?php if ($input_type == 'admin_input_upload_tag'): ?>
 <?php $upload_dir = $this->replaceConstants($this->getParameterValue('edit.fields.'.$column->getName().'.upload_dir')) ?>
     $currentFile = sfConfig::get('sf_upload_dir')."/<?php echo $upload_dir ?>/".$this-><?php echo $this->getSingularName() ?>->get<?php echo $column->getPhpName() ?>();
     if (!$this->getRequest()->hasErrors() && isset($<?php echo $this->getSingularName() ?>['<?php echo $name ?>_remove']))
@@ -227,7 +161,7 @@ $column = sfPropelManyToMany::getColumn($class, $through_class);
     if (isset($<?php echo $this->getSingularName() ?>['<?php echo $name ?>']))
     {
 <?php endif; ?>
-<?php if ($input_type == 'admin_input_file_tag'): ?>
+<?php if ($input_type == 'admin_input_upload_tag'): ?>
 <?php if ($this->getParameterValue('edit.fields.'.$column->getName().'.filename')): ?>
       $fileName = "<?php echo str_replace('"', '\\"', $this->replaceConstants($this->getParameterValue('edit.fields.'.$column->getName().'.filename'))) ?>";
 <?php else: ?>
@@ -244,10 +178,7 @@ $column = sfPropelManyToMany::getColumn($class, $through_class);
       if ($<?php echo $this->getSingularName() ?>['<?php echo $name ?>'])
       {
         list($d, $m, $y) = sfI18N::getDateForCulture($<?php echo $this->getSingularName() ?>['<?php echo $name ?>'], $this->getUser()->getCulture());
-        if ($d && $m && $y)
-        {
-          $this-><?php echo $this->getSingularName() ?>->set<?php echo $column->getPhpName() ?>("$y-$m-$d");
-        }
+        $this-><?php echo $this->getSingularName() ?>->set<?php echo $column->getPhpName() ?>("$y-$m-$d");
       }
       else
       {
@@ -395,7 +326,7 @@ $column = sfPropelManyToMany::getColumn($class, $through_class);
   {
     if ($sort_column = $this->getUser()->getAttribute('sort', null, 'sf_admin/<?php echo $this->getSingularName() ?>/sort'))
     {
-      $sort_column = <?php echo $this->getClassName() ?>Peer::translateFieldName($sort_column, BasePeer::TYPE_FIELDNAME, BasePeer::TYPE_COLNAME);
+      $sort_column = Propel::getDB($c->getDbName())->quoteIdentifier($sort_column);
       if ($this->getUser()->getAttribute('type', null, 'sf_admin/<?php echo $this->getSingularName() ?>/sort') == 'asc')
       {
         $c->addAscendingOrderByColumn($sort_column);

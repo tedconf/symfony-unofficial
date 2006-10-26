@@ -193,25 +193,22 @@ class sfParameterHolder
       $ns = $this->default_namespace;
     }
 
-    if (false !== ($offset = strpos($name, '[')))
-    {
+    if (false !== ($offset = strpos($name, '['))) {
       if (isset($this->parameters[$ns][substr($name, 0, $offset)]))
       {
         $array = $this->parameters[$ns][substr($name, 0, $offset)];
 
-        while ($pos = strpos($name, '[', $offset))
-        {
+        while ($pos = strpos($name, '[', $offset)) {
           $end = strpos($name, ']', $pos);
-          if ($end == $pos + 1)
-          {
+          if ($end == $pos+1) {
             // reached a []
             return true;
           }
-          else if (!isset($array[substr($name, $pos + 1, $end - $pos - 1)]))
+          elseif (!isset($array[substr($name, $pos+1, $end-$pos-1)]))
           {
             return false;
           }
-          $array = $array[substr($name, $pos + 1, $end - $pos - 1)];
+          $array = $array[substr($name, $pos+1, $end-$pos-1)];
           $offset = $end;
         }
 

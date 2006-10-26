@@ -21,21 +21,33 @@
  */
 abstract class sfFilter
 {
-  protected
+  private
     $parameter_holder = null,
-    $filterCalled     = array(),
+    $filterCalled     = array();
+
+  protected
     $context          = null;
 
-  protected function isFirstCall ()
+  protected function isFirstCallBeforeExecution ()
+  {
+    return $this->isFirstCall('beforeExecution');
+  }
+
+  protected function isFirstCallBeforeRendering ()
+  {
+    return $this->isFirstCall('beforeRendering');
+  }
+
+  protected function isFirstCall ($type = 'beforeExecution')
   {
     $class = get_class($this);
-    if (isset($this->filterCalled[$class]))
+    if (isset($this->filterCalled[$class][$type]))
     {
       return false;
     }
     else
     {
-      $this->filterCalled[$class] = true;
+      $this->filterCalled[$class][$type] = true;
 
       return true;
     }

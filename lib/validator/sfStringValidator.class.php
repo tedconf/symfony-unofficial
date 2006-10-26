@@ -51,10 +51,9 @@ class sfStringValidator extends sfValidator
    */
   public function execute (&$value, &$error)
   {
-    $decodedValue = sfToolkit::isUTF8($value) && function_exists('utf8_decode') ? utf8_decode($value) : $value;
-
     $min = $this->getParameterHolder()->get('min');
-    if ($min !== null && strlen(trim($decodedValue)) < $min)
+
+    if ($min != null && strlen(trim($value)) < $min)
     {
       // too short
       $error = $this->getParameterHolder()->get('min_error');
@@ -63,7 +62,8 @@ class sfStringValidator extends sfValidator
     }
 
     $max = $this->getParameterHolder()->get('max');
-    if ($max !== null && strlen(trim($decodedValue)) > $max)
+
+    if ($max != null && strlen(trim($value)) > $max)
     {
       // too long
       $error = $this->getParameterHolder()->get('max_error');
@@ -72,37 +72,18 @@ class sfStringValidator extends sfValidator
     }
 
     $values = $this->getParameterHolder()->get('values');
-    if ($values !== null)
+
+    if ($values != null)
     {
-      if ($this->getParameterHolder()->get('insensitive'))
-      {
-        $value = strtolower($value);
-        $found = false;
-        foreach ($values as $avalue)
-        {
-          if ($value == strtolower($avalue))
-          {
-            $found = true;
-            break;
-          }
-        }
-        if (!$found)
-        {
-          // can't find a match
-          $error = $this->getParameterHolder()->get('values_error');
+      $insensitive = $this->getParameterHolder()->get('insensitive');
+      $lvalue      = ($insensitive) ? strtolower($value) : $value;
 
-          return false;
-        }
-      }
-      else
+      if (!in_array($lvalue, $values))
       {
-        if (!in_array($value, (array) $values))
-        {
-          // can't find a match
-          $error = $this->getParameterHolder()->get('values_error');
+        // can't find a match
+        $error = $this->getParameterHolder()->get('values_error');
 
-          return false;
-        }
+        return false;
       }
     }
 

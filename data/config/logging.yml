@@ -1,7 +1,3 @@
 default:
   active: on
   level:  debug
-  rotate:  off
-  period:  7
-  history: 10
-  purge:   on

@@ -18,7 +18,7 @@
  */
 class sfConfig
 {
-  protected static
+  private static
     $config = array();
 
   /**

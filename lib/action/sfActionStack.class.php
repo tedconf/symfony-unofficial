@@ -22,7 +22,7 @@
  */
 class sfActionStack
 {
-  protected
+  private
     $stack = array();
 
   /**
@@ -34,10 +34,10 @@ class sfActionStack
    *
    * @return sfActionStackEntry sfActionStackEntry instance
    */
-  public function addEntry ($moduleName, $actionName, $actionInstance)
+  public function addEntry ($moduleName, $actionName, $actionInstance, $isSlot = false)
   {
     // create our action stack entry and add it to our stack
-    $actionEntry = new sfActionStackEntry($moduleName, $actionName, $actionInstance);
+    $actionEntry = new sfActionStackEntry($moduleName, $actionName, $actionInstance, $isSlot);
 
     $this->stack[] = $actionEntry;
     

@@ -54,6 +54,16 @@ abstract class sfView
   const HEADER_ONLY = 'Headers';
 
   /**
+   * Render a partial template.
+   */
+  const PARTIAL = 'Partial';
+
+  /**
+   * Render a global partial template.
+   */
+  const GLOBAL_PARTIAL = 'GlobalPartial';
+
+  /**
    * Render the presentation to the client.
    */
   const RENDER_CLIENT = 2;
@@ -68,22 +78,86 @@ abstract class sfView
    */
   const RENDER_VAR = 4;
 
-  protected
+  /**
+   * Render the presentation from cache.
+   */
+  const RENDER_CACHE = 8;
+
+  private
     $context            = null,
     $decorator          = false,
     $decoratorDirectory = null,
     $decoratorTemplate  = null,
     $directory          = null,
+    $slots              = array(),
     $componentSlots     = array(),
     $template           = null,
     $escaping           = null,
-    $escapingMethod     = null,
+    $escapingMethod     = null;
+
+  protected
     $attribute_holder   = null,
     $parameter_holder   = null,
     $moduleName         = '',
-    $actionName         = '',
     $viewName           = '',
     $extension          = '.php';
+
+  /**
+   * Loop through all template slots and fill them in with the results of presentation data.
+   *
+   * @param string A chunk of decorator content.
+   *
+   * @return string A decorated template.
+   */
+  protected function & decorate (&$content)
+  {
+    // alias controller
+    $controller = $this->getContext()->getController();
+
+    // get original render mode
+    $renderMode = $controller->getRenderMode();
+
+    // set render mode to var
+    $controller->setRenderMode(self::RENDER_VAR);
+
+    // grab the action stack
+    $actionStack = $controller->getActionStack();
+
+    // loop through our slots, and replace them one-by-one in the
+    // decorator template
+    $slots =& $this->getSlots();
+
+    foreach ($slots as $name => &$slot)
+    {
+      // grab this next forward's action stack index
+      $index = $actionStack->getSize();
+
+      // forward to the first slot action
+      $controller->forward($slot['module_name'], $slot['action_name'], true);
+
+      // grab the action entry from this forward
+      $actionEntry = $actionStack->getEntry($index);
+
+      // set the presentation data as a template attribute
+      $presentation =& $actionEntry->getPresentation();
+
+      $this->attribute_holder->setByRef($name, $presentation);
+    }
+
+    // put render mode back
+    $controller->setRenderMode($renderMode);
+
+    // set the decorator content as an attribute
+    $this->attribute_holder->setByRef('sf_content', $content);
+
+    // for backwards compatibility with old layouts; remove at 0.8.0?
+    $this->attribute_holder->setByRef('content', $content);
+
+    // return a null value to satisfy the requirement
+    $retval = null;
+
+    return $retval;
+  }
 
   /**
    * Execute any presentation logic and set template attributes.
@@ -146,7 +220,17 @@ abstract class sfView
    *
    * @return mixed A template engine instance.
    */
-  abstract function getEngine ();
+  abstract function & getEngine ();
+
+  /**
+   * Retrieve an array of specified slots for the decorator template.
+   *
+   * @return array An associative array of decorator slots.
+   */
+  protected function & getSlots ()
+  {
+    return $this->slots;
+  }
 
   /**
    * Retrieve this views template.
@@ -167,7 +251,7 @@ abstract class sfView
    */
   public function getEscaping()
   {
-    return null === $this->escaping ? sfConfig::get('sf_escaping_strategy') : $this->escaping;
+    return $this->escaping;
   }
 
   /**
@@ -182,19 +266,17 @@ abstract class sfView
    */
   public function getEscapingMethod()
   {
-    $method = null === $this->escapingMethod ? sfConfig::get('sf_escaping_method') : $this->escapingMethod;
-
-    if (empty($method))
+    if (empty($this->escapingMethod))
     {
-      return $method;
+      return $this->escapingMethod;
     }
 
-    if (!defined($method))
+    if (!defined($this->escapingMethod))
     {
-      throw new sfException(sprintf('Escaping method "%s" is not available; perhaps another helper needs to be loaded in?', $method));
+      throw new sfException(sprintf('Escaping method "%s" is not available; perhaps another helper needs to be loaded in?', $this->escapingMethod));
     }
 
-    return constant($method);
+    return constant($this->escapingMethod);
   }
 
   /**
@@ -296,20 +378,13 @@ abstract class sfView
    *
    * @param Context The current application context.
    * @param string The module name for this view.
-   * @param string The action name for this view.
    * @param string The view name.
    *
    * @return bool true, if initialization completes successfully, otherwise false.
    */
-  public function initialize ($context, $moduleName, $actionName, $viewName)
+  public function initialize ($context, $moduleName, $viewName)
   {
-    if (sfConfig::get('sf_logging_active'))
-    {
-      $context->getLogger()->info(sprintf('{sfView} initialize view for "%s/%s"', $moduleName, $actionName));
-    }
-
     $this->moduleName = $moduleName;
-    $this->actionName = $actionName;
     $this->viewName   = $viewName;
 
     $this->context = $context;
@@ -318,7 +393,9 @@ abstract class sfView
 
     $this->parameter_holder->add(sfConfig::get('mod_'.strtolower($moduleName).'_view_param', array()));
 
-    $this->decoratorDirectory = sfConfig::get('sf_app_template_dir');
+    // set the currently executing module's template directory as the default template directory
+    $this->decoratorDirectory = sfConfig::get('sf_app_module_dir').'/'.$moduleName.'/'.sfConfig::get('sf_app_module_template_dir_name');
+    $this->directory          = $this->decoratorDirectory;
 
     // include view configuration
     $this->configure();
@@ -404,7 +481,10 @@ abstract class sfView
     if (!is_readable($template))
     {
       // the template isn't readable
-      throw new sfRenderException(sprintf('The template "%s" does not exist in: %s', $template, $this->directory));
+      $error = 'The template "%s" does not exist or is unreadable';
+      $error = sprintf($error, $template);
+
+      throw new sfRenderException($error);
     }
 
     // check to see if this is a decorator template
@@ -434,7 +514,7 @@ abstract class sfView
    * @return string A string representing the rendered presentation, if
    *                the controller render mode is sfView::RENDER_VAR, otherwise null.
    */
-  abstract function render ($templateVars = null);
+  abstract function & render ($templateVars = null);
 
   /**
    * Set the decorator template directory for this view.
@@ -480,9 +560,9 @@ abstract class sfView
       $this->decoratorTemplate = $template;
     }
 
-    if (!strpos($this->decoratorTemplate, '.'))
+    if (!strpos($this->decoratorTemplate, '.')) 
     {
-      $this->decoratorTemplate .= $this->getExtension();
+      $this->decoratorTemplate .= $this->extension;
     }
 
     // set decorator status
@@ -499,6 +579,34 @@ abstract class sfView
   public function setDirectory ($directory)
   {
     $this->directory = $directory;
+  }
+
+  /**
+   * Set the module and action to be executed in place of a particular
+   * template attribute.
+   *
+   * @param string A template attribute name.
+   * @param string A module name.
+   * @param string An action name.
+   *
+   * @return void
+   */
+  public function setSlot ($attributeName, $moduleName, $actionName)
+  {
+    $this->slots[$attributeName]                = array();
+    $this->slots[$attributeName]['module_name'] = $moduleName;
+    $this->slots[$attributeName]['action_name'] = $actionName;
+  }
+
+  /**
+   * Indicates whether or not a slot exists.
+   *
+   * @param  string slot name
+   * @return bool true, if the slot exists, otherwise false.
+   */
+  public function hasSlot($name)
+  {
+    return isset($this->slots[$name]);
   }
 
   /**
@@ -566,20 +674,5 @@ abstract class sfView
     {
       $this->template = $template;
     }
-  }
-
-  public function getExtension ()
-  {
-    return $this->extension;
-  }
-
-  public function setExtension ($ext)
-  {
-    $this->extension = $ext;
-  }
-
-  public function __call($method, $arguments)
-  {
-    return sfMixer::callMixins();
   }
 }

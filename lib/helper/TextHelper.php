@@ -25,18 +25,14 @@
  */
 function truncate_text($text, $length = 30, $truncate_string = '...', $truncate_lastspace = false)
 {
-  if ($text == '')
-  {
-    return '';
-  }
-
+  if ($text == '') return '';
   if (strlen($text) > $length)
   {
     $truncate_text = substr($text, 0, $length - strlen($truncate_string));
-    if ($truncate_lastspace)
+    if($truncate_lastspace)
     {
       $truncate_text = preg_replace('/\s+?(\S+)?$/', '', $truncate_text);
-    }
+    } 
 
     return $truncate_text.$truncate_string;
   }
@@ -58,13 +54,14 @@ function highlight_text($text, $phrase, $highlighter = '<strong class="highlight
   {
     return '';
   }
-
-  if ($phrase == '')
+  else if ($phrase != '')
+  {
+    return preg_replace('/('.preg_quote($phrase).')/i', $highlighter, $text);
+  }
+  else
   {
     return $text;
   }
-
-  return preg_replace('/('.preg_quote($phrase).')/i', $highlighter, $text);
 }
 
 /**
@@ -74,23 +71,29 @@ function highlight_text($text, $phrase, $highlighter = '<strong class="highlight
  */
 function excerpt_text($text, $phrase, $radius = 100, $excerpt_string = '...')
 {
-  if ($text == '' || $phrase == '')
+  if ($text == '')
   {
     return '';
   }
-
-  $phrase = preg_quote($phrase);
-
-  $found_pos = strpos(strtolower($text), strtolower($phrase));
-  if ($found_pos !== false)
+  else if ($phrase != '')
   {
-    $start_pos = max($found_pos - $radius, 0);
-    $end_pos = min($found_pos + strlen($phrase) + $radius, strlen($text));
+    $phrase = preg_quote($phrase);
 
-    $prefix = ($start_pos > 0) ? $excerpt_string : '';
-    $postfix = $end_pos < strlen($text) ? $excerpt_string : '';
+    $found_pos = strpos(strtolower($text), strtolower($phrase));
+    if ($found_pos !== false)
+    {
+      $start_pos = max($found_pos - $radius, 0);
+      $end_pos = min($found_pos + strlen($phrase) + $radius, strlen($text));
 
-    return $prefix.substr($text, $start_pos, $end_pos - $start_pos).$postfix;
+      $prefix = ($start_pos > 0) ? $excerpt_string : '';
+      $postfix = $end_pos < strlen($text) ? $excerpt_string : '';
+
+      return $prefix.substr($text, $start_pos, $end_pos - $start_pos).$postfix;
+    }
+  }
+  else
+  {
+    return '';
   }
 }
 
@@ -201,4 +204,12 @@ function _auto_link_urls($text, $href_options = array())
 function _auto_link_email_addresses($text)
 {
   return preg_replace('/([\w\.!#\$%\-+.]+@[A-Za-z0-9\-]+(\.[A-Za-z0-9\-]+)+)/', '<a href="mailto:\\1">\\1</a>', $text);
+}
+
+/**
+ * Wraps echo to automatically provide a newline
+ */
+function echoln($string)
+{
+  echo $string."\n";
 }
