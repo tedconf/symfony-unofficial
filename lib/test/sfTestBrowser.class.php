@@ -1,5 +1,7 @@
 <?php
 
+require_once(dirname(__FILE__).'/../vendor/lime/lime.php');
+
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
@@ -9,291 +11,248 @@
  */
 
 /**
- * sfTextBrowser simulates a fake browser which can surf a symfony application.
+ * sfTestBrowser simulates a fake browser which can test a symfony application.
  *
  * @package    symfony
  * @subpackage test
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
- * @author     John Christopher <john.christopher@symfony-project.com>
  * @version    SVN: $Id$
  */
-class sfTestBrowser
+class sfTestBrowser extends sfBrowser
 {
-  private static
-    $current_context = null;
+  protected
+    $test = null;
 
-  private
-    $presentation = '',
-    $redirects = null;
-
-  public function initialize ($hostname = null)
+  public function initialize($hostname = null, $remote = null, $options = array())
   {
-    // setup our fake environment
-    $_SERVER['HTTP_HOST'] = ($hostname ? $hostname : sfConfig::get('sf_app').'-'.sfConfig::get('sf_environment'));
-    $_SERVER['HTTP_USER_AGENT'] = 'PHP5/CLI';
-    $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
+    parent::initialize($hostname, $remote, $options);
 
-    // we set a session id (fake cookie / persistence)
-    $_SERVER['session_id'] = md5(uniqid(rand(), true));
+    $output = isset($options['output']) ? $options['output'] : new lime_output_color();
 
-    sfConfig::set('sf_path_info_array', 'SERVER');
-
-    // register our shutdown function
-    register_shutdown_function(array($this, 'shutdown'));
+    $this->test = new lime_test(null, $output);
   }
 
-  public function get($request_uri = '/', $with_layout = true, $followRedirects = false)
+  public function test()
   {
-    $this->populateGetVariables($request_uri, $with_layout);
-    $context = $this->initRequest();
-    $html = $this->getContent();
-
-    $redirectUri = self::$current_context->getController()->getRedirectedUri();
-    $this->closeRequest();
-
-    $html = $this->handleRedirect($html, $redirectUri, $with_layout, $followRedirects);
-
-    return $html;
-  }
-  
-  public function post($action_uri, $params = array(), $with_layout = true, $followRedirects = false)
-  {
-    $this->populatePostVariables($action_uri, $params, $with_layout);
-    $context = $this->initRequest();
-
-    $html = $this->getContent();
-
-    $redirectUri = self::$current_context->getController()->getRedirectedUri();
-    $this->closeRequest();
-
-    $html = $this->handleRedirect($html, $redirectUri, $with_layout, $followRedirects);
-
-    return $html;
+    return $this->test;
   }
 
-  public function initRequest()
+  public function getAndCheck($module, $action, $url = null, $code = 200)
   {
-    if (self::$current_context)
+    return $this->
+      get(null !== null ? $url : sprintf('/%s/%s', $module, $action))->
+      isStatusCode($code)->
+      isRequestParameter('module', $module)->
+      isRequestParameter('action', $action)
+    ;
+  }
+
+  public function call($uri, $method = 'get', $parameters = array(), $changeStack = true)
+  {
+    $uri = $this->fixUri($uri);
+
+    $this->test->comment(sprintf('%s %s', strtolower($method), $uri));
+
+    return parent::call($uri, $method, $parameters, $changeStack);
+  }
+
+  public function back()
+  {
+    $this->test->comment('back');
+
+    return parent::back();
+  }
+
+  public function forward()
+  {
+    $this->test->comment('forward');
+
+    return parent::forward();
+  }
+
+  public function isRedirected()
+  {
+    $locations = $this->getContext()->getResponse()->getHttpHeader('location');
+
+    if (!isset($locations[0]))
     {
-      throw new sfException('a request is already active');
-    }
-
-     // launch request via controller
-    $context = sfContext::getInstance();
-    $controller = $context->getController();
-    $request    = $context->getRequest();
-
-    $request->getParameterHolder()->clear();
-    $request->initialize($context);
-
-    ob_start();
-    $controller->dispatch();
-    $this->presentation = ob_get_clean();
-
-    // manually shutdown user to save current session data
-    $context->getUser()->shutdown();
-
-    self::$current_context = $context;
-
-    return $context;
-  }
-
-  public function getContext()
-  {
-    return self::$current_context;
-  }
-
-  public function getContent()
-  {
-    if (!self::$current_context)
-    {
-      throw new sfException('a request must be active');
-    }
-
-    return $this->presentation;
-  }
-
-  public function closeRequest()
-  {
-    if (!self::$current_context)
-    {
-      throw new sfException('a request must be active');
-    }
-
-    // clean state
-    self::$current_context->shutdown();
-    self::$current_context = null;
-    sfContext::removeInstance();
-  }
-
-  public function shutdown()
-  {
-    // we remove all session data
-    sfToolkit::clearDirectory(sfConfig::get('sf_test_cache_dir'));
-
-    $this->redirects = null;
-  }
-
-  /**
-   * Asserts if a redirect was issued or not. If a redirect URL(s) is provided, will only assert
-   * for that/those URL(s) otherwise, will return true if any redirect was issued.
-   * 
-   */
-  public function assertRedirect($redirectUrl = null)
-  {
-    return $this->checkRedirect($redirectUrl);
-  }
-
-  protected function populateGetVariables($request_uri, $with_layout)
-  {
-    $_SERVER['GATEWAY_INTERFACE'] = 'CGI/1.1';
-    $_SERVER['REQUEST_METHOD'] = 'GET';
-    $_SERVER['REQUEST_URI'] = $request_uri;
-    $_SERVER['SCRIPT_NAME'] = '/index.php';
-
-    $request_uri = $this->checkRequestUri($request_uri);
-
-    // query string
-    $_SERVER['QUERY_STRING'] = '';
-    if ($query_string_pos = strpos($request_uri, '?'))
-    {
-      $_SERVER['QUERY_STRING'] = substr($request_uri, $query_string_pos + 1);
+      $this->test->fail('page redirected');
     }
     else
     {
-      $query_string_pos = strlen($request_uri);
+      $this->test->ok($locations[0], sprintf('page redirected to "%s"', $locations[0]));
     }
 
-    // path info
-    $_SERVER['PATH_INFO'] = '/';
-    $script_pos = strpos($request_uri, '.php') + 5;
-    if ($script_pos < $query_string_pos)
+    return $this;
+  }
+
+  public function check($uri, $text = null)
+  {
+    $this->get($uri)->isStatusCode();
+
+    if ($text !== null)
     {
-      $_SERVER['PATH_INFO'] = '/'.substr($request_uri, $script_pos, $query_string_pos - $script_pos);
+      $this->responseContains($text);
     }
 
-    // parse query string
-    $params = explode('&', $_SERVER['QUERY_STRING']);
-    foreach ($params as $param)
+    return $this;
+  }
+
+  public function isStatusCode($statusCode = 200)
+  {
+    $this->test->is($this->getResponse()->getStatusCode(), $statusCode, sprintf('status code is "%s"', $statusCode));
+
+    return $this;
+  }
+
+  public function responseContains($text)
+  {
+    $this->test->like($this->getResponse()->getContent(), '/'.preg_quote($text, '/').'/', sprintf('response contains "%s"', substr($text, 0, 40)));
+
+    return $this;
+  }
+
+  public function isRequestParameter($key, $value)
+  {
+    $this->test->is($this->getRequest()->getParameter($key), $value, sprintf('request parameter "%s" is "%s"', $key, $value));
+
+    return $this;
+  }
+
+  public function isResponseHeader($key, $value)
+  {
+    $headers = $this->getResponse()->getHttpHeader($key);
+
+    $ok = false;
+    foreach ($headers as $header)
     {
-      if (!$param)
+      if ($header == $value)
       {
-        continue;
+        $ok = true;
+        break;
       }
-
-      list ($key, $value) = explode('=', $param);
-      $_GET[$key] = urldecode($value);
     }
 
-    $this->changeLayout($with_layout);
+    $this->test->ok($ok, sprintf('response header "%s" is "%s"', $key, $value));
+
+    return $this;
   }
 
-  protected function populatePostVariables($request_uri, $params, $with_layout)
+  public function checkResponseElement($selector, $value = true, $options = array())
   {
-    $_SERVER['GATEWAY_INTERFACE'] = 'CGI/1.1';
-    $_SERVER['REQUEST_METHOD'] = 'POST';
-    $_SERVER['REQUEST_URI'] = $request_uri;
-    $_SERVER['SCRIPT_NAME'] = '/index.php';
-    // query string
-    $_SERVER['QUERY_STRING'] = '';
+    $texts = $this->getResponseDomCssSelector()->getTexts($selector);
 
-    $request_uri = $this->checkRequestUri($request_uri);
-
-    foreach ($params as $key => $value)
+    if (false === $value)
     {
-      $_POST[$key] = urldecode($value);
+      $this->test->is(count($texts), 0, sprintf('response selector "%s" does not exist', $selector));
     }
-
-    $this->changeLayout($with_layout);
-
-  }
-
-  private function checkRequestUri($request_uri)
-  {
-    if ($request_uri[0] != '/')
+    else if (true === $value)
     {
-      $request_uri = '/'.$request_uri;
+      $this->test->cmp_ok(count($texts), '>', 0, sprintf('response selector "%s" exists', $selector));
     }
-
-    // add index.php if needed
-    if (!strpos($request_uri, '.php'))
+    else if (is_int($value))
     {
-      $request_uri = '/index.php'.$request_uri;
+      $this->test->is(count($texts), $value, sprintf('response selector "%s" matches "%s" times', $selector, $value));
     }
-
-    return $request_uri;
-  }
-
-  private function changeLayout($with_layout)
-  {
-    // change layout
-    if (!$with_layout)
+    else if (preg_match('/^(!)?([^a-zA-Z0-9\\\\]).+?\\2[ims]?$/', $value, $match))
     {
-      // we simulate an Ajax call to disable layout
-      $_SERVER['HTTP_X_REQUESTED_WITH'] = 'XMLHttpRequest';
-    }
-    else
-    {
-      unset($_SERVER['HTTP_X_REQUESTED_WITH']);
-    }
-  }
-
-  private function handleRedirect($html, $redirectUri, $with_layout, $followRedirect)
-  {
-    if($redirectUri)
-    {
-      if($this->redirects)
+      $position = isset($options['position']) ? $options['position'] : 0;
+      if ($match[1] == '!')
       {
-      array_push($this->redirects, $redirectUri);
+        $this->test->unlike(@$texts[$position], substr($value, 1), sprintf('response selector "%s" does not match regex "%s"', $selector, substr($value, 1)));
       }
       else
       {
-        $this->redirects = array();
-        array_push($this->redirects, $redirectUri);
-      }
-
-      if ($followRedirect)
-      {
-        $html = $this->get($redirectUri, $with_layout);
-      }
-    }
-
-    return $html;
-  }
-
-  private function checkRedirect($redirectUrl)
-  {
-    $redirectFound = true;
-
-    if($this->redirects)
-    {
-      if($redirectUrl)
-      {
-        if(is_array($redirectUrl))
-        {
-          foreach($redirectUrl As $redirect)
-          {
-            if(!in_array($redirect, $this->redirects))
-            {
-              $redirectFound = false;
-              break;
-            }
-          }
-        }
-        else //redirectUrl is a single URL
-        {
-          if (!in_array($redirectUrl, $this->redirects))
-          {
-            $redirectFound = false;
-          }
-        }
+        $this->test->like(@$texts[$position], $value, sprintf('response selector "%s" matches regex "%s"', $selector, $value));
       }
     }
     else
     {
-      $redirectFound = false;
+      $position = isset($options['position']) ? $options['position'] : 0;
+      $this->test->is(@$texts[$position], $value, sprintf('response selector "%s" matches "%s"', $selector, $value));
     }
 
-    return $redirectFound;
+    if (isset($options['count']))
+    {
+      $this->test->is(count($texts), $options['count'], sprintf('response selector "%s" matches "%s" times', $selector, $options['count']));
+    }
+
+    return $this;
+  }
+
+  public function isCached($boolean, $with_layout = false)
+  {
+    return $this->isUriCached(sfRouting::getInstance()->getCurrentInternalUri(), $boolean, $with_layout);
+  }
+
+  public function isUriCached($uri, $boolean, $with_layout = false)
+  {
+    $cacheManager = $this->getContext()->getViewCacheManager();
+
+    // check that cache is activated
+    if (!$cacheManager)
+    {
+      $this->test->ok(!$boolean, 'cache is disabled');
+
+      return $this;
+    }
+
+    if ($uri == sfRouting::getInstance()->getCurrentInternalUri())
+    {
+      $main = true;
+      $type = $with_layout ? 'page' : 'action';
+    }
+    else
+    {
+      $main = false;
+      $type = $uri;
+    }
+
+    // check layout configuration
+    if ($cacheManager->withLayout($uri) && !$with_layout)
+    {
+      $this->test->fail('cache without layout');
+      $this->test->skip('cache is not configured properly', 2);
+    }
+    else if (!$cacheManager->withLayout($uri) && $with_layout)
+    {
+      $this->test->fail('cache with layout');
+      $this->test->skip('cache is not configured properly', 2);
+    }
+    else
+    {
+      $this->test->pass('cache is configured properly');
+
+      // check page is cached
+      $ret = $this->test->is($cacheManager->has($uri), $boolean, sprintf('"%s" %s in cache', $type, $boolean ? 'is' : 'is not'));
+
+      // check that the content is ok in cache
+      if ($boolean)
+      {
+        if (!$ret)
+        {
+          $this->test->fail('content in cache is ok');
+        }
+        else if ($with_layout)
+        {
+          $response = unserialize($cacheManager->get($uri));
+          $content = $response->getContent();
+          $this->test->is($content, $this->getResponse()->getContent(), 'content in cache is ok');
+        }
+        else if (true === $main)
+        {
+          $ret = unserialize($cacheManager->get($uri));
+          $content = $ret['content'];
+          $this->test->ok(false !== strpos($this->getResponse()->getContent(), $content), 'content in cache is ok');
+        }
+        else
+        {
+          $content = $cacheManager->get($uri);
+          $this->test->ok(false !== strpos($this->getResponse()->getContent(), $content), 'content in cache is ok');
+        }
+      }
+    }
+
+    return $this;
   }
 }

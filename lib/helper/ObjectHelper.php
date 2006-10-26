@@ -1,6 +1,6 @@
 <?php
 
-require_once(sfConfig::get('sf_symfony_lib_dir').'/helper/FormHelper.php');
+use_helper('Form');
 
 /*
  * This file is part of the symfony package.
@@ -34,7 +34,7 @@ function object_input_date_tag($object, $method, $options = array(), $default_va
 {
   $options = _parse_attributes($options);
 
-  $value = _get_object_value($object, $method, $default_value);
+  $value = _get_object_value($object, $method, $default_value, $param = 'm/d/y');
 
   return input_date_tag(_convert_method_to_name($method, $options), $value, $options);
 }
@@ -72,14 +72,14 @@ function objects_for_select($options = array(), $value_method, $text_method = nu
   foreach($options as $option)
   {
     // text method exists?
-    if ($text_method && !is_callable(array($option, $text_method)))
+    if ($text_method && !method_exists($option, $text_method))
     {
       $error = sprintf('Method "%s" doesn\'t exist for object of class "%s"', $text_method, get_class($option));
       throw new sfViewException($error);
     }
 
     // value method exists?
-    if (!is_callable(array($option, $value_method)))
+    if (!method_exists($option, $value_method))
     {
       $error = sprintf('Method "%s" doesn\'t exist for object of class "%s"', $value_method, get_class($option));
       throw new sfViewException($error);
@@ -97,7 +97,7 @@ function objects_for_select($options = array(), $value_method, $text_method = nu
 /**
  * Returns a list html tag.
  *
- * @param object An object.
+ * @param object An object or the selected value
  * @param string An object column.
  * @param array Input options (related_class option is mandatory).
  * @param bool Input default value.
@@ -115,7 +115,13 @@ function object_select_tag($object, $method, $options = array(), $default_value 
   }
   unset($options['related_class']);
 
-  $select_options = _get_values_for_object_select_tag($object, $related_class);
+  $peer_method = isset($options['peer_method']) ? $options['peer_method'] : null;
+  unset($options['peer_method']);
+
+  $text_method = isset($options['text_method']) ? $options['text_method'] : null;
+  unset($options['text_method']);
+
+  $select_options = _get_values_for_object_select_tag($object, $related_class, $text_method, $peer_method);
 
   if (isset($options['include_custom']))
   {
@@ -132,21 +138,32 @@ function object_select_tag($object, $method, $options = array(), $default_value 
     $select_options = array('' => '') + $select_options;
     unset($options['include_blank']);
   }
+  
+  if (is_object($object))
+  {
+    $value = _get_object_value($object, $method, $default_value);
+  }
+  else
+  {
+    $value = $object;
+  }
 
-  $value = _get_object_value($object, $method, $default_value);
   $option_tags = options_for_select($select_options, $value, $options);
 
   return select_tag(_convert_method_to_name($method, $options), $option_tags, $options);
 }
 
-function _get_values_for_object_select_tag($object, $class)
+function _get_values_for_object_select_tag($object, $class, $text_method = null, $peer_method = null)
 {
-  // FIXME: drop Propel dependency
+  $objects = sfContext::getInstance()->retrieveObjects($class, $peer_method);
 
+  return _get_options_from_objects($objects, $text_method);
+}
+
+function _get_options_from_objects($objects, $text_method = null)
+{
   $select_options = array();
 
-  require_once(sfConfig::get('sf_model_lib_dir').'/'.$class.'Peer.php');
-  $objects = call_user_func(array($class.'Peer', 'doSelect'), new Criteria());
   if ($objects)
   {
     // multi primary keys handling
@@ -154,9 +171,9 @@ function _get_values_for_object_select_tag($object, $class)
 
     // which method to call?
     $methodToCall = '';
-    foreach (array('toString', '__toString', 'getPrimaryKey') as $method)
+    foreach (array($text_method, 'toString', '__toString', 'getPrimaryKey') as $method)
     {
-      if (is_callable(array($objects[0], $method)))
+      if (method_exists($objects[0], $method))
       {
         $methodToCall = $method;
         break;
@@ -261,26 +278,41 @@ function _convert_method_to_name ($method, &$options)
 
   if (!$name)
   {
-    $name = sfInflector::underscore($method);
-    $name = preg_replace('/^get_?/', '', $name);
+    if (is_array($method))
+    {
+      $name = implode('-',$method[1]);
+    }
+    else
+    {
+      $name = sfInflector::underscore($method);
+      $name = preg_replace('/^get_?/', '', $name);
+    }
   }
 
   return $name;
 }
 
 // returns default_value if object value is null
-function _get_object_value ($object, $method, $default_value = null)
+// method is either a string or: array('method',array('param1','param2'))
+function _get_object_value ($object, $method, $default_value = null, $param = null)
 {
+  // compatibility with the array syntax
+  if (is_string($method))
+  {
+    $param = ($param == null ? array() : array($param));
+    $method = array($method, $param);
+  }
+  
   // method exists?
-  if (!is_callable(array($object, $method)))
+  if (!is_callable(array($object, $method[0])))
   {
     $error = 'Method "%s" doesn\'t exist for object of class "%s"';
-    $error = sprintf($error, $method, get_class($object));
+    $error = sprintf($error, $method[0], get_class($object));
 
     throw new sfViewException($error);
   }
 
-  $object_value = $object->$method();
+  $object_value = call_user_func_array(array($object, $method[0]), $method[1]);
 
   return ($default_value !== null && $object_value === null) ? $default_value : $object_value;
 }

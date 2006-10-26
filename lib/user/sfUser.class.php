@@ -31,12 +31,10 @@ class sfUser
 
   const CULTURE_NAMESPACE = 'symfony/user/sfUser/culture';
 
-  private
+  protected
     $parameter_holder = null,
     $attribute_holder = null,
-    $culture = null;
-
-  protected
+    $culture          = null,
     $context          = null;
 
   /**
@@ -205,5 +203,17 @@ class sfUser
     $storage->write(self::CULTURE_NAMESPACE, $this->culture);
 
     session_write_close();
+  }
+
+  public function __call($method, $arguments)
+  {
+    if (!$callable = sfMixer::getCallable('sfUser:'.$method))
+    {
+      throw new sfException(sprintf('Call to undefined method sfUser::%s', $method));
+    }
+
+    array_unshift($arguments, $this);
+
+    return call_user_func_array($callable, $arguments);
   }
 }

@@ -17,7 +17,7 @@ One benefit of an object/relational abstraction layer is that it prevents you fr
 
 This means that switching to another database system in the middle of a project is easy. Imagine that you have to write a quick prototype for an application, but the client hasn't decided yet which database system would best suit his needs. You can start building your application with SQLite, for instance, and switch to MySQL, PostgreSQL or Oracle when the client is ready to. Just change one line in a configuration file, and it works.
 
-An abstraction layer encapsulates the data logic. The rest of the application doesn't need to kow about the SQL queries, and the SQL that accesses the database is easy to find. Developers who are specialized in database programming also know clearly where to go.
+An abstraction layer encapsulates the data logic. The rest of the application doesn't need to know about the SQL queries, and the SQL that accesses the database is easy to find. Developers who are specialized in database programming also know clearly where to go.
 
 Using objects instead of records, and classes instead of tables, have another benefit: They allow you to add new accessors to your tables. For instance, if you have a table called 'Client' with two fields 'FirstName' and 'LastName', you might like to be able to require just a 'Name'. In an object-oriented world, it is as easy as adding a new accessor method to the `Client` class.
 
@@ -86,7 +86,7 @@ Notice that the name of the database itself (`blog`) doesn't appear in the `sche
 
 ### Basic schema syntax
 
-In a `schema.yml`, the first key represents a connection. It can contain several tables, each having a set of columns. According to the YAML syntax, the keys end with a colon, and the structure is shown through indentation (one or more spaces, but no tabulations).
+In a `schema.yml`, the first key represents a connection. It can contain several tables, each having a set of columns. According to the YAML syntax, the keys end with a colon, and the structure is shown through indentation (one or more spaces, but no tabulations). It is possible to have multiple schema.yml files for your project, please see the notes below on foreign keys to ensure that you can reference foreign tables in seperate schema files.
 
 A table can have special attributes, including the `phpName` describing the name of the class that will be generated. If you don't mention it, the name of the table will be used in place, after removing underscores and capitalizing the first letter of inner words (in the example, the default `phpName` of the tables would be `blogArticle` and `blogComment`). Columns also have a `phpName`, which is the capitalized version of the `name` (`ID`, `TITLE`, `CONTENT`, etc.) and doesn't need overriding in most cases.
 
@@ -96,11 +96,11 @@ Of course, if you want to specify your own primary keys, foreign-keys, default v
 
 ### Schema conventions
 
-Columns called `id` are considered to be primary keys. 
+Empty columns called `id` are considered to be primary keys. 
 
-Column ending with `_id` are considered to be foreign keys, and the related table is automatically determined according to the first part of the column name. 
+Empty column ending with `_id` are considered to be foreign keys, and the related table is automatically determined according to the first part of the column name. 
 
-Columns called `created_at` are automatically set to the `timestamp` type. 
+Empty columns called `created_at` are automatically set to the `timestamp` type. 
 
 For all these columns, you don't need to specify any type, since symfony will deduce their format from their name. That is why the `schema.yml` is so easy to write.
 
@@ -137,7 +137,7 @@ You only defined two tables and you end up with eight files. What's the deal her
 
 Why keep two versions of the data object model, one in `model/om/` and another in `model/`? 
 
-You will probably need to add custom methods and attributes to the model objects (think about the `->getName()` method that outputs the `FirstName` and `LastName` together). But as your project develops, you will also add tables or columns. Whenever you change the `schema.yml`, you will have to regenerate the object model classes by making a new call to `symfony propel-build-model`. If your custom methods were written in the classes actually genereated, then it would be erased after each generation.
+You will probably need to add custom methods and attributes to the model objects (think about the `->getName()` method that outputs the `FirstName` and `LastName` together). But as your project develops, you will also add tables or columns. Whenever you change the `schema.yml`, you will have to regenerate the object model classes by making a new call to `symfony propel-build-model`. If your custom methods were written in the classes actually generated, then it would be erased after each generation.
 
 The `Base` classes kept in the `model/om/` directory are the ones generated by Propel. You should **never** modify them since every new build of the model will completely erase these files. But the regular object classes, kept in the `model/` directory, actually inherit from the previous ones, and are never overwritten. So this is where you can add custom methods.
 
@@ -298,7 +298,7 @@ Refer to the [Propel Documentation][5] for more details about the `Criteria` obj
 
 Usually, when a table has a `created_at` column, it is to store in this column a timestamp of the date when the record was created. The same applies to `updated_at` columns, that are usually updated each time the record itself is updated, to the value of the current time.
 
-The good new is, symfony will recognize the name of these columns, and handle their update for you. You don't need to manually set the `created_at` and `updated_at` columns, they will automatically be updated.
+The good news is, symfony will recognize the name of these columns, and handle their update for you. You don't need to manually set the `created_at` and `updated_at` columns, they will automatically be updated.
 
     [php]
     $comment = new Comment();
@@ -386,6 +386,11 @@ The main element supports the defaultIdMethod` attribute; if none is provided th
     propel:
       _attributes:   { defaultIdMethod: none }
 
+If you use plugins, or wish to use multiple schema.yml files, then the databases in each file must be related by the `package` attribute to allow you to reference foreign keys on tables defined in seperate schema.yml files. By default all databases are declared to be part of the `lib.model` package. If you declare tables to belong to sub packages (as in plugins) then these files will be generated there and not in `lib.model`.
+
+    propel:
+      _attributes:   { package: lib.model }
+
 You already saw the `phpName` table attribute, used to set the name of the generated class mapping the table:
 
     propel:
@@ -412,18 +417,19 @@ But you can define much more for a column, and in this case you will need to def
     propel:
       blog_article:
         id:       { type: integer, required: true, primaryKey: true, autoincrement: true }
-        name:     { type: varchar , size: 50, defaultValue: foobar, index: true }
+        name:     { type: varchar , size: 50, default: foobar, index: true }
         group_id: { type: integer, foreignTable: db_group, foreignReference: id, onDelete: cascade }
         
 The column parameters are:
 
-* `type`: Propel culomn type. See [Propel list of types](http://propel.phpdb.org/docs/user_guide/chapters/ColumnTypes.html) for more details. 
+* `type`: Propel column type. See [Propel list of types](http://propel.phpdb.org/docs/user_guide/chapters/ColumnTypes.html) for more details. The compact syntax (`varchar(50)`) is also supported as a `type` value.
 * `size`: for `VARCHAR` type columns, the size of the string. Note that a column defined as `varchar(50)` in basic syntax is defined as `{ type: varchar , size: 50 }` in extended syntax.
 * `required`: `false` by default, set it to `true` if you want the column to be required
-* `defaultValue`
+* `default`: default value
 * `primaryKey`: boolean, to be set to `true` for primary keys
 * `autoincrement`: boolean, to be set to `true` for columns of type `integer` that need to be auto-increment 
-* `index`: boolean, to be set to `true` if you want an index to be created on the column
+* `sequence`: sequence name for databases using sequences for auto-increment columns (e.g. PostgreSQL or Oracle)
+* `index`: boolean, to be set to `true` if you want a simple index or to `unique` if you want a unique index to be created on the column
 * `foreignTable`: to create a foreign key to another table. 
 * `foreignReference`: the name of the related column if a foreign key is defined via `foreignTable`
 * `onDelete`: if set to `cascade` for a foreign key, records in this table are deleted when a related record in the foreign table is deleted.
@@ -439,25 +445,29 @@ As an alternative to the `foreignTable` and `foreignReference` column attributes
         title:   varchar(50) 
         user_id: { type: integer }
         _foreign_keys:
-          blog_user:
-            _attributes: { onDelete: cascade }
+          -
+            foreign_table: blog_user
+            on_delete:     cascade
             references:
               - { local: user_id, foreign: id }
 
 This will create a foreign key on the `user_id` column, matching the `id` column in the `blog_user` table.
 
-As compared to the column attributes, it only has an interest for multiple-references foreign keys:
+As compared to the column attributes, it is interesting for multiple-references foreign keys and to give foreign keys a name:
 
         _foreign_keys:
-          db_user:
-            _attributes: { onDelete: cascade }
+          my_foreign_key:
+            foreign_table: db_user
+            onDelete:      cascade
             references:
               - { local: user_id, foreign: id }
               - { local: post_id, foreign: id }
 
+>**Note**: Foreign keys between tables defined in separate `schema.yml` files must be explicitly defined as outlined above as they cannot be auto detected by symfony. You must also ensure that you have declared each database to belong to the same package (see the 'Attributes' section above), and that you have the statement `propel.packageObjectModel  = true` in your `propel.ini` file (these settings are now default in symfony projects).
+
 ### Index
 
-As an alternative to the `index` column attribute, you can add manually one or many indexes under the `_indexes` key in a table:
+As an alternative to the `index` column attribute, you can add manually one or many indexes under the `_indexes` key in a table. If you want to define unique indexes, you have to use the `_uniques` header instead:
 
     propel:
       blog_article:
@@ -466,20 +476,23 @@ As an alternative to the `index` column attribute, you can add manually one or m
         created_at:
         _indexes:
           my_index:       [title, user_id]
+        _uniques:
           my_other_index: [created_at]
 
 As for the foreign-key explicit syntax, it is only useful for indexes built on more than one column.
 
 ### Column automatisms
 
-When meeting a column with no value, symfony will do some magic and add a value of its own:
+When meeting a column with no value and a name it recognizes, symfony will do some magic and add a value of its own:
 
     id:         { type: integer, required: true, primaryKey: true, autoincrement: true }
     foobar_id:  { type: integer, foreignTable: db_foobar, foreignReference: id }
     created_at: { type: timestamp }
     updated_at: { type: timestamp }
 
-For the foreign key automatism, symfony will look for a table having the same `phpName` as the beginning of the column name, and if one is found, it will take this table name as the `foreignTable`.
+For the foreign key automatism (which works for all columns ending with `_id`), symfony will look for a table having the same `phpName` as the beginning of the column name, and if one is found, it will take this table name as the `foreignTable`.
+
+Additionally, if a table doesn't define any primary key, symfony will automatically add an `id` column as an autoincremental integer.
 
 ### Table automatisms (I18n)
 
@@ -504,7 +517,7 @@ Symfony will automatically add the columns and table attributes to make the loca
         created_at:  -
     
       db_group_i18n: 
-        id:          { type: integer, required: true, primaryKey: true, foreignTable: db_group, foreignReference: id }
+        id:          { type: integer, required: true, primaryKey: true, foreignTable: db_group, foreignReference: id, onDelete: cascade }
         culture:     { isCulture: true, type: varchar, size: 7, required: true, primaryKey: true }
         name:        varchar(50)
 
@@ -577,7 +590,7 @@ The schema generation command is quite powerfull and can add to your schema a lo
 
     $ symfony propel-build-schema xml
 
-Instead of generating a `schema.yml` file, this will create a `schema.xml` fully compatible with Propel, containing all the vendor infomation. Beware that generated XML schemas tend to be quite verbose and difficult to read.    
+Instead of generating a `schema.yml` file, this will create a `schema.xml` fully compatible with Propel, containing all the vendor information. Beware that generated XML schemas tend to be quite verbose and difficult to read.    
 
 Multiple databases
 ------------------

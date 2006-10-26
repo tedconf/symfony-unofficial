@@ -24,7 +24,7 @@ class sfMailView extends sfPHPView
    *
    * @return null
    */
-  public function &getEngine()
+  public function getEngine()
   {
     return 'sfMail';
   }
@@ -35,30 +35,26 @@ class sfMailView extends sfPHPView
     parent::configure();
 
     // require our configuration
-    $moduleName = $this->getContext()->getActionStack()->getLastEntry()->getActionInstance()->getModuleName();
-    $viewConfigFile = $this->moduleName.'/'.sfConfig::get('sf_app_module_config_dir_name').'/mailer.yml';
-    require(sfConfigCache::getInstance()->checkConfig(sfConfig::get('sf_app_module_dir_name').'/'.$viewConfigFile));
+    $moduleName = $this->moduleName;
+    require(sfConfigCache::getInstance()->checkConfig(sfConfig::get('sf_app_module_dir_name').'/'.$this->moduleName.'/'.sfConfig::get('sf_app_module_config_dir_name').'/mailer.yml'));
   }
 
   /**
    * Render the presentation and send the email to the client.
    *
    */
-  public function &render($templateVars = null)
+  public function render($templateVars = null)
   {
     $template         = $this->getDirectory().'/'.$this->getTemplate();
     $actionStackEntry = $this->getContext()->getActionStack()->getLastEntry();
     $actionInstance   = $actionStackEntry->getActionInstance();
-
-    $moduleName = $actionInstance->getModuleName();
-    $actionName = $actionInstance->getActionName();
 
     $retval = null;
 
     // execute pre-render check
     $this->preRenderCheck();
 
-    if ($sf_logging_active = sfConfig::get('sf_logging_active'))
+    if (sfConfig::get('sf_logging_active'))
     {
       $this->getContext()->getLogger()->info('{sfMailView} render "'.$template.'"');
     }
@@ -92,7 +88,7 @@ class sfMailView extends sfPHPView
     }
 
     // send email
-    if ($sf_logging_active)
+    if (sfConfig::get('sf_logging_active'))
     {
       $this->getContext()->getLogger()->info('{sfMailView} send email to client');
     }
@@ -139,10 +135,6 @@ class sfMailView extends sfPHPView
       $mail->send();
     }
 
-    $header = $mail->getRawHeader();
-    $body   = $mail->getRawBody();
-    $retval = $header.$body;
-
-    return $retval;
+    return $mail->getRawHeader().$mail->getRawBody();
   }
 }

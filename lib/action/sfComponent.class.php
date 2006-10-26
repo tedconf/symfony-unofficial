@@ -260,16 +260,51 @@ abstract class sfComponent
   }
 
   /**
-   * Sets a flash variable that will be passed to the next
-   * action.
-   * 
+   * Returns true if a variable for the template is set.
+   *
+   * This is just really a shortcut for:
+   * <code>$this->getVarHolder()->has('name')</code>
+   *
+   * @param  string key
+   * @return boolean
+   */
+  public function __isset($name)
+  {
+    return $this->var_holder->has($name);
+  }
+
+  /**
+   * Removes a variable for the template.
+   *
+   * This is just really a shortcut for:
+   * <code>$this->getVarHolder()->remove('name')</code>
+   *
+   * @param  string key
+   * @return void
+   */
+  public function __unset($name)
+  {
+    $this->var_holder->remove($name);
+  }
+
+  /**
+   * Sets a flash variable that will be passed to the next action.
+   *
+   * @param  string  name of the flash variable
+   * @param  string  value of the flash variable
+   * @param  boolean true if the flash have to persist for the following request (true by default)
    * @return void
    */
   public function setFlash($name, $value, $persist = true)
   {
     $this->getUser()->setAttribute($name, $value, 'symfony/flash');
 
-    if (!$persist)
+    if ($persist)
+    {
+      // clear removal flag
+      $this->getUser()->getAttributeHolder()->remove($name, 'symfony/flash/remove');
+    }
+    else
     {
       $this->getUser()->setAttribute($name, true, 'symfony/flash/remove');
     }
@@ -295,5 +330,17 @@ abstract class sfComponent
   public function hasFlash($name)
   {
     return $this->getUser()->hasAttribute($name, 'symfony/flash');
+  }
+
+  public function __call($method, $arguments)
+  {
+    if (!$callable = sfMixer::getCallable('sfComponent:'.$method))
+    {
+      throw new sfException(sprintf('Call to undefined method sfComponent::%s', $method));
+    }
+
+    array_unshift($arguments, $this);
+
+    return call_user_func_array($callable, $arguments);
   }
 }

@@ -25,7 +25,7 @@ class sfPropelDatabaseSchema
   {
     return array($this->connection_name => $this->database);
   }
-  
+
   public function loadYAML($file)
   {
     $schema = sfYaml::load($file);
@@ -36,11 +36,14 @@ class sfPropelDatabaseSchema
     }
 
     $this->connection_name = array_shift(array_keys($schema));
-    $this->database = $schema[$this->connection_name];
-        
-    $this->fixYAMLDatabase();
-    $this->fixYAMLI18n();
-    $this->fixYAMLColumns();
+    if ($this->connection_name)
+    {
+      $this->database = $schema[$this->connection_name];
+
+      $this->fixYAMLDatabase();
+      $this->fixYAMLI18n();
+      $this->fixYAMLColumns();
+    }
   }
 
   public function asXML()
@@ -74,12 +77,39 @@ class sfPropelDatabaseSchema
         }
       }
 
+      // uniques
+      if (isset($table['_uniques']))
+      {
+        foreach ($table['_uniques'] as $unique_name => $index)
+        {
+          $xml .= "    <unique name=\"$unique_name\">\n";
+          foreach ($index as $unique_column)
+          {
+            $xml .= "      <unique-column name=\"$unique_column\" />\n";
+          }
+          $xml .= "    </unique>\n";
+        }
+      }
+
       // foreign-keys
       if (isset($table['_foreign_keys']))
       {
-        foreach ($table['_foreign_keys'] as $fkey_table => $fkey)
+        foreach ($table['_foreign_keys'] as $fkey_name => $fkey)
         {
-          $xml .= "    <foreign-key foreignTable=\"$fkey_table\"".$this->getAttributesFor($fkey).">\n";
+          $xml .= "    <foreign-key foreignTable=\"$fkey[foreign_table]\"";
+          // foreign key name
+          if(!is_numeric($fkey_name))
+          {
+            $xml .= " name=\"$fkey_name\"";
+          }
+          // onDelete
+          if(isset($fkey['on_delete']))
+          {
+            $xml .= " onDelete=\"$fkey[on_delete]\"";
+          }
+          $xml .= ">\n";
+
+          // references
           if (isset($fkey['references']))
           {
             foreach ($fkey['references'] as $reference)
@@ -98,7 +128,7 @@ class sfPropelDatabaseSchema
     return $xml;
   }
   
-  private function fixYAMLDatabase()
+  protected function fixYAMLDatabase()
   {
     if (!isset($this->database['_attributes']))
     {
@@ -107,9 +137,10 @@ class sfPropelDatabaseSchema
     // conventions for database attributes
     $this->setIfNotSet($this->database['_attributes'], 'defaultIdMethod', 'native');
     $this->setIfNotSet($this->database['_attributes'], 'noXsd', true);
+    $this->setIfNotSet($this->database['_attributes'], 'package', 'lib.model');
   }
 
-  private function fixYAMLI18n()
+  protected function fixYAMLI18n()
   {
     foreach ($this->getTables() as $i18n_table => $columns)
     {
@@ -121,9 +152,9 @@ class sfPropelDatabaseSchema
         if (is_array($attributes) && array_key_exists('primaryKey', $attributes))
         {
            $has_primary_key = true;
-        }        
+        }
       }
-      
+
       if ($pos > 0 && $pos == strlen($i18n_table) - 5 && !$has_primary_key)
       {
         // i18n table without primary key
@@ -141,10 +172,11 @@ class sfPropelDatabaseSchema
             'required'         => true, 
             'primaryKey'       => true,
             'foreignTable'     => $main_table,
-            'foreignReference' => 'id'
+            'foreignReference' => 'id',
+            'onDelete'         => 'cascade'
           ));
           $this->setIfNotSet($this->database[$i18n_table], 'culture', array(
-            'isCulture'  => 'true',
+            'isCulture'  => true,
             'type'       => 'varchar',
             'size'       => '7',
             'required'   => true,
@@ -159,10 +191,12 @@ class sfPropelDatabaseSchema
     }
   }
 
-  private function fixYAMLColumns()
+  protected function fixYAMLColumns()
   {
     foreach ($this->getTables() as $table => $columns)
     {
+      $has_primary_key = false;
+      
       foreach ($columns as $column => $attributes)
       {
         if ($attributes == null)
@@ -173,7 +207,7 @@ class sfPropelDatabaseSchema
             // timestamp convention
             $this->database[$table][$column]['type']= 'timestamp';
           }
-  
+
           if ($column == 'id')
           {
             // primary key convention
@@ -183,8 +217,9 @@ class sfPropelDatabaseSchema
               'primaryKey'    => true,
               'autoincrement' => true
             );
+            $has_primary_key = true;
           }
-  
+          
           $pos = strpos($column, '_id');
           if ($pos > 0 && $pos == strlen($column) - 3)
           {
@@ -205,11 +240,55 @@ class sfPropelDatabaseSchema
           }
           
         }
+        else
+        {
+          if(!is_array($attributes))
+          {
+            // compact type given as single attribute
+            $this->database[$table][$column] = $this->getAttributesFromCompactType($attributes);
+          }
+          else
+          {
+            if (isset($attributes['type']))
+            {
+              // compact type given as value of the type attribute
+              $this->database[$table][$column] = array_merge($this->database[$table][$column], $this->getAttributesFromCompactType($attributes['type']));
+            }
+            if (isset($attributes['primaryKey']))
+            {
+              $has_primary_key = true;
+            }
+          }
+        }        
+      }
+      
+      if(!$has_primary_key)
+      {
+        // convention for tables without primary key
+        $this->database[$table]['id'] = array (
+          'type'          => 'integer',
+          'required'      => true,
+          'primaryKey'    => true,
+          'autoincrement' => true
+        );
       }
     }
   }
+  
+  protected function getAttributesFromCompactType($type)
+  {
+    preg_match('/varchar\(([\d]+)\)/', $type, $matches);
+    if (isset($matches[1]))
+    {
+      return array('type' => 'varchar', 'size' => $matches[1]);
+    }
+    else
+    {
+      return array('type' => $type);
+    }
+  }
 
-  private function setIfNotSet(&$entry, $key, $value)
+  protected function setIfNotSet(&$entry, $key, $value)
   {
     if (!isset($entry[$key]))
     {
@@ -217,7 +296,7 @@ class sfPropelDatabaseSchema
     }
   }
 
-  private function findTable($table_name)
+  protected function findTable($table_name)
   {
     // find a table from a phpName or a name
     $table_match = false;
@@ -228,30 +307,17 @@ class sfPropelDatabaseSchema
         $table_match = $tb_name;
       }
     }
-    return $table_match; 
+    return $table_match;
   }
-  
-  private function getAttributesForColumn($col_name, $column)
+
+  protected function getAttributesForColumn($col_name, $column)
   {
     $attributes_string = '';
-    if (!is_array($column) && $column != null)
-    {
-      // simple type definition
-      preg_match('/varchar\(([\d]+)\)/', $column, $matches);
-      if (isset($matches[1]))
-      {
-        $attributes_string .= " type=\"varchar\" size=\"$matches[1]\" />\n";
-      }
-      else
-      {
-        $attributes_string .= " type=\"$column\" />\n";
-      }
-    }
-    elseif (is_array($column))
+    if (is_array($column))
     {
       foreach ($column as $key => $value)
       {
-        if (!in_array($key, array('foreignTable', 'foreignReference', 'onDelete', 'index')))
+        if (!in_array($key, array('foreignTable', 'foreignReference', 'onDelete', 'index', 'unique')))
         {
           $attributes_string .= " $key=\"".$this->getCorrectValueFor($key, $value)."\"";
         }
@@ -263,6 +329,7 @@ class sfPropelDatabaseSchema
       throw new sfException('Incorrect settings for column '.$col_name);
     }
 
+    // conventions for foreign key attributes
     if (is_array($column) && isset($column['foreignTable']))
     {
       $attributes_string .= "    <foreign-key foreignTable=\"$column[foreignTable]\"";
@@ -275,17 +342,34 @@ class sfPropelDatabaseSchema
       $attributes_string .= "    </foreign-key>\n";  
     }
 
+    // conventions for index and unique index attributes
     if (is_array($column) && isset($column['index']))
     {
-      $attributes_string .= "    <index name=\"${col_name}_index\">\n";
-      $attributes_string .= "      <index-column name=\"$col_name\" />\n";
-      $attributes_string .= "    </index>\n"; 
+      if($column['index'] === 'unique')
+      {
+        $attributes_string .= "    <unique name=\"${col_name}_unique\">\n";
+        $attributes_string .= "      <unique-column name=\"$col_name\" />\n";
+        $attributes_string .= "    </unique>\n";
+      }
+      else
+      {
+        $attributes_string .= "    <index name=\"${col_name}_index\">\n";
+        $attributes_string .= "      <index-column name=\"$col_name\" />\n";
+        $attributes_string .= "    </index>\n";
+      }
+    }
+
+    // conventions for sequence name attributes
+    // required for databases using sequences for auto-increment columns (e.g. PostgreSQL or Oracle)
+    if (is_array($column) && isset($column['sequence'])) 
+    {
+      $attributes_string .= "    <id-method-parameter value=\"$column[sequence]\" />\n"; 
     }
 
     return $attributes_string;
   }
 
-  private function getAttributesFor($tag)
+  protected function getAttributesFor($tag)
   {
     if (!isset($tag['_attributes']))
     {
@@ -301,9 +385,9 @@ class sfPropelDatabaseSchema
     return $attributes_string;
   }
 
-  private function getCorrectValueFor($key, $value)
+  protected function getCorrectValueFor($key, $value)
   {
-    $booleans = array('required', 'primaryKey', 'autoincrement', 'noXsd', 'isI18N');
+    $booleans = array('required', 'primaryKey', 'autoincrement', 'autoIncrement', 'noXsd', 'isI18N', 'isCulture');
     if (in_array($key, $booleans))
     {
       return ($value == 1) ? 'true' : 'false';
@@ -314,12 +398,12 @@ class sfPropelDatabaseSchema
     } 
   }
 
-  private function getTables()
+  protected function getTables()
   {
     return $this->getChildren($this->database); 
   }
   
-  private function getChildren($hash)
+  protected function getChildren($hash)
   {
     foreach ($hash as $key => $value)
     {
@@ -388,21 +472,24 @@ class sfPropelDatabaseSchema
       $database[$table_name]['_foreign_keys'] = array();
       foreach($table->xpath('foreign-key') as $foreign_key)
       {
-        list($fk_name, $fk_attributes) = $this->getNameAndAttributes($foreign_key->attributes(), 'foreignTable');
-        if($fk_name)
+        $foreign_key_table = array();
+
+        // foreign key attributes
+        if(isset($foreign_key['foreignTable']))
         {
-          $database[$table_name]['_foreign_keys'][$fk_name] = array(); 
+          $foreign_key_table['foreign_table'] = (string) $foreign_key['foreignTable']; 
         }
         else
         {
-          throw new sfException('A foreign key tag misses the name attribute');
-        }
-        if($fk_attributes)
+          throw new sfException('A foreign key misses the foreignTable attribute');
+        } 
+        if(isset($foreign_key['onDelete']))
         {
-          $database[$table_name]['_foreign_keys'][$fk_name]['_attributes'] = $fk_attributes;
+          $foreign_key_table['on_delete'] = (string) $foreign_key['onDelete']; 
         }
+
         // foreign key references
-        $database[$table_name]['_foreign_keys'][$fk_name]['references'] = array();
+        $foreign_key_table['references'] = array();
         foreach($foreign_key->xpath('reference') as $reference)
         {
           $reference_attributes = array();
@@ -410,11 +497,21 @@ class sfPropelDatabaseSchema
           {
             $reference_attributes[$reference_attribute_name] = strval($reference_attribute_value);  
           }
-          $database[$table_name]['_foreign_keys'][$fk_name]['references'][] = $reference_attributes;
+          $foreign_key_table['references'][] = $reference_attributes;
         }
+
+        if(isset($foreign_key['name']))
+        {
+          $database[$table_name]['_foreign_keys'][(string)$foreign_key['name']] = $foreign_key_table; 
+        }
+        else
+        {
+          $database[$table_name]['_foreign_keys'][] = $foreign_key_table; 
+        }
+
       }
-      $this->removeEmptyKey(&$database[$table_name], '_foreign_keys');
-      
+      $this->removeEmptyKey($database[$table_name], '_foreign_keys');
+
       // indexes
       $database[$table_name]['_indexes'] = array();
       foreach($table->xpath('index') as $index)
@@ -426,8 +523,20 @@ class sfPropelDatabaseSchema
         }
         $database[$table_name]['_indexes'][strval($index['name'])] = $index_keys;
       }
-      $this->removeEmptyKey(&$database[$table_name], '_indexes');
-      
+      $this->removeEmptyKey($database[$table_name], '_indexes');
+
+      // unique indexes
+      $database[$table_name]['_uniques'] = array();
+      foreach($table->xpath('unique') as $index)
+      {
+        $unique_keys = array();
+        foreach($index->xpath('unique-column') as $unique_key)
+        {
+          $unique_keys[] = strval($unique_key['name']);
+        }
+        $database[$table_name]['_uniques'][strval($index['name'])] = $unique_keys;
+      }
+      $this->removeEmptyKey($database[$table_name], '_uniques');      
     }
     $this->database = $database;
     
@@ -438,10 +547,10 @@ class sfPropelDatabaseSchema
   {
     $this->fixXMLForeignKeys();
     $this->fixXMLIndexes();
-    // $this->fixXMLColumns();    
+    // $this->fixXMLColumns();
   }
-  
-  private function fixXMLForeignKeys()
+
+  protected function fixXMLForeignKeys()
   {
     foreach($this->getTables() as $table => $columns)
     {
@@ -456,7 +565,7 @@ class sfPropelDatabaseSchema
             $reference = $foreign_key_attributes['references'][0];
             
             // set simple foreign key
-            $this->database[$table][$reference['local']]['foreignTable'] = $foreign_key_name;
+            $this->database[$table][$reference['local']]['foreignTable'] = $foreign_key_attributes['foreign_table'];
             $this->database[$table][$reference['local']]['foreignReference'] = $reference['foreign'];
             if(isset($foreign_key_attributes['_attributes']['onDelete']))
             {
@@ -466,14 +575,14 @@ class sfPropelDatabaseSchema
             // remove complex foreign key
             unset($this->database[$table]['_foreign_keys'][$foreign_key_name]);
           }
-          
-          $this->removeEmptyKey(&$this->database[$table], '_foreign_keys');
+
+          $this->removeEmptyKey($this->database[$table], '_foreign_keys');
         }
       }
     }
   }
 
-  private function fixXMLIndexes()
+  protected function fixXMLIndexes()
   {
     foreach($this->getTables() as $table => $columns)
     {
@@ -494,13 +603,33 @@ class sfPropelDatabaseSchema
             unset($this->database[$table]['_indexes'][$index]);
           }
           
-          $this->removeEmptyKey(&$this->database[$table], '_indexes');
+          $this->removeEmptyKey($this->database[$table], '_indexes');
+        }
+      }
+      if(isset($this->database[$table]['_uniques']))
+      {
+        $uniques = $this->database[$table]['_uniques'];
+        foreach($uniques as $index => $references)
+        {
+          // Only single unique indexes can be simplified
+          if (count($references) == 1 && array_key_exists(substr($index,0,strlen($index)-7), $columns))
+          {
+            $reference = $references[0];
+
+            // set simple index
+            $this->database[$table][$reference]['index'] = 'unique';
+
+            // remove complex unique index
+            unset($this->database[$table]['_uniques'][$index]);
+          }
+
+          $this->removeEmptyKey($this->database[$table], '_uniques');
         }
       }
     }
   }
 
-  private function fixXMLColumns()
+  protected function fixXMLColumns()
   {
     foreach($this->getTables() as $table => $columns)
     {
@@ -509,14 +638,14 @@ class sfPropelDatabaseSchema
         if ($column == 'id' && !array_diff($attributes, array('type' => 'integer', 'required' => 'true', 'primaryKey' => 'true', 'autoincrement' => 'true')))
         {
           // simplify primary keys
-          $this->database[$table]['id'] = null;   
-        } 
-        
+          $this->database[$table]['id'] = null;
+        }
+
         if (($column == 'created_at') || ($column == 'updated_at') && !array_diff($attributes, array('type' => 'timestamp')))
         {
           // simplify timestamps
           $this->database[$table][$column] = null;   
-        }         
+        }
 
         $pos                 = strpos($column, '_id');
         $has_fk_name         = $pos > 0 && $pos == strlen($column) - 3;
@@ -538,7 +667,7 @@ class sfPropelDatabaseSchema
     return sfYaml::dump(array($this->connection_name => $this->database));
   }
 
-  private function getNameAndAttributes($hash, $name_attribute = 'name')
+  protected function getNameAndAttributes($hash, $name_attribute = 'name')
   {
     // tag name
     $name = '';
@@ -547,18 +676,18 @@ class sfPropelDatabaseSchema
       $name = strval($hash[$name_attribute]);
       unset($hash[$name_attribute]);
     }
-    
+
     // tag attributes
     $attributes = array();
     foreach($hash as $attribute => $value)
     {
       $attributes[$attribute] = strval($value);
     }
-    
+
     return array($name, $attributes);
   }
 
-  private function removeEmptyKey(&$hash, $key)
+  protected function removeEmptyKey(&$hash, $key)
   {
     if(isset($hash[$key]) && !$hash[$key])
     {

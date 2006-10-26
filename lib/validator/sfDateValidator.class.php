@@ -1,13 +1,13 @@
 <?php
 
 /*
-* This file is part of the symfony package.
-* (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
-* (c) 2004-2006 Sean Kerr.
-*
-* For the full copyright and license information, please view the LICENSE
-* file that was distributed with this source code.
-*/
+ * This file is part of the symfony package.
+ * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
+ * (c) 2004-2006 Sean Kerr.
+ * 
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
 
 /**
  * sfDateValidator verifies a parameter is of a date format.
@@ -17,7 +17,6 @@
  * @author     Nick Lane <nick.lane@internode.on.net>
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  * @author     Sean Kerr <skerr@mojavi.org>
- * @author     Nick Lane <nick.lane@internode.on.net>
  * @version    SVN: $Id$
  */
 class sfDateValidator extends sfValidator
@@ -99,7 +98,7 @@ class sfDateValidator extends sfValidator
    * @param $value    Date to convert.
    * @param $culture  Language culture to use.
    */
-  private function getValidDate($value, $culture)
+  protected function getValidDate($value, $culture)
   {
     // Use the language culture date format
     $result = sfI18N::getDateForCulture($value, $culture);

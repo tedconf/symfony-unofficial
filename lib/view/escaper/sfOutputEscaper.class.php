@@ -11,8 +11,8 @@
 /**
  * Abstract class that provides an interface for escaping of output.
  *
- * @package    symfony.view
- * @subpackage escaper
+ * @package    symfony
+ * @subpackage view
  * @author     Mike Squire <mike@somosis.co.uk>
  * @version    SVN: $Id$
  */
@@ -126,5 +126,10 @@ abstract class sfOutputEscaper
   public function getRawValue()
   {
     return $this->value;
+  }
+  
+  public function __get($var)
+  {
+    return $this->escape($this->escapingMethod, $this->value->$var);
   }
 }

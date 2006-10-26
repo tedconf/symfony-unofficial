@@ -236,9 +236,9 @@ The available validators can be found in the symfony lib `validator` directory. 
         spamValidator:
           class:          sfRegexValidator
           param:
-            match:        Yes
+            match:        No
             match_error:  Posts containing more than one http address are considered as spam
-            pattern:      /http.*http/i
+            pattern:      /http.*http/si
 
     The `match` param determines if the request parameter must match the pattern to be valid (value `Yes`) or match the pattern to be invalid (value `No`)
         
@@ -308,6 +308,22 @@ The available validators can be found in the symfony lib `validator` directory. 
             max_size_error:   Max size is 512Kb
 
   Beware that the attribute `file` has to be set to `true` for the field in the `names` section - and that the template must declare the form as `multipart`. Find more information in the [file upload chapter](upload.txt).
+
+* `sfCallbackValidator`: Passes the hand to a third party method or function to do the validation (and return true or false).
+ 
+        ageValidator:
+          class:          sfCallbackValidator
+          param:
+            callback:      is_integer
+            invalid_error: Please enter a number.
+        
+        creditCardValidator:
+          class:          sfCallbackValidator
+          param:
+            callback:      [myTools, validateCreditCard]
+            invalid_error: Please enter a valid credit card number.
+        
+  The callback method or function receives the value to be validated as a first parameter. This is very useful when you don't want to create a full validator class but reuse existing methods of functions.
 
 Repopulation
 ------------

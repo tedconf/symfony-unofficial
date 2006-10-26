@@ -40,12 +40,10 @@ abstract class sfRequest
    */
   const POST = 4;
 
-  private
-    $errors  = array(),
-    $context = null,
-    $method  = null;
-
   protected
+    $errors           = array(),
+    $context          = null,
+    $method           = null,
     $parameter_holder = null,
     $config           = null,
     $attribute_holder = null;
@@ -329,4 +327,16 @@ abstract class sfRequest
    * @return void
    */
   abstract function shutdown ();
+
+  public function __call($method, $arguments)
+  {
+    if (!$callable = sfMixer::getCallable('sfRequest:'.$method))
+    {
+      throw new sfException(sprintf('Call to undefined method sfRequest::%s', $method));
+    }
+
+    array_unshift($arguments, $this);
+
+    return call_user_func_array($callable, $arguments);
+  }
 }

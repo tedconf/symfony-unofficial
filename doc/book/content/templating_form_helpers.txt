@@ -77,13 +77,11 @@ Here are the standard form element helpers:
  * radio button:
 
         [php]
-        <?php echo radiobutton_tag('status', 'value1', true) ?>
-        <?php echo radiobutton_tag('status', 'value2', false) ?>
+        <?php echo radiobutton_tag('status[]', 'value1', true) ?>
+        <?php echo radiobutton_tag('status[]', 'value2', false) ?>
         // will generate in HTML
-        <input type="radio" name="status" value="value1" checked="checked" />
-        <input type="radio" name="status" value="value2" />
-
-> Note that the `id` attribute is not defined by default with the value of the `name` attribute for the radio button helper. That's because you need to have several radio button tags with the same name to obtain the automated 'deselecting the previous one when selecting another' feature, and that would imply having several HTML tags with the same `id` attribute in your page - which is strictly forbidden.
+        <input type="radio" name="status[]" id="status_value1" value="value1" checked="checked" />
+        <input type="radio" name="status[]" id="status_value2" value="value2" />
 
  * value selection field (select):
 
@@ -278,6 +276,11 @@ Now, picture a form built to edit the data of an article. There is an easy way t
     object_select_tag($article, 'getAuthorId', 'related_class=Author')
 
 Symfony will use the `->toString()` method of the `Author` class to display the names of the authors in a list. If the method is undefined, the primary key (in the example, the `id` column) of the `Author` table is used instead.
+
+By default, the list of authors will be the complete list ordered by creation date, but you can specify another `AuthorPeer` method to display a custom array of authors, in the order you want, with the `peer_method` parameter:
+
+    [php]
+    object_select_tag($article, 'getAuthorId', 'related_class=Author peer_method=getFamousAuthorsOrderedByBirthDate')
 
 A few other options can define the content of an object select tag. `include_title` and `include_blank` allow to add a title or a first empty line to the list:
 

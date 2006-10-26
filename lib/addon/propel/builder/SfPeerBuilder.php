@@ -2,8 +2,42 @@
 
 require_once 'propel/engine/builder/om/php5/PHP5ComplexPeerBuilder.php';
 
-class sfPeerBuilder extends PHP5ComplexPeerBuilder
+/*
+ * This file is part of the symfony package.
+ * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+/**
+ * @package    symfony
+ * @subpackage addon
+ * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
+ * @version    SVN: $Id$
+ */
+class SfPeerBuilder extends PHP5ComplexPeerBuilder
 {
+  public function build()
+  {
+    if (!DataModelBuilder::getBuildProperty('builderAddComments'))
+    {
+      return sfToolkit::stripComments(parent::build());
+    }
+
+    return parent::build();
+  }
+
+  protected function addIncludes(&$script)
+  {
+    if (!DataModelBuilder::getBuildProperty('builderAddIncludes'))
+    {
+      return;
+    }
+
+    parent::addIncludes($script);
+  }
+
   protected function addSelectMethods(&$script)
   {
     parent::addSelectMethods($script);
@@ -125,8 +159,9 @@ class sfPeerBuilder extends PHP5ComplexPeerBuilder
 ";
   }
 
-  public function addDoValidate(&$script) {
-	    $tmp = '';
+  protected function addDoValidate(&$script)
+  {
+      $tmp = '';
       parent::addDoValidate($tmp);
 
       $script .= str_replace("return {$this->basePeerClassname}::doValidate(".$this->getPeerClassname()."::DATABASE_NAME, ".$this->getPeerClassname()."::TABLE_NAME, \$columns);\n",
@@ -139,5 +174,100 @@ class sfPeerBuilder extends PHP5ComplexPeerBuilder
         "        }\n".
         "    }\n\n".
         "    return \$res;\n", $tmp);
+  }
+
+  protected function addDoSelectRS(&$script)
+  {
+    $tmp = '';
+    parent::addDoSelectRS($tmp);
+
+    if (DataModelBuilder::getBuildProperty('builderAddBehaviors'))
+    {
+      $mixer_script = "
+
+    foreach (sfMixer::getCallables('{$this->getClassname()}:addDoSelectRS:addDoSelectRS') as \$callable)
+    {
+      call_user_func(\$callable, '{$this->getClassname()}', \$criteria, \$con);
+    }
+
+";
+      $tmp = preg_replace('/{/', '{'.$mixer_script, $tmp, 1);
+    }
+
+    $script .= $tmp;
+  }
+
+  protected function addDoUpdate(&$script)
+  {
+    $tmp = '';
+    parent::addDoUpdate($tmp);
+
+    if (DataModelBuilder::getBuildProperty('builderAddBehaviors'))
+    {
+      // add sfMixer call
+      $pre_mixer_script = "
+
+    foreach (sfMixer::getCallables('{$this->getClassname()}:doUpdate:pre') as \$callable)
+    {
+      \$ret = call_user_func(\$callable, '{$this->getClassname()}', \$values, \$con);
+      if (false !== \$ret)
+      {
+        return \$ret;
+      }
+    }
+
+";
+
+      $post_mixer_script = "
+
+    foreach (sfMixer::getCallables('{$this->getClassname()}:doUpdate:post') as \$callable)
+    {
+      call_user_func(\$callable, '{$this->getClassname()}', \$values, \$con, \$ret);
+    }
+
+    return \$ret;
+";
+
+      $tmp = preg_replace('/{/', '{'.$pre_mixer_script, $tmp, 1);
+      $tmp = preg_replace("/\t\treturn ([^}]+)/", "\t\t\$ret = $1".$post_mixer_script.'  ', $tmp, 1);
+    }
+
+    $script .= $tmp;
+  }
+
+  protected function addDoInsert(&$script)
+  {
+    $tmp = '';
+    parent::addDoInsert($tmp);
+
+    if (DataModelBuilder::getBuildProperty('builderAddBehaviors'))
+    {
+      // add sfMixer call
+      $pre_mixer_script = "
+
+    foreach (sfMixer::getCallables('{$this->getClassname()}:doInsert:pre') as \$callable)
+    {
+      \$ret = call_user_func(\$callable, '{$this->getClassname()}', \$values, \$con);
+      if (false !== \$ret)
+      {
+        return \$ret;
+      }
+    }
+
+";
+
+      $post_mixer_script = "
+    foreach (sfMixer::getCallables('{$this->getClassname()}:doInsert:post') as \$callable)
+    {
+      call_user_func(\$callable, '{$this->getClassname()}', \$values, \$con, \$pk);
+    }
+
+    return";
+
+      $tmp = preg_replace('/{/', '{'.$pre_mixer_script, $tmp, 1);
+      $tmp = preg_replace("/\t\treturn/", "\t\t".$post_mixer_script, $tmp, 1);
+    }
+
+    $script .= $tmp;
   }
 }

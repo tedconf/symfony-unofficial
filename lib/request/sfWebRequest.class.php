@@ -286,12 +286,6 @@ class sfWebRequest extends sfRequest
 
     // load parameters from GET/PATH_INFO/POST
     $this->loadParameters();
-
-    // sfStats call
-    if (sfConfig::get('sf_stats'))
-    {
-      sfStats::record($this->context);
-    }
   }
 
   /**
@@ -301,7 +295,7 @@ class sfWebRequest extends sfRequest
    *
    * @return  array
    */
-  private function getPathInfoArray()
+  protected function getPathInfoArray()
   {
     if (!$this->pathInfoArray)
     {
@@ -324,28 +318,29 @@ class sfWebRequest extends sfRequest
   public function getUri()
   {
     $pathArray = $this->getPathInfoArray();
-    if ($this->isAbsoluteUri())
+
+    if ($this->isAbsUri())
     {
-    	return $pathArray['REQUEST_URI'];
+      return $pathArray['REQUEST_URI'];
     }
 
     return $this->getUriPrefix().$pathArray['REQUEST_URI'];
   }
-
 
   /**
    * See if the client is using absolute uri
    *
    * @return boolean
    */
-  public function isAbsoluteUri()
+  public function isAbsUri()
   {
     $pathArray = $this->getPathInfoArray();
-    return preg_match('/^http/',$pathArray['REQUEST_URI']);
+
+    return preg_match('/^http/', $pathArray['REQUEST_URI']);
   }
 
   /**
-   * Uri prefix,including protocol, hostname and server port
+   * Uri prefix,including protocol,hostname and server port
    *
    * @return string
    */
@@ -354,24 +349,25 @@ class sfWebRequest extends sfRequest
     $pathArray = $this->getPathInfoArray();
     if ($this->isSecure())
     {
-    	$standardPort = "443";
-    	$protocol = "https";
+      $standardPort = '443';
+      $proto = 'https';
     }
     else
     {
-      $standardPort = "80";
-      $protocol = "http";
+      $standardPort = '80';
+      $proto = 'http';
     }
 
-    $port = ($pathArray['SERVER_PORT'] == $standardPort) ? "" : ":".$pathArray['SERVER_PORT'];
-    return $protocol.'://'.$pathArray['HTTP_HOST'].$port;
+    $port = $pathArray['SERVER_PORT'] == $standardPort || !$pathArray['SERVER_PORT'] ? '' : ':'.$pathArray['SERVER_PORT'];
+
+    return $proto.'://'.$pathArray['HTTP_HOST'].$port;
   }
 
-  public function getPathInfo()
+  public function getPathInfo ()
   {
     $pathInfo = '';
+
     $pathArray = $this->getPathInfoArray();
-    $uri_prefix = '';
 
     // simulate PATH_INFO if needed
     $sf_path_info_key = sfConfig::get('sf_path_info_key');
@@ -379,17 +375,13 @@ class sfWebRequest extends sfRequest
     {
       if (isset($pathArray['REQUEST_URI']))
       {
-        $script_name = $pathArray['SCRIPT_NAME'];
-        if($this->isAbsoluteUri())
-        {
-          $uri_prefix = $this->getUriPrefix();
-        }
-        $pathInfo = preg_replace('/^'.preg_quote($uri_prefix,'/').'/','',$pathArray['REQUEST_URI']);
+        $script_name = $this->getScriptName();
+        $uri_prefix = $this->isAbsUri() ? $this->getUriPrefix() : '';
+        $pathInfo = preg_replace('/^'.preg_quote($uri_prefix, '/').'/','',$pathArray['REQUEST_URI']);
         $pathInfo = preg_replace('/^'.preg_quote($script_name, '/').'/', '', $pathInfo);
         $prefix_name = preg_replace('#/[^/]+$#', '', $script_name);
         $pathInfo = preg_replace('/^'.preg_quote($prefix_name, '/').'/', '', $pathInfo);
         $pathInfo = preg_replace('/'.preg_quote($pathArray['QUERY_STRING'], '/').'$/', '', $pathInfo);
-
       }
     }
     else
@@ -402,7 +394,7 @@ class sfWebRequest extends sfRequest
     }
 
     // for IIS
-    if ($pos = stripos($pathInfo, '.php'))
+    if (isset($_SERVER['SERVER_SOFTWARE']) && false !== stripos($_SERVER['SERVER_SOFTWARE'], 'iis') && $pos = stripos($pathInfo, '.php'))
     {
       $pathInfo = substr($pathInfo, $pos + 4);
     }
@@ -420,9 +412,13 @@ class sfWebRequest extends sfRequest
    *
    * @return void
    */
-  private function loadParameters ()
+   protected function loadParameters ()
   {
     // merge GET parameters
+    if (get_magic_quotes_gpc())
+    {
+      $_GET = sfToolkit::stripslashesDeep($_GET);
+    }
     $this->getParameterHolder()->addByRef($_GET);
 
     $pathInfo = $this->getPathInfo();
@@ -461,12 +457,16 @@ class sfWebRequest extends sfRequest
     }
 
     // merge POST parameters
+    if (get_magic_quotes_gpc())
+    {
+      $_POST = sfToolkit::stripslashesDeep((array) $_POST);
+    }
     $this->getParameterHolder()->addByRef($_POST);
 
-    // move symfony parameters in a protected namespace (parameters prefixed with sf_)
+    // move symfony parameters in a protected namespace (parameters prefixed with _sf_)
     foreach ($this->getParameterHolder()->getAll() as $key => $value)
     {
-      if (stripos($key, 'sf_') !== false)
+      if (stripos($key, '_sf_') !== false)
       {
         $this->getParameterHolder()->remove($key);
         $this->setParameter($key, $value, 'symfony/request/sfWebRequest');
@@ -581,7 +581,7 @@ class sfWebRequest extends sfRequest
   {
     $pathArray = $this->getPathInfoArray();
 
-    return isset($pathArray['SCRIPT_NAME']) ? $pathArray['SCRIPT_NAME'] : '';
+    return isset($pathArray['SCRIPT_NAME']) ? $pathArray['SCRIPT_NAME'] : (isset($pathArray['ORIG_SCRIPT_NAME']) ? $pathArray['ORIG_SCRIPT_NAME'] : '');
   }
 
   /**
@@ -589,7 +589,7 @@ class sfWebRequest extends sfRequest
    *
    * @return  string
    */
-  public function getRequestMethod()
+  public function getMethodName()
   {
     $pathArray = $this->getPathInfoArray();
 
@@ -652,7 +652,6 @@ class sfWebRequest extends sfRequest
         }
       }
 
-//      if(CultureInfo::validCulture($lang))
       $this->languages[] = $lang;
     }
 
@@ -700,28 +699,6 @@ class sfWebRequest extends sfRequest
     return isset($pathArray[$name]) ? stripslashes($pathArray[$name]) : null;
   }
 
-  public function __call ($name, $arguments)
-  {
-    if (0 === stripos($name, 'getHttp'))
-    {
-      $header = sfInflector::underscore(substr($name, 7));
-
-      return $this->getHttpHeader($header);
-    }
-    else if (0 === stripos($name, 'getSsl'))
-    {
-      $header = sfInflector::underscore(substr($name, 6));
-
-      return $this->getHttpHeader($header, 'ssl');
-    }
-
-    if (substr($name, 0, 2) != '__')
-    {
-      $error = sprintf('Call to undefined function: %s::%s().', get_class($this), $name);
-      trigger_error($error, E_USER_ERROR);
-    }
-  }
-
   /**
    * Get cookie value.
    *
@@ -733,7 +710,7 @@ class sfWebRequest extends sfRequest
 
     if (isset($_COOKIE[$name]))
     {
-      $retval = $_COOKIE[$name];
+      $retval = get_magic_quotes_gpc() ? stripslashes($_COOKIE[$name]) : $_COOKIE[$name];
     }
 
     return $retval;
@@ -759,9 +736,7 @@ class sfWebRequest extends sfRequest
   {
     if ($this->relativeUrlRoot === null)
     {
-      $pathArray = $this->getPathInfoArray();
-
-      $this->relativeUrlRoot = preg_replace('#/[^/]+\.php5?$#', '', $pathArray['SCRIPT_NAME']);
+      $this->relativeUrlRoot = sfConfig::get('sf_relative_url_root', preg_replace('#/[^/]+\.php5?$#', '', $this->getScriptName()));
     }
 
     return $this->relativeUrlRoot;

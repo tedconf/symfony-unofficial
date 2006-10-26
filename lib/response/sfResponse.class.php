@@ -20,9 +20,7 @@
 abstract class sfResponse
 {
   protected
-    $parameter_holder = null;
-
-  private
+    $parameter_holder = null,
     $context = null,
     $content = '';
 
@@ -142,4 +140,16 @@ abstract class sfResponse
    * @return void
    */
   abstract function shutdown ();
+
+  public function __call($method, $arguments)
+  {
+    if (!$callable = sfMixer::getCallable('sfResponse:'.$method))
+    {
+      throw new sfException(sprintf('Call to undefined method sfResponse::%s', $method));
+    }
+
+    array_unshift($arguments, $this);
+
+    return call_user_func_array($callable, $arguments);
+  }
 }

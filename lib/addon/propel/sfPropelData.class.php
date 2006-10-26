@@ -17,7 +17,7 @@
  */
 class sfPropelData
 {
-  private
+  protected
     $deleteCurrentData = true,
     $maps              = array(),
     $object_references = array();
@@ -37,7 +37,7 @@ class sfPropelData
   {
     $fixture_files = $this->getFiles($directory_or_file);
 
-    // wrap all databases operations in a single transaction
+    // wrap all database operations in a single transaction
     $con = Propel::getConnection();
     try
     {
@@ -59,15 +59,20 @@ class sfPropelData
   protected function doLoadDataFromFile($fixture_file)
   {
     // import new datas
-    $main_datas = sfYaml::load($fixture_file);
+    $data = sfYaml::load($fixture_file);
 
-    if ($main_datas === null)
+    $this->loadDataFromArray($data);
+  }
+
+  public function loadDataFromArray($data)
+  {
+    if ($data === null)
     {
       // no data
       return;
     }
 
-    foreach ($main_datas as $class => $datas)
+    foreach ($data as $class => $datas)
     {
       $class = trim($class);
 
@@ -159,21 +164,26 @@ class sfPropelData
       rsort($fixture_files);
       foreach ($fixture_files as $fixture_file)
       {
-        $main_datas = sfYaml::load($fixture_file);
+        $data = sfYaml::load($fixture_file);
 
-        if ($main_datas === null)
+        if ($data === null)
         {
           // no data
           continue;
         }
 
-        $classes = array_keys($main_datas);
+        $classes = array_keys($data);
         krsort($classes);
         foreach ($classes as $class)
         {
           $peer_class = trim($class.'Peer');
 
-          require_once(sfConfig::get('sf_model_lib_dir').'/'.$peer_class.'.php');
+          if (!$classPath = sfCore::getClassPath($peer_class))
+          {
+            throw new sfException(sprintf('Unable to find path for class "%s".', $peer_class));
+          }
+
+          require_once($classPath);
 
           call_user_func(array($peer_class, 'doDeleteAll'));
         }
@@ -206,12 +216,17 @@ class sfPropelData
     return $fixture_files;
   }
 
-  private function loadMapBuilder($class)
+  protected function loadMapBuilder($class)
   {
     $class_map_builder = $class.'MapBuilder';
     if (!isset($this->maps[$class]))
     {
-      require_once(sfConfig::get('sf_model_lib_dir').'/map/'.$class_map_builder.'.php');
+      if (!$classPath = sfCore::getClassPath($class_map_builder))
+      {
+        throw new sfException(sprintf('Unable to find path for class "%s".', $class_map_builder));
+      }
+
+      require_once($classPath);
       $this->maps[$class] = new $class_map_builder();
       $this->maps[$class]->doBuild();
     }
@@ -227,7 +242,7 @@ class sfPropelData
   public function dumpData($directory_or_file = null, $tables = 'all', $connectionName = 'propel')
   {
     $sameFile = true;
-    if (is_dir($directory_or_file) && 'all' === $tables ||  (is_array($tables) && 1 < count($tables)))
+    if (is_dir($directory_or_file))
     {
       // multi files
       $sameFile = false;

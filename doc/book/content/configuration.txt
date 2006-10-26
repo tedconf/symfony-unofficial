@@ -225,7 +225,7 @@ There are two ways of adding custom settings to your code:
 
 * Add new lines to the usual configuration files
   * `myproject/apps/myapp/config/app.yml` for application wide settings
-  * `myproject/apps/myapp/modules/mymodule/module.yml` for module wide settings (this files doesn't exist by default)
+  * `myproject/apps/myapp/modules/mymodule/config/module.yml` for module wide settings (this files doesn't exist by default)
 * Create a new configuration file, together with a new config handler 
 
 For instance, if you need to add the credit card operators accepted in you site, you can write in the application `app.yml`:
@@ -247,7 +247,7 @@ To know if the `fake` credit cards are accepted in the current environment, get 
 
 But maybe you need to add an array, an associative array or a lot of new parameters. In this case it is better to create a new configuration file, together with the corresponding configuration handler.
 
->**Note**: For project-wide custom settings, you can still take advantage of the `config/config.php` file to call directly the `sfConfig::set()` method or load your own YAML file with `sfYaml::load($file)`.
+>**Note**: For project-wide custom settings, you can still take advantage of the `config/config.php` file to call directly the `sfConfig::set()` method or load your own YAML file with `sfYaml::load($file)`. Beware that autoloading is not active when the `config.php` is executed, so you need to manually include the class files that you want to use.
 
 Scriptable configuration
 ------------------------
@@ -265,6 +265,28 @@ Beware though that the configuration is parsed very early in the life of a reque
 
 Be also aware that in the production environment, the configuration is cached, so the configuration files are parsed (and executed) only once after the cache is cleared.
 
+>**Note**: If what you need is to repeat a setting defined in another configuration file, use the constants trick. Previsously defined settings are available as constants in YAML file - just uppercase the name and enclose it between % signs. For instance, here is how you can reuse a setting from `settings.yml` in a `view.yml`:
+
+         all:
+           javascripts: [%SF_PROTOTYPE_WEB_DIR%/js/prototype] 
+
+And if you are allergic to YAML, or if you prefer to avoid writing both a configuration file and a configuration handler to finally get an associative array in PHP, you can bypass YAML parsing completely and return a PHP array in any YAML file. It means that you can write the `logging.yml` as follows:
+
+    [php]
+    <?php
+    return array(
+      'default' => array(
+        'active' => true,
+        'level'  => 'debug'
+      )
+    );
+
+...instead of the classic
+
+    default:
+      active: on
+      level:  debug
+      
 Configuration handlers
 ----------------------
 

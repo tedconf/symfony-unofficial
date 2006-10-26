@@ -20,6 +20,8 @@
  * # <b>database</b>       - [none]   - The database name.
  * # <b>dsn</b>            - [none]   - The DSN formatted connection string.
  * # <b>host</b>           - [none]   - The database host specifications.
+ * # <b>port</b>           - [none]   - The database port.
+ * # <b>encoding</b>       - [none]   - The database encoding.
  * # <b>method</b>         - [normal] - How to read connection parameters.
  *                                      Possible values are dsn, normal,
  *                                      server, and env. The dsn method reads
@@ -69,13 +71,16 @@ class sfCreoleDatabase extends sfDatabase
           $password = $this->getParameter('password', null);
           $phptype  = $this->getParameter('phptype',  null);
           $username = $this->getParameter('username', null);
+          $port     = $this->getParameter('port',     null);
+          $encoding = $this->getParameter('encoding', null);
 
           $dsn = array('database' => $database,
                        'hostspec' => $hostspec,
                        'password' => $password,
                        'phptype'  => $phptype,
-                       'username' => $username);
-
+                       'username' => $username,
+                       'port'     => $port,
+                       'encoding' => $encoding);
           break;
 
         case 'dsn':
@@ -169,7 +174,7 @@ class sfCreoleDatabase extends sfDatabase
     if ($dsn == null)
     {
       // list of available parameters
-      $available = array('database', 'hostspec', 'password', 'phptype', 'username');
+      $available = array('database', 'hostspec', 'password', 'phptype', 'username', 'port');
 
       $dsn = array();
 

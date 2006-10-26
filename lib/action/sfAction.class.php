@@ -20,9 +20,8 @@
  */
 abstract class sfAction extends sfComponent
 {
-  private
-    $security = array(),
-    $template = '';
+  protected
+    $security = array();
 
   /**
    * Gets current module name
@@ -91,9 +90,12 @@ abstract class sfAction extends sfComponent
    *
    * @return boolean
    */
-  public function mustExecute($suffix = 'slot')
+  public function mustExecute()
   {
-    if (sfConfig::get('sf_logging_active')) $this->getContext()->getLogger()->err('This method is deprecated.');
+    if (sfConfig::get('sf_logging_active'))
+    {
+      $this->getContext()->getLogger()->err('This method is deprecated.');
+    }
 
     if (!sfConfig::get('sf_cache'))
     {
@@ -102,7 +104,7 @@ abstract class sfAction extends sfComponent
 
     $cache = $this->getContext()->getViewCacheManager();
 
-    return (!$cache->has(sfRouting::getInstance()->getCurrentInternalUri(), $suffix));
+    return (!$cache->has(sfRouting::getInstance()->getCurrentInternalUri()));
   }
 
   /**
@@ -160,7 +162,7 @@ abstract class sfAction extends sfComponent
    *
    * @param  string module name
    * @param  string action name
-   * @return sfView::NONE
+   * @throws sfStopException always
    */
   public function forward ($module, $action)
   {
@@ -168,7 +170,7 @@ abstract class sfAction extends sfComponent
 
     $this->getController()->forward($module, $action);
 
-    throw new sfActionStopException();
+    throw new sfStopException();
   }
 
   /**
@@ -184,7 +186,7 @@ abstract class sfAction extends sfComponent
    * @param  bool   A condition that evaluates to true or false.
    * @param  string module name
    * @param  string action name
-   * @return sfView::NONE
+   * @throws sfStopException always
    */
   public function forwardIf ($condition, $module, $action)
   {
@@ -207,7 +209,7 @@ abstract class sfAction extends sfComponent
    * @param  bool   A condition that evaluates to true or false.
    * @param  string module name
    * @param  string action name
-   * @return sfView::NONE
+   * @throws sfStopException always
    */
   public function forwardUnless ($condition, $module, $action)
   {
@@ -299,17 +301,17 @@ abstract class sfAction extends sfComponent
    * <code>return $this->redirect('/ModuleName/ActionName')</code>
    *
    * @param  string url
-   * @return sfView::NONE
+   * @throws sfStopException always
    */
   public function redirect($url)
   {
-    $url = $this->getController()->genUrl($url);
+    $url = $this->getController()->genUrl($url, true);
 
     if (sfConfig::get('sf_logging_active')) $this->getContext()->getLogger()->info('{sfAction} redirect to "'.$url.'"');
 
     $this->getController()->redirect($url);
 
-    throw new sfActionStopException();
+    throw new sfStopException();
   }
 
   /**
@@ -323,7 +325,7 @@ abstract class sfAction extends sfComponent
    *
    * @param  bool   A condition that evaluates to true or false.
    * @param  string url
-   * @return sfView::NONE
+   * @throws sfStopException always
    */
   public function redirectIf ($condition, $url)
   {
@@ -344,7 +346,7 @@ abstract class sfAction extends sfComponent
    *
    * @param  bool   A condition that evaluates to true or false.
    * @param  string url
-   * @return sfView::NONE
+   * @throws sfStopException always
    */
   public function redirectUnless ($condition, $url)
   {
@@ -438,10 +440,19 @@ abstract class sfAction extends sfComponent
     return true;
   }
 
+  public function getSecurityConfiguration()
+  {
+    return $this->security;
+  }
+
+  public function setSecurityConfiguration($security)
+  {
+    $this->security = $security;
+  }
+
   /**
    * Indicates that this action requires security.
    *
-   * @param  string action name (defaults to the current action)
    * @return bool true, if this action requires security, otherwise false.
    */
   public function isSecure()
@@ -462,7 +473,6 @@ abstract class sfAction extends sfComponent
   /**
    * Gets credentials the user must have to access this action.
    *
-   * @param  string action name (defaults to the current action)
    * @return mixed
    */
   public function getCredential()
@@ -492,13 +502,19 @@ abstract class sfAction extends sfComponent
    */
   public function setTemplate($name)
   {
-    if (sfConfig::get('sf_logging_active')) $this->getContext()->getLogger()->info('{sfAction} change template to "'.$name.'"');
+    if (sfConfig::get('sf_logging_active'))
+    {
+      $this->getContext()->getLogger()->info('{sfAction} change template to "'.$name.'"');
+    }
 
-    $this->template = $name;
+    $this->getResponse()->setParameter($this->getModuleName().'_'.$this->getActionName().'_template', $name, 'symfony/action/view');
   }
 
   /**
    * Gets the name of the alternate template for this Action.
+   *
+   * WARNING: It only returns the template you set with the setTemplate() method,
+   *          and does not return the template that you configured in your view.yml.
    *
    * See 'Naming Conventions' in the 'Symfony View' documentation.
    *
@@ -506,51 +522,38 @@ abstract class sfAction extends sfComponent
    */
   public function getTemplate()
   {
-    return $this->template;
+    return $this->getResponse()->getParameter($this->getModuleName().'_'.$this->getActionName().'_template', null, 'symfony/action/view');
   }
 
   /**
-   * DEPRECATED: Please use the sfResponse object
+   * Sets an alternate layout for this Component.
+   *
+   * To de-activate the layout, set the layout name to false.
+   *
+   * To revert the layout to the one configured in the view.yml, set the template name to null.
+   *
+   * @param string layout name
    */
-  public function addHttpMeta($key, $value, $override = true)
+  public function setLayout($name)
   {
-    if (sfConfig::get('sf_logging_active')) $this->getContext()->getLogger()->err('This method is deprecated. Please use $this->getResponse()->addHttpMeta($key, $value, $override).');
-    $this->getContext()->getResponse()->addHttpMeta($key, $value, $override);
+    if (sfConfig::get('sf_logging_active'))
+    {
+      $this->getContext()->getLogger()->info('{sfAction} change layout to "'.$name.'"');
+    }
+
+    $this->getResponse()->setParameter($this->getModuleName().'_'.$this->getActionName().'_layout', $name, 'symfony/action/view');
   }
 
   /**
-   * DEPRECATED: Please use the sfResponse object
+   * Gets the name of the alternate layout for this Component.
+   *
+   * WARNING: It only returns the layout you set with the setLayout() method,
+   *          and does not return the layout that you configured in your view.yml.
+   *
+   * @return string
    */
-  public function addMeta($key, $value, $override = true)
+  public function getLayout()
   {
-    if (sfConfig::get('sf_logging_active')) $this->getContext()->getLogger()->err('This method is deprecated. Please use $this->getResponse()->addMeta($key, $value, $override).');
-    $this->getContext()->getResponse()->addMeta($key, $value, $override);
-  }
-
-  /**
-   * DEPRECATED: Please use the sfResponse object
-   */
-  public function setTitle($title)
-  {
-    if (sfConfig::get('sf_logging_active')) $this->getContext()->getLogger()->err('This method is deprecated. Please use $this->getResponse()->setTitle($title).');
-    $this->getContext()->getResponse()->setTitle($title);
-  }
-
-  /**
-   * DEPRECATED: Please use the sfResponse object
-   */
-  public function addStylesheet($css, $position = '', $options = array())
-  {
-    if (sfConfig::get('sf_logging_active')) $this->getContext()->getLogger()->err('This method is deprecated. Please use $this->getResponse()->addStylesheet($css, $position, $options).');
-    $this->getContext()->getResponse()->addStylesheet($css, $position, $options);
-  }
-
-  /**
-   * DEPRECATED: Please use the sfResponse object
-   */
-  public function addJavascript($js)
-  {
-    if (sfConfig::get('sf_logging_active')) $this->getContext()->getLogger()->err('This method is deprecated. Please use $this->getResponse()->addJavascript($js).');
-    $this->getContext()->getResponse()->addJavascript($js);
+    return $this->getResponse()->getParameter($this->getModuleName().'_'.$this->getActionName().'_layout', null, 'symfony/action/view');
   }
 }

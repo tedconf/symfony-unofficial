@@ -17,15 +17,18 @@
  */
 class sfFillInFormFilter extends sfFilter
 {
-  private $escapers = array();
+  protected $escapers = array();
 
-  public function executeBeforeRendering($filterChain)
+  public function execute($filterChain)
   {
+    // execute next filter
+    $filterChain->execute();
+
     $context  = $this->getContext();
     $response = $context->getResponse();
     $request  = $context->getRequest();
 
-    $doc = new DomDocument('1.0', 'UTF-8');
+    $doc = new DomDocument('1.0', sfConfig::get('sf_charset'));
     @$doc->loadHTML($response->getContent());
     $xpath = new DomXPath($doc);
 
@@ -59,13 +62,17 @@ class sfFillInFormFilter extends sfFilter
     $xpath_query = $this->getParameter('name') ? '//form[@name="'.$this->getParameter('name').'"]' : '//form';
     if ($form = $xpath->query($xpath_query)->item(0))
     {
-      foreach($xpath->query($query, $form) as $element)
+      $filledFields = array();
+
+      foreach ($xpath->query($query, $form) as $element)
       {
         // skip fields specified in the 'skip_fields' attribute
         if ($request->hasParameter($element->getAttribute('name')) && in_array($element->getAttribute('name'), $skip_fields))
         {
           continue;
         }
+
+        $filledFields[] = $element->getAttribute('name');
 
         if ($element->nodeName == 'input')
         {
@@ -85,7 +92,7 @@ class sfFillInFormFilter extends sfFilter
             $element->removeAttribute('value');
             if ($request->hasParameter($element->getAttribute('name')))
             {
-              $element->setAttribute('value', $this->espaceRequestParameter($request, $element->getAttribute('name')));
+              $element->setAttribute('value', $this->escapeRequestParameter($request, $element->getAttribute('name')));
             }
           }
         }
@@ -95,7 +102,7 @@ class sfFillInFormFilter extends sfFilter
           {
             $element->removeChild($child_node);
           }
-          $element->appendChild($doc->createTextNode($this->espaceRequestParameter($request, $element->getAttribute('name'))));
+          $element->appendChild($doc->createTextNode($this->escapeRequestParameter($request, $element->getAttribute('name'))));
         }
         else if ($element->nodeName == 'select')
         {
@@ -120,19 +127,31 @@ class sfFillInFormFilter extends sfFilter
           }
         }
       } // foreach
+
+      if (sfConfig::get('sf_logging_active'))
+      {
+        $context->getLogger()->info(sprintf('{sfFillInFilter} Filled the following fields: %s', implode(', ', $filledFields)));
+      }
     }
 
     $response->setContent($doc->saveHTML());
 
     unset($doc);
-
-    // execute next filter
-    $filterChain->execute();
   }
 
-  private function espaceRequestParameter($request, $name)
+  protected function escapeRequestParameter($request, $name)
   {
     $value = $request->getParameter($name);
+
+    if (extension_loaded('iconv') && strtolower(sfConfig::get('sf_charset')) != 'utf-8')
+    {
+      $new_value = iconv(sfConfig::get('sf_charset'), 'UTF-8', $value);
+      if (false !== $new_value)
+      {
+        $value = $new_value;
+      }
+    }
+
     if (isset($this->escapers[$name]))
     {
       foreach ($this->escapers[$name] as $function)
