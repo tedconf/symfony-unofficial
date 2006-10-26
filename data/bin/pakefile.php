@@ -28,7 +28,7 @@ else
 require_once($sf_symfony_lib_dir.'/config/sfConfig.class.php');
 
 sfConfig::add(array(
-  'sf_root_dir'         => getcwd(),
+  'sf_root_dir'         => get_root_dir(),
   'sf_symfony_lib_dir'  => $sf_symfony_lib_dir,
   'sf_symfony_data_dir' => $sf_symfony_data_dir,
   'sf_symfony_symlink'  => $symlink,
@@ -55,6 +55,39 @@ pake_task('module_exists', 'app_exists');
 function run_fix()
 {
   // noop
+}
+
+// this will chdir to the symfony root directory and 
+// return its name.
+// make sure this is called before anybody tries getcwd
+// (or convert getcwd calls to get_root_dir())
+function get_root_dir()
+{
+  $origwd = getcwd();
+  // walk up the directory tree looking for the SYMFONY file
+  while (!file_exists('SYMFONY'))
+  {
+    $lastwd = getcwd();
+    chdir('..');
+    if (getcwd() == $lastwd)
+    {
+      // hit top of directory tree.  we're not in a symfony dir.
+      // just use current dir.
+      chdir($origwd);
+      return $origwd;
+    }
+    // as we walk up tree, make note of current module and/or app
+    $newdir = basename(getcwd());
+    if ($newdir == 'modules')
+    {
+      sfConfig::add(array( 'sf_cur_module' => basename($lastwd) ));
+    }
+    else if ($newdir == 'apps')
+    {
+      sfConfig::add(array( 'sf_cur_app' => basename($lastwd) ));
+    }
+  }
+  return getcwd();
 }
 
 function run_project_exists($task, $args)
