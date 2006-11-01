@@ -136,6 +136,7 @@ function get_component($moduleName, $componentName, $vars = array())
     // get component vars
     $componentVars = $componentInstance->getVarHolder()->getAll();
 
+    echo sfView::renderDebugData("comp/$moduleName/$componentName", $componentVars);
     // include partial
     return get_partial($moduleName.'/'.$componentName, $componentVars);
   }

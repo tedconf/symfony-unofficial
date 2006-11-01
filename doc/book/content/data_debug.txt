@@ -1,0 +1,402 @@
+Overview
+========
+
+Symfony makes it easy to separate application logic from display logic
+in web applications.  However, testing web apps is still difficult.
+Your tests should see if the web pages are displaying the right data,
+but you don't want your tests to depend on the particular html that
+the designers have chosen, for if they change the design, you will
+need to update your tests appropriately even though the design changes
+are inconsequential to the functionality of the app.  Since we may have
+many templates for a given app page, we want to be able to test the
+functionality at the data layer rather than the presentation layer.
+
+To support this, we have added a switch that will add the data used to
+generate a given web page in an easy-to-parse html comment that
+testing mechanisms can use to detect whether the application is working
+or not.
+
+---
+
+Tutorial
+--------
+
+We'd like to be able to test to make sure that every page contains everything
+it needs.  For now we will presume that we can't and won't test that the pages
+render correctly.  We can, however, make sure that the data on a given page is
+correct, and that the links out of a page lead to the right places.  
+
+Our problem is that we allow different intls, cobrands, etc, to change the site
+templates for every single page if they wish.  What should we look for on the
+page if anybody can change anything?
+
+One option is to have a special set of templates that just renders the data in
+a canonical format and then test to make sure the data has come through okay.
+The problem with this is that while it ensures that the data is good, it
+doesn't ensure that the templates work.  Specifically, the templates may link
+incorrectly or not at all, they may not include all of the form variables
+needed by the next page, etc.
+
+Our plan is in two pieces.
+
+1. Enable a data-debug-dump mode that will dump the data passed to the template in an easily parsible way so we can make sure the actions are working as needed.
+1. Require the templates to put specific id's on the forms and links so the tester can follow them.  The id's are part of the contract between the action and the template, in addition to the form of the data passed between them.  For instance, a link to the homepage may look like `<a id="home" href="/">Home</a>` .  The tester can then 'click' on the 'home' link to make sure it goes where it's supposed to.
+
+Configuration
+-------------
+
+We need to tell Symfony to dump the data for an action when we're in test mode.  This requires two bits.
+
+1. Configure test mode
+1. Set up an entry point so we can invoke pages in test mode
+
+To configure test mode, edit apps/&lt;appname&gt;/config/settings.yml and add the following to the test section like this:
+
+    test:
+      .settings:
+        dump_debug_data:    on
+
+Leave the other test settings alone.  Next we need to create the test
+entrypoint.  If you recall the symfony entrypoints live in the web/ directory.
+`index.php` is the production entrypoint, and `<appname>_dev.php` is the
+development entrypoint.  Both of these were created automatically when you
+created your app.  We need another one, so `cp <appname>_dev.php
+<appname>_test.php` and edit the new file.  We need to set the SF\_ENVIRONMENT
+to 'test' instead of 'dev' here.  The consequence of this is that we'll use the
+test sections of our various configuration files instead of the dev or prod
+sections now.  That will turn on our dump\_debug\_data setting above, which is
+what we need to do our tests.  Our URLs will now need to mention the script
+explicitly, so instead of /&lt;modulename&gt;/foo, we need
+/&lt;appname&gt;_test.php/&lt;modulename&gt;/foo.
+
+That's it.  Now we're ready to build our tests.
+
+Sample tests
+------------
+
+Let's build a small application to show how to test both data and links.  This
+app will consist of two pages: /list will show several items, and /item/## will
+show the content of that item.  
+
+The application
+---------------
+
+First set up the routes to these actions in apps/&lt;appname&gt;/config/routing.yml
+above the default rules:
+
+    list:
+      url: /list
+      param: { module: <modulename>, action: list }
+
+    item:
+      url: /item/:itemid
+      param: { module: <modulename>, action: item }
+
+Next let's make a pseudo data access object.  Put this in
+apps/&lt;appname&gt;/lib/SampleData.class.php:
+
+    <?php
+    
+    // sample data access layer
+    
+    class SampleData
+    {
+      private static $data = array(
+          1 =>  array('joe', 'smith', 'yellow'),
+          2 =>  array('fred', 'jones', 'blue'),
+          3 =>  array('henry', 'brown', 'red'),
+         );
+    
+      // returns list of array(id, firstname) for all data
+      public static function getSampleList()
+      {
+        $retval = array();
+        foreach (self::$data as $id => $datum)
+        {
+          $retval[] = array($id, $datum[0]);
+        }
+        return $retval;
+      }
+    
+      // returns array(first,last,color) for requested id or null if not found
+      public static function getSampleItem($itemid)
+      {
+        if (isset(self::$data[$itemid]))
+        {
+          return self::$data[$itemid];
+        }
+        else
+        {
+          return null;
+        }
+      }
+    
+      // for debugging purposes only
+      public static function getDebugData()
+      {
+        return self::$data;
+      }
+    }
+    
+    ?>
+
+Now we need to build our actions.  Copy this code into your
+apps/&lt;appname&gt;/modules/&lt;modulename&gt;/actions/actions.class.php file:
+
+      /**
+       * people: array/list of array/map(0 => person id,
+       *                                 1 => person first name)
+       */
+      public function executeList()
+      {
+        $this->people = SampleData::getSampleList();
+      }
+    
+      /**
+       * first: first name
+       * last: last name
+       * color: favorite color
+       *
+       * or if error:
+       *
+       * error: error message
+       */
+      public function executeItem()
+      {
+        $itemid = $this->getRequestParameter('itemid');
+        $data = SampleData::getSampleItem($itemid);
+        if ($data == null)
+        {
+          $this->error = "No person found with id $itemid";
+          return sfView::ERROR;
+        }
+        else
+        {
+          $this->first = $data[0];
+          $this->last = $data[1];
+          $this->color = $data[2];
+        }
+      }
+
+And now we need the templates to display the data.  They belong in the
+apps/&lt;appname&gt;/modules/&lt;modulename&gt;/templates/ directory. Here are the files.
+
+In listSuccess.php:
+=
+    <h1>List of People</h1>
+    
+    <ul>
+    <?php 
+      foreach ($people as $person)
+      {
+        $id = $person[0];
+        $first = $person[1];
+    
+        echo '<li>';
+        echo link_to($first,
+                     "@item?itemid=$id",
+                     array('id' => "item$id"));
+        echo '</li>'."\n";
+      }
+    ?>
+    </ul>
+=
+
+In itemSuccess.php:
+=
+    <h1>Person Page</h1>
+    
+    <?php 
+    echo "Name: $first $last <br/>\n";
+    echo "Color: $color";
+    ?>
+    
+    <?php include_partial("peoplefooter") ?>
+=
+
+In itemError.php:
+=
+    <h1>Person Page - Error</h1>
+    
+    <?php echo "Unable to show person: $error"; ?>
+    
+    <?php include_partial("peoplefooter") ?>
+=
+
+And in \_peoplefooter.php
+=
+    <hr/>
+    <?php echo link_to("Return to list", "@list", array('id'=>'returnlink')) ?>
+=
+
+Now clear the cache and hit the site at /&lt;appname&gt;\_test.php/list.  You should
+be able to see the list of people, look at each person, and then return to the
+list.  If you try to see a person that doesn't exist (/item/5), you should see
+an error page.  Note that these URLs are poorly chosen.  /list should probably
+be /people, and /item should probably by /person, but you get the idea.
+
+The tests
+---------
+
+Now we'd like to set up a test to make sure things work.  Like most tests, we
+probably already know that things work okay now.  However, building the tests
+will help us ensure that these pages continue to work as we make changes to the
+site that we think are unrelated but may affect the correctness of these pages.
+In general it's not a bad idea to build the tests _before_ you build the
+original pages.  This will let you know when you've gotten it right and will
+keep you from forgetting to build the tests at all.
+
+Our tests are going to look at the pages to make sure they include reasonable
+data.  They will also 'click' between the pages to make sure they're hooked
+together appropriately.  Here's our test file.  Put it in
+test/&lt;appname&gt;/PeopleTest.php:
+
+    <?php
+    
+    class PeopleTest extends sfWebTestCase
+    {
+      protected $urlbase = null;
+    
+      public function PeopleTest()
+      {
+        parent::sfWebTestCase();
+        $this->urlbase = 'http://localhost/&lt;appname&gt;_test.php';
+      }
+    
+      public function test_people()
+      {
+        $url = $this->urlbase.'/list';
+        $html = $this->browser->get($url);
+        $this->assertWantedPattern('/List of People/', $html);
+    
+        // check data
+        $realdata = SampleData::getDebugData();
+        $livedata = $this->getDebugData('&lt;modulename&gt;/list');
+        if ($this->assertTrue(isset($livedata['people'])))
+        {
+          $people = $livedata['people'];
+    
+          $this->assertEqual(count($people), count($realdata));
+          $index = 0;
+          foreach ($realdata as $id => $person)
+          {
+            $this->assertEqual($people[$index][0], $id);
+            $this->assertEqual($people[$index][1], $person[0]);
+            $this->check_person($id, $person);
+            ++$index;
+          }
+        }
+      }
+    
+      // check a single person page where we know the data
+      // @param id the id of the person to check
+      // @param person array(first, last, color) of person to check
+      // (function name doesn't start with 'test' because we don't want
+      // it invoked automatically by the testing framework.)
+      protected function check_person($id, $person)
+      {
+        $this->assertLinkById("item$id");
+        $this->assertLink($person[0]);
+        $html = $this->browser->clickLinkById("item$id");
+        $this->assertWantedPattern('/Person Page/', $html);
+        if ($liveperson = $this->getDebugData('&lt;modulename&gt;/item'))
+        {
+          $this->assertEqual($person[0], $liveperson['first']);
+          $this->assertEqual($person[1], $liveperson['last']);
+          $this->assertEqual($person[2], $liveperson['color']);
+          $this->assertLinkById('returnlink');
+          $html = $this->browser->clickLinkById('returnlink');
+          $this->assertWantedPattern('#/list$#', $this->browser->getUrl());
+          $this->browser->back(); // to person page
+        }
+        $this->browser->back(); // to list page
+      }
+    
+      // make sure person error page works
+      public function test_person_error()
+      {
+        $url = $this->urlbase.'/item/5';
+        $html = $this->browser->get($url);
+        $this->assertWantedPattern('/Person Page - Error/', $html);
+        $this->assertLinkById('returnlink');
+        $this->browser->clickLinkById('returnlink');
+        $this->assertWantedPattern('#/list$#', $this->browser->getUrl());
+      }
+    
+    }
+    
+    ?>
+
+Now let's quickly run it, and then talk a bit about what it's doing.
+
+    % symfony test &lt;appname&gt;
+    Test suite in (test/&lt;appname&gt;)
+    OK
+    Test cases run: 4/4, Passes: 37, Failures: 0, Exceptions: 0
+
+Your numbers may be different if you have other tests in your directory, but
+generally you should see something like this with a few tests and all Passes.
+
+You should have read the
+[core symfony testing docs](http://www.symfony-project.com/content/book/page/test_unit_testing.html) already to have a basic understanding of how the testing
+system works.  Our example has only a few changes.
+
+First, we extend sfWebTestCase, which gives us a combination of the features of
+<nop>UnitTestCase and <nop>WebTestCase, along with some symfony-specific data
+debugging functionality.  Specifically, it gives you a $this->browser object to
+use to traverse your website, all of the <nop>UnitTestCase assert tests, some
+of the <nop>WebTestCase tests (assertLink*), and a getDebugData() method that
+we'll describe below.  
+
+Our constructor is simple.  Note that we're using our testing entrypoint
+(&lt;appname&gt;\_test.php) to enable our testing configuration.  Our first test,
+test\_people(), will do quite a few things.  First it fetches the /list page and
+asserts the heading text.  Then it fetches the sample data being used to
+generate the site so we can compare that with what's actually being used to
+generate the page.  Next we fetch some data from the page with getDebugData().
+This debug data appears when we turn on the dump\_debug\_data setting in the
+config file way back at the top of this page.  In our case, this setting is
+only active for testing mode.
+
+In this mode, symfony will dump the data associated with each action and
+component directly into the output pages in an HTML comment.  This is the data
+available to the template for rendering, and it gives us a basis for testing
+what's getting through to the frontend.  By testing this raw data rather than
+the standard HTML output of the template, we can use the same tests for any
+locale, which may choose to render the data in completely different ways from
+each other.  The getDebugData takes as an argument the moduleName/actionName of
+the action for which the data has come.  Component data uses the argument
+comp/moduleName/componentName.  Since many components can appear within the
+same page, this allows you to check each component's data separately.  If you
+want all of the data on the page, provide no argument and you'll get an array
+with all of this data keyed by the data names just described.
+
+With this data, you can check to see that it matches what you expect.
+Returning to our example, we assert that our data has a 'people' variable.  We
+check that the number of people matches our backend, that the ids and first
+names match, and then we call a subroutine to further check each person.
+
+In this subroutine we'll check that the links are correct, as well as check
+that the individual person pages are good.  First we assert that there is a
+link on the people page with the given Id and linked by first name.  We
+strongly recommend using tag Ids to identify the links so that it's easy for
+the testing system to follow them.  Checking the anchortext of a link is fine
+but is subject to change by each intl.  Intl's should, however, use the same Id
+for the same links.
+
+Next we'll ask the browser to 'click' the link.  This will load the page
+pointed to by that link and let us check the content of that page.  Now we
+fetch the data from that page, check the various bits including the data and
+return link, and then click 'back' on the browser to return its state to where
+it was when we came into this routine.  Since the browser is shared by all
+tests, this is an important step to getting the tests right.
+
+Finally we have our second test to check the error condition of the person
+page.  We generate an invalid person URL, load the page, and check to see that
+indeed the error result is displayed.
+
+That's it for our example.  Note that we tested the parts of our site in two
+ways
+
+1. Data is checked by using getDebugData to fetch the raw data that was passed to the template and then tested directly rather than worrying about the HTML that was generated because of it.
+1. Links are checked by using the link Ids which should be standard across all versions of a template for any page.

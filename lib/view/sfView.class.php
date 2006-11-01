@@ -4,9 +4,12 @@
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
  * (c) 2004-2006 Sean Kerr.
+ * Copyright (c) 2006 Yahoo! Inc.  All rights reserved.  
+ * The copyrights embodied in the content in this file are licensed 
+ * under the MIT open source license
  * 
  * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
+ * and LICENSE.yahoo file that was distributed with this source code.
  */
 
 /**
@@ -88,6 +91,8 @@ abstract class sfView
     $decorator          = false,
     $decoratorDirectory = null,
     $decoratorTemplate  = null,
+    $decoratorDataDump  = false,
+    $decoratorDataDumpTemplate  = null,
     $directory          = null,
     $slots              = array(),
     $componentSlots     = array(),
@@ -569,6 +574,19 @@ abstract class sfView
     $this->decorator = true;
   }
 
+  public function setDataDumpDecoratorTemplate ($template)
+  {
+    $this->decoratorDataDumpTemplate = $template;
+
+    if (!strpos($this->decoratorDataDumpTemplate, '.')) 
+    {
+      $this->decoratorDataDumpTemplate .= $this->extension;
+    }
+
+    // set decorator status
+    $this->decoratorDataDump = true;
+  }
+
   /**
    * Set the template directory for this view.
    *
@@ -675,4 +693,39 @@ abstract class sfView
       $this->template = $template;
     }
   }
+
+  /**
+   * render action data for site testing purposes.
+   * returns rendered string.
+   * only active if in test environment.
+   */
+  public static function renderDebugData($_label, $_vars)
+  {
+    $retval = '';
+    if (sfConfig::get('sf_dump_debug_data', false))
+    {
+      // use decorator?
+      if (sfConfig::get('sf_dump_data_decorator', true))
+      {
+        $_template = sfConfig::get('sf_app_template_dir').'/'.
+                     sfConfig::get('sf_dump_data_template', 'dumpdata').'.php';
+        // check that template exists??
+        $sf_data = array();
+        $sf_data['sf_data_label'] = $_label;
+        $sf_data['sf_data_values'] =& var_export($_vars, true);
+        // don't escape this data
+
+        ob_start();
+        ob_implicit_flush(0);
+        require($_template);
+        $retval = ob_get_clean();
+      }
+      else # don't use decorator
+      {
+        $retval = var_export($_vars, true);
+      }
+    }
+    return $retval;
+  }
+
 }

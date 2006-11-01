@@ -73,12 +73,14 @@ function run_init_app($task, $args)
 
   // set no_script_name value in settings.yml for production environment
   $finder = pakeFinder::type('file')->name('settings.yml');
-  pake_replace_tokens($finder, $sf_root_dir.'/'.sfConfig::get('sf_apps_dir_name').'/'.$app.'/'.sfConfig::get('sf_app_config_dir_name'), '##', '##', array('NO_SCRIPT_NAME' => ($first_app ? 'on' : 'off')));
+  $sf_app_config_dir = $sf_root_dir.'/'.sfConfig::get('sf_apps_dir_name').'/'.$app.'/'.sfConfig::get('sf_app_config_dir_name');
+  pake_replace_tokens($finder, $sf_app_config_dir, '##', '##', array('NO_SCRIPT_NAME' => ($first_app ? 'on' : 'off')));
 
   pake_copy(sfConfig::get('sf_symfony_data_dir').'/skeleton/app/web/index.php', sfConfig::get('sf_web_dir').'/'.$index_name.'.php');
   pake_copy(sfConfig::get('sf_symfony_data_dir').'/skeleton/app/web/index_dev.php', sfConfig::get('sf_web_dir').'/'.$app.'_dev.php');
+  pake_copy(sfConfig::get('sf_symfony_data_dir').'/skeleton/app/web/index_dev.php', sfConfig::get('sf_web_dir').'/'.$app.'_test.php');
 
-  $finder = pakeFinder::type('file')->name($index_name.'.php', $app.'_dev.php');
+  $finder = pakeFinder::type('file')->name($index_name.'.php', $app.'_*.php');
   pake_replace_tokens($finder, sfConfig::get('sf_web_dir'), '##', '##', array('APP_NAME' => $app));
 
   run_fix_perms($task, $args);

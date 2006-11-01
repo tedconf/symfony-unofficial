@@ -3,9 +3,12 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
+ * Copyright (c) 2006 Yahoo! Inc.  All rights reserved.  
+ * The copyrights embodied in the content in this file are licensed 
+ * under the MIT open source license
  *
  * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
+ * and LICENSE.yahoo file that was distributed with this source code.
  */
 
 /**
@@ -84,6 +87,7 @@ class sfViewConfigHandler extends sfYamlConfigHandler
       $data[] = "  {\n";
 
       $data[] = $this->addLayout($viewName);
+      $data[] = $this->addDataDumpLayout($viewName);
       $data[] = $this->addSlots($viewName);
       $data[] = $this->addComponentSlots($viewName);
       $data[] = $this->addHtmlHead($viewName);
@@ -214,6 +218,21 @@ class sfViewConfigHandler extends sfYamlConfigHandler
       $layout = $this->getconfigValue('layout', $viewName);
       $data .= "    \$this->setDecoratorDirectory(sfConfig::get('sf_app_template_dir'));\n".
                "    \$this->setDecoratorTemplate('$layout.php');\n";
+    }
+
+    return $data;
+  }
+
+  private function addDataDumpLayout($viewName = '')
+  {
+    $data = '';
+
+    $has_layout = $this->getConfigValue('has_datadump_layout', $viewName);
+    if ($has_layout)
+    {
+      $layout = $this->getconfigValue('datadump_layout', $viewName);
+      $data .= "    \$this->setDecoratorDirectory(sfConfig::get('sf_app_template_dir'));\n".
+               "    \$this->setDataDumpDecoratorTemplate('$layout.php');\n";
     }
 
     return $data;

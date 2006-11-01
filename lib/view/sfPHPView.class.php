@@ -322,6 +322,15 @@ class sfPHPView extends sfView
         }
       }
 
+      // add data debug output
+      {
+        $actionStackEntry = $context->getActionStack()->getLastEntry();
+        $actionInstance   = $actionStackEntry->getActionInstance();
+        $moduleName = $actionInstance->getModuleName();
+        $actionName = $actionInstance->getActionName();
+        $retval = self::renderDebugData("$moduleName/$actionName", $templateVars).$retval;
+      }
+
       // now render decorator template, if one exists
       if ($this->isDecorator())
       {
