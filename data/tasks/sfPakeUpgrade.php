@@ -205,7 +205,7 @@ function _upgrade_0_8_cache_yml($app_dir)
     {
       $seen = true;
       pake_echo_comment('"type" has been removed in cache.yml');
-      pake_echo_comment(' read the doc about "with_layout"');
+      pake_echo_comment('  read the doc about "with_layout"');
     }
 
     file_put_contents($yml_file, $content);
@@ -290,20 +290,24 @@ function _upgrade_0_8_deprecated_for_templates($template_dirs)
     'use_helpers'                   => 'use_helper',
     'object_admin_input_upload_tag' => 'object_admin_input_file_tag',
     'input_upload_tag'              => 'input_file_tag',
+    '$sf_last_module'               => '$sf_context->getModuleName()',
+    '$sf_last_action'               => '$sf_context->getActionName()',
+    '$sf_first_module'              => '$sf_context->getActionStack()->getFirstEntry()->getModuleName()',
+    '$sf_first_action'              => '$sf_context->getActionStack()->getFirstEntry()->getActionName()',
   );
   foreach ($php_files as $php_file)
   {
     $content = file_get_contents($php_file);
 
     $count = 0;
-    $content = preg_replace('#<\?php\s+include_javascripts\(\);?\s*\?>#', '', $content, -1, $count);
+    $content = preg_replace('#<\?php\s+(echo)?\s+include_javascripts\(\);?\s*\?>#', '', $content, -1, $count);
     if ($count && !isset($seen['include_javascripts']))
     {
       $seen['include_javascripts'] = true;
       pake_echo_comment('include_javascripts() has been removed');
     }
 
-    $content = preg_replace('#<\?php\s+include_stylesheets\(\);?\s*\?>#', '', $content, -1, $count);
+    $content = preg_replace('#<\?php\s+(echo)?\s+include_stylesheets\(\);?\s*\?>#', '', $content, -1, $count);
     if ($count && !isset($seen['include_stylesheets']))
     {
       $seen['include_stylesheets'] = true;
@@ -316,8 +320,8 @@ function _upgrade_0_8_deprecated_for_templates($template_dirs)
       if ($count && !isset($seen[$old]))
       {
         $seen[$old] = true;
-        pake_echo_comment(sprintf('%s() has been removed', $old));
-        pake_echo_comment(sprintf(' use %s()', $new));
+        pake_echo_comment(sprintf('%s has been removed', $old));
+        pake_echo_comment(sprintf(' use %s', $new));
       }
     }
 
@@ -346,7 +350,8 @@ function _upgrade_0_8_main_config_php()
     $data_dir = sfConfig::get('sf_symfony_data_dir');
     if (is_link('lib/symfony') && is_link('data/symfony'))
     {
-      $content .= <<<EOF
+      $config = <<<EOF
+
 
 \$sf_symfony_lib_dir  = dirname(__FILE__).'/../lib/symfony';
 \$sf_symfony_data_dir = dirname(__FILE__).'/../data/symfony';
@@ -355,13 +360,16 @@ EOF;
     }
     else
     {
-      $content .= <<<EOF
+      $config = <<<EOF
+
 
 \$sf_symfony_lib_dir  = '$lib_dir';
 \$sf_symfony_data_dir = '$data_dir';
 
 EOF;
     }
+
+    $content = preg_replace('/^<\?php/s', '<?php'.$config, $content);
 
     file_put_contents(sfConfig::get('sf_root_dir').'/config/config.php', $content);
   }

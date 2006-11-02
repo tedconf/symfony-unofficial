@@ -409,42 +409,22 @@ class sfWebResponse extends sfResponse
 
   public function getStylesheets($position = '')
   {
-    if ($position)
-    {
-      $position = '/'.$position;
-    }
-
-    return $this->getParameterHolder()->getAll('helper/asset/auto/stylesheet'.$position);
+    return $this->getParameterHolder()->getAll('helper/asset/auto/stylesheet'.($position ? '/'.$position : ''));
   }
 
   public function addStylesheet($css, $position = '', $options = array())
   {
-    if ($position)
-    {
-      $position = '/'.$position;
-    }
-
-    $this->setParameter($css, $options, 'helper/asset/auto/stylesheet'.$position);
+    $this->setParameter($css, $options, 'helper/asset/auto/stylesheet'.($position ? '/'.$position : ''));
   }
 
   public function getJavascripts($position = '')
   {
-    if ($position)
-    {
-      $position = '/'.$position;
-    }
-
-    return $this->getParameterHolder()->getAll('helper/asset/auto/javascript'.$position);
+    return $this->getParameterHolder()->getAll('helper/asset/auto/javascript'.($position ? '/'.$position : ''));
   }
 
   public function addJavascript($js, $position = '')
   {
-    if ($position)
-    {
-      $position = '/'.$position;
-    }
-
-    $this->setParameter($js, $js, 'helper/asset/auto/javascript'.$position);
+    $this->setParameter($js, $js, 'helper/asset/auto/javascript'.($position ? '/'.$position : ''));
   }
 
   public function getCookies()
@@ -470,35 +450,7 @@ class sfWebResponse extends sfResponse
 
   public function mergeProperties($response)
   {
-    $ph  = $this->getParameterHolder();
-    $phn = $response->getParameterHolder();
-
-    // slots
-    $ph->add($phn->getAll('symfony/view/sfView/slot'), 'symfony/view/sfView/slot');
-
-    // view configuration
-    $ph->add($phn->getAll('symfony/action/view'), 'symfony/action/view');
-
-    // add stylesheets
-    foreach (array('first', '', 'last') as $position)
-    {
-      $ph->add($response->getStylesheets($position), 'helper/asset/auto/stylesheet'.$position);
-    }
-
-    // add javascripts
-    foreach (array('first', '', 'last') as $position)
-    {
-      $ph->add($response->getJavascripts($position), 'helper/asset/auto/javascript'.$position);
-    }
-
-    // add headers
-    foreach ($response->getHttpHeaders() as $name => $values)
-    {
-      foreach ($values as $value)
-      {
-        $this->setHttpHeader($name, $value);
-      }
-    }
+    $this->parameter_holder = clone $response->getParameterHolder();
   }
 
   public function __sleep()

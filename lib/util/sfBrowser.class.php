@@ -82,6 +82,7 @@ class sfBrowser
     // prepare the request object
     unset($_SERVER['argv']);
     $_SERVER['HTTP_HOST']       = $this->hostname ? $this->hostname : sfConfig::get('sf_app').'-'.sfConfig::get('sf_environment');
+    $_SERVER['SERVER_NAME']     = $_SERVER['HTTP_HOST'];
     $_SERVER['SERVER_PORT']     = 80;
     $_SERVER['HTTP_USER_AGENT'] = 'PHP5/CLI';
     $_SERVER['REMOTE_ADDR']     = $this->remote ? $this->remote : '127.0.0.1';
@@ -122,9 +123,10 @@ class sfBrowser
     // launch request via controller
     $controller = $this->context->getController();
     $request    = $this->context->getRequest();
+    $response   = $this->context->getResponse();
 
     // we register a fake rendering filter
-    $controller->setRenderingFilterClassName('sfFakeRenderingFilter');
+    sfConfig::set('sf_factory_rendering_filter', array('sfFakeRenderingFilter', null));
 
     // dispatch our request
     ob_start();
@@ -132,7 +134,7 @@ class sfBrowser
     $retval = ob_get_clean();
 
     // append retval to the response content
-    $this->getResponse()->setContent($retval);
+    $response->setContent($retval);
 
     // manually shutdown user to save current session data
     $this->context->getUser()->shutdown();
@@ -140,18 +142,18 @@ class sfBrowser
 
     // save cookies
     $this->cookieJar = array();
-    foreach ($this->getResponse()->getCookies() as $name => $cookie)
+    foreach ($response->getCookies() as $name => $cookie)
     {
       // FIXME: deal with expire, path, secure, ...
       $this->cookieJar[$name] = $cookie;
     }
 
     // for HTML/XML content, create a DOM and sfDomCssSelector objects for the response content
-    if (preg_match('/(x|ht)ml/i', $this->getResponse()->getContentType()))
+    if (preg_match('/(x|ht)ml/i', $response->getContentType()))
     {
       $this->dom = new DomDocument('1.0', sfConfig::get('sf_charset'));
       $this->dom->validateOnParse = true;
-      @$this->dom->loadHTML($this->getResponse()->getContent());
+      @$this->dom->loadHTML($response->getContent());
       $this->domCssSelector = new sfDomCssSelector($this->dom);
     }
 
@@ -231,17 +233,28 @@ class sfBrowser
   // link or button
   public function click($name, $arguments = array())
   {
+    if (!$this->dom)
+    {
+      throw new sfException('Cannot click because there is no current page in the browser');
+    }
+
     $xpath = new DomXpath($this->dom);
     $dom   = $this->dom;
 
-    // link
+    // text link
     if ($link = $xpath->query(sprintf('//a[.="%s"]', $name))->item(0))
     {
       return $this->get($link->getAttribute('href'));
     }
 
+    // image link
+    if ($link = $xpath->query(sprintf('//a/img[@alt="%s"]/ancestor::a', $name))->item(0))
+    {
+      return $this->get($link->getAttribute('href'));
+    }
+
     // form
-    if (!$form = $xpath->query(sprintf('//input[(@type="submit" or @type="button") and @value="%s"]/ancestor::form', $name))->item(0))
+    if (!$form = $xpath->query(sprintf('//input[((@type="submit" or @type="button") and @value="%s") or (@type="image" and @alt="%s")]/ancestor::form', $name, $name))->item(0))
     {
       throw new sfException(sprintf('Cannot find the "%s" link or button.', $name));
     }
@@ -256,7 +269,13 @@ class sfBrowser
     {
       $elementName = $element->getAttribute('name');
       $value = null;
-      if ($element->nodeName == 'input' && (($element->getAttribute('type') != 'submit' && $element->getAttribute('type') != 'button') || $element->getAttribute('value') == $name))
+      if (
+        $element->nodeName == 'input'
+        &&
+        (($element->getAttribute('type') != 'submit' && $element->getAttribute('type') != 'button') || $element->getAttribute('value') == $name)
+        &&
+        ($element->getAttribute('type') != 'image' || $element->getAttribute('alt') == $name)
+      )
       {
         $value = $element->getAttribute('value');
       }
@@ -340,6 +359,7 @@ class sfBrowser
     $this->cookieJar     = array();
     $this->stack         = array();
     $this->fields        = array();
+    $this->dom           = null;
     $this->stackPosition = -1;
 
     return $this;
@@ -361,7 +381,7 @@ class sfBrowser
     $uri = str_replace('/index.php', '', $uri);
 
     // # as a uri
-    if ('#' == $uri[0])
+    if ($uri && '#' == $uri[0])
     {
       $uri = $this->stack[$this->stackPosition]['uri'].$uri;
     }

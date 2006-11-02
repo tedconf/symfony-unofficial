@@ -196,3 +196,67 @@ $b->
   // contextual component cache
   isUriCached('@_sf_cache_partial?module=cache&action=_contextualCacheableComponent&sf_cache_key='.md5(serialize(array())), true)
 ;
+
+// remove all cache
+sfToolkit::clearDirectory(sfConfig::get('sf_cache_dir'));
+
+// check user supplied cache key for partials and components
+$b->
+  get('/cache/specificCacheKey')->
+  isStatusCode(200)->
+  isRequestParameter('module', 'cache')->
+  isRequestParameter('action', 'specificCacheKey')->
+  isCached(false)->
+
+  // partial cache
+  isUriCached('@_sf_cache_partial?module=cache&action=_cacheablePartial&sf_cache_key=cacheablePartial', true)->
+
+  // contextual partial cache
+  isUriCached('@_sf_cache_partial?module=cache&action=_contextualCacheableComponent&sf_cache_key=contextualCacheableComponent', true)->
+
+  // component cache
+  isUriCached('@_sf_cache_partial?module=cache&action=_cacheableComponent&sf_cache_key=cacheableComponent', true)->
+
+  // contextual component cache
+  isUriCached('@_sf_cache_partial?module=cache&action=_contextualCacheableComponent&sf_cache_key=contextualCacheableComponent', true)
+;
+
+// check cache content for actions
+
+// remove all cache
+sfToolkit::clearDirectory(sfConfig::get('sf_cache_dir'));
+
+$b->
+  get('/cache/action')->
+  isStatusCode(200)->
+  isRequestParameter('module', 'cache')->
+  isRequestParameter('action', 'action')->
+  isCached(true)
+;
+
+$b->test()->is(sfConfig::get('ACTION_EXECUTED', false), true, 'action is executed when not in cache');
+sfConfig::set('ACTION_EXECUTED', false);
+
+$response = $b->getResponse();
+$content1 = $response->getContent();
+$contentType1 = $response->getContentType();
+$headers1 = $response->getHttpHeaders();
+
+$b->
+  get('/cache/action')->
+  isStatusCode(200)->
+  isRequestParameter('module', 'cache')->
+  isRequestParameter('action', 'action')->
+  isCached(true)
+;
+
+$b->test()->is(sfConfig::get('ACTION_EXECUTED', false), false, 'action is not executed when in cache');
+
+$response = $b->getResponse();
+$content2 = $response->getContent();
+$contentType2 = $response->getContentType();
+$headers2 = $response->getHttpHeaders();
+
+$b->test()->is($content1, $content2, 'response content is the same');
+$b->test()->is($contentType1, $contentType2, 'response content type is the same');
+$b->test()->is($headers1, $headers2, 'response http headers are the same');
