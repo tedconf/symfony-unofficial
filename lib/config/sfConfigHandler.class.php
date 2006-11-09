@@ -4,9 +4,12 @@
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
  * (c) 2004-2006 Sean Kerr.
+ * Copyright (c) 2006 Yahoo! Inc.  All rights reserved.  
+ * The copyrights embodied in the content in this file are licensed 
+ * under the MIT open source license
  *
  * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
+ * and LICENSE.yahoo files that was distributed with this source code.
  */
 
 /**
@@ -18,6 +21,7 @@
  * @subpackage config
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  * @author     Sean Kerr <skerr@mojavi.org>
+ * @author     Mike Salisbury <salisbur@yahoo-inc.com>
  * @version    SVN: $Id$
  */
 abstract class sfConfigHandler
@@ -40,6 +44,50 @@ abstract class sfConfigHandler
   }
 
   /**
+   * returns the config files for the given config path.
+   * Cache will check the 'files' key for a list of all
+   * config files used by this handler.  The rest of $config
+   * is free to be anything.
+   * configCache will call us back with executeNew($config) if
+   * the cache isn't up to date.
+   */
+  public function getConfig($configPath)
+  {
+    $config = array();
+    $config['files'] = self::getConfigFiles($configPath);
+    return $config;
+  }
+
+  public static function getConfigFiles($configPath)
+  {
+    $globalConfigPath = basename(dirname($configPath)).'/'.basename($configPath);
+    $files = array(
+      sfConfig::get('sf_symfony_data_dir').'/'.$globalConfigPath, // default symfony configuration
+      sfConfig::get('sf_app_dir').'/'.$globalConfigPath,          // default project configuration
+      sfConfig::get('sf_plugin_data_dir').'/'.$configPath,        // used for plugin modules
+      sfConfig::get('sf_symfony_data_dir').'/'.$configPath,       // core modules or global plugins
+      sfConfig::get('sf_root_dir').'/'.$globalConfigPath,         // used for main configuration
+      sfConfig::get('sf_cache_dir').'/'.$configPath,              // used for generated modules
+      sfConfig::get('sf_app_dir').'/'.$configPath,
+    );
+
+    return array_filter($files, 'is_readable');
+  }
+
+  /**
+   * Executes this configuration handler.  By default, calls
+   * the original execute() method.  Each ConfigHandler should
+   * override either executeConfig or execute.
+   * This could be phased in as the regular execute method
+   * if we rewrite the various ConfigHandlers to understand
+   * this arg.
+   */
+  public function executeConfig($config)
+  {
+    return $this->execute($config['files']);
+  }
+
+  /**
    * Execute this configuration handler.
    *
    * @param array An array of filesystem path to a configuration file.
@@ -51,7 +99,10 @@ abstract class sfConfigHandler
    * @throws <b>sfParseException</b> If a requested configuration file is
    *                               improperly formatted.
    */
-  abstract public function execute($configFiles);
+  public function execute($configFiles)
+  {
+    return '';
+  }
 
   /**
    * Initialize this ConfigHandler.

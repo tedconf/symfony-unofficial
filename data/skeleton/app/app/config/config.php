@@ -79,6 +79,7 @@ if (is_readable($bootstrap))
 {
   sfConfig::set('sf_in_bootstrap', true);
   require_once($bootstrap);
+  sfConfig::set('sf_in_bootstrap', false);
 }
 else
 {

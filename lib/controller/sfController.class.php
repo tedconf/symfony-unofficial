@@ -4,9 +4,12 @@
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
  * (c) 2004-2006 Sean Kerr.
+ * Copyright (c) 2006 Yahoo! Inc.  All rights reserved.  
+ * The copyrights embodied in the content in this file are licensed 
+ * under the MIT open source license
  *
  * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
+ * and LICENSE.yahoo files that was distributed with this source code.
  */
 
 /**
@@ -16,13 +19,14 @@
  * @subpackage controller
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  * @author     Sean Kerr <skerr@mojavi.org>
+ * @author     Mike Salisbury <salisbur@yahoo-inc.com>
  * @version    SVN: $Id$
  */
+
 abstract class sfController
 {
   private
     $context                  = null,
-    $controllerClasses        = array(),
     $maxForwards              = 5,
     $renderMode               = sfView::RENDER_CLIENT,
     $executionFilterClassName = null,
@@ -67,60 +71,46 @@ abstract class sfController
 
   private function controllerExists ($moduleName, $controllerName, $extension)
   {
-    // all directories to look for modules
-    $dirs = array(
-      // application
-      sfConfig::get('sf_app_module_dir').'/'.$moduleName.'/'.sfConfig::get('sf_app_module_action_dir_name') => false,
+    return (null != $this->context->getFileLocator()->loadActionClass($moduleName, $controllerName, $extension));
+  }
 
-      // local plugin
-      sfConfig::get('sf_plugin_data_dir').'/modules/'.$moduleName.'/actions' => true,
+  /**
+   * Retrieve an Action implementation instance.
+   *
+   * @param  string A module name.
+   * @param  string An action name.
+   *
+   * @return Action An Action implementation instance, if the action exists, otherwise null.
+   */
+  public function getAction ($moduleName, $actionName)
+  {
+    return $this->getController($moduleName, $actionName, 'action');
+  }
 
-      // core modules or global plugins
-      sfConfig::get('sf_symfony_data_dir').'/modules/'.$moduleName.'/actions' => true,
-    );
+  /**
+   * Retrieve a Component implementation instance.
+   *
+   * @param  string A module name.
+   * @param  string A component name.
+   *
+   * @return Component A Component implementation instance, if the component exists, otherwise null.
+   */
+  public function getComponent ($moduleName, $componentName)
+  {
+    return $this->getController($moduleName, $componentName, 'component');
+  }
 
-    foreach ($dirs as $dir => $checkActivated)
+  private function getController ($moduleName, $controllerName, $extension)
+  {
+    $class = $this->context->getFileLocator()->loadActionClass($moduleName, $controllerName, $extension);
+    if ($class != null) 
     {
-      // plugin module activated?
-      if ($checkActivated && !in_array($moduleName, sfConfig::get('sf_activated_modules')) && is_readable($dir))
-      {
-        $error = 'The module "%s" is not activated.';
-        $error = sprintf($error, $moduleName);
-
-        throw new sfConfigurationException($error);
-      }
-
-      // one action per file or one file for all actions
-      $classFile   = strtolower($extension);
-      $classSuffix = ucfirst(strtolower($extension));
-      $file        = $dir.'/'.$controllerName.$classSuffix.'.class.php';
-      $module_file = $dir.'/'.$classFile.'s.class.php';
-      if (is_readable($file))
-      {
-        // action class exists
-        require_once($file);
-
-        $this->controllerClasses[$moduleName.'_'.$controllerName.'_'.$classSuffix] = $controllerName.$classSuffix;
-
-        return true;
-      }
-      else if (is_readable($module_file))
-      {
-        // module class exists
-        require_once($module_file);
-
-        // action is defined in this class?
-        $defined = in_array('execute'.ucfirst($controllerName), get_class_methods($moduleName.$classSuffix.'s'));
-        if ($defined)
-        {
-          $this->controllerClasses[$moduleName.'_'.$controllerName.'_'.$classSuffix] = $moduleName.$classSuffix.'s';
-        }
-
-        return $defined;
-      }
+      return new $class();
+    } 
+    else 
+    {
+      return null;
     }
-
-    return false;
   }
 
   /**
@@ -169,7 +159,10 @@ abstract class sfController
     }
 
     // check for a module generator config file
-    sfConfigCache::getInstance()->import(sfConfig::get('sf_app_module_dir_name').'/'.$moduleName.'/'.sfConfig::get('sf_app_module_config_dir_name').'/generator.yml', true, true);
+    if (!empty($moduleName))
+    {
+      sfConfigCache::getInstance()->import(sfConfig::get('sf_app_module_dir_name').'/'.$moduleName.'/'.sfConfig::get('sf_app_module_config_dir_name').'/generator.yml', true, true);
+    }
 
     if (!$this->actionExists($moduleName, $actionName))
     {
@@ -337,53 +330,6 @@ abstract class sfController
   }
 
   /**
-   * Retrieve an Action implementation instance.
-   *
-   * @param  string A module name.
-   * @param  string An action name.
-   *
-   * @return Action An Action implementation instance, if the action exists, otherwise null.
-   */
-  public function getAction ($moduleName, $actionName)
-  {
-    return $this->getController($moduleName, $actionName, 'action');
-  }
-
-  /**
-   * Retrieve a Component implementation instance.
-   *
-   * @param  string A module name.
-   * @param  string A component name.
-   *
-   * @return Component A Component implementation instance, if the component exists, otherwise null.
-   */
-  public function getComponent ($moduleName, $componentName)
-  {
-    return $this->getController($moduleName, $componentName, 'component');
-  }
-
-  private function getController ($moduleName, $controllerName, $extension)
-  {
-    $classSuffix = ucfirst(strtolower($extension));
-    if (!isset($this->controllerClasses[$moduleName.'_'.$controllerName.'_'.$classSuffix]))
-    {
-      $this->controllerExists($moduleName, $controllerName, $extension);
-    }
-
-    $class = $this->controllerClasses[$moduleName.'_'.$controllerName.'_'.$classSuffix];
-
-    // fix for same name classes
-    $moduleClass = $moduleName.'_'.$class;
-
-    if (class_exists($moduleClass, false))
-    {
-      $class = $moduleClass;
-    }
-
-    return new $class();
-  }
-
-  /**
    * Retrieve the action stack.
    *
    * @return sfActionStack An sfActionStack instance, if the action stack is enabled, otherwise null.
@@ -449,31 +395,7 @@ abstract class sfController
    */
   public function getView ($moduleName, $actionName, $viewName)
   {
-    // user view exists?
-    $file = sfConfig::get('sf_app_module_dir').'/'.$moduleName.'/'.sfConfig::get('sf_app_module_view_dir_name').'/'.$viewName.'View.class.php';
-
-    if (is_readable($file))
-    {
-      require_once($file);
-
-      $class = $viewName.'View';
-
-      // fix for same name classes
-      $moduleClass = $moduleName.'_'.$class;
-
-      if (class_exists($moduleClass, false))
-      {
-        $class = $moduleClass;
-      }
-    }
-    else
-    {
-      // view class (as configured in module.yml or defined in action)
-      $viewName = $this->getContext()->getRequest()->getAttribute($moduleName.'_'.$actionName.'_view_name', '', 'symfony/action/view') ? $this->getContext()->getRequest()->getAttribute($moduleName.'_'.$actionName.'_view_name', '', 'symfony/action/view') : sfConfig::get('mod_'.strtolower($moduleName).'_view_class');
-      $file     = sfConfig::get('sf_symfony_lib_dir').'/view/'.$viewName.'View.class.php';
-      $class    = is_readable($file) ? $viewName.'View' : 'sfPHPView';
-    }
-
+    $class = $this->context->getFileLocator()->loadViewClass($moduleName, $actionName, $viewName);
     return new $class();
   }
 

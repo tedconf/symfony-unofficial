@@ -3,9 +3,12 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
+ * Copyright (c) 2006 Yahoo! Inc.  All rights reserved.  
+ * The copyrights embodied in the content in this file are licensed 
+ * under the MIT open source license
  * 
  * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
+ * and LICENSE.yahoo files that was distributed with this source code.
  */
 
 /**
@@ -14,6 +17,7 @@
  * @package    symfony
  * @subpackage config
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
+ * @author     Mike Salisbury <salisbur@yahoo-inc.com>
  * @version    SVN: $Id$
  */
 class sfConfig
@@ -62,6 +66,15 @@ class sfConfig
   public static function add ($parameters = array())
   {
     self::$config = array_merge(self::$config, $parameters);
+  }
+  /**
+   * merges new config parameters with existing ones.  
+   * if the existing one is a nested array, old values that
+   * are not present in the new array will remain.
+   */
+  public static function merge($parameters = array())
+  {
+    self::$config = sfToolkit::arrayDeepMerge(self::$config, $parameters);
   }
 
   /**

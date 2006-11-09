@@ -3,9 +3,12 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
+ * Copyright (c) 2006 Yahoo! Inc.  All rights reserved.  
+ * The copyrights embodied in the content in this file are licensed 
+ * under the MIT open source license
  *
  * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
+ * and LICENSE.yahoo files that was distributed with this source code.
  */
 
 /**
@@ -13,6 +16,7 @@
  * @package    symfony
  * @subpackage config
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
+ * @author     Mike Salisbury <salisbur@yahoo-inc.com>
  * @version    SVN: $Id$
  */
 class sfDefineEnvironmentConfigHandler extends sfYamlConfigHandler
@@ -47,12 +51,7 @@ class sfDefineEnvironmentConfigHandler extends sfYamlConfigHandler
       isset($myConfig[sfConfig::get('sf_environment')]) && is_array($myConfig[sfConfig::get('sf_environment')]) ? $myConfig[sfConfig::get('sf_environment')] : array()
     );
 
-    $values = array();
-    foreach ($myConfig as $category => $keys)
-    {
-      $values = array_merge($values, $this->getValues($prefix, $category, $keys));
-    }
-
+    $values = $this->getValues($prefix, $myConfig);
     $data = '';
     foreach ($values as $key => $value)
     {
@@ -72,6 +71,51 @@ class sfDefineEnvironmentConfigHandler extends sfYamlConfigHandler
     return $retval;
   }
 
+  // flatten config values with _ between key levels
+  protected static function getValues($prefix, $config, 
+                                      $maxdepth=2, $curdepth=0)
+  {
+    if ($curdepth < $maxdepth && is_array($config))
+    {
+      $values = array();
+      foreach ($config as $key => $value)
+      {
+        $newprefix = $prefix;
+        if ($key[0] != '.')
+        {
+          $newprefix = $newprefix.$key.'_';
+        }
+        $values = array_merge($values, 
+                              self::getValues($newprefix, $value, 
+                                              $maxdepth, $curdepth+1));
+      }
+      return $values;
+    }
+    else
+    {
+      return array(substr($prefix,0,-1) => self::replaceAllConstants($config));
+    }
+  }
+
+  // replace constants in string values, preserving array structure
+  protected static function replaceAllConstants($value)
+  {
+    if (is_array($value))
+    {
+      return array_map(array('sfDefineEnvironmentConfigHandler',
+                               'replaceAllConstants'), $value);
+    }
+    else if (is_string($value))
+    {
+      return self::replaceConstants($value);
+    }
+    else
+    {
+      return $value;
+    }
+  }
+
+/*
   protected function getValues($prefix, $category, $keys)
   {
     if (!is_array($keys))
@@ -120,4 +164,5 @@ class sfDefineEnvironmentConfigHandler extends sfYamlConfigHandler
 
     return $category;
   }
+*/
 }

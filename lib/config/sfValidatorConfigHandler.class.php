@@ -32,6 +32,12 @@ class sfValidatorConfigHandler extends sfYamlConfigHandler
    */
   public function execute($configFiles)
   {
+    if (empty($configFiles))
+    {
+      // no configuration if no files
+      return "<?php\n// no config for this group\n?>";
+    }
+
     // set our required categories list and initialize our handler
     $categories = array('required_categories' => array('methods', 'names'));
 
@@ -79,6 +85,9 @@ class sfValidatorConfigHandler extends sfYamlConfigHandler
 
     // load attribute list
     $this->loadAttributes($configFiles, $methods, $names, $validators, $config, $list);
+
+    // mark this group as having a validator (used by sfExecutionFilter)
+    $data[] = "\$definedValidator = true;";
 
     // fill-in filter configuration
     $fillin = var_export(isset($config['fillin']) ? $config['fillin'] : array(), true);

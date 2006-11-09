@@ -4,9 +4,12 @@
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
  * (c) 2004-2006 Sean Kerr.
+ * Copyright (c) 2006 Yahoo! Inc.  All rights reserved.  
+ * The copyrights embodied in the content in this file are licensed 
+ * under the MIT open source license
  *
  * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
+ * and LICENSE.yahoo files that was distributed with this source code.
  */
 
 /**
@@ -15,6 +18,7 @@
  * @subpackage view
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  * @author     Sean Kerr <skerr@mojavi.org>
+ * @author     Mike Salisbury <salisbur@yahoo-inc.com>
  * @version    SVN: $Id$
  */
 class sfPHPView extends sfView
@@ -157,21 +161,6 @@ class sfPHPView extends sfView
       $actionStackEntry->setViewInstance($this);
     }
 
-    // all directories to look for templates
-    $dirs = array(
-      // application
-      $this->getDirectory(),
-
-      // local plugin
-      sfConfig::get('sf_plugin_data_dir').'/modules/'.$this->moduleName.'/templates',
-
-      // core modules or global plugins
-      sfConfig::get('sf_symfony_data_dir').'/modules/'.$this->moduleName.'/templates',
-
-      // generated templates in cache
-      sfConfig::get('sf_module_cache_dir').'/auto'.ucfirst($this->moduleName).'/templates',
-    );
-
     // require our configuration
     $viewConfigFile = $this->moduleName.'/'.sfConfig::get('sf_app_module_config_dir_name').'/view.yml';
     require(sfConfigCache::getInstance()->checkConfig(sfConfig::get('sf_app_module_dir_name').'/'.$viewConfigFile));
@@ -179,20 +168,23 @@ class sfPHPView extends sfView
     if (preg_match('/^(.+?)'.sfView::GLOBAL_PARTIAL.'$/i', $this->viewName, $match))
     {
       // global partial
+      $viewType = 1;
       $templateFile = '_'.$match[1].$this->extension;
-      $dirs = array(sfConfig::get('sf_app_template_dir'));
     }
     else if (preg_match('/^(.+?)'.sfView::PARTIAL.'$/i', $this->viewName, $match))
     {
       // partial
+      $viewType = 2;
       $templateFile = '_'.$match[1].$this->extension;
     }
     else if (preg_match('/^'.$action->getActionName().'(.+)$/i', $this->viewName, $match))
     {
+      $viewType = 3;
       $templateFile = $templateName.$match[1].$this->extension;
     }
     else
     {
+      $viewType = 4;
       $templateFile = $this->viewName.$this->extension;
     }
 
@@ -200,15 +192,11 @@ class sfPHPView extends sfView
     $this->setTemplate($templateFile);
 
     // set template directory
-    foreach ($dirs as $dir)
-    {
-      if (is_readable($dir.'/'.$templateFile))
-      {
-        $this->setDirectory($dir);
-
-        break;
-      }
-    }
+    $templateDir = 
+      $context->getFileLocator()->
+        getViewTemplateDir($viewType, $this->moduleName, $templateFile,
+                        $this->getDirectory());
+    if (!empty($templateDir)) { $this->setDirectory($templateDir); }
 
     if (sfConfig::get('sf_logging_active'))
     {
@@ -226,11 +214,14 @@ class sfPHPView extends sfView
    */
   protected function &decorate(&$content)
   {
-    $template = $this->getDecoratorDirectory().'/'.$this->getDecoratorTemplate();
+    $context = $this->getContext();
+    $template = $context->getFileLocator()->
+                             findDecorator($this->getDecoratorDirectory(),
+                                           $this->getDecoratorTemplate());
 
     if (sfConfig::get('sf_logging_active'))
     {
-      $this->getContext()->getLogger()->info('{sfPHPView} decorate content with "'.$template.'"');
+      $context->getLogger()->info('{sfPHPView} decorate content with "'.$template.'"');
     }
 
     // call our parent decorate() method

@@ -27,3 +27,6 @@ default:
 
   view_cache:
     class: sfFileCache
+
+  file_locator:
+    class: sfBasicFileLocator

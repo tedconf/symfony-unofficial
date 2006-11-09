@@ -48,7 +48,7 @@ class sfFactoryConfigHandler extends sfYamlConfigHandler
     $instances = array();
 
     // available list of factories
-    $factories = array('controller', 'request', 'response', 'storage', 'user', 'security_filter', 'execution_filter', 'rendering_filter', 'view_cache');
+    $factories = array('controller', 'request', 'response', 'storage', 'user', 'security_filter', 'execution_filter', 'rendering_filter', 'view_cache', 'file_locator');
 
     // let's do our fancy work
     foreach ($factories as $factory)
@@ -151,6 +151,11 @@ class sfFactoryConfigHandler extends sfYamlConfigHandler
           $inits[] = sprintf("\n  if (sfConfig::get('sf_cache'))\n  {\n".
                              "    \$this->viewCacheManager->setViewCacheClassName(sfConfig::get('sf_factory_view_cache_manager', '%s'));\n  }",
                              $class);
+          break;
+
+        case 'file_locator':
+          $instances[] = sprintf("  \$this->fileLocator = sfFileLocator::newInstance(sfConfig::get('sf_file_locator', '%s'));", $class);
+          $inits[] = "  \$this->fileLocator->initialize();";
           break;
       }
     }

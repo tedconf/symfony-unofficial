@@ -4,9 +4,12 @@
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
  * (c) 2004-2006 Sean Kerr.
+ * Copyright (c) 2006 Yahoo! Inc.  All rights reserved.  
+ * The copyrights embodied in the content in this file are licensed 
+ * under the MIT open source license
  *
  * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
+ * and LICENSE.yahoo files that was distributed with this source code.
  */
 
 /**
@@ -17,6 +20,7 @@
  * @subpackage filter
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  * @author     Sean Kerr <skerr@mojavi.org>
+ * @author     Mike Salisbury <salisbur@yahoo-inc.com>
  * @version    SVN: $Id$
  */
 class sfExecutionFilter extends sfFilter
@@ -79,18 +83,28 @@ class sfExecutionFilter extends sfFilter
 
         // get the current action validation configuration
         $validationConfig = $moduleName.'/'.sfConfig::get('sf_app_module_validate_dir_name').'/'.$actionName.'.yml';
-        if (is_readable(sfConfig::get('sf_app_module_dir').'/'.$validationConfig))
+
+        // our cache will have entries for all sites.  we'll always
+        // load this, but this is only active if $definedValidator has
+        // been set
+        $definedValidator = false;
+
+        // load validation configuration
+        // do NOT use require_once
+        $validationCache = sfConfigCache::getInstance()->checkConfig(sfConfig::get('sf_app_module_dir_name').'/'.$validationConfig, true);
+        if (!empty($validationCache))
         {
-          // load validation configuration
-          // do NOT use require_once
-          require(sfConfigCache::getInstance()->checkConfig(sfConfig::get('sf_app_module_dir_name').'/'.$validationConfig));
+          require $validationCache;
         }
 
-        // manually load validators
-        $actionInstance->registerValidators($validatorManager);
+        if ($definedValidator)
+        {
+          // manually load validators
+          $actionInstance->registerValidators($validatorManager);
 
-        // process validators
-        $validated = $validatorManager->execute();
+          // process validators
+          $validated = $validatorManager->execute();
+        }
 
         // process manual validation
         $validateToRun = 'validate'.ucfirst($actionName);

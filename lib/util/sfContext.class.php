@@ -4,9 +4,12 @@
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
  * (c) 2004-2006 Sean Kerr.
+ * Copyright (c) 2006 Yahoo! Inc.  All rights reserved.  
+ * The copyrights embodied in the content in this file are licensed 
+ * under the MIT open source license
  *
  * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
+ * and LICENSE.yahoo files that was distributed with this source code.
  */
 
 /**
@@ -19,6 +22,7 @@
  * @subpackage util
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  * @author     Sean Kerr <skerr@mojavi.org>
+ * @author     Mike Salisbury <salisbur@yahoo-inc.com>
  * @version    SVN: $Id$
  */
 class sfContext
@@ -27,6 +31,7 @@ class sfContext
     $actionStack       = null,
     $controller        = null,
     $databaseManager   = null,
+    $fileLocator       = null,
     $request           = null,
     $response          = null,
     $storage           = null,
@@ -185,6 +190,16 @@ class sfContext
   public function getDatabaseManager ()
   {
     return $this->databaseManager;
+  }
+
+  /**
+   * Retrieve the file locator
+   *
+   * @return sfFileLoactor The current sfFileLoactor instance.
+   */
+  public function getFileLocator ()
+  {
+    return $this->fileLocator;
   }
 
   /**
