@@ -231,7 +231,7 @@ $column = sfPropelManyToMany::getColumn($class, $through_class);
 <?php if ($this->getParameterValue('edit.fields.'.$column->getName().'.filename')): ?>
       $fileName = "<?php echo str_replace('"', '\\"', $this->replaceConstants($this->getParameterValue('edit.fields.'.$column->getName().'.filename'))) ?>";
 <?php else: ?>
-      $fileName = md5($this->getRequest()->getFileName('<?php echo $this->getSingularName() ?>[<?php echo $name ?>]').time());
+      $fileName = md5($this->getRequest()->getFileName('<?php echo $this->getSingularName() ?>[<?php echo $name ?>]').time().rand(0, 99999));
 <?php endif ?>
       $ext = $this->getRequest()->getFileExtension('<?php echo $this->getSingularName() ?>[<?php echo $name ?>]');
       if (is_file($currentFile))
@@ -335,6 +335,7 @@ $column = sfPropelManyToMany::getColumn($class, $through_class);
   {
 <?php if ($this->getParameterValue('list.filters')): ?>
 <?php foreach ($this->getColumns('list.filters') as $column): $type = $column->getCreoleType() ?>
+<?php if (($column->isPartial() || $column->isComponent()) && $this->getParameterValue('list.fields.'.$column->getName().'.filter_criteria_disabled')) continue ?>
     if (isset($this->filters['<?php echo $column->getName() ?>_is_empty']))
     {
       $criterion = $c->getNewCriterion(<?php echo $this->getPeerClassName() ?>::<?php echo strtoupper($column->getName()) ?>, '');

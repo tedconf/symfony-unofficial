@@ -292,27 +292,30 @@ EOF;
 
       foreach ($fields[$category] as $field)
       {
-        list($field, $flag) = $this->splitFlag($field);
-        
-        $phpNames[] = $this->getAdminColumnForField($field, $flag);
+        list($field, $flags) = $this->splitFlag($field);
+
+        $phpNames[] = $this->getAdminColumnForField($field, $flags);
       }
     }
-    else     // no, just return the full list of columns in table
+    else
+    {
+      // no, just return the full list of columns in table
       return $this->getAllColumns();
+    }
 
     return $phpNames;
   }
-  
+
   public function splitFlag($text)
   {
-    $flag = '';
-    if (in_array($text[0], array('=', '-', '+', '_', '~')))
+    $flags = array();
+    while (in_array($text[0], array('=', '-', '+', '_', '~')))
     {
-      $flag = $text[0];
+      $flags[] = $text[0];
       $text = substr($text, 1);
     }
 
-    return array($text, $flag);
+    return array($text, $flags);
   }
 
   // $name example: list.display
@@ -512,16 +515,18 @@ EOF;
     else if ($type == CreoleTypes::BOOLEAN)
     {
       $defaultIncludeCustom = '__("yes or no")';
-      $params = $this->getObjectTagParams($params, array('include_custom' => $defaultIncludeCustom));
+
+      $option_params = $this->getObjectTagParams($params, array('include_custom' => $defaultIncludeCustom));
+      $params = $this->getObjectTagParams($params);
 
       // little hack
-      $params = preg_replace("/'".preg_quote($defaultIncludeCustom)."'/", $defaultIncludeCustom, $params);
+      $option_params = preg_replace("/'".preg_quote($defaultIncludeCustom)."'/", $defaultIncludeCustom, $option_params);
 
-      $options = "options_for_select(array(1 => __('yes'), 0 => __('no')), $default_value, $params)";
+      $options = "options_for_select(array(1 => __('yes'), 0 => __('no')), $default_value, $option_params)";
 
       return "select_tag($name, $options, $params)";
     }
-    else if ($type == CreoleTypes::CHAR || $type == CreoleTypes::VARCHAR)
+    else if ($type == CreoleTypes::CHAR || $type == CreoleTypes::VARCHAR || $type == CreoleTypes::TEXT || $type == CreoleTypes::LONGVARCHAR)
     {
       $size = ($column->getSize() < 15 ? $column->getSize() : 15);
       $params = $this->getObjectTagParams($params, array('size' => $size));
@@ -536,11 +541,6 @@ EOF;
     {
       $params = $this->getObjectTagParams($params, array('size' => 7));
       return "input_tag($name, $default_value, $params)";
-    }
-    else if ($type == CreoleTypes::TEXT || $type == CreoleTypes::LONGVARCHAR)
-    {
-      $params = $this->getObjectTagParams($params, array('size' => '15x2'));
-      return "textarea_tag($name, $default_value, $params)";
     }
     else
     {
@@ -570,12 +570,14 @@ EOF;
     {
       $phpNames[] = new sfAdminColumn($column->getPhpName(), $column);
     }
+
     return $phpNames;
   }
 
   public function getAdminColumnForField($field, $flag = null)
   {
     $phpName = sfInflector::camelize($field);
+
     return new sfAdminColumn($phpName, $this->getColumnForPhpName($phpName), $flag);
   }
 
@@ -589,8 +591,8 @@ EOF;
       if ($column->getPhpName() == $phpName)
       {
         $found = true;
+
         return $column;
-        break;
       }
     }
 
@@ -613,13 +615,13 @@ class sfAdminColumn
   protected
     $phpName    = '',
     $column     = null,
-    $flag       = '';
+    $flags      = array();
 
-  public function __construct($phpName, $column = null, $flag = '')
+  public function __construct($phpName, $column = null, $flags = array())
   {
     $this->phpName = $phpName;
     $this->column  = $column;
-    $this->flag    = $flag;
+    $this->flags   = (array) $flags;
   }
 
   public function __call ($name, $arguments)
@@ -644,16 +646,16 @@ class sfAdminColumn
 
   public function isPartial ()
   {
-    return (($this->flag == '_') ? true : false);
+    return in_array('_', $this->flags) ? true : false;
   }
 
   public function isComponent ()
   {
-    return (($this->flag == '~') ? true : false);
+    return in_array('~', $this->flags) ? true : false;
   }
 
   public function isLink ()
   {
-    return (($this->flag == '=' || $this->isPrimaryKey()) ? true : false);
+    return (in_array('=', $this->flags) || $this->isPrimaryKey()) ? true : false;
   }
 }
