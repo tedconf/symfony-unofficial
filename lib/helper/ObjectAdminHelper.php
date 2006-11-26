@@ -38,7 +38,7 @@ function object_admin_input_file_tag($object, $method, $options = array())
 
     if ($include_remove = _get_option($options, 'include_remove'))
     {
-      $html .= checkbox_tag(strpos($name, ']') !== false ? substr($name, 0, -1).'_remove]' : $name).' '.($options['include_remove'] != true ? __($include_remove) : __('remove file'))."\n";
+      $html .= checkbox_tag(strpos($name, ']') !== false ? substr($name, 0, -1).'_remove]' : $name).' '.($include_remove != true ? __($include_remove) : __('remove file'))."\n";
     }
   }
 
@@ -59,12 +59,9 @@ function object_admin_double_list($object, $method, $options = array())
   $label_assoc = isset($options['associated_label'])   ? $options['associated_label']   : 'Associated';
 
   // get the lists of objects
-  $through_class = _get_option($options, 'through_class');
-  $sort          = _get_option($options, 'sort');
-  $objects_associated = sfPropelManyToMany::getRelatedObjects($object, $through_class);
-  $all_objects = sfPropelManyToMany::getAllObjects($object, $through_class);
+  list($all_objects, $objects_associated, $associated_ids) = _get_object_list($object, $options);
+  
   $objects_unassociated = array();
-  $associated_ids = array_map(create_function('$o', 'return $o->getPrimaryKey();'), $objects_associated);
   foreach ($all_objects as $object)
   {
     if (!in_array($object->getPrimaryKey(), $associated_ids))
@@ -119,12 +116,7 @@ function object_admin_select_list($object, $method, $options = array())
   if (!isset($options['size']))  $options['size'] = 10;
 
   // get the lists of objects
-  $through_class = _get_option($options, 'through_class');
-  $sort          = _get_option($options, 'sort');
-  $objects = sfPropelManyToMany::getAllObjects($object, $through_class);
-  $objects_associated = sfPropelManyToMany::getRelatedObjects($object, $through_class);
-  $ids = array_map(create_function('$o', 'return $o->getPrimaryKey();'), $objects_associated);
-
+  list($objects, $objects_associated, $ids) = _get_object_list($object, $options);
   // override field name
   unset($options['control_name']);
   $name = 'associated_'._convert_method_to_name($method, $options);
@@ -137,11 +129,7 @@ function object_admin_check_list($object, $method, $options = array())
   $options = _parse_attributes($options);
 
   // get the lists of objects
-  $through_class = _get_option($options, 'through_class');
-  $sort          = _get_option($options, 'sort');
-  $objects = sfPropelManyToMany::getAllObjects($object, $through_class);
-  $objects_associated = sfPropelManyToMany::getRelatedObjects($object, $through_class);
-  $assoc_ids = array_map(create_function('$o', 'return $o->getPrimaryKey();'), $objects_associated);
+  list($objects, $objects_associated, $assoc_ids) = _get_object_list($object, $options);
 
   // override field name
   unset($options['control_name']);
@@ -170,4 +158,22 @@ function object_admin_check_list($object, $method, $options = array())
   }
 
   return $html;
+}
+
+function _get_propel_object_list($object, $options)
+{
+  // get the lists of objects
+  $through_class = _get_option($options, 'through_class');
+  #$sort          = _get_option($options, 'sort');
+  $object = get_class($object) == 'sfOutputEscaperObjectDecorator' ? $object->getRawValue() : $object;
+
+  $objects = sfPropelManyToMany::getAllObjects($object, $through_class);
+  $objects_associated = sfPropelManyToMany::getRelatedObjects($object, $through_class);
+  $ids = array_map(create_function('$o', 'return $o->getPrimaryKey();'), $objects_associated);
+  return array($objects, $objects_associated, $ids);
+}
+
+function _get_object_list($object, $options)
+{
+  return _get_propel_object_list($object, $options);
 }

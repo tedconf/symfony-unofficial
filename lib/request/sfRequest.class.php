@@ -165,6 +165,11 @@ abstract class sfRequest
   public function initialize ($context, $parameters = array())
   {
     $this->context = $context;
+
+    // initialize parameter and attribute holders
+    $this->parameter_holder = new sfParameterHolder();
+    $this->attribute_holder = new sfParameterHolder();
+
     $this->parameter_holder->add($parameters);
   }
 
@@ -186,10 +191,6 @@ abstract class sfRequest
   {
     // the class exists
     $object = new $class();
-
-    // initialize parameter and attribute holders
-    $object->parameter_holder = new sfParameterHolder();
-    $object->attribute_holder = new sfParameterHolder();
 
     if (!($object instanceof sfRequest))
     {
@@ -234,7 +235,7 @@ abstract class sfRequest
    */
   public function setError ($name, $message)
   {
-    if (sfConfig::get('sf_logging_active')) $this->getContext()->getLogger()->info('{sfRequest} error in form for parameter "'.$name.'" (with message "'.$message.'")');
+    if (sfConfig::get('sf_logging_enabled')) $this->getContext()->getLogger()->info('{sfRequest} error in form for parameter "'.$name.'" (with message "'.$message.'")');
 
     $this->errors[$name] = $message;
   }

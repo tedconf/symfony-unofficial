@@ -78,19 +78,19 @@ class sfWebDebug
     $this->last_time_log = microtime(true);
 
     // update max priority
-    if ($logEntry->getPriority() < $this->max_priority)
+    if ($logEntry['priority'] < $this->max_priority)
     {
-      $this->max_priority = $logEntry->getPriority();
+      $this->max_priority = $logEntry['priority'];
     }
 
     // update types
-    if (!isset($this->types[$logEntry->getType()]))
+    if (!isset($this->types[$logEntry['type']]))
     {
-      $this->types[$logEntry->getType()] = 1;
+      $this->types[$logEntry['type']] = 1;
     }
     else
     {
-      ++$this->types[$logEntry->getType()];
+      ++$this->types[$logEntry['type']];
     }
 
     $this->log[] = $logEntry;
@@ -121,16 +121,13 @@ class sfWebDebug
                                                    '/^(.+?)\(\)\:/S'      => '<span class="sfWebDebugLogInfo">\\1()</span>:',
                                                    '/line (\d+)$/'        => 'line <span class="sfWebDebugLogInfo">\\1</span>'));
 
-    // special formatting for creole/SQL lines
-    if (strtolower($type) == 'creole')
-    {
-      $log_line = preg_replace('/\b(SELECT|FROM|AS|LIMIT|ASC|COUNT|DESC|WHERE|LEFT JOIN|INNER JOIN|RIGHT JOIN|ORDER BY|GROUP BY|IN|LIKE|DISTINCT|DELETE|INSERT|INTO|VALUES)\b/', '<span class="sfWebDebugLogInfo">\\1</span>', $log_line);
+    // special formatting for SQL lines
+    $log_line = preg_replace('/\b(SELECT|FROM|AS|LIMIT|ASC|COUNT|DESC|WHERE|LEFT JOIN|INNER JOIN|RIGHT JOIN|ORDER BY|GROUP BY|IN|LIKE|DISTINCT|DELETE|INSERT|INTO|VALUES)\b/', '<span class="sfWebDebugLogInfo">\\1</span>', $log_line);
 
-      // remove username/password from DSN
-      if (strpos($log_line, 'DSN') !== false)
-      {
-        $log_line = preg_replace("/=&gt;\s+'?[^'\s,]+'?/", "=&gt; '****'", $log_line);
-      }
+    // remove username/password from DSN
+    if (strpos($log_line, 'DSN') !== false)
+    {
+      $log_line = preg_replace("/=&gt;\s+'?[^'\s,]+'?/", "=&gt; '****'", $log_line);
     }
 
     return $log_line;
@@ -149,14 +146,14 @@ class sfWebDebug
 
     // max priority
     $max_priority = '';
-    if (sfConfig::get('sf_logging_active'))
+    if (sfConfig::get('sf_logging_enabled'))
     {
       $max_priority = $this->getPriority($this->max_priority);
     }
 
     $logs = '';
     $sql_logs = array();
-    if (sfConfig::get('sf_logging_active'))
+    if (sfConfig::get('sf_logging_enabled'))
     {
       $logs = '<table class="sfWebDebugLogs">
         <tr>
@@ -167,21 +164,21 @@ class sfWebDebug
       $line_nb = 0;
       foreach($this->log as $logEntry)
       {
-        $log = $logEntry->getMessage();
+        $log = $logEntry['message'];
 
-        $priority = $this->getPriority($logEntry->getPriority());
+        $priority = $this->getPriority($logEntry['priority']);
 
-        if (strpos($type = $logEntry->getType(), 'sf') === 0)
+        if (strpos($type = $logEntry['type'], 'sf') === 0)
         {
           $type = substr($type, 2);
         }
 
         // xdebug information
         $debug_info = '';
-        if ($logEntry->getDebugStack())
+        if ($logEntry['debugStack'])
         {
           $debug_info .= '&nbsp;<a href="#" onclick="sfWebDebugToggle(\'debug_'.$line_nb.'\'); return false;">'.image_tag(sfConfig::get('sf_web_debug_web_dir').'/images/toggle.gif').'</a><div class="sfWebDebugDebugInfo" id="debug_'.$line_nb.'" style="display:none">';
-          foreach ($logEntry->getDebugStack() as $i => $log_line)
+          foreach ($logEntry['debugStack'] as $i => $log_line)
           {
             $debug_info .= '#'.$i.' &raquo; '.$this->formatLogLine($type, $log_line).'<br/>';
           }
@@ -194,13 +191,13 @@ class sfWebDebug
         // sql queries log
         if (preg_match('/execute(?:Query|Update).+?\:\s+(.+)$/', $log, $match))
         {
-          $sql_logs[] .= $match[1]."\n";
+          $sql_logs[] .= $match[1];
         }
 
         ++$line_nb;
         $logs .= sprintf("<tr class='sfWebDebugLogLine sfWebDebug%s %s'><td class=\"sfWebDebugLogNumber\">%s</td><td class=\"sfWebDebugLogType\">%s&nbsp;%s</td><td>%s%s</td></tr>\n", 
           ucfirst($priority),
-          $logEntry->getType(),
+          $logEntry['type'],
           $line_nb,
           image_tag(sfConfig::get('sf_web_debug_web_dir').'/images/'.$priority.'.png'),
           $type,
@@ -228,7 +225,7 @@ class sfWebDebug
 
     // logging information
     $logLink = '';
-    if (sfConfig::get('sf_logging_active'))
+    if (sfConfig::get('sf_logging_enabled'))
     {
       $logLink = '<li><a href="#" onclick="sfWebDebugShowDetailsFor(\'sfWebDebugLog\'); return false;">'.image_tag(sfConfig::get('sf_web_debug_web_dir').'/images/comment.png').' logs &amp; msgs</a></li>';
     }
@@ -236,13 +233,13 @@ class sfWebDebug
     // database information
     $dbInfo = '';
     $dbInfoDetails = '';
-    if (null !== ($nb = $this->getDatabaseRequestNumber()))
+    if ($sql_logs)
     {
-      $dbInfo = '<li><a href="#" onclick="sfWebDebugShowDetailsFor(\'sfWebDebugDatabaseDetails\'); return false;">'.image_tag(sfConfig::get('sf_web_debug_web_dir').'/images/database.png').' '.$nb.'</a></li>';
+      $dbInfo = '<li><a href="#" onclick="sfWebDebugShowDetailsFor(\'sfWebDebugDatabaseDetails\'); return false;">'.image_tag(sfConfig::get('sf_web_debug_web_dir').'/images/database.png').' '.count($sql_logs).'</a></li>';
 
       $dbInfoDetails = '
         <div id="sfWebDebugDatabaseLogs">
-        <ol><li>'.implode('</li><li>', $sql_logs).'</li></ol>
+        <ol><li>'.implode("</li>\n<li>", $sql_logs).'</li></ol>
         </div>
       ';
     }
@@ -281,7 +278,7 @@ class sfWebDebug
 
     // logs
     $logInfo = '';
-    if (sfConfig::get('sf_logging_active'))
+    if (sfConfig::get('sf_logging_enabled'))
     {
       $logInfo .= $short_messages.'
         <ul id="sfWebDebugLogMenu">
@@ -328,7 +325,7 @@ class sfWebDebug
     $config = array(
       'debug'        => sfConfig::get('sf_debug')             ? 'on' : 'off',
       'xdebug'       => (extension_loaded('xdebug'))          ? 'on' : 'off',
-      'logging'      => sfConfig::get('sf_logging_active')    ? 'on' : 'off',
+      'logging'      => sfConfig::get('sf_logging_enabled')   ? 'on' : 'off',
       'cache'        => sfConfig::get('sf_cache')             ? 'on' : 'off',
       'eaccelerator' => (extension_loaded('eaccelerator') && ini_get('eaccelerator.enable')) ? 'on' : 'off',
       'apc'          => (extension_loaded('apc') && ini_get('apc.enabled')) ? 'on' : 'off',
@@ -363,35 +360,6 @@ class sfWebDebug
     ';
 
     return $content;
-  }
-
-  public function getDatabaseRequestNumber()
-  {
-    if (sfConfig::get('sf_debug') && sfConfig::get('sf_use_database'))
-    {
-      // get Propel statistics if available (user created a model and a db)
-      // we require Propel here to avoid autoloading and automatic connection
-      if (!class_exists('Propel'))
-      {
-        require_once('propel/Propel.php');
-      }
-      if (Propel::isInit())
-      {
-        try
-        {
-          $con = Propel::getConnection();
-          if (method_exists($con, 'getNumQueriesExecuted'))
-          {
-            return $con->getNumQueriesExecuted();
-          }
-        }
-        catch (Exception $e)
-        {
-        }
-      }
-    }
-
-    return null;
   }
 
   public function decorateContentWithDebug($internalUri, $content, $new = false)

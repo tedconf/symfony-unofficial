@@ -104,7 +104,7 @@ class sfExecutionFilter extends sfFilter
 
         if ($validated)
         {
-          if (sfConfig::get('sf_debug') && sfConfig::get('sf_logging_active'))
+          if (sfConfig::get('sf_debug') && sfConfig::get('sf_logging_enabled'))
           {
             $timer = sfTimerManager::getTimer(sprintf('Action "%s/%s"', $moduleName, $actionName));
           }
@@ -118,16 +118,16 @@ class sfExecutionFilter extends sfFilter
           }
           $actionInstance->postExecute();
 
-          if (sfConfig::get('sf_debug') && sfConfig::get('sf_logging_active'))
+          if (sfConfig::get('sf_debug') && sfConfig::get('sf_logging_enabled'))
           {
             $timer->addTime();
           }
         }
         else
         {
-          if (sfConfig::get('sf_logging_active'))
+          if (sfConfig::get('sf_logging_enabled'))
           {
-            $this->context->getLogger()->info('{sfExecutionFilter} action validation failed');
+            $this->context->getLogger()->info('{sfFilter} action validation failed');
           }
 
           // validation failed
@@ -154,7 +154,7 @@ class sfExecutionFilter extends sfFilter
     }
     else if ($viewName != sfView::NONE)
     {
-      if (sfConfig::get('sf_debug') && sfConfig::get('sf_logging_active'))
+      if (sfConfig::get('sf_debug') && sfConfig::get('sf_logging_enabled'))
       {
         $timer = sfTimerManager::getTimer(sprintf('View "%s" for "%s/%s"', $viewName, $moduleName, $actionName));
       }
@@ -170,7 +170,7 @@ class sfExecutionFilter extends sfFilter
       // action entry which was retrieved from the execution chain
       $viewData = $viewInstance->render();
 
-      if (sfConfig::get('sf_debug') && sfConfig::get('sf_logging_active'))
+      if (sfConfig::get('sf_debug') && sfConfig::get('sf_logging_enabled'))
       {
         $timer->addTime();
       }
@@ -190,7 +190,7 @@ class sfExecutionFilter extends sfFilter
   protected function registerFillInFilter($filterChain, $parameters)
   {
     // automatically register the fill in filter if it is not already loaded in the chain
-    if (isset($parameters['activate']) && $parameters['activate'] && !$filterChain->hasFilter('sfFillInFormFilter'))
+    if (isset($parameters['enabled']) && $parameters['enabled'] && !$filterChain->hasFilter('sfFillInFormFilter'))
     {
       // register the fill in form filter
       $fillInFormFilter = new sfFillInFormFilter();

@@ -51,7 +51,7 @@ class sfContext
   protected function initialize()
   {
     $this->logger = sfLogger::getInstance();
-    if (sfConfig::get('sf_logging_active'))
+    if (sfConfig::get('sf_logging_enabled'))
     {
       $this->logger->info('{sfContext} initialization');
     }
@@ -63,28 +63,11 @@ class sfContext
       $this->databaseManager->initialize();
     }
 
-    if (sfConfig::get('sf_cache'))
-    {
-      $this->viewCacheManager = new sfViewCacheManager();
-    }
-
     // create a new action stack
     $this->actionStack = new sfActionStack();
 
-    if (sfConfig::get('sf_i18n'))
-    {
-      $this->i18n = new sfI18N();
-      $this->i18n->initialize($this);
-      sfConfig::set('sf_i18n_instance', $this->i18n);
-    }
-
     // include the factories configuration
     require(sfConfigCache::getInstance()->checkConfig(sfConfig::get('sf_app_config_dir_name').'/factories.yml'));
-
-    if (sfConfig::get('sf_cache'))
-    {
-      $this->viewCacheManager->initialize($this);
-    }
 
     // register our shutdown function
     register_shutdown_function(array($this, 'shutdown'));
@@ -292,6 +275,12 @@ class sfContext
    */
   public function getI18N ()
   {
+    if (!$this->i18n && sfConfig::get('sf_i18n'))
+    {
+      $this->i18n = sfI18N::getInstance();
+      $this->i18n->initialize($this);
+    }
+
     return $this->i18n;
   }
 
@@ -317,6 +306,11 @@ class sfContext
     $this->getStorage()->shutdown();
     $this->getRequest()->shutdown();
     $this->getResponse()->shutdown();
+
+    if (sfConfig::get('sf_logging_enabled'))
+    {
+      $this->getLogger()->shutdown();
+    }
 
     if (sfConfig::get('sf_use_database'))
     {

@@ -63,7 +63,7 @@ abstract class sfController
    *               controller to look for
    * @param boolean $throwExceptions whether to throw exceptions if the controller doesn't exist
    *
-   * @throws sfConfigurationException thrown if the module is not activated
+   * @throws sfConfigurationException thrown if the module is not enabled
    * @throws sfControllerException thrown if the controller doesn't exist and the $throwExceptions
    *                               parameter is set to true
    *
@@ -72,12 +72,12 @@ abstract class sfController
   protected function controllerExists ($moduleName, $controllerName, $extension, $throwExceptions)
   {
     $dirs = sfLoader::getControllerDirs($moduleName);
-    foreach ($dirs as $dir => $checkActivated)
+    foreach ($dirs as $dir => $checkEnabled)
     {
-      // plugin module activated?
-      if ($checkActivated && !in_array($moduleName, sfConfig::get('sf_activated_modules')) && is_readable($dir))
+      // plugin module enabled?
+      if ($checkEnabled && !in_array($moduleName, sfConfig::get('sf_enabled_modules')) && is_readable($dir))
       {
-        $error = 'The module "%s" is not activated.';
+        $error = 'The module "%s" is not enabled.';
         $error = sprintf($error, $moduleName);
 
         throw new sfConfigurationException($error);
@@ -87,7 +87,6 @@ abstract class sfController
       $classFile   = strtolower($extension);
       $classSuffix = ucfirst(strtolower($extension));
       $file        = $dir.'/'.$controllerName.$classSuffix.'.class.php';
-      $module_file = $dir.'/'.$classFile.'s.class.php';
       if (is_readable($file))
       {
         // action class exists
@@ -97,7 +96,9 @@ abstract class sfController
 
         return true;
       }
-      else if (is_readable($module_file))
+
+      $module_file = $dir.'/'.$classFile.'s.class.php';
+      if (is_readable($module_file))
       {
         // module class exists
         require_once($module_file);
@@ -113,7 +114,7 @@ abstract class sfController
         }
 
         // action is defined in this class?
-        if (!method_exists($moduleName.'Actions', '__call') && !in_array('execute'.ucfirst($controllerName), get_class_methods($moduleName.$classSuffix.'s')))
+        if (!in_array('execute'.ucfirst($controllerName), get_class_methods($moduleName.$classSuffix.'s')))
         {
           if ($throwExceptions)
           {
@@ -199,7 +200,7 @@ abstract class sfController
     if (!$this->actionExists($moduleName, $actionName))
     {
       // the requested action doesn't exist
-      if (sfConfig::get('sf_logging_active')) $this->getContext()->getLogger()->info('{sfController} action does not exist');
+      if (sfConfig::get('sf_logging_enabled')) $this->getContext()->getLogger()->info('{sfController} action does not exist');
 
       // track the requested module so we have access to the data in the error 404 page
       $this->context->getRequest()->setAttribute('requested_action', $actionName);
@@ -269,7 +270,7 @@ abstract class sfController
         // change i18n message source directory to our module
         if (sfConfig::get('sf_i18n'))
         {
-          $this->context->getI18N()->setMessageSourceDir(sfConfig::get('sf_app_module_dir').'/'.$moduleName.'/'.sfConfig::get('sf_app_module_i18n_dir_name'), $this->context->getUser()->getCulture());
+          $this->context->getI18N()->setMessageSourceDir(sfLoader::getI18NDir($moduleName), $this->context->getUser()->getCulture());
         }
 
         // process the filter chain
@@ -429,7 +430,7 @@ abstract class sfController
   {
     $this->context = $context;
 
-    if (sfConfig::get('sf_logging_active'))
+    if (sfConfig::get('sf_logging_enabled'))
     {
       $this->context->getLogger()->info('{sfController} initialization');
     }
@@ -528,80 +529,8 @@ abstract class sfController
    */
   public function loadFilters($filterChain, $actionInstance)
   {
-    // register the rendering filter
-    list($renderingFilterClassName, $renderingFilterParameters) = (array) sfConfig::get('sf_factory_rendering_filter');
-    if (!class_exists($renderingFilterClassName))
-    {
-      throw new sfConfigurationException(sprintf('Rendering filter class "%s" does not exists', $renderingFilterClassName));
-    }
-    $renderFilter = new $renderingFilterClassName();
-    $renderFilter->initialize($this->context, $renderingFilterParameters);
-    $filterChain->register($renderFilter);
+    $moduleName = $this->context->getModuleName();
 
-    if (sfConfig::get('sf_web_debug'))
-    {
-      // register web debug toolbar filter
-      $webDebugFilter = new sfWebDebugFilter();
-      $webDebugFilter->initialize($this->context);
-      $filterChain->register($webDebugFilter);
-    }
-
-    if (sfConfig::get('sf_available'))
-    {
-      // the application is available so we'll register
-      // global and module filters, otherwise skip them
-
-      // does this action require security?
-      if (sfConfig::get('sf_use_security') && $actionInstance->isSecure())
-      {
-        if (!in_array('sfSecurityUser', class_implements($this->context->getUser())))
-        {
-          $error = 'Security is enabled, but your sfUser implementation does not implement sfSecurityUser interface';
-          throw new sfSecurityException($error);
-        }
-
-        // register security filter
-        list($securityFilterClassName, $securityFilterParameters) = (array) sfConfig::get('sf_factory_security_filter');
-        $securityFilter = sfSecurityFilter::newInstance($securityFilterClassName);
-        $securityFilter->initialize($this->context, $securityFilterParameters);
-        $filterChain->register($securityFilter);
-      }
-
-      $moduleName = $this->context->getModuleName();
-
-      // register module/global filters
-      require(sfConfigCache::getInstance()->checkConfig(sfConfig::get('sf_app_module_dir_name').'/'.$moduleName.'/'.sfConfig::get('sf_app_module_config_dir_name').'/filters.yml'));
-    }
-
-    if (sfConfig::get('sf_cache'))
-    {
-      // register cache filter
-      $cacheFilter = new sfCacheFilter();
-      $cacheFilter->initialize($this->context);
-      $filterChain->register($cacheFilter);
-    }
-
-    // register common HTTP filter
-    $commonFilter = new sfCommonFilter();
-    $commonFilter->initialize($this->context);
-    $filterChain->register($commonFilter);
-
-    if (sfConfig::get('sf_use_flash'))
-    {
-      // register flash filter
-      $flashFilter = new sfFlashFilter();
-      $flashFilter->initialize($this->context);
-      $filterChain->register($flashFilter);
-    }
-
-    // register the execution filter
-    list($executionFilterClassName, $executionFilterParameters) = (array) sfConfig::get('sf_factory_execution_filter');
-    if (!class_exists($executionFilterClassName))
-    {
-      throw new sfConfigurationException(sprintf('Execution filter class "%s" does not exists', $executionFilterClassName));
-    }
-    $execFilter = new $executionFilterClassName();
-    $execFilter->initialize($this->context, $executionFilterParameters);
-    $filterChain->register($execFilter);
+    require(sfConfigCache::getInstance()->checkConfig(sfConfig::get('sf_app_module_dir_name').'/'.$moduleName.'/'.sfConfig::get('sf_app_module_config_dir_name').'/filters.yml'));
   }
 }

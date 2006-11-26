@@ -158,15 +158,17 @@ class sfDebugConnection implements Connection
     $this->numQueriesExecuted++;
 
     $elapsedTime = 0;
-    if (sfConfig::get('sf_debug') && sfConfig::get('sf_logging_active'))
+    if (sfConfig::get('sf_debug') && sfConfig::get('sf_logging_enabled'))
     {
+      $sqlTimer = sfTimerManager::getTimer('Database');
       $timer = new sfTimer();
     }
 
     $retval = $this->childConnection->executeQuery($sql, $fetchmode);
 
-    if (sfConfig::get('sf_debug') && sfConfig::get('sf_logging_active'))
+    if (sfConfig::get('sf_debug') && sfConfig::get('sf_logging_enabled'))
     {
+      $sqlTimer->addTime();
       $elapsedTime = $timer->getElapsedTime();
     }
 

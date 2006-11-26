@@ -31,7 +31,7 @@ class sfFillInFormFilter extends sfFilter
     // converters
     foreach ($this->getParameter('converters', array()) as $functionName => $fields)
     {
-      $fillInform->addConverter($functionName, $fields);
+      $fillInForm->addConverter($functionName, $fields);
     }
 
     // skip fields
@@ -43,7 +43,7 @@ class sfFillInFormFilter extends sfFilter
     $fillInForm->setTypes(array_diff($checkTypes, $excludeTypes));
 
     // fill in
-    $content = $fillInForm->fillIn($response->getContent(), $this->getParameter('name'), $request->getParameterHolder()->getAll());
+    $content = $fillInForm->fillIn($response->getContent(), $this->getParameter('name'), $this->getParameter('id'), $request->getParameterHolder()->getAll());
 
     $response->setContent($content);
   }

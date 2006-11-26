@@ -17,9 +17,11 @@
  */
 class sfCore
 {
-  protected static $classes = array();
+  static protected
+    $autoloadCallables = array(),
+    $classes              = array();
 
-  public static function bootstrap($sf_symfony_lib_dir, $sf_symfony_data_dir)
+  static public function bootstrap($sf_symfony_lib_dir, $sf_symfony_data_dir)
   {
     require_once($sf_symfony_lib_dir.'/util/sfToolkit.class.php');
     require_once($sf_symfony_lib_dir.'/config/sfConfig.class.php');
@@ -38,7 +40,7 @@ class sfCore
     sfCore::callBootstrap();
   }
 
-  public static function callBootstrap()
+  static public function callBootstrap()
   {
     $bootstrap = sfConfig::get('sf_config_cache_dir').'/config_bootstrap_compile.yml.php';
     if (is_readable($bootstrap))
@@ -52,7 +54,7 @@ class sfCore
     }
   }
 
-  public static function initConfiguration($sf_symfony_lib_dir, $sf_symfony_data_dir, $test = false)
+  static public function initConfiguration($sf_symfony_lib_dir, $sf_symfony_data_dir, $test = false)
   {
     // start timer
     if (SF_DEBUG)
@@ -75,7 +77,7 @@ class sfCore
     include($sf_symfony_data_dir.'/config/constants.php');
   }
 
-  public static function initIncludePath()
+  static public function initIncludePath()
   {
     set_include_path(
       sfConfig::get('sf_lib_dir').PATH_SEPARATOR.
@@ -87,17 +89,19 @@ class sfCore
   }
 
   // check to see if we're not in a cache cleaning process
-  public static function checkLock()
+  static public function checkLock()
   {
     if (sfToolkit::hasLockFile(SF_ROOT_DIR.DIRECTORY_SEPARATOR.SF_APP.'_'.SF_ENVIRONMENT.'.lck', 5))
     {
       // application is not available
-      include(sfConfig::get('sf_web_dir').'/unavailable.html');
+      $file = sfConfig::get('sf_web_dir').'/errors/unavailable.php';
+      include(is_readable($file) ? $file : sfConfig::get('sf_symfony_data_dir').'/web/errors/unavailable.php');
+
       die(1);
     }
   }
 
-  public static function checkSymfonyVersion()
+  static public function checkSymfonyVersion()
   {
     // recent symfony update?
     $last_version    = @file_get_contents(sfConfig::get('sf_config_cache_dir').'/VERSION');
@@ -109,9 +113,24 @@ class sfCore
     }
   }
 
-  public static function getClassPath($class)
+  static public function getClassPath($class)
   {
     return isset(self::$classes[$class]) ? self::$classes[$class] : null;
+  }
+
+  static public function addAutoloadCallable($callable)
+  {
+    self::$autoloadCallables[] = $callable;
+
+    if (function_exists('spl_autoload_register'))
+    {
+      spl_autoload_register($callable);
+    }
+  }
+
+  static public function getautoloadCallables()
+  {
+    return self::$autoloadCallables;
   }
 
   /**
@@ -121,7 +140,7 @@ class sfCore
    *
    * @return boolean Returns true if the class has been loaded
    */
-  public static function autoload($class)
+  static public function splAutoload($class)
   {
     // load the list of autoload classes
     if (!self::$classes)
@@ -156,22 +175,11 @@ class sfCore
     return false;
   }
 
-  public static function initAutoloading()
+  static public function initAutoload()
   {
     if (function_exists('spl_autoload_register'))
     {
       ini_set('unserialize_callback_func', 'spl_autoload_call');
-
-      // load functions and methods that can autoload classes
-      $functions = (array) sfConfig::get('sf_autoloading_functions', array());
-      array_unshift($functions, array('sfCore', 'autoload'));
-
-      foreach ($functions as $function)
-      {
-        spl_autoload_register($function);
-      }
-      unset($functions);
-
     }
     elseif (!function_exists('__autoload'))
     {
@@ -179,25 +187,15 @@ class sfCore
 
       function __autoload($class)
       {
-        static $functions = null;
-
-        if (null === $functions)
+        foreach (sfCore::getautoloadCallables() as $callable)
         {
-          // load functions and methods that can autoload classes
-          $functions = (array) sfConfig::get('sf_autoloading_functions', array());
-          array_unshift($functions, array('sfCore', 'autoload'));
-        }
-
-        foreach ($functions as $function)
-        {
-          if (call_user_func($function, $class))
+          if (call_user_func($callable, $class))
           {
             return true;
           }
         }
 
         // unspecified class
-
         // do not print an error if the autoload came from class_exists
         $trace = debug_backtrace();
         if (count($trace) < 1 || ($trace[1]['function'] != 'class_exists' && $trace[1]['function'] != 'is_a'))
@@ -209,5 +207,7 @@ class sfCore
         }
       }
     }
+
+    self::addAutoloadCallable(array('sfCore', 'splAutoload'));
   }
 }

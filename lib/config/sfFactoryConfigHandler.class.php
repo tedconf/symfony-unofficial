@@ -48,7 +48,7 @@ class sfFactoryConfigHandler extends sfYamlConfigHandler
     $instances = array();
 
     // available list of factories
-    $factories = array('controller', 'request', 'response', 'storage', 'user', 'security_filter', 'execution_filter', 'rendering_filter', 'view_cache');
+    $factories = array('controller', 'request', 'response', 'storage', 'user', 'view_cache');
 
     // let's do our fancy work
     foreach ($factories as $factory)
@@ -74,7 +74,7 @@ class sfFactoryConfigHandler extends sfYamlConfigHandler
         if (!is_readable($file))
         {
             // factory file doesn't exist
-            $error = sprintf('Configuration file "%s" specifies class "%s" with nonexistent or unreadablefile "%s"', $configFiles[0], $class, $file);
+            $error = sprintf('Configuration file "%s" specifies class "%s" with nonexistent or unreadable file "%s"', $configFiles[0], $class, $file);
             throw new sfParseException($error);
         }
 
@@ -83,7 +83,19 @@ class sfFactoryConfigHandler extends sfYamlConfigHandler
       }
 
       // parse parameters
-      $parameters = (isset($keys['param']) ? var_export($keys['param'], true) : 'null');
+      if (isset($keys['param']))
+      {
+        $parameters = array();
+        foreach ($keys['param'] as $key => $value)
+        {
+          $parameters[$key] = $this->replaceConstants($value);
+        }
+      }
+      else
+      {
+        $parameters = null;
+      }
+      $parameters = var_export($parameters, true);
 
       // append new data
       switch ($factory)
@@ -101,7 +113,7 @@ class sfFactoryConfigHandler extends sfYamlConfigHandler
           $instances[] = sprintf("  \$this->request = sfRequest::newInstance(sfConfig::get('sf_factory_request', '%s'));", $class);
 
           // append instance initialization
-          $inits[] = sprintf("  \$this->request->initialize(\$this, %s);", $parameters);
+          $inits[] = sprintf("  \$this->request->initialize(\$this, sfConfig::get('sf_factory_request_parameters', %s));", $parameters);
           break;
 
         case 'response':
@@ -109,7 +121,7 @@ class sfFactoryConfigHandler extends sfYamlConfigHandler
           $instances[] = sprintf("  \$this->response = sfResponse::newInstance(sfConfig::get('sf_factory_response', '%s'));", $class);
 
           // append instance initialization
-          $inits[] = sprintf("  \$this->response->initialize(\$this);");
+          $inits[] = sprintf("  \$this->response->initialize(\$this, sfConfig::get('sf_factory_response_parameters', %s));", $parameters);
           break;
 
         case 'storage':
@@ -117,7 +129,7 @@ class sfFactoryConfigHandler extends sfYamlConfigHandler
           $instances[] = sprintf("  \$this->storage = sfStorage::newInstance(sfConfig::get('sf_factory_storage', '%s'));", $class);
 
           // append instance initialization
-          $inits[] = sprintf("  \$this->storage->initialize(\$this, %s);", $parameters);
+          $inits[] = sprintf("  \$this->storage->initialize(\$this, sfConfig::get('sf_factory_storage_parameters', %s));", $parameters);
           break;
 
         case 'user':
@@ -125,31 +137,14 @@ class sfFactoryConfigHandler extends sfYamlConfigHandler
           $instances[] = sprintf("  \$this->user = sfUser::newInstance(sfConfig::get('sf_factory_user', '%s'));", $class);
 
           // append instance initialization
-          $inits[] = sprintf("  \$this->user->initialize(\$this, %s);", $parameters);
+          $inits[] = sprintf("  \$this->user->initialize(\$this, sfConfig::get('sf_factory_user_parameters', %s));", $parameters);
           break;
-
-        case 'security_filter':
-          // append creation/initialization in one swipe
-          $inits[] = sprintf("\n  if (sfConfig::get('sf_use_security'))\n  {\n".
-                             "    sfConfig::set('sf_factory_security_filter', array('%s', %s));\n  }\n",
-                             $class, $parameters);
-          break;
-
-        case 'execution_filter':
-          // append execution filter class name
-          $inits[] = sprintf("  sfConfig::set('sf_factory_execution_filter', array('%s', %s));", $class, $parameters);
-          break;
-
-        case 'rendering_filter':
-          // append rendering filter class name
-          $inits[] = sprintf("  sfConfig::set('sf_factory_rendering_filter', array('%s', %s));", $class, $parameters);
-          break;
-
         case 'view_cache':
           // append view cache class name
           $inits[] = sprintf("\n  if (sfConfig::get('sf_cache'))\n  {\n".
-                             "    \$this->viewCacheManager->setViewCacheClassName(sfConfig::get('sf_factory_view_cache_manager', '%s'));\n".
-                             "    \$this->viewCacheManager->setViewCacheOptions(%s);\n }\n",
+                             "    \$this->viewCacheManager = new sfViewCacheManager();\n".
+                             "    \$this->viewCacheManager->initialize(\$this, sfConfig::get('sf_factory_view_cache', '%s'), sfConfig::get('sf_factory_view_cache_parameters', %s));\n".
+                             " }\n",
                              $class, $parameters);
           break;
       }

@@ -154,7 +154,7 @@ class sfWebResponse extends sfResponse
 
     if ('Content-Type' == $name)
     {
-      if ($replace)
+      if ($replace || !$this->getHttpHeader('Content-Type', null))
       {
         $this->setContentType($value);
       }
@@ -239,9 +239,9 @@ class sfWebResponse extends sfResponse
 
     header($status);
 
-    if (sfConfig::get('sf_logging_active'))
+    if (sfConfig::get('sf_logging_enabled'))
     {
-      $this->getContext()->getLogger()->info('{sfWebResponse} send status "'.$status.'"');
+      $this->getContext()->getLogger()->info('{sfResponse} send status "'.$status.'"');
     }
 
     // headers
@@ -249,9 +249,9 @@ class sfWebResponse extends sfResponse
     {
       header($name.': '.$value);
 
-      if (sfConfig::get('sf_logging_active') && $value != '')
+      if (sfConfig::get('sf_logging_enabled') && $value != '')
       {
-        $this->getContext()->getLogger()->info('{sfWebResponse} send header "'.$name.'": "'.$value.'"');
+        $this->getContext()->getLogger()->info('{sfResponse} send header "'.$name.'": "'.$value.'"');
       }
     }
 
@@ -267,9 +267,9 @@ class sfWebResponse extends sfResponse
         setrawcookie($cookie['name'], $cookie['value'], $cookie['expire'], $cookie['path'], $cookie['domain'], $cookie['secure']);
       }
 
-      if (sfConfig::get('sf_logging_active'))
+      if (sfConfig::get('sf_logging_enabled'))
       {
-        $this->getContext()->getLogger()->info('{sfWebResponse} send cookie "'.$cookie['name'].'": "'.$cookie['value'].'"');
+        $this->getContext()->getLogger()->info('{sfResponse} send cookie "'.$cookie['name'].'": "'.$cookie['value'].'"');
       }
     }
   }
@@ -380,7 +380,7 @@ class sfWebResponse extends sfResponse
 
     if (sfConfig::get('sf_i18n'))
     {
-      $value = sfConfig::get('sf_i18n_instance')->__($value);
+      $value = $this->getContext()->getI18N()->__($value);
     }
 
     if ($escape)
@@ -388,13 +388,10 @@ class sfWebResponse extends sfResponse
       $value = htmlentities($value, ENT_QUOTES, sfConfig::get('sf_charset'));
     }
 
-    if (!$replace)
+    if ($replace || !$this->getParameter($key, null, 'helper/asset/auto/meta'))
     {
-      $current = $this->getParameter($key, '', 'helper/asset/auto/meta');
-      $value = ($current ? $current.', ' : '').$value;
+      $this->setParameter($key, $value, 'helper/asset/auto/meta');
     }
-
-    $this->setParameter($key, $value, 'helper/asset/auto/meta');
   }
 
   public function getTitle()

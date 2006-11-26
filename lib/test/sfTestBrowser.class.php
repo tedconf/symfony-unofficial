@@ -187,7 +187,7 @@ class sfTestBrowser extends sfBrowser
   {
     $cacheManager = $this->getContext()->getViewCacheManager();
 
-    // check that cache is activated
+    // check that cache is enabled
     if (!$cacheManager)
     {
       $this->test->ok(!$boolean, 'cache is disabled');
@@ -254,3 +254,27 @@ class sfTestBrowser extends sfBrowser
     return $this;
   }
 }
+
+function sfTestBrowserErrorHandler($errno, $errstr, $errfile, $errline)
+{
+  if (($errno & error_reporting()) == 0)
+  {
+    return;
+  }
+
+  $msg = sprintf('PHP send a "%s" error at %s line %s (%s)', '%s', $errfile, $errline, $errstr);
+  switch ($errno)
+  {
+    case E_WARNING:
+      throw new Exception(sprintf($msg, 'warning'));
+      break;
+    case E_NOTICE:
+      throw new Exception(sprintf($msg, 'notice'));
+      break;
+    case E_STRICT:
+      throw new Exception(sprintf($msg, 'strict'));
+      break;
+  }
+}
+
+set_error_handler('sfTestBrowserErrorHandler');

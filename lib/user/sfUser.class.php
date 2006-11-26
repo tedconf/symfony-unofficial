@@ -68,7 +68,7 @@ class sfUser
     $this->attribute_holder = new sfParameterHolder(self::ATTRIBUTE_NAMESPACE);
 
     // read attributes from storage
-    $attributes = $this->getContext()->getStorage()->read(self::ATTRIBUTE_NAMESPACE);
+    $attributes = $context->getStorage()->read(self::ATTRIBUTE_NAMESPACE);
     if (is_array($attributes))
     {
       foreach ($attributes as $namespace => $values)
@@ -77,10 +77,16 @@ class sfUser
       }
     }
 
-    $culture = $this->getContext()->getStorage()->read(self::CULTURE_NAMESPACE);
-    if ($culture === null)
+    // set the user culture to sf_culture parameter if present in the request
+    // otherwise
+    //  - use the culture defined in the user session
+    //  - use the default culture set in i18n.yml
+    if (!($culture = $context->getRequest()->getParameter('sf_culture')))
     {
-      $culture = sfConfig::get('sf_i18n_default_culture') ? sfConfig::get('sf_i18n_default_culture') : 'en';
+      if (null === ($culture = $context->getStorage()->read(self::CULTURE_NAMESPACE)))
+      {
+        $culture = sfConfig::get('sf_i18n_default_culture', 'en');
+      }
     }
 
     $this->setCulture($culture);
@@ -128,6 +134,9 @@ class sfUser
       {
         $this->context->getI18N()->setCulture($culture);
       }
+
+      // add the culture in the routing default parameters
+      sfConfig::set('sf_routing_defaults', array_merge((array) sfConfig::get('sf_routing_defaults'), array('sf_culture' => $culture)));
     }
   }
 

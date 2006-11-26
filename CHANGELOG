@@ -3,16 +3,26 @@ SVN
 
 WARNING: All deprecated function, methods and tasks has been removed (see r1631, r1638 and r1799).
 
-If you try to use this release with 0.6.X projects, you must upgrade them with: symfony upgrade 0.8
-When you upgrade your 0.9 release, re-run the upgrade script (you can safely run the upgrade several times).
+If you try to use this release with 0.6.X projects, you must upgrade them with: symfony upgrade 1.0
+When you upgrade symfony, re-run the upgrade script (you can safely run the upgrade several times).
 
-* added new sfOptimizer classes
+* refactored admin generator templates
+* new sfLogger class (more flexible)
+* moved 500 and unavailable errors to web/errors (and changed .html extension to .php)
+* user filters can now be registered anywhere in the filter chain
+* minor changes to be compatible with PHP 5.2
+* new sfFillInForm class
+* added persistent connection support
+* added some sfMixer hooks in the core (for 404 and 500 error for example)
+* added behaviors for Propel classes
+* unified the way to configure symfony librairies (config/config.php)
+* symfony is now ORM independant
 * greater credential flexibility
 * symfony is now compatible with magic_quotes_gpc set to on
 * refactored sfFilter class (executeBeforeExecution, executeBeforeRendering)
 * new coverage script for symfony core
 * new encoding parameter in databases.yml
-* new functional and unit tests for the core framework
+* new functional and unit tests for the core framework (more than 2600)
 * new sfMixin class to allow adding methods to core classes without inheritance
 * new sfBrowser, sfTestBrowser and sfDomCssSelector classes to ease functional tests writing
 * new unit test library (lime)
@@ -35,10 +45,10 @@ When you upgrade your 0.9 release, re-run the upgrade script (you can safely run
 * bundled pake and phing (symfony has no external dependancy)
 * better i18n support thanks to the new charset setting (FillInFilter, translations, ...)
 * added a new charset setting
-* updated creole, Propel and scriptaculous (1.6.2)
+* updated creole, Propel, script.aculo.us (1.6.5) and prototype (1.5.0_rc1)
 * many-to-many relationship support in admin generator
 * removed my* classes from skeleton except myUser
-* new classes :sfProcessCache, sfLogManager
+* new classes :sfProcessCache, sfLogManager, sfSQLiteCache
 * removed all deprecated functions, methods and tasks.
 * removed old php, css and js files that are not used anymore
 * strip comments in production environment by default
@@ -51,7 +61,7 @@ When you upgrade your 0.9 release, re-run the upgrade script (you can safely run
 * new validators: sfDateValidator, sfUrlValidator, sfCallbackValidator
 * and more than 200 bug fixes and small enhancements
 
-For more detailed information on bugs fixed in this release, see the trac ticket list for 0.6.4:
+For more detailed information on bugs fixed in this release, see the trac ticket list for 1.0.0:
 http://www.symfony-project.com/trac/report/10
 
 Version 0.6.3

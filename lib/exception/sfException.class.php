@@ -40,7 +40,7 @@ class sfException extends Exception
 
     parent::__construct($message, $code);
 
-    if (sfConfig::get('sf_logging_active') && $this->getName() != 'sfStopException')
+    if (sfConfig::get('sf_logging_enabled') && $this->getName() != 'sfStopException')
     {
       sfLogger::getInstance()->err('{'.$this->getName().'} '.$message);
     }
@@ -97,21 +97,17 @@ class sfException extends Exception
 
       // clean current output buffer
       while (@ob_end_clean());
+
+      ob_start(sfConfig::get('sf_compressed') ? 'ob_gzhandler' : '');
     }
 
     // send an error 500 if not in debug mode
     if (!sfConfig::get('sf_debug'))
     {
-      $file = sfConfig::get('sf_web_dir').'/error500.html';
       error_log($exception->getMessage());
-      if (is_readable($file))
-      {
-        include($file);
-      }
-      else
-      {
-        echo 'internal server error';
-      }
+
+      $file = sfConfig::get('sf_web_dir').'/errors/error500.php';
+      include(is_readable($file) ? $file : sfConfig::get('sf_symfony_data_dir').'/web/errors/error500.php');
 
       if (!sfConfig::get('sf_test'))
       {

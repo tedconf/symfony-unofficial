@@ -11,7 +11,7 @@
 /**
  * Cache class to cache the HTML results for actions and templates.
  *
- * This class users viewCacheClassName to serialize cache.
+ * This class uses $cacheClass class to store cache.
  * All cache files are stored in files in the [sf_root_dir].'/cache/'.[sf_app].'/html' directory.
  * To disable all caching, you can set to false [sf_cache] constant.
  *
@@ -25,60 +25,33 @@ class sfViewCacheManager
   protected
     $cache              = null,
     $cacheConfig        = array(),
-    $viewCacheClassName = '',
-    $viewCacheOptions   = array(),
     $context            = null,
     $controller         = null,
     $loaded             = array();
 
-  public function initialize($context)
+  public function initialize($context, $cacheClass, $cacheParameters = array())
   {
-    $this->context = $context;
-
+    $this->context    = $context;
     $this->controller = $context->getController();
 
     // empty configuration
     $this->cacheConfig = array();
 
     // create cache instance
-    $this->cache = new $this->viewCacheClassName(sfConfig::get('sf_template_cache_dir'));
-    $this->cache->initialize($this->viewCacheOptions);
+    $this->cache = new $cacheClass();
+    $this->cache->initialize($cacheParameters);
 
     // register a named route for our partial cache (at the end)
     $r = sfRouting::getInstance();
-    if (!$r->hasRouteName('_sf_cache_partial'))
+    if (!$r->hasRouteName('sf_cache_partial'))
     {
-      $r->connect('_sf_cache_partial', '/_sf_cache_partial/:module/:action/:sf_cache_key.', array(), array());
+      $r->connect('sf_cache_partial', '/sf_cache_partial/:module/:action/:sf_cache_key.', array(), array());
     }
   }
 
   public function getContext()
   {
     return $this->context;
-  }
-
-  /**
-   * Set the name of the sfCache class to use
-   *
-   * @param string The class name of the sfCache to use
-   *
-   * @return void
-   */
-  public function setViewCacheClassName($className)
-  {
-    $this->viewCacheClassName = $className;
-  }
-
-  /**
-   * Set the options to pass to the sfCache class to use
-   *
-   * @param array An array of sfCache class options
-   *
-   * @return void
-   */
-  public function setViewCacheOptions($options)
-  {
-    $this->viewCacheOptions = $options;
   }
 
   public function generateNamespace($internalUri)
@@ -94,6 +67,9 @@ class sfViewCacheManager
     }
 
     // generate uri
+    // we want our URL with / only
+    $oldUrlFormat = sfConfig::get('sf_url_format');
+    sfConfig::set('sf_url_format', 'PATH');
     if ($this->isContextual($internalUri))
     {
       list($route_name, $params) = $this->controller->convertUrlStringToParameters($internalUri);
@@ -103,6 +79,7 @@ class sfViewCacheManager
     {
       $uri = $this->controller->genUrl($internalUri);
     }
+    sfConfig::set('sf_url_format', $oldUrlFormat);
 
     // prefix with vary headers
     $varyHeaders = $this->getVary($internalUri);
@@ -241,7 +218,7 @@ class sfViewCacheManager
 
     $retval = $this->cache->get($id, $namespace);
 
-    if (sfConfig::get('sf_logging_active'))
+    if (sfConfig::get('sf_logging_enabled'))
     {
       $this->getContext()->getLogger()->info(sprintf('{sfViewCacheManager} cache for "%s" %s', $internalUri, ($retval !== null ? 'exists' : 'does not exist')));
     }
@@ -268,7 +245,7 @@ class sfViewCacheManager
     // ignore cache parameter? (only available in debug mode)
     if (sfConfig::get('sf_debug') && $this->getContext()->getRequest()->getParameter('_sf_ignore_cache', false, 'symfony/request/sfWebRequest') == true)
     {
-      if (sfConfig::get('sf_logging_active'))
+      if (sfConfig::get('sf_logging_enabled'))
       {
         $this->getContext()->getLogger()->info('{sfViewCacheManager} discard cache');
       }
@@ -297,7 +274,7 @@ class sfViewCacheManager
       return false;
     }
 
-    if (sfConfig::get('sf_logging_active'))
+    if (sfConfig::get('sf_logging_enabled'))
     {
       $this->context->getLogger()->info(sprintf('{sfViewCacheManager} save cache for "%s"', $internalUri));
     }
@@ -309,7 +286,7 @@ class sfViewCacheManager
   {
     list($namespace, $id) = $this->generateNamespace($internalUri);
 
-    if (sfConfig::get('sf_logging_active'))
+    if (sfConfig::get('sf_logging_enabled'))
     {
       $this->context->getLogger()->info(sprintf('{sfViewCacheManager} remove cache for "%s"', $internalUri));
     }
@@ -318,15 +295,6 @@ class sfViewCacheManager
     {
       $this->cache->remove($id, $namespace);
     }
-  }
-
-  public function clean($namespace = null, $mode = 'all')
-  {
-    try
-    {
-      $this->cache->clean($namespace, $mode);
-    }
-    catch (sfCacheException $e) {}
   }
 
   public function lastModified($internalUri)
@@ -361,7 +329,7 @@ class sfViewCacheManager
     $this->addCache($params['module'], $params['action'], array('withLayout' => false, 'lifeTime' => $lifeTime, 'clientLifeTime' => $clientLifeTime, 'vary' => $vary));
 
     // get data from cache if available
-    $data = $this->get($internalUri.(strpos($internalUri, '?') ? '&' : '?').'_key='.$name);
+    $data = $this->get($internalUri.(strpos($internalUri, '?') ? '&' : '?').'_sf_cache_key='.$name);
     if ($data !== null)
     {
       return $data;
@@ -386,7 +354,7 @@ class sfViewCacheManager
     $internalUri = sfRouting::getInstance()->getCurrentInternalUri();
     try
     {
-      $this->set($data, $internalUri.(strpos($internalUri, '?') ? '&' : '?').'_key='.$name);
+      $this->set($data, $internalUri.(strpos($internalUri, '?') ? '&' : '?').'_sf_cache_key='.$name);
     }
     catch (Exception $e)
     {

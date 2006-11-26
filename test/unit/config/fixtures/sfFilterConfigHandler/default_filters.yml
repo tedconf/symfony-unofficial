@@ -1,5 +1,12 @@
-defaultFilter:
+execution:
+  class:  sfExecutionFilter
+  param:
+    type: execution
+
+default:
   class: defaultFilterClass
 
-anotherDefaultFilter:
-  class: anotherDefaultFilterClass
+rendering:
+  class:  sfRenderingFilter
+  param:
+    type: rendering

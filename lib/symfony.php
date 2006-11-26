@@ -52,8 +52,7 @@ else
 }
 
 // autoloading
-require_once($sf_symfony_lib_dir.'/util/sfCore.class.php');
-sfCore::initAutoloading();
+sfCore::initAutoload();
 
 try
 {
@@ -88,6 +87,16 @@ try
   include($configCache->checkConfig($sf_app_config_dir_name.'/logging.yml'));
   include($configCache->checkConfig($sf_app_config_dir_name.'/settings.yml'));
   include($configCache->checkConfig($sf_app_config_dir_name.'/app.yml'));
+  if (sfConfig::get('sf_i18n'))
+  {
+    include($configCache->checkConfig($sf_app_config_dir_name.'/i18n.yml'));
+  }
+
+  // add autoloading callables
+  foreach ((array) sfConfig::get('sf_autoloading_functions', array()) as $callable)
+  {
+    sfCore::addAutoloadCallable($callable);
+  }
 
   // error settings
   ini_set('display_errors', $sf_debug ? 'on' : 'off');

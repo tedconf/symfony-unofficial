@@ -20,7 +20,7 @@ test:
     no_script_name:         off
     etag:                   off
 
-all:
+#all:
 #  .actions:
 #    default_module:         default
 #    default_action:         index
@@ -77,7 +77,7 @@ all:
 #
 #    use_flash:              on
 #
-#    activated_modules:      [default]
+#    enabled_modules:        [default]
 #
 #    strip_comments:         on
 #
@@ -101,3 +101,5 @@ all:
 #
 #    check_lock:            off
 #    check_symfony_version: off
+#
+#    use_process_cache:     on

@@ -107,19 +107,28 @@ class sfFileCache extends sfCache
   *     'hashedDirectoryLevel' => level of the hashed directory system (int)
   * );
   */
-  public function __construct($cacheDir)
+  public function __construct($cacheDir = null)
   {
     $this->setCacheDir($cacheDir);
   }
 
   public function initialize($options = array())
   {
-    foreach (array('fileLocking', 'writeControl', 'readControl', 'fileNameProtection', 'automaticCleaningFactor', 'hashedDirectoryLevel') as $option)
+    if (isset($options['cacheDir']))
     {
-      if (array_key_exists($option, $options))
+      $this->setCacheDir($options['cacheDir']);
+      unset($options['cacheDir']);
+    }
+
+    $availableOptions = array('fileLocking', 'writeControl', 'readControl', 'fileNameProtection', 'automaticCleaningFactor', 'hashedDirectoryLevel', 'lifeTime');
+    foreach ($options as $key => $value)
+    {
+      if (!in_array($key, $availableOptions))
       {
-        $this->$option = $options[$option];
+        sfLogger::getInstance()->error(sprintf('sfFileCache cannot take "%s" as an option', $key));
       }
+
+      $this->$key = $value;
     }
   }
 
@@ -255,11 +264,11 @@ class sfFileCache extends sfCache
 
     if ($this->writeControl)
     {
-      $this->writeAndControl($path, $file, $data);
+      return $this->writeAndControl($path, $file, $data);
     }
     else
     {
-      $this->write($path, $file, $data);
+      return $this->write($path, $file, $data);
     }
   }
 
@@ -480,7 +489,7 @@ class sfFileCache extends sfCache
         {
           // create directory structure if needed
           $current_umask = umask(0000);
-          @mkdir($path, 0777, true);
+          mkdir($path, 0777, true);
           umask($current_umask);
 
           $try = 2;
