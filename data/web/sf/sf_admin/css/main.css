@@ -1,5 +1,4 @@
-#sf_admin_container ul,ol,li,h1,h2,h3,h4,h5,h6,pre,form,body,html,p,blockquote,fieldset,input
-{ margin: 0; padding: 0; }
+#sf_admin_container ul, #sf_admin_container ol, #sf_admin_container li, #sf_admin_container h1, #sf_admin_container h2, #sf_admin_container h3, #sf_admin_container h4, #sf_admin_container h5, #sf_admin_container h6, #sf_admin_container pre, #sf_admin_container form, #sf_admin_container body, #sf_admin_container html, #sf_admin_container p, #sf_admin_container blockquote, #sf_admin_container fieldset, #sf_admin_container input { margin: 0; padding: 0; }
 #sf_admin_container a img,:link img,:visited img { border: none; }
 
 #sf_admin_container a:link, #sf_admin_container a:visited
@@ -81,6 +80,12 @@ body, #sf_admin_container td
 {
   color: #333 !important;
   font-weight: bold !important;
+}
+
+#sf_admin_container .sf_admin_filters input[type="checkbox"] + label
+{
+  display: inline;
+  float: none;
 }
 
 #sf_admin_container .save-ok
@@ -324,13 +329,19 @@ body, #sf_admin_container td
   padding: 0px;
 }
 
-select.sf_admin_multiple, select.sf_admin_multiple-selected
+#sf_admin_container select.sf_admin_multiple, #sf_admin_container select.sf_admin_multiple-selected
 {
   width: 12em;
 }
 
-ul.sf_admin_checklist li
+#sf_admin_container ul.sf_admin_checklist li
 {
   list-style: none;
   line-height: 1.5em;
+}
+
+#sf_admin_container ul.sf_admin_checklist li label
+{
+  display: inline;
+  float: none;
 }

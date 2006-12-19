@@ -743,6 +743,21 @@ function input_date_tag($name, $value = null, $options = array())
 
     return select_date_tag($name, $value, $options, isset($options['html']) ? $options['html'] : array());
   }
+  
+  if ($withTime = _get_option($options, 'withtime', false))
+  {
+    $pattern = 'g';
+  }
+  else
+  {
+    $pattern = 'd';
+  }
+  
+  $pattern = _get_option($options, 'format', $pattern);
+
+  $dateFormat = new sfDateFormat($culture);
+  
+  $pattern = $dateFormat->getInputPattern($pattern);
 
   // parse date
   if ($value === null || $value === '')
@@ -751,31 +766,30 @@ function input_date_tag($name, $value = null, $options = array())
   }
   else
   {
-    $dateFormat = new sfDateFormat($culture);
-    $value = $dateFormat->format($value, _get_option($options, 'format', 'd'));
+    $value = $dateFormat->format($value, $pattern);
   }
 
   // register our javascripts and stylesheets
-  $langFile = '/sf/calendar/lang/calendar-'.strtolower(substr($culture, 0, 2));
+  $langFile = sfConfig::get('sf_calendar_web_dir').'/lang/calendar-'.strtolower(substr($culture, 0, 2));
   $jss = array(
-    '/sf/calendar/calendar',
-    is_readable(sfConfig::get('sf_symfony_data_dir').'/web/'.$langFile.'.js') ? $langFile : '/sf/calendar/lang/calendar-en',
-    '/sf/calendar/calendar-setup',
+    sfConfig::get('sf_calendar_web_dir').'/calendar',
+    is_readable(sfConfig::get('sf_symfony_data_dir').'/web/'.$langFile.'.js') ? $langFile : sfConfig::get('sf_calendar_web_dir').'/lang/calendar-en',
+    sfConfig::get('sf_calendar_web_dir').'/calendar-setup',
   );
   foreach ($jss as $js)
   {
     $context->getResponse()->addJavascript($js);
   }
-  $context->getResponse()->addStylesheet('/sf/calendar/skins/aqua/theme');
+  $context->getResponse()->addStylesheet(sfConfig::get('sf_calendar_web_dir').'/skins/aqua/theme');
 
   // date format
-  $dateFormatInfo = sfDateTimeFormatInfo::getInstance($culture);
-  $date_format = strtolower($dateFormatInfo->getShortDatePattern());
+  $date_format = $dateFormat->getPattern($pattern);
 
   // calendar date format
   $calendar_date_format = $date_format;
-  $calendar_date_format = strtr($calendar_date_format, array('M' => 'm', 'y' => 'Y'));
-  $calendar_date_format = preg_replace('/([mdy])+/i', '%\\1', $calendar_date_format);
+  $calendar_date_format = strtr($date_format, array('yyyy' => 'Y', 'yy'=>'y', 'MM' => 'm', 'M'=>'m', 'dd'=>'d', 'd'=>'e', 'HH'=>'H', 'H'=>'k', 'hh'=>'I', 'h'=>'l', 'mm'=>'M', 'ss'=>'S', 'a'=>'p'));
+
+  $calendar_date_format = preg_replace('/([mdyhklspe])+/i', '%\\1', $calendar_date_format);
 
   $id_inputField = (isset($options['id']))? $options['id'] : get_id_from_name($name);
   $id_calendarButton = 'trigger_'.get_id_from_name($name);
@@ -784,7 +798,13 @@ function input_date_tag($name, $value = null, $options = array())
     Calendar.setup({
       inputField : "'.$id_inputField.'",
       ifFormat : "'.$calendar_date_format.'",
+      daFormat : "'.$calendar_date_format.'",
       button : "'.$id_calendarButton.'"';
+  
+  if ($withTime)
+  {
+    $js .= ",\n showsTime : true";
+  }
 
   // calendar options
   if ($calendar_options = _get_option($options, 'calendar_options'))
@@ -813,7 +833,8 @@ function input_date_tag($name, $value = null, $options = array())
   // construct html
   if (!isset($options['size']))
   {
-    $options['size'] = 11;
+    // educated guess about the size
+    $options['size'] = strlen($date_format)+2;
   }
   $html = input_tag($name, $value, $options);
 

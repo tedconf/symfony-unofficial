@@ -34,7 +34,7 @@ class ArticleMapBuilder {
 
 		$tMap->addPrimaryKey('ID', 'Id', 'int', CreoleTypes::INTEGER, true, null);
 
-		$tMap->addColumn('TITLE', 'Title', 'string', CreoleTypes::VARCHAR, false);
+		$tMap->addColumn('TITLE', 'Title', 'string', CreoleTypes::VARCHAR, false, 255);
 
 		$tMap->addColumn('BODY', 'Body', 'string', CreoleTypes::LONGVARCHAR, false);
 
@@ -43,6 +43,8 @@ class ArticleMapBuilder {
 		$tMap->addForeignKey('CATEGORY_ID', 'CategoryId', 'int', CreoleTypes::INTEGER, 'category', 'ID', false, null);
 
 		$tMap->addColumn('CREATED_AT', 'CreatedAt', 'int', CreoleTypes::TIMESTAMP, false);
+
+		$tMap->addColumn('END_DATE', 'EndDate', 'int', CreoleTypes::TIMESTAMP, false);
 				
     } 
 } 
