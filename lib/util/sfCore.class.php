@@ -263,7 +263,7 @@ class sfCore
 
       function __autoload($class)
       {
-        return sfCore::splSimpleAutoload($class);
+        return sfCore::splSimpleAutolaod($class);
       }
     }
   }
