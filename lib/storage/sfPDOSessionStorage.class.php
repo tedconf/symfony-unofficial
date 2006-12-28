@@ -277,5 +277,6 @@ class sfPDOSessionStorage extends sfSessionStorage
    */
   public function shutdown()
   {
+    session_write_close();
   }
 }
