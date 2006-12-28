@@ -20,9 +20,7 @@ class sfMailView extends sfPHPView
   /**
    * Retrieve the template engine associated with this view.
    *
-   * Note: This will return null because PHP itself has no engine reference.
-   *
-   * @return null
+   * @return string sfMail
    */
   public function getEngine()
   {
@@ -68,8 +66,8 @@ class sfMailView extends sfPHPView
     }
 
     // assigns some variables to the template
-    $this->attribute_holder->add($this->getGlobalVars());
-    $this->attribute_holder->add($actionInstance->getVarHolder()->getAll());
+    $this->attributeHolder->add($this->getGlobalVars());
+    $this->attributeHolder->add($actionInstance->getVarHolder()->getAll());
 
     // render main template
     $retval = $this->renderFile($template);

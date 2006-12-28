@@ -101,12 +101,13 @@ class sfContext
    * @return string The currently executing action name, if one is set,
    *                otherwise null.
    */
-  public function getActionName ()
+  public function getActionName()
   {
     // get the last action stack entry
-    $actionEntry = $this->actionStack->getLastEntry();
-
-    return $actionEntry ? $actionEntry->getActionName() : null;
+    if ($this->actionStack && $lastEntry = $this->actionStack->getLastEntry())
+    {
+      return $lastEntry->getActionName();
+    }
   }
 
 
@@ -125,12 +126,12 @@ class sfContext
    *
    * @return sfController The current sfController implementation instance.
    */
-   public function getController ()
+   public function getController()
    {
      return $this->controller;
    }
 
-   public function getLogger ()
+   public function getLogger()
    {
      return $this->logger;
    }
@@ -149,7 +150,7 @@ class sfContext
    *
    * @throws <b>sfDatabaseException</b> If the requested database name does not exist.
    */
-  public function getDatabaseConnection ($name = 'default')
+  public function getDatabaseConnection($name = 'default')
   {
     if ($this->databaseManager != null)
     {
@@ -169,7 +170,7 @@ class sfContext
    *
    * @return sfDatabaseManager The current sfDatabaseManager instance.
    */
-  public function getDatabaseManager ()
+  public function getDatabaseManager()
   {
     return $this->databaseManager;
   }
@@ -180,12 +181,13 @@ class sfContext
    * @return string An absolute filesystem path to the directory of the
    *                currently executing module, if one is set, otherwise null.
    */
-  public function getModuleDirectory ()
+  public function getModuleDirectory()
   {
     // get the last action stack entry
-    $actionEntry = $this->actionStack->getLastEntry();
-
-    return $actionEntry ? sfConfig::get('sf_app_module_dir').'/'.$actionEntry->getModuleName() : null;
+    if ($this->actionStack && $lastEntry = $this->actionStack->getLastEntry())
+    {
+      return sfConfig::get('sf_app_module_dir').'/'.$lastEntry->getModuleName();
+    }
   }
 
   /**
@@ -194,12 +196,13 @@ class sfContext
    * @return string The currently executing module name, if one is set,
    *                otherwise null.
    */
-  public function getModuleName ()
+  public function getModuleName()
   {
     // get the last action stack entry
-    $actionEntry = $this->actionStack->getLastEntry();
-
-    return $actionEntry ? $actionEntry->getModuleName() : null;
+    if ($this->actionStack && $lastEntry = $this->actionStack->getLastEntry())
+    {
+      return $lastEntry->getModuleName();
+    }
   }
 
   /**
@@ -208,12 +211,13 @@ class sfContext
    * @return sfView The currently view instance, if one is set,
    *                otherwise null.
    */
-  public function getCurrentViewInstance ()
+  public function getCurrentViewInstance()
   {
     // get the last action stack entry
-    $actionEntry = $this->actionStack->getLastEntry();
-
-    return $actionEntry ? $actionEntry->getViewInstance() : null;
+    if ($this->actionStack && $lastEntry = $this->actionStack->getLastEntry())
+    {
+      return $lastEntry->getViewInstance();
+    }
   }
 
   /**
@@ -221,7 +225,7 @@ class sfContext
    *
    * @return sfRequest The current sfRequest implementation instance.
    */
-  public function getRequest ()
+  public function getRequest()
   {
     return $this->request;
   }
@@ -231,7 +235,7 @@ class sfContext
    *
    * @return sfResponse The current sfResponse implementation instance.
    */
-  public function getResponse ()
+  public function getResponse()
   {
     return $this->response;
   }
@@ -243,7 +247,7 @@ class sfContext
    *
    * @return void.
    */
-  public function setResponse ($response)
+  public function setResponse($response)
   {
     $this->response = $response;
   }
@@ -253,7 +257,7 @@ class sfContext
    *
    * @return sfStorage The current sfStorage implementation instance.
    */
-  public function getStorage ()
+  public function getStorage()
   {
     return $this->storage;
   }
@@ -263,7 +267,7 @@ class sfContext
    *
    * @return sfViewCacheManager The current sfViewCacheManager implementation instance.
    */
-  public function getViewCacheManager ()
+  public function getViewCacheManager()
   {
     return $this->viewCacheManager;
   }
@@ -273,7 +277,7 @@ class sfContext
    *
    * @return sfI18N The current sfI18N implementation instance.
    */
-  public function getI18N ()
+  public function getI18N()
   {
     if (!$this->i18n && sfConfig::get('sf_i18n'))
     {
@@ -289,7 +293,7 @@ class sfContext
    *
    * @return sfUser The current sfUser implementation instance.
    */
-  public function getUser ()
+  public function getUser()
   {
     return $this->user;
   }
@@ -299,7 +303,7 @@ class sfContext
    *
    * @return void
    */
-  public function shutdown ()
+  public function shutdown()
   {
     // shutdown all factories
     $this->getUser()->shutdown();

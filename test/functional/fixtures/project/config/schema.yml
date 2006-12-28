@@ -6,6 +6,7 @@ propel:
     online:      boolean
     category_id:
     created_at:
+    end_date:    timestamp
 
   category:
     id:

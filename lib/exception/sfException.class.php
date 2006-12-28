@@ -31,7 +31,7 @@ class sfException extends Exception
    * @param string The error message.
    * @param int    The error code.
    */
-  public function __construct ($message = null, $code = 0)
+  public function __construct($message = null, $code = 0)
   {
     if ($this->getName() === null)
     {
@@ -51,7 +51,7 @@ class sfException extends Exception
    *
    * @return string This exception's name.
    */
-  public function getName ()
+  public function getName()
   {
     return $this->name;
   }
@@ -59,7 +59,7 @@ class sfException extends Exception
   /**
    * Print the stack trace for this exception.
    */
-  public function printStackTrace ($exception = null)
+  public function printStackTrace($exception = null)
   {
     if (!$exception)
     {
@@ -77,17 +77,20 @@ class sfException extends Exception
       return;
     }
 
-    foreach (sfMixer::getCallables('sfException:printStackTrace:printStackTrace') as $callable)
+    if (class_exists('sfMixer', false))
     {
-      $ret = call_user_func($callable, $this, $exception);
-      if ($ret)
+      foreach (sfMixer::getCallables('sfException:printStackTrace:printStackTrace') as $callable)
       {
-        if (!sfConfig::get('sf_test'))
+        $ret = call_user_func($callable, $this, $exception);
+        if ($ret)
         {
-          exit(1);
-        }
+          if (!sfConfig::get('sf_test'))
+          {
+            exit(1);
+          }
 
-        return;
+          return;
+        }
       }
     }
 
@@ -119,7 +122,7 @@ class sfException extends Exception
 
     $message = null !== $exception->getMessage() ? $exception->getMessage() : 'n/a';
     $name    = get_class($exception);
-    $format = 'cli' == php_sapi_name() ? 'plain' : 'html';
+    $format  = 0 == strncasecmp(PHP_SAPI, 'cli', 3) ? 'plain' : 'html';
     $traces  = $this->getTraces($exception, $format);
 
     // extract error reference from message
@@ -251,7 +254,7 @@ class sfException extends Exception
    *
    * @param string An exception name.
    */
-  protected function setName ($name)
+  protected function setName($name)
   {
     $this->name = $name;
   }

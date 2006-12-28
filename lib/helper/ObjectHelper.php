@@ -34,7 +34,7 @@ function object_input_date_tag($object, $method, $options = array(), $default_va
 {
   $options = _parse_attributes($options);
 
-  $value = _get_object_value($object, $method, $default_value, $param = 'm/d/y');
+  $value = _get_object_value($object, $method, $default_value, $param = 'Y-m-d');
 
   return input_date_tag(_convert_method_to_name($method, $options), $value, $options);
 }
@@ -72,16 +72,16 @@ function objects_for_select($options = array(), $value_method, $text_method = nu
   foreach($options as $option)
   {
     // text method exists?
-    if ($text_method && !method_exists($option, $text_method))
+    if ($text_method && !is_callable(array($option, $text_method)))
     {
-      $error = sprintf('Method "%s" doesn\'t exist for object of class "%s"', $text_method, get_class($option));
+      $error = sprintf('Method "%s" doesn\'t exist for object of class "%s"', $text_method, _get_class_decorated($option));
       throw new sfViewException($error);
     }
 
     // value method exists?
-    if (!method_exists($option, $value_method))
+    if (!is_callable(array($option, $value_method)))
     {
-      $error = sprintf('Method "%s" doesn\'t exist for object of class "%s"', $value_method, get_class($option));
+      $error = sprintf('Method "%s" doesn\'t exist for object of class "%s"', $value_method, _get_class_decorated($option));
       throw new sfViewException($error);
     }
 
@@ -159,9 +159,9 @@ function _get_options_from_objects($objects, $text_method = null)
 
     // which method to call?
     $methodToCall = '';
-    foreach (array($text_method, 'toString', '__toString', 'getPrimaryKey') as $method)
+    foreach (array($text_method, '__toString', 'toString', 'getPrimaryKey') as $method)
     {
-      if (method_exists($objects[0], $method))
+      if (is_callable(array($objects[0], $method)))
       {
         $methodToCall = $method;
         break;
@@ -259,7 +259,7 @@ function object_checkbox_tag($object, $method, $options = array(), $default_valu
   return checkbox_tag(_convert_method_to_name($method, $options), 1, $value, $options);
 }
 
-function _convert_method_to_name ($method, &$options)
+function _convert_method_to_name($method, &$options)
 {
   $name = _get_option($options, 'control_name');
 
@@ -281,7 +281,7 @@ function _convert_method_to_name ($method, &$options)
 
 // returns default_value if object value is null
 // method is either a string or: array('method',array('param1','param2'))
-function _get_object_value ($object, $method, $default_value = null, $param = null)
+function _get_object_value($object, $method, $default_value = null, $param = null)
 {
   // compatibility with the array syntax
   if (is_string($method))
@@ -294,7 +294,7 @@ function _get_object_value ($object, $method, $default_value = null, $param = nu
   if (!is_callable(array($object, $method[0])))
   {
     $error = 'Method "%s" doesn\'t exist for object of class "%s"';
-    $error = sprintf($error, $method[0], get_class($object));
+    $error = sprintf($error, $method[0], _get_class_decorated($object));
 
     throw new sfViewException($error);
   }
@@ -302,4 +302,23 @@ function _get_object_value ($object, $method, $default_value = null, $param = nu
   $object_value = call_user_func_array(array($object, $method[0]), $method[1]);
 
   return ($default_value !== null && $object_value === null) ? $default_value : $object_value;
+}
+
+/**
+ * Returns the name of the class of an decorated object
+ *
+ * @param object An object that might be wrapped in an sfOutputEscaperObjectDecorator(-derivative)
+ *
+ * @return string The name of the class of the object being decorated for escaping, or the class of the object if it isn't decorated
+ */
+function _get_class_decorated($object)
+{
+  if ($object instanceof sfOutputEscaperObjectDecorator)
+  {
+    return sprintf('%s (decorated with %s)', get_class($object->getRawValue()), get_class($object));
+  }
+  else
+  {
+    return get_class($object);
+  }
 }

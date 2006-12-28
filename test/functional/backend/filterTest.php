@@ -10,8 +10,7 @@
 
 $app = 'backend';
 $fixtures = 'fixtures/fixtures.yml';
-$ret = include(dirname(__FILE__).'/../../bootstrap/functional.php');
-if (!$ret)
+if (!include(dirname(__FILE__).'/../../bootstrap/functional.php'))
 {
   return;
 }
@@ -35,4 +34,9 @@ $b->
   checkResponseElement('div.sf_admin_filters label[for="created_at"]', 'Created at:')->
   checkResponseElement('div.sf_admin_filters input[name="filters[created_at][from]"][id="filters_created_at_from"]')->
   checkResponseElement('div.sf_admin_filters input[name="filters[created_at][to]"][id="filters_created_at_to"]')
+;
+
+$b->
+  checkListCustomization('filters', array('filters' => array('title'), 'fields' => array('title' => array('filter_is_empty' => true))))->
+  checkResponseElement('div.sf_admin_filters label[for="filters[title_is_empty]"]')
 ;

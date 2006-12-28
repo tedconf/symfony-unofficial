@@ -48,7 +48,7 @@ class sfParameterHolder
    *
    * @return string The default namespace.
    */
-  public function getDefaultNamespace ()
+  public function getDefaultNamespace()
   {
     return $this->default_namespace;
   }
@@ -58,7 +58,7 @@ class sfParameterHolder
    *
    * @return void
    */
-  public function clear ()
+  public function clear()
   {
     $this->parameters = null;
     $this->parameters = array();
@@ -68,7 +68,7 @@ class sfParameterHolder
    * Retrieve a parameter with an optionally specified namespace.
    *
    * An isolated namespace may be identified by providing a value for the third
-   * argument.  If not specified, the default namespace is 'symfony/default' is
+   * argument.  If not specified, the default namespace 'symfony/default' is
    * used.
    *
    * @param string A parameter name.
@@ -86,16 +86,18 @@ class sfParameterHolder
 
     if (isset($this->parameters[$ns][$name]))
     {
-      return $this->parameters[$ns][$name];
+      $value = & $this->parameters[$ns][$name];
     }
     else if (isset($this->parameters[$ns]))
     {
       $value = sfToolkit::getArrayValueForPath($this->parameters[$ns], $name, $default);
-
-      return $value;
+    }
+    else
+    {
+      $value = $default;
     }
 
-    return $default;
+    return $value;
   }
 
   /**
@@ -105,7 +107,7 @@ class sfParameterHolder
    *
    * @return array An indexed array of parameter names, if the namespace exists, otherwise null.
    */
-  public function getNames ($ns = null)
+  public function getNames($ns = null)
   {
     if (!$ns)
     {
@@ -125,7 +127,7 @@ class sfParameterHolder
    *
    * @return array An indexed array of parameter namespaces.
    */
-  public function getNamespaces ()
+  public function getNamespaces()
   {
     return array_keys($this->parameters);
   }
@@ -167,7 +169,7 @@ class sfParameterHolder
    *
    * @return bool true, if the parameter exists, otherwise false.
    */
-  public function has ($name, $ns = null)
+  public function has($name, $ns = null)
   {
     if (!$ns)
     {
@@ -214,7 +216,7 @@ class sfParameterHolder
    *
    * @return bool true, if the namespace exists, otherwise false.
    */
-  public function hasNamespace ($ns)
+  public function hasNamespace($ns)
   {
     return isset($this->parameters[$ns]);
   }
@@ -252,8 +254,13 @@ class sfParameterHolder
    *
    * @return void
    */
-  public function & removeNamespace ($ns)
+  public function & removeNamespace ($ns = null)
   {
+    if (!$ns)
+    {
+      $ns = $this->default_namespace;
+    }
+
     $retval = null;
 
     if (isset($this->parameters[$ns]))
@@ -276,7 +283,7 @@ class sfParameterHolder
    *
    * @return void
    */
-  public function set ($name, $value, $ns = null)
+  public function set($name, $value, $ns = null)
   {
     if (!$ns)
     {
@@ -302,7 +309,7 @@ class sfParameterHolder
    *
    * @return void
    */
-  public function setByRef ($name, & $value, $ns = null)
+  public function setByRef($name, & $value, $ns = null)
   {
     if (!$ns)
     {
@@ -328,7 +335,7 @@ class sfParameterHolder
    *
    * @return void
    */
-  public function add ($parameters, $ns = null)
+  public function add($parameters, $ns = null)
   {
     if ($parameters === null) return;
 
@@ -359,7 +366,7 @@ class sfParameterHolder
    *
    * @return void
    */
-  public function addByRef (& $parameters, $ns = null)
+  public function addByRef(& $parameters, $ns = null)
   {
     if (!$ns)
     {

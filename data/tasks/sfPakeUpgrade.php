@@ -102,6 +102,8 @@ function run_upgrade_1_0($task, $args)
 
       _upgrade_1_0_deprecated_for_templates($template_dirs);
 
+      _upgrade_1_0_date_form_helpers($template_dirs);
+
       _upgrade_1_0_deprecated_for_generator($app_dir);
 
       _upgrade_1_0_cache_yml($app_dir);
@@ -214,7 +216,7 @@ function _upgrade_1_0_activate()
       'active:' => 'enabled:',
     ),
     '*.php' => array(
-      'sf_logging_active' => 'sf_logging_enabled',
+      'sf_logging_'.'active' => 'sf_logging_enabled',
     ),
     'apps/*/modules/*/validate/*.yml' => array(
       'activate:' => 'enabled: ',
@@ -411,6 +413,45 @@ function _upgrade_1_0_deprecated_for_actions($action_dirs)
   }
 }
 
+function _upgrade_1_0_date_form_helpers($template_dirs)
+{
+  pake_echo_action('upgrade 1.0', 'upgrading date form helpers');
+
+  $helpers = array(
+    'select_day_tag', 'select_month_tag', 'select_year_tag', 'select_date_tag', 'select_second_tag', 'select_minute_tag',
+    'select_hour_tag', 'select_ampm_tag', 'select_time_tag', 'select_datetime_tag', 'select_number_tag', 'select_timezone_tag',
+  );
+  $regex = '/('.implode('|', $helpers).')/';
+
+  $php_files = pakeFinder::type('file')->name('*.php')->in($template_dirs);
+  $seen = false;
+  foreach ($php_files as $php_file)
+  {
+    $updated = false;
+
+    $content = file_get_contents($php_file);
+
+    if (preg_match($regex, $content) && false === strpos($content, 'DateForm'))
+    {
+      $content = "<?php use_helper('DateForm') ?>\n\n".$content;
+
+      $updated = true;
+      if (!$seen)
+      {
+        $seen = true;
+
+        pake_echo_comment('date form helpers has been moved to the DateForm helper group');
+        pake_echo_comment(' add use_helper(\'DateForm\')');
+      }
+    }
+
+    if ($updated)
+    {
+      file_put_contents($php_file, $content);
+    }
+  }
+}
+
 function _upgrade_1_0_deprecated_for_templates($template_dirs)
 {
   pake_echo_action('upgrade 1.0', 'upgrading deprecated helpers');
@@ -504,7 +545,9 @@ function _upgrade_1_0_filters_yml($app_dir)
 
     if (false === strpos($module_content, 'rendering:'))
     {
-      $module_content = str_replace($placeholder, $placeholder."\n".$content."\n".$module_content, $default);
+      $lb = (strpos($module_content, "\r\n") !== false) ? "\r\n" : "\n";
+
+      $module_content = str_replace($placeholder, $placeholder.$lb.$content.$lb.$module_content, $default);
 
       file_put_contents($yml_file, $module_content);
 
@@ -520,7 +563,8 @@ function _upgrade_1_0_filters_yml($app_dir)
   // upgrade app filters.yml
   if (false === strpos($content, 'rendering:'))
   {
-    $content = str_replace($placeholder, $placeholder."\n".$content, $default);
+    $lb = (strpos($content, "\r\n") !== false) ? "\r\n" : "\n";
+    $content = str_replace($placeholder, $placeholder.$lb.$content, $default);
 
     file_put_contents($configFile, $content);
 
@@ -537,7 +581,8 @@ function _upgrade_1_0_filters_yml($app_dir)
     $content = file_get_contents($configFile);
     if (false === strpos($content, 'rendering:'))
     {
-      $content = str_replace($placeholder, $placeholder."\n".$content, $default);
+      $lb = (strpos($content, "\r\n") !== false) ? "\r\n" : "\n";
+      $content = str_replace($placeholder, $placeholder.$lb.$content, $default);
 
       file_put_contents($configFile, $content);
 
@@ -671,12 +716,12 @@ function _upgrade_1_0_propel_ini()
     $count = 0;
 
     // new target package (needed for new plugin system)
-    $propel_ini = preg_replace('#propel\.targetPackage(\s*)=(\s*)model#', 'propel.targetPackage$1=$2lib.model', $propel_ini, $count);
+    $propel_ini = preg_replace('#propel\.targetPackage(\s*)=(\s*)model#', 'propel.targetPackage$1=$2lib.model', $propel_ini, -1, $count);
     if ($count)
     {
       $updated = true;
     }
-    $propel_ini = preg_replace('#propel.php.dir(\s*)=(\s*)\${propel.output.dir}/lib#', 'propel.php.dir$1=$2\${propel.output.dir}', $propel_ini, $count);
+    $propel_ini = preg_replace('#propel.php.dir(\s*)=(\s*)\${propel.output.dir}/lib#', 'propel.php.dir$1=$2\${propel.output.dir}', $propel_ini, -1, $count);
     if ($count)
     {
       $updated = true;
@@ -723,15 +768,16 @@ function _upgrade_1_0_propel_ini()
       $updated = true;
       $propel_ini .= <<<EOF
 
-propel.builder.addIncludes = false
-propel.builder.addComments = false
+propel.builder.addIncludes  = false
+propel.builder.addComments  = false
+propel.builder.addBehaviors = false
 
 EOF;
 
-      pake_echo_comment('there are 2 new propel.ini options:');
+      pake_echo_comment('there are 3 new propel.ini options:');
       pake_echo_comment(' - propel.builder.addIncludes');
       pake_echo_comment(' - propel.builder.addComments');
-
+      pake_echo_comment(' - propel.builder.addBehaviors');
     }
 
     if ($updated)

@@ -78,8 +78,8 @@ abstract class sfView
     $template           = null,
     $escaping           = null,
     $escapingMethod     = null,
-    $attribute_holder   = null,
-    $parameter_holder   = null,
+    $attributeHolder    = null,
+    $parameterHolder    = null,
     $moduleName         = '',
     $actionName         = '',
     $viewName           = '',
@@ -90,21 +90,21 @@ abstract class sfView
    *
    * @return void
    */
-  abstract function execute ();
+  abstract function execute();
 
   /**
    * Configure template.
    *
    * @return void
    */
-  abstract function configure ();
+  abstract function configure();
 
   /**
    * Retrieve the current application context.
    *
    * @return Context The current Context instance.
    */
-  public final function getContext ()
+  public final function getContext()
   {
     return $this->context;
   }
@@ -114,7 +114,7 @@ abstract class sfView
    *
    * @return string An absolute filesystem path to this views decorator template directory.
    */
-  public function getDecoratorDirectory ()
+  public function getDecoratorDirectory()
   {
     return $this->decoratorDirectory;
   }
@@ -124,7 +124,7 @@ abstract class sfView
    *
    * @return string A template filename, if a template has been set, otherwise null.
    */
-  public function getDecoratorTemplate ()
+  public function getDecoratorTemplate()
   {
     return $this->decoratorTemplate;
   }
@@ -134,7 +134,7 @@ abstract class sfView
    *
    * @return string An absolute filesystem path to this views template directory.
    */
-  public function getDirectory ()
+  public function getDirectory()
   {
     return $this->directory;
   }
@@ -146,14 +146,14 @@ abstract class sfView
    *
    * @return mixed A template engine instance.
    */
-  abstract function getEngine ();
+  abstract function getEngine();
 
   /**
    * Retrieve this views template.
    *
    * @return string A template filename, if a template has been set, otherwise null.
    */
-  public function getTemplate ()
+  public function getTemplate()
   {
     return $this->template;
   }
@@ -209,7 +209,7 @@ abstract class sfView
    *
    * @return void
    */
-  public function importAttributes ($names, $files = false, $errors = true, $stripTags = true, $specialChars = true)
+  public function importAttributes($names, $files = false, $errors = true, $stripTags = true, $specialChars = true)
   {
     // alias $request to keep the code clean
     $request = $this->context->getRequest();
@@ -301,7 +301,7 @@ abstract class sfView
    *
    * @return bool true, if initialization completes successfully, otherwise false.
    */
-  public function initialize ($context, $moduleName, $actionName, $viewName)
+  public function initialize($context, $moduleName, $actionName, $viewName)
   {
     if (sfConfig::get('sf_logging_enabled'))
     {
@@ -313,10 +313,10 @@ abstract class sfView
     $this->viewName   = $viewName;
 
     $this->context = $context;
-    $this->attribute_holder = new sfParameterHolder();
-    $this->parameter_holder = new sfParameterHolder();
+    $this->attributeHolder = new sfParameterHolder();
+    $this->parameterHolder = new sfParameterHolder();
 
-    $this->parameter_holder->add(sfConfig::get('mod_'.strtolower($moduleName).'_view_param', array()));
+    $this->parameterHolder->add(sfConfig::get('mod_'.strtolower($moduleName).'_view_param', array()));
 
     $this->decoratorDirectory = sfConfig::get('sf_app_template_dir');
 
@@ -328,42 +328,42 @@ abstract class sfView
 
   public function getAttributeHolder()
   {
-    return $this->attribute_holder;
+    return $this->attributeHolder;
   }
 
   public function getAttribute($name, $default = null, $ns = null)
   {
-    return $this->attribute_holder->get($name, $default, $ns);
+    return $this->attributeHolder->get($name, $default, $ns);
   }
 
   public function hasAttribute($name, $ns = null)
   {
-    return $this->attribute_holder->has($name, $ns);
+    return $this->attributeHolder->has($name, $ns);
   }
 
   public function setAttribute($name, $value, $ns = null)
   {
-    return $this->attribute_holder->set($name, $value, $ns);
+    return $this->attributeHolder->set($name, $value, $ns);
   }
 
   public function getParameterHolder()
   {
-    return $this->parameter_holder;
+    return $this->parameterHolder;
   }
 
   public function getParameter($name, $default = null, $ns = null)
   {
-    return $this->parameter_holder->get($name, $default, $ns);
+    return $this->parameterHolder->get($name, $default, $ns);
   }
 
   public function hasParameter($name, $ns = null)
   {
-    return $this->parameter_holder->has($name, $ns);
+    return $this->parameterHolder->has($name, $ns);
   }
 
   public function setParameter($name, $value, $ns = null)
   {
-    return $this->parameter_holder->set($name, $value, $ns);
+    return $this->parameterHolder->set($name, $value, $ns);
   }
 
   /**
@@ -371,12 +371,12 @@ abstract class sfView
    *
    * @return bool true, if this view is a decorating view, otherwise false.
    */
-  public function isDecorator ()
+  public function isDecorator()
   {
     return $this->decorator;
   }
 
-  public function setDecorator ($boolean)
+  public function setDecorator($boolean)
   {
     $this->decorator = (boolean) $boolean;
   }
@@ -389,7 +389,7 @@ abstract class sfView
    *
    * @throws <b>sfRenderException</b> If the pre-render check fails.
    */
-  protected function preRenderCheck ()
+  protected function preRenderCheck()
   {
     if ($this->template == null)
     {
@@ -434,7 +434,7 @@ abstract class sfView
    * @return string A string representing the rendered presentation, if
    *                the controller render mode is sfView::RENDER_VAR, otherwise null.
    */
-  abstract function render ($templateVars = null);
+  abstract function render($templateVars = null);
 
   /**
    * Set the decorator template directory for this view.
@@ -443,7 +443,7 @@ abstract class sfView
    *
    * @return void
    */
-  public function setDecoratorDirectory ($directory)
+  public function setDecoratorDirectory($directory)
   {
     $this->decoratorDirectory = $directory;
   }
@@ -468,7 +468,7 @@ abstract class sfView
    *
    * @return void
    */
-  public function setDecoratorTemplate ($template)
+  public function setDecoratorTemplate($template)
   {
     if (sfToolkit::isPathAbsolute($template))
     {
@@ -496,7 +496,7 @@ abstract class sfView
    *
    * @return void
    */
-  public function setDirectory ($directory)
+  public function setDirectory($directory)
   {
     $this->directory = $directory;
   }
@@ -511,7 +511,7 @@ abstract class sfView
    *
    * @return void
    */
-  public function setComponentSlot ($attributeName, $moduleName, $componentName)
+  public function setComponentSlot($attributeName, $moduleName, $componentName)
   {
     $this->componentSlots[$attributeName]                   = array();
     $this->componentSlots[$attributeName]['module_name']    = $moduleName;
@@ -555,7 +555,7 @@ abstract class sfView
    *
    * @return void
    */
-  public function setTemplate ($template)
+  public function setTemplate($template)
   {
     if (sfToolkit::isPathAbsolute($template))
     {
@@ -568,12 +568,12 @@ abstract class sfView
     }
   }
 
-  public function getExtension ()
+  public function getExtension()
   {
     return $this->extension;
   }
 
-  public function setExtension ($ext)
+  public function setExtension($ext)
   {
     $this->extension = $ext;
   }

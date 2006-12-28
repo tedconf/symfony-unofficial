@@ -7,7 +7,7 @@
 //	Note: if Turkish Characters does not shown on you screen
 //		  please include falowing line your html code:
 //
-//		  <meta http-equiv="Content-Type" content="text/html; charset=windows-1254">
+//		  <meta http-equiv="Content-Type" content="text/html; charset=utf8">
 //
 //////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -15,41 +15,56 @@
 Calendar._DN = new Array
 ("Pazar",
  "Pazartesi",
- "Salı",
- "Çarşamba",
- "Perşembe",
+ "SalÄ±",
+ "Ã‡arÅŸamba",
+ "PerÅŸembe",
  "Cuma",
  "Cumartesi",
  "Pazar");
+
+// First day of the week. "0" means display Sunday first, "1" means display
+// Monday first, etc.
+Calendar._FD = 1;
+
 Calendar._MN = new Array
 ("Ocak",
- "Şubat",
+ "Åubat",
  "Mart",
  "Nisan",
- "Mayıs",
+ "MayÄ±s",
  "Haziran",
  "Temmuz",
- "Ağustos",
- "Eylül",
+ "AÄŸustos",
+ "EylÃ¼l",
  "Ekim",
- "Kasım",
- "Aralık");
+ "KasÄ±m",
+ "AralÄ±k");
 
 // tooltips
 Calendar._TT = {};
-Calendar._TT["TOGGLE"] = "Haftanın ilk gününü kaydır";
-Calendar._TT["PREV_YEAR"] = "Önceki Yıl (Menü için basılı tutunuz)";
-Calendar._TT["PREV_MONTH"] = "Önceki Ay (Menü için basılı tutunuz)";
-Calendar._TT["GO_TODAY"] = "Bugün'e git";
-Calendar._TT["NEXT_MONTH"] = "Sonraki Ay (Menü için basılı tutunuz)";
-Calendar._TT["NEXT_YEAR"] = "Sonraki Yıl (Menü için basılı tutunuz)";
-Calendar._TT["SEL_DATE"] = "Tarih seçiniz";
-Calendar._TT["DRAG_TO_MOVE"] = "Taşımak için sürükleyiniz";
-Calendar._TT["PART_TODAY"] = " (bugün)";
-Calendar._TT["MON_FIRST"] = "Takvim Pazartesi gününden başlasın";
-Calendar._TT["SUN_FIRST"] = "Takvim Pazar gününden başlasın";
+Calendar._TT["TOGGLE"] = "HaftanÄ±n ilk gÃ¼nÃ¼nÃ¼ kaydÄ±r";
+Calendar._TT["PREV_YEAR"] = "Ã–nceki YÄ±l (MenÃ¼ iÃ§in basÄ±lÄ± tutunuz)";
+Calendar._TT["PREV_MONTH"] = "Ã–nceki Ay (MenÃ¼ iÃ§in basÄ±lÄ± tutunuz)";
+Calendar._TT["GO_TODAY"] = "BugÃ¼n'e git";
+Calendar._TT["NEXT_MONTH"] = "Sonraki Ay (MenÃ¼ iÃ§in basÄ±lÄ± tutunuz)";
+Calendar._TT["NEXT_YEAR"] = "Sonraki YÄ±l (MenÃ¼ iÃ§in basÄ±lÄ± tutunuz)";
+Calendar._TT["SEL_DATE"] = "Tarih seÃ§iniz";
+Calendar._TT["DRAG_TO_MOVE"] = "TaÅŸÄ±mak iÃ§in sÃ¼rÃ¼kleyiniz";
+Calendar._TT["PART_TODAY"] = " (bugÃ¼n)";
+Calendar._TT["MON_FIRST"] = "Takvim Pazartesi gÃ¼nÃ¼nden baÅŸlasÄ±n";
+Calendar._TT["SUN_FIRST"] = "Takvim Pazar gÃ¼nÃ¼nden baÅŸlasÄ±n";
+
+// the following is to inform that "%s" is to be the first day of week
+// %s will be replaced with the day name.
+Calendar._TT["DAY_FIRST"] = "Display %s first";
+
+// This may be locale-dependent.  It specifies the week-end days, as an array
+// of comma-separated numbers.  The numbers are from 0 to 6: 0 means Sunday, 1
+// means Monday, etc.
+Calendar._TT["WEEKEND"] = "0,6";
+
 Calendar._TT["CLOSE"] = "Kapat";
-Calendar._TT["TODAY"] = "Bugün";
+Calendar._TT["TODAY"] = "BugÃ¼n";
 
 // date formats
 Calendar._TT["DEF_DATE_FORMAT"] = "dd-mm-y";

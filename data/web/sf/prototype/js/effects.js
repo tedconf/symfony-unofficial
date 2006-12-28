@@ -1,4 +1,4 @@
-// script.aculo.us effects.js v1.6.5, Wed Nov 08 14:17:49 CET 2006
+// script.aculo.us effects.js v1.7.0_beta2, Mon Dec 18 23:38:56 CET 2006
 
 // Copyright (c) 2005, 2006 Thomas Fuchs (http://script.aculo.us, http://mir.aculo.us)
 // Contributors:
@@ -12,7 +12,7 @@
 // converts rgb() and #xxx to #xxxxxx format,  
 // returns self (or first argument) if not convertable  
 String.prototype.parseColor = function() {  
-  var color = '#';  
+  var color = '#';
   if(this.slice(0,4) == 'rgb(') {  
     var cols = this.slice(4,this.length-1).split(',');  
     var i=0; do { color += parseInt(cols[i]).toColorPart() } while (++i<3);  
@@ -50,32 +50,11 @@ Element.setContentZoom = function(element, percent) {
 }
 
 Element.getOpacity = function(element){
-  element = $(element);
-  var opacity;
-  if (opacity = element.getStyle('opacity'))  
-    return parseFloat(opacity);  
-  if (opacity = (element.getStyle('filter') || '').match(/alpha\(opacity=(.*)\)/))  
-    if(opacity[1]) return parseFloat(opacity[1]) / 100;  
-  return 1.0;  
+  return $(element).getStyle('opacity');
 }
 
-Element.setOpacity = function(element, value){  
-  element= $(element);  
-  if (value == 1){
-    element.setStyle({ opacity: 
-      (/Gecko/.test(navigator.userAgent) && !/Konqueror|Safari|KHTML/.test(navigator.userAgent)) ? 
-      0.999999 : 1.0 });
-    if(/MSIE/.test(navigator.userAgent) && !window.opera)  
-      element.setStyle({filter: Element.getStyle(element,'filter').replace(/alpha\([^\)]*\)/gi,'')});  
-  } else {  
-    if(value < 0.00001) value = 0;  
-    element.setStyle({opacity: value});
-    if(/MSIE/.test(navigator.userAgent) && !window.opera)  
-      element.setStyle(
-        { filter: element.getStyle('filter').replace(/alpha\([^\)]*\)/gi,'') +
-            'alpha(opacity='+value*100+')' });  
-  }
-  return element;
+Element.setOpacity = function(element, value){
+  return $(element).setStyle({opacity:value});
 }  
  
 Element.getInlineOpacity = function(element){  
@@ -235,7 +214,7 @@ Object.extend(Object.extend(Effect.ScopedQueue.prototype, Enumerable), {
       this.effects.push(effect);
     
     if(!this.interval) 
-      this.interval = setInterval(this.loop.bind(this), 40);
+      this.interval = setInterval(this.loop.bind(this), 15);
   },
   remove: function(effect) {
     this.effects = this.effects.reject(function(e) { return e==effect });
@@ -266,7 +245,7 @@ Effect.Queue = Effect.Queues.get('global');
 Effect.DefaultOptions = {
   transition: Effect.Transitions.sinoidal,
   duration:   1.0,   // seconds
-  fps:        25.0,  // max. 25fps due to Effect.Queue implementation
+  fps:        60.0,  // max. 60fps due to Effect.Queue implementation
   sync:       false, // true for combining
   from:       0.0,
   to:         1.0,
@@ -941,8 +920,164 @@ Effect.Fold = function(element) {
   }}, arguments[1] || {}));
 };
 
+Effect.Morph = Class.create();
+Object.extend(Object.extend(Effect.Morph.prototype, Effect.Base.prototype), {
+  initialize: function(element) {
+    this.element = $(element);
+    if(!this.element) throw(Effect._elementDoesNotExistError);
+    var options = Object.extend({
+      style: {}
+    }, arguments[1] || {});
+    if (typeof options.style == 'string') {
+      if(options.style.indexOf(':') == -1) {
+        var cssText = '', selector = '.' + options.style;
+        $A(document.styleSheets).reverse().each(function(styleSheet) {
+          if (styleSheet.cssRules) cssRules = styleSheet.cssRules;
+          else if (styleSheet.rules) cssRules = styleSheet.rules;
+          $A(cssRules).reverse().each(function(rule) {
+            if (selector == rule.selectorText) {
+              cssText = rule.style.cssText;
+              throw $break;
+            }
+          });
+          if (cssText) throw $break;
+        });
+        this.style = cssText.parseStyle();
+        options.afterFinishInternal = function(effect){
+          effect.element.addClassName(effect.options.style);
+          effect.transforms.each(function(transform) {
+            if(transform.style != 'opacity')
+              effect.element.style[transform.style.camelize()] = '';
+          });
+        }
+      } else this.style = options.style.parseStyle();
+    } else this.style = $H(options.style)
+    this.start(options);
+  },
+  setup: function(){
+    function parseColor(color){
+      if(!color || ['rgba(0, 0, 0, 0)','transparent'].include(color)) color = '#ffffff';
+      color = color.parseColor();
+      return $R(0,2).map(function(i){
+        return parseInt( color.slice(i*2+1,i*2+3), 16 ) 
+      });
+    }
+    this.transforms = this.style.map(function(pair){
+      var property = pair[0].underscore().dasherize(), value = pair[1], unit = null;
+
+      if(value.parseColor('#zzzzzz') != '#zzzzzz') {
+        value = value.parseColor();
+        unit  = 'color';
+      } else if(property == 'opacity') {
+        value = parseFloat(value);
+        if(/MSIE/.test(navigator.userAgent) && !window.opera && (!this.element.currentStyle.hasLayout))
+          this.element.setStyle({zoom: 1});
+      } else if(Element.CSS_LENGTH.test(value)) 
+        var components = value.match(/^([\+\-]?[0-9\.]+)(.*)$/),
+          value = parseFloat(components[1]), unit = (components.length == 3) ? components[2] : null;
+
+      var originalValue = this.element.getStyle(property);
+      return $H({ 
+        style: property, 
+        originalValue: unit=='color' ? parseColor(originalValue) : parseFloat(originalValue || 0), 
+        targetValue: unit=='color' ? parseColor(value) : value,
+        unit: unit
+      });
+    }.bind(this)).reject(function(transform){
+      return (
+        (transform.originalValue == transform.targetValue) ||
+        (
+          transform.unit != 'color' &&
+          (isNaN(transform.originalValue) || isNaN(transform.targetValue))
+        )
+      )
+    });
+  },
+  update: function(position) {
+    var style = $H(), value = null;
+    this.transforms.each(function(transform){
+      value = transform.unit=='color' ?
+        $R(0,2).inject('#',function(m,v,i){
+          return m+(Math.round(transform.originalValue[i]+
+            (transform.targetValue[i] - transform.originalValue[i])*position)).toColorPart() }) : 
+        transform.originalValue + Math.round(
+          ((transform.targetValue - transform.originalValue) * position) * 1000)/1000 + transform.unit;
+      style[transform.style] = value;
+    });
+    this.element.setStyle(style);
+  }
+});
+
+Effect.Transform = Class.create();
+Object.extend(Effect.Transform.prototype, {
+  initialize: function(tracks){
+    this.tracks  = [];
+    this.options = arguments[1] || {};
+    this.addTracks(tracks);
+  },
+  addTracks: function(tracks){
+    tracks.each(function(track){
+      var data = $H(track).values().first();
+      this.tracks.push($H({
+        ids:     $H(track).keys().first(),
+        effect:  Effect.Morph,
+        options: { style: data }
+      }));
+    }.bind(this));
+    return this;
+  },
+  play: function(){
+    return new Effect.Parallel(
+      this.tracks.map(function(track){
+        var elements = [$(track.ids) || $$(track.ids)].flatten();
+        return elements.map(function(e){ return new track.effect(e, Object.extend({ sync:true }, track.options)) });
+      }).flatten(),
+      this.options
+    );
+  }
+});
+
+Element.CSS_PROPERTIES = ['azimuth', 'backgroundAttachment', 'backgroundColor', 'backgroundImage', 
+  'backgroundPosition', 'backgroundRepeat', 'borderBottomColor', 'borderBottomStyle', 
+  'borderBottomWidth', 'borderCollapse', 'borderLeftColor', 'borderLeftStyle', 'borderLeftWidth',
+  'borderRightColor', 'borderRightStyle', 'borderRightWidth', 'borderSpacing', 'borderTopColor',
+  'borderTopStyle', 'borderTopWidth', 'bottom', 'captionSide', 'clear', 'clip', 'color', 'content',
+  'counterIncrement', 'counterReset', 'cssFloat', 'cueAfter', 'cueBefore', 'cursor', 'direction',
+  'display', 'elevation', 'emptyCells', 'fontFamily', 'fontSize', 'fontSizeAdjust', 'fontStretch',
+  'fontStyle', 'fontVariant', 'fontWeight', 'height', 'left', 'letterSpacing', 'lineHeight',
+  'listStyleImage', 'listStylePosition', 'listStyleType', 'marginBottom', 'marginLeft', 'marginRight',
+  'marginTop', 'markerOffset', 'marks', 'maxHeight', 'maxWidth', 'minHeight', 'minWidth', 'opacity',
+  'orphans', 'outlineColor', 'outlineOffset', 'outlineStyle', 'outlineWidth', 'overflowX', 'overflowY',
+  'paddingBottom', 'paddingLeft', 'paddingRight', 'paddingTop', 'page', 'pageBreakAfter', 'pageBreakBefore',
+  'pageBreakInside', 'pauseAfter', 'pauseBefore', 'pitch', 'pitchRange', 'position', 'quotes',
+  'richness', 'right', 'size', 'speakHeader', 'speakNumeral', 'speakPunctuation', 'speechRate', 'stress',
+  'tableLayout', 'textAlign', 'textDecoration', 'textIndent', 'textShadow', 'textTransform', 'top',
+  'unicodeBidi', 'verticalAlign', 'visibility', 'voiceFamily', 'volume', 'whiteSpace', 'widows',
+  'width', 'wordSpacing', 'zIndex'];
+  
+Element.CSS_LENGTH = /^(([\+\-]?[0-9\.]+)(em|ex|px|in|cm|mm|pt|pc|\%))|0$/;
+
+String.prototype.parseStyle = function(){
+  var element = Element.extend(document.createElement('div'));
+  element.innerHTML = '<div style="' + this + '"></div>';
+  var style = element.down().style, styleRules = $H();
+  
+  Element.CSS_PROPERTIES.each(function(property){
+    if(style[property]) styleRules[property] = style[property]; 
+  });
+  if(/MSIE/.test(navigator.userAgent) && !window.opera && this.indexOf('opacity') > -1) {
+    styleRules.opacity = this.match(/opacity:\s*((?:0|1)?(?:\.\d*)?)/)[1];
+  }
+  return styleRules;
+};
+
+Element.morph = function(element, style) {
+  new Effect.Morph(element, Object.extend({ style: style }, arguments[2] || {}));
+  return element;
+};
+
 ['setOpacity','getOpacity','getInlineOpacity','forceRerendering','setContentZoom',
- 'collectTextNodes','collectTextNodesIgnoreClass'].each( 
+ 'collectTextNodes','collectTextNodesIgnoreClass','morph'].each( 
   function(f) { Element.Methods[f] = Element[f]; }
 );
 

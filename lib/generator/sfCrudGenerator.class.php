@@ -234,9 +234,13 @@ abstract class sfCrudGenerator extends sfGenerator
     
     $columnGetter = $this->getColumnGetter($column, true);
 
-    if ($type == CreoleTypes::DATE || $type == CreoleTypes::TIMESTAMP)
+    if ($type == CreoleTypes::TIMESTAMP)
     {
       return "format_date($columnGetter, 'f')";
+    }
+    elseif ($type == CreoleTypes::DATE)
+    {
+      return "format_date($columnGetter, 'D')";
     }
     else
     {
@@ -299,19 +303,17 @@ abstract class sfCrudGenerator extends sfGenerator
   }
 
   // here come the ORM specific functions
-
-
   abstract protected function loadPrimaryKeys();
 
   abstract protected function loadMapBuilderClasses();
-  
+
   // generates a PHP call to an object helper
   abstract function getPHPObjectHelper($helperName, $column, $params);
-  
+
   // returns the getter either non-developped: 'getFoo'
   // or developped: '$class->getFoo()'
   abstract function getColumnGetter($column, $developed = false , $prefix = '');
-  
+
   // used for foreign keys only; this method should be removed when we use
   // sfAdminColumn instead
   abstract function getRelatedClassName($column);

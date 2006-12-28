@@ -20,9 +20,9 @@
 abstract class sfResponse
 {
   protected
-    $parameter_holder = null,
-    $context = null,
-    $content = '';
+    $parameterHolder = null,
+    $context         = null,
+    $content         = '';
 
   /**
    * Initialize this sfResponse.
@@ -33,20 +33,20 @@ abstract class sfResponse
    *
    * @throws <b>sfInitializationException</b> If an error occurs while initializing this Response.
    */
-  public function initialize ($context, $parameters = array())
+  public function initialize($context, $parameters = array())
   {
     $this->context = $context;
 
-    $this->parameter_holder = new sfParameterHolder();
-    $this->parameter_holder->add($parameters);
+    $this->parameterHolder = new sfParameterHolder();
+    $this->parameterHolder->add($parameters);
   }
 
-  public function setContext ($context)
+  public function setContext($context)
   {
     $this->context = $context;
   }
 
-  public function getContext ()
+  public function getContext()
   {
     return $this->context;
   }
@@ -60,7 +60,7 @@ abstract class sfResponse
    *
    * @throws <b>sfFactoryException</b> If a request implementation instance cannot be created.
    */
-  public static function newInstance ($class)
+  public static function newInstance($class)
   {
     // the class exists
     $object = new $class();
@@ -78,33 +78,29 @@ abstract class sfResponse
   }
 
   /**
-   * Set the content.
+   * Set the response content
    *
    * @param string content
-   *
-   * @return void
    */
-  public function setContent ($content)
+  public function setContent($content)
   {
     $this->content = $content;
   }
 
   /**
-   * get the content.
+   * Get the current response content
    *
    * @return string
    */
-  public function getContent ()
+  public function getContent()
   {
     return $this->content;
   }
 
   /**
-   * echo the content.
-   *
-   * @return string
+   * Outputs the response content
    */
-  public function sendContent ()
+  public function sendContent()
   {
     if (sfConfig::get('sf_logging_enabled'))
     {
@@ -116,22 +112,22 @@ abstract class sfResponse
 
   public function getParameterHolder()
   {
-    return $this->parameter_holder;
+    return $this->parameterHolder;
   }
 
   public function getParameter($name, $default = null, $ns = null)
   {
-    return $this->parameter_holder->get($name, $default, $ns);
+    return $this->parameterHolder->get($name, $default, $ns);
   }
 
   public function hasParameter($name, $ns = null)
   {
-    return $this->parameter_holder->has($name, $ns);
+    return $this->parameterHolder->has($name, $ns);
   }
 
   public function setParameter($name, $value, $ns = null)
   {
-    return $this->parameter_holder->set($name, $value, $ns);
+    return $this->parameterHolder->set($name, $value, $ns);
   }
 
   /**
@@ -139,7 +135,7 @@ abstract class sfResponse
    *
    * @return void
    */
-  abstract function shutdown ();
+  abstract function shutdown();
 
   public function __call($method, $arguments)
   {

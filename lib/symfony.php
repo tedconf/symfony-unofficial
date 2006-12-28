@@ -84,9 +84,15 @@ try
   }
 
   // load base settings
-  include($configCache->checkConfig($sf_app_config_dir_name.'/logging.yml'));
   include($configCache->checkConfig($sf_app_config_dir_name.'/settings.yml'));
-  include($configCache->checkConfig($sf_app_config_dir_name.'/app.yml'));
+  if (sfConfig::get('sf_logging_enabled', true))
+  {
+    include($configCache->checkConfig($sf_app_config_dir_name.'/logging.yml'));
+  }
+  if ($file = $configCache->checkConfig($sf_app_config_dir_name.'/app.yml', true))
+  {
+    include($file);
+  }
   if (sfConfig::get('sf_i18n'))
   {
     include($configCache->checkConfig($sf_app_config_dir_name.'/i18n.yml'));
@@ -124,6 +130,9 @@ try
 
   // compress output
   ob_start(sfConfig::get('sf_compressed') ? 'ob_gzhandler' : '');
+
+  // initialize the context to catch exceptions
+  sfContext::getInstance();
 }
 catch (sfException $e)
 {

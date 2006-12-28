@@ -31,7 +31,7 @@ class sfExecutionFilter extends sfFilter
    * @throws <b>sfInitializeException</b> If an error occurs during view initialization.
    * @throws <b>sfViewException</b>       If an error occurs while executing the view.
    */
-  public function execute ($filterChain)
+  public function execute($filterChain)
   {
     // get the context and controller
     $context    = $this->getContext();
@@ -50,7 +50,7 @@ class sfExecutionFilter extends sfFilter
 
     $viewName = null;
 
-    if (sfConfig::get('sf_cache') && !sfConfig::get('sf_cache_always_execute_action', false))
+    if (sfConfig::get('sf_cache'))
     {
       $uri = sfRouting::getInstance()->getCurrentInternalUri();
       if (null !== $context->getResponse()->getParameter($uri.'_action', null, 'symfony/cache'))
@@ -62,10 +62,6 @@ class sfExecutionFilter extends sfFilter
 
     if (!$viewName)
     {
-      // create validator manager
-      $validatorManager = new sfValidatorManager();
-      $validatorManager->initialize($context);
-
       if (($actionInstance->getRequestMethods() & $method) != $method)
       {
         // this action will skip validation/execution for this method
@@ -84,14 +80,15 @@ class sfExecutionFilter extends sfFilter
         // do NOT use require_once
         if (null !== $validateFile = sfConfigCache::getInstance()->checkConfig(sfConfig::get('sf_app_module_dir_name').'/'.$validationConfig, true))
         {
+          // create validator manager
+          $validatorManager = new sfValidatorManager();
+          $validatorManager->initialize($context);
+
           require($validateFile);
+
+          // process validators
+          $validated = $validatorManager->execute();
         }
-
-        // manually load validators
-        $actionInstance->registerValidators($validatorManager);
-
-        // process validators
-        $validated = $validatorManager->execute();
 
         // process manual validation
         $validateToRun = 'validate'.ucfirst($actionName);
@@ -101,6 +98,12 @@ class sfExecutionFilter extends sfFilter
         // - all validation methods (manual and automatic) return true
         // - or automatic validation returns false but errors have been 'removed' by manual validation
         $validated = ($manualValidated && $validated) || ($manualValidated && !$validated && !$context->getRequest()->hasErrors());
+
+        // register fill-in filter
+        if (null !== ($parameters = $context->getRequest()->getAttribute('fillin', null, 'symfony/filter')))
+        {
+          $this->registerFillInFilter($filterChain, $parameters);
+        }
 
         if ($validated)
         {
@@ -138,17 +141,13 @@ class sfExecutionFilter extends sfFilter
             $viewName = sfView::ERROR;
           }
         }
-
-        // register fill-in filter
-        if (null !== ($parameters = $context->getRequest()->getAttribute('fillin', null, 'symfony/filter')))
-        {
-          $this->registerFillInFilter($filterChain, $parameters);
-        }
       }
     }
 
     if ($viewName == sfView::HEADER_ONLY)
     {
+      $context->getResponse()->setHeaderOnly(true);
+
       // execute next filter
       $filterChain->execute();
     }

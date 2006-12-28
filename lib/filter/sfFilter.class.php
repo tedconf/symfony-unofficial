@@ -22,11 +22,11 @@
 abstract class sfFilter
 {
   protected
-    $parameter_holder = null,
-    $filterCalled     = array(),
-    $context          = null;
+    $parameterHolder = null,
+    $filterCalled    = array(),
+    $context         = null;
 
-  protected function isFirstCall ()
+  protected function isFirstCall()
   {
     $class = get_class($this);
     if (isset($this->filterCalled[$class]))
@@ -46,7 +46,7 @@ abstract class sfFilter
    *
    * @return Context The current Context instance.
    */
-  public final function getContext ()
+  public final function getContext()
   {
     return $this->context;
   }
@@ -61,33 +61,33 @@ abstract class sfFilter
    *
    * @throws <b>sfInitializationException</b> If an error occurs while initializing this Filter.
    */
-  public function initialize ($context, $parameters = array())
+  public function initialize($context, $parameters = array())
   {
     $this->context = $context;
 
-    $this->parameter_holder = new sfParameterHolder();
-    $this->parameter_holder->add($parameters);
+    $this->parameterHolder = new sfParameterHolder();
+    $this->parameterHolder->add($parameters);
 
     return true;
   }
 
   public function getParameterHolder()
   {
-    return $this->parameter_holder;
+    return $this->parameterHolder;
   }
 
   public function getParameter($name, $default = null, $ns = null)
   {
-    return $this->parameter_holder->get($name, $default, $ns);
+    return $this->parameterHolder->get($name, $default, $ns);
   }
 
   public function hasParameter($name, $ns = null)
   {
-    return $this->parameter_holder->has($name, $ns);
+    return $this->parameterHolder->has($name, $ns);
   }
 
   public function setParameter($name, $value, $ns = null)
   {
-    return $this->parameter_holder->set($name, $value, $ns);
+    return $this->parameterHolder->set($name, $value, $ns);
   }
 }

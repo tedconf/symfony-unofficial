@@ -101,7 +101,7 @@ function run_plugin_list($task, $args)
     foreach ($packages as $package)
     {
       $pobj = $registry->getPackage(isset($package['package']) ? $package['package'] : $package['name'], $channel);
-      pake_echo(sprintf(" %-40s %10s-%-6s %s", pakeColor::colorize($pobj->getPackage(), 'INFO'), $pobj->getVersion(), $pobj->getState() ? $pobj->getState() : null, pakeColor::colorize('# '.$channel, 'COMMENT')));
+      pake_echo(sprintf(" %-40s %10s-%-6s %s", pakeColor::colorize($pobj->getPackage(), 'INFO'), $pobj->getVersion(), $pobj->getState() ? $pobj->getState() : null, pakeColor::colorize(sprintf('# %s (%s)', $channel, $registry->getChannel($channel)->getAlias()), 'COMMENT')));
     }
   }
 }
@@ -128,11 +128,14 @@ function _pear_run_command($config, $command, $opts, $params)
 function _pear_echo_message($message)
 {
   $t = '';
-  foreach (explode("\n", $message) as $line)
+  foreach (explode("\n", $message) as $longline)
   {
-    if ($line = trim($line))
+    foreach (explode("\n", wordwrap($longline, 62)) as $line)
     {
-      $t .= pake_format_action('pear', $line);
+      if ($line = trim($line))
+      {
+        $t .= pake_format_action('pear', $line);
+      }
     }
   }
 
@@ -160,11 +163,16 @@ function _pear_init()
   $config_file = sfConfig::get('sf_plugins_dir').DIRECTORY_SEPARATOR.'.pearrc';
 
   // change the configuration for symfony use
-  $config->set('php_dir',  sfConfig::get('sf_root_dir').'/plugins');
-  $config->set('data_dir', sfConfig::get('sf_root_dir').'/plugins');
-  $config->set('test_dir', sfConfig::get('sf_root_dir').'/plugins');
-  $config->set('doc_dir',  sfConfig::get('sf_root_dir').'/plugins');
-  $config->set('bin_dir',  sfConfig::get('sf_root_dir').'/plugins');
+  $config->set('php_dir',  sfConfig::get('sf_plugins_dir'));
+  $config->set('data_dir', sfConfig::get('sf_plugins_dir'));
+  $config->set('test_dir', sfConfig::get('sf_plugins_dir'));
+  $config->set('doc_dir',  sfConfig::get('sf_plugins_dir'));
+  $config->set('bin_dir',  sfConfig::get('sf_plugins_dir'));
+
+  // change the PEAR temp dir
+  $config->set('cache_dir',    sfConfig::get('sf_cache_dir'));
+  $config->set('download_dir', sfConfig::get('sf_cache_dir'));
+  $config->set('tmp_dir',      sfConfig::get('sf_cache_dir'));
 
   // save out configuration file
   $config->writeConfigFile($config_file, 'user');

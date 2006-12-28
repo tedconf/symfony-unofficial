@@ -31,7 +31,7 @@ class sfValidatorManager
    *
    * @return void
    */
-  public function clear ()
+  public function clear()
   {
     $this->groups = null;
     $this->groups = array();
@@ -44,8 +44,13 @@ class sfValidatorManager
    *
    * @return bool true, if validation completed successfully, otherwise false.
    */
-  public function execute ()
+  public function execute()
   {
+    if (sfConfig::get('sf_logging_enabled'))
+    {
+      sfContext::getInstance()->getLogger()->info('{sfValidator} validation execution');
+    }
+
     $retval = true;
 
     // loop through the names and start our validation
@@ -102,7 +107,7 @@ class sfValidatorManager
    *
    * @return void
    */
-  public function initialize ($context)
+  public function initialize($context)
   {
     $this->request = $context->getRequest();
   }
@@ -116,7 +121,7 @@ class sfValidatorManager
    * @param string  A group name.
    * @param string  A parent array.
    */
-  public function registerName ($name, $required = true, $message = 'Required', $parent = null, $group = null, $isFile = false)
+  public function registerName($name, $required = true, $message = 'Required', $parent = null, $group = null, $isFile = false)
   {
     // create the entry
     $entry                      = array();
@@ -173,7 +178,7 @@ class sfValidatorManager
    *
    * @return void
    */
-  public function registerValidator ($name, $validator, $parent = null)
+  public function registerValidator($name, $validator, $parent = null)
   {
     if ($parent != null)
     {
@@ -196,7 +201,7 @@ class sfValidatorManager
    *
    * @return bool true, if validation completes successfully, otherwise false.
    */
-  protected function validate (&$name, &$data, $parent)
+  protected function validate(&$name, &$data, $parent)
   {
     // get defaults
     $error     = null;

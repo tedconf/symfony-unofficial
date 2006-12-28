@@ -24,13 +24,20 @@ class sfStopException extends sfException
    * @param string The error message.
    * @param int    The error code.
    */
-  public function __construct ($message = null, $code = 0)
+  public function __construct($message = null, $code = 0)
   {
     $this->setName('sfStopException');
+
+    // disable xdebug to avoid backtrace in error log
+    if (function_exists('xdebug_disable'))
+    {
+      xdebug_disable();
+    }
+
     parent::__construct($message, $code);
   }
 
-  public function printStackTrace ($exception = null)
+  public function printStackTrace($exception = null)
   {
   }
 }

@@ -9,8 +9,7 @@
  */
 
 $app = 'frontend';
-$ret = include(dirname(__FILE__).'/../bootstrap/functional.php');
-if (!$ret)
+if (!include(dirname(__FILE__).'/../bootstrap/functional.php'))
 {
   return;
 }
@@ -114,4 +113,18 @@ $b->
   checkResponseElement('#lib1', 'pong')->
   checkResponseElement('#lib2', 'pong')->
   checkResponseElement('#lib3', 'pong')
+;
+
+// renderText
+$b->
+  get('/renderText')->
+  isStatusCode(200)->
+  responseContains('foo')
+;
+
+// view.yml when changing template
+$b->
+  get('/view')->
+  isStatusCode(200)->
+  checkResponseElement('head title', 'foo title')
 ;

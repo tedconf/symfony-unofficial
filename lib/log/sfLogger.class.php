@@ -166,10 +166,12 @@ class sfLogger
   {
     foreach ($this->loggers as $logger)
     {
-      if (method_exists('shutdown', $logger))
+      if (method_exists($logger, 'shutdown'))
       {
         $logger->shutdown();
       }
     }
+
+    $this->loggers = array();
   }
 }

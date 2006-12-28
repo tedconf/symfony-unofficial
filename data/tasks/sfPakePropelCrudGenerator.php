@@ -52,7 +52,7 @@ function run_propel_init_crud($task, $args)
 
   // create basic application structure
   $finder = pakeFinder::type('any')->ignore_version_control()->discard('.sf');
-  pake_mirror($finder, sfConfig::get('sf_symfony_data_dir').'/generator/sfPropelCrud/default/skeleton/', $moduleDir);
+  pake_mirror($finder, sfConfig::get('sf_symfony_data_dir').'/generator/sfPropelCrud/default/skeleton', $moduleDir);
 
   // create basic test
   pake_copy(sfConfig::get('sf_symfony_data_dir').'/skeleton/module/test/actionsTest.php', $sf_root_dir.'/test/functional/'.$app.'/'.$module.'ActionsTest.php');
@@ -82,13 +82,6 @@ function run_propel_generate_crud($task, $args)
   $app         = $args[0];
   $module      = $args[1];
   $model_class = $args[2];
-
-  // model class exists?
-  if (!is_readable('lib/model/'.$model_class.'.php'))
-  {
-    $error = sprintf('The model class "%s" does not exist.', $model_class);
-    throw new Exception($error);
-  }
 
   $sf_root_dir = sfConfig::get('sf_root_dir');
 
@@ -128,6 +121,12 @@ function run_propel_generate_crud($task, $args)
   // customize php and yml files
   $finder = pakeFinder::type('file')->name('*.php', '*.yml');
   pake_replace_tokens($finder, $moduleDir, '##', '##', $constants);
+
+  // create basic test
+  pake_copy(sfConfig::get('sf_symfony_data_dir').'/skeleton/module/test/actionsTest.php', $sf_root_dir.'/test/functional/'.$app.'/'.$module.'ActionsTest.php');
+
+  // customize test file
+  pake_replace_tokens($module.'ActionsTest.php', $sf_root_dir.'/test/functional/'.$app, '##', '##', $constants);
 
   // delete temp files
   $finder = pakeFinder::type('any');

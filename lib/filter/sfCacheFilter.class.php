@@ -38,7 +38,7 @@ class sfCacheFilter extends sfFilter
    *
    * @return void
    */
-  public function execute ($filterChain)
+  public function execute($filterChain)
   {
     // execute this filter only once, if cache is set and no GET or POST parameters
     if (!$this->isFirstCall() || !sfConfig::get('sf_cache') || count($_GET) || count($_POST))
@@ -56,7 +56,7 @@ class sfCacheFilter extends sfFilter
     $this->executeBeforeRendering();
   }
 
-  public function executeBeforeExecution ()
+  public function executeBeforeExecution()
   {
     // register our cache configuration
     $this->cacheManager->registerConfiguration($this->getContext()->getModuleName());
@@ -96,7 +96,7 @@ class sfCacheFilter extends sfFilter
    *
    * @return void
    */
-  public function executeBeforeRendering ()
+  public function executeBeforeRendering()
   {
     // cache only 200 HTTP status
     if ($this->response->getStatusCode() == 200)
@@ -145,7 +145,7 @@ class sfCacheFilter extends sfFilter
       if ($this->request->getHttpHeader('IF_NONE_MATCH') == $etag)
       {
         $this->response->setStatusCode(304);
-        $this->response->setContent('');
+        $this->response->setHeaderOnly(true);
 
         if (sfConfig::get('sf_logging_enabled'))
         {
@@ -163,7 +163,7 @@ class sfCacheFilter extends sfFilter
       if ($this->request->getHttpHeader('IF_MODIFIED_SINCE') == $last_modified)
       {
         $this->response->setStatusCode(304);
-        $this->response->setContent('');
+        $this->response->setHeaderOnly(true);
 
         if (sfConfig::get('sf_logging_enabled'))
         {
@@ -246,9 +246,10 @@ class sfCacheFilter extends sfFilter
 
     if ($retval && sfConfig::get('sf_web_debug'))
     {
-      $tmp = unserialize($retval);
-      $tmp['content'] = sfWebDebug::getInstance()->decorateContentWithDebug($uri, $tmp['content'], false);
-      $retval = serialize($tmp);
+      $cache = unserialize($retval);
+      $this->response->mergeProperties($cache['response']);
+      $cache['content'] = sfWebDebug::getInstance()->decorateContentWithDebug($uri, $cache['content'], false);
+      $retval = serialize($cache);
     }
 
     $this->response->setParameter('current_key', $uri.'_action', 'symfony/cache/current');

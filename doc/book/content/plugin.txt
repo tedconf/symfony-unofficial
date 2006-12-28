@@ -91,6 +91,11 @@ A plugin directory is organized more or less like a project directory. The files
         *schema.xml
         config.php         // specific plugin configuration
       data/
+        generator/
+          sfPropelAdmin/
+            */             // Administration generator themes
+              templates/
+              skeleton/
         fixtures/
           *.yml            // fixtures files
         tasks/
@@ -130,6 +135,8 @@ A few remarks concerning what you can put in these directories:
             ...
 
 * **PHP Configuration** is included in the application bootstrap script (`config.php`). In a plugin `config.php`, you have access to the file path constants, the `sfConfig` class (but the configuration is empty) but not to the autoloading. Use this file to add directories to the PHP include path for instance.
+
+* **Generator themes** can be used in the generated modules as a regular theme.
 
 * **Fixtures** files are taken into account by the `propel-load-data` command
 
@@ -171,7 +178,7 @@ The module settings and their default value are often described in the README fi
 
 You can replace the default contents of a plugin **module** by creating a module of the same name in your own application. It is not really overriding, since the elements in your application are used instead of the ones of the plugin. It works fine if you create **templates** and **configuration** files of the same name as the ones of the plugins.
 
-On the other hand, if a plugin wants to offer a module with the ability to override its **actions**, the `actions.class.php` in the plugin module must be empty and inherit from an autoloading class, so that the method of this class can be inherited as well by the `actions.class.php` of the application module.
+On the other hand, if a plugin wants to offer a module with the ability to override its **actions**, the `actions.class.php` in the plugin module must be empty and inherit from an autoloading class, so that the methods of this class can be inherited as well by the `actions.class.php` of the application module.
 
     [php]
     // in myPlugin/modules/mymodule/lib/myPluginmymoduleActions.class.php
@@ -200,7 +207,6 @@ On the other hand, if a plugin wants to offer a module with the ability to overr
 
 How to package a plugin for PEAR
 --------------------------------
-
 
 To override the plugins schema files, you must copy them to your projects config directory, and if they do not contain the PluginName,prefix them with the `PluginName-`, for the example above, you would have make a copy of the plugins schema.yml file, and prefix it `PluginName-`, to produce `PluginName-schema.yml` in your project's config directory. This file will then be used instead of the plugin file when building the model.
     

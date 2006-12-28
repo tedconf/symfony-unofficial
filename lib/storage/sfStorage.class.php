@@ -21,15 +21,15 @@
 abstract class sfStorage
 {
   protected
-    $parameter_holder = null,
-    $context = null;
+    $parameterHolder = null,
+    $context         = null;
 
   /**
    * Retrieve the current application context.
    *
    * @return sfContext A sfContext instance.
    */
-  public function getContext ()
+  public function getContext()
   {
     return $this->context;
   }
@@ -44,11 +44,11 @@ abstract class sfStorage
    *
    * @throws <b>sfInitializationException</b> If an error occurs while initializing this sfStorage.
    */
-  public function initialize ($context, $parameters = array())
+  public function initialize($context, $parameters = array())
   {
     $this->context = $context;
 
-    $this->parameter_holder = new sfParameterHolder();
+    $this->parameterHolder = new sfParameterHolder();
     $this->getParameterHolder()->add($parameters);
   }
 
@@ -61,7 +61,7 @@ abstract class sfStorage
    *
    * @throws <b>sfFactoryException</b> If a storage implementation instance cannot be created.
    */
-  public static function newInstance ($class)
+  public static function newInstance($class)
   {
     // the class exists
     $object = new $class();
@@ -113,7 +113,7 @@ abstract class sfStorage
    *
    * @throws <b>sfStorageException</b> If an error occurs while shutting down this storage.
    */
-  abstract function shutdown ();
+  abstract function shutdown();
 
   /**
    * Write data to this storage.
@@ -128,25 +128,25 @@ abstract class sfStorage
    *
    * @throws <b>sfStorageException</b> If an error occurs while writing to this storage.
    */
-  abstract function write ($key, &$data);
+  abstract function write($key, &$data);
   
   public function getParameterHolder()
   {
-    return $this->parameter_holder;
+    return $this->parameterHolder;
   }
 
   public function getParameter($name, $default = null, $ns = null)
   {
-    return $this->parameter_holder->get($name, $default, $ns);
+    return $this->parameterHolder->get($name, $default, $ns);
   }
 
   public function hasParameter($name, $ns = null)
   {
-    return $this->parameter_holder->has($name, $ns);
+    return $this->parameterHolder->has($name, $ns);
   }
 
   public function setParameter($name, $value, $ns = null)
   {
-    return $this->parameter_holder->set($name, $value, $ns);
+    return $this->parameterHolder->set($name, $value, $ns);
   }
 }

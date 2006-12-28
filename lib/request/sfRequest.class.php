@@ -41,12 +41,12 @@ abstract class sfRequest
   const POST = 4;
 
   protected
-    $errors           = array(),
-    $context          = null,
-    $method           = null,
-    $parameter_holder = null,
-    $config           = null,
-    $attribute_holder = null;
+    $errors          = array(),
+    $context         = null,
+    $method          = null,
+    $parameterHolder = null,
+    $config          = null,
+    $attributeHolder = null;
 
   /**
    * Extract parameter values from the request.
@@ -61,7 +61,7 @@ abstract class sfRequest
   {
     $array = array();
 
-    $parameters =& $this->parameter_holder->getAll();
+    $parameters =& $this->parameterHolder->getAll();
     foreach ($parameters as $key => &$value)
     {
       if (in_array($key, $names))
@@ -80,7 +80,7 @@ abstract class sfRequest
    *
    * @return string An error message, if the error exists, otherwise null.
    */
-  public function getError ($name, $catalogue = 'messages')
+  public function getError($name, $catalogue = 'messages')
   {
     $retval = null;
 
@@ -103,7 +103,7 @@ abstract class sfRequest
    *
    * @return array An indexed array of error names.
    */
-  public function getErrorNames ()
+  public function getErrorNames()
   {
     return array_keys($this->errors);
   }
@@ -113,7 +113,7 @@ abstract class sfRequest
    *
    * @return array An associative array of errors.
    */
-  public function getErrors ()
+  public function getErrors()
   {
     return $this->errors;
   }
@@ -125,7 +125,7 @@ abstract class sfRequest
    *             - sfRequest::GET
    *             - sfRequest::POST
    */
-  public function getMethod ()
+  public function getMethod()
   {
     return $this->method;
   }
@@ -137,7 +137,7 @@ abstract class sfRequest
    *
    * @return bool true, if the error exists, otherwise false.
    */
-  public function hasError ($name)
+  public function hasError($name)
   {
     return isset($this->errors[$name]);
   }
@@ -147,7 +147,7 @@ abstract class sfRequest
    *
    * @return bool true, if any error exist, otherwise false.
    */
-  public function hasErrors ()
+  public function hasErrors()
   {
     return (count($this->errors) > 0);
   }
@@ -157,23 +157,25 @@ abstract class sfRequest
    *
    * @param Context A sfContext instance.
    * @param array   An associative array of initialization parameters.
+   * @param array   An associative array of initialization attributes.
    *
    * @return bool true, if initialization completes successfully, otherwise false.
    *
    * @throws <b>sfInitializationException</b> If an error occurs while initializing this Request.
    */
-  public function initialize ($context, $parameters = array())
+  public function initialize($context, $parameters = array(), $attributes = array())
   {
     $this->context = $context;
 
     // initialize parameter and attribute holders
-    $this->parameter_holder = new sfParameterHolder();
-    $this->attribute_holder = new sfParameterHolder();
+    $this->parameterHolder = new sfParameterHolder();
+    $this->attributeHolder = new sfParameterHolder();
 
-    $this->parameter_holder->add($parameters);
+    $this->parameterHolder->add($parameters);
+    $this->attributeHolder->add($attributes);
   }
 
-  public function getContext ()
+  public function getContext()
   {
     return $this->context;
   }
@@ -187,7 +189,7 @@ abstract class sfRequest
    *
    * @throws <b>sfFactoryException</b> If a request implementation instance cannot be created.
    */
-  public static function newInstance ($class)
+  public static function newInstance($class)
   {
     // the class exists
     $object = new $class();
@@ -233,9 +235,12 @@ abstract class sfRequest
    *
    * @return void
    */
-  public function setError ($name, $message)
+  public function setError($name, $message)
   {
-    if (sfConfig::get('sf_logging_enabled')) $this->getContext()->getLogger()->info('{sfRequest} error in form for parameter "'.$name.'" (with message "'.$message.'")');
+    if (sfConfig::get('sf_logging_enabled'))
+    {
+      $this->getContext()->getLogger()->info('{sfRequest} error in form for parameter "'.$name.'" (with message "'.$message.'")');
+    }
 
     $this->errors[$name] = $message;
   }
@@ -250,7 +255,7 @@ abstract class sfRequest
    *
    * @return void
    */
-  public function setErrors ($errors)
+  public function setErrors($errors)
   {
     $this->errors = array_merge($this->errors, $errors);
   }
@@ -266,7 +271,7 @@ abstract class sfRequest
    *
    * @throws <b>sfException</b> - If the specified request method is invalid.
    */
-  public function setMethod ($method)
+  public function setMethod($method)
   {
     if ($method == self::GET || $method == self::POST)
     {
@@ -284,42 +289,42 @@ abstract class sfRequest
 
   public function getParameterHolder()
   {
-    return $this->parameter_holder;
+    return $this->parameterHolder;
   }
 
   public function getAttributeHolder()
   {
-    return $this->attribute_holder;
+    return $this->attributeHolder;
   }
 
   public function getAttribute($name, $default = null, $ns = null)
   {
-    return $this->attribute_holder->get($name, $default, $ns);
+    return $this->attributeHolder->get($name, $default, $ns);
   }
 
   public function hasAttribute($name, $ns = null)
   {
-    return $this->attribute_holder->has($name, $ns);
+    return $this->attributeHolder->has($name, $ns);
   }
 
   public function setAttribute($name, $value, $ns = null)
   {
-    return $this->attribute_holder->set($name, $value, $ns);
+    return $this->attributeHolder->set($name, $value, $ns);
   }
 
   public function getParameter($name, $default = null, $ns = null)
   {
-    return $this->parameter_holder->get($name, $default, $ns);
+    return $this->parameterHolder->get($name, $default, $ns);
   }
 
   public function hasParameter($name, $ns = null)
   {
-    return $this->parameter_holder->has($name, $ns);
+    return $this->parameterHolder->has($name, $ns);
   }
 
   public function setParameter($name, $value, $ns = null)
   {
-    return $this->parameter_holder->set($name, $value, $ns);
+    return $this->parameterHolder->set($name, $value, $ns);
   }
 
   /**
@@ -327,7 +332,7 @@ abstract class sfRequest
    *
    * @return void
    */
-  abstract function shutdown ();
+  abstract function shutdown();
 
   public function __call($method, $arguments)
   {

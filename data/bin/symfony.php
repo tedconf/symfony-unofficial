@@ -35,7 +35,9 @@ require_once($sf_symfony_lib_dir.'/vendor/pake/pakeGetopt.class.php');
 // autoloading for pake tasks
 class simpleAutoloader
 {
-  static public $class_paths = array();
+  static public
+    $class_paths        = array(),
+    $autoload_callables = array();
 
   static public function initialize($sf_symfony_lib_dir)
   {
@@ -52,15 +54,23 @@ class simpleAutoloader
   {
     if (!isset(self::$class_paths[$class]))
     {
+      foreach((array) self::$autoload_callables as $callable)
+      {
+        if (call_user_func($callable, $class))
+        {
+          return true;
+        }
+      }
+
       return false;
     }
 
-    require(self::$class_paths[$class]);
+    require_once(self::$class_paths[$class]);
 
     return true;
   }
 
-  static protected function register($dir, $ext)
+  static public function register($dir, $ext)
   {
     if (!is_dir($dir))
     {
@@ -69,14 +79,41 @@ class simpleAutoloader
 
     foreach (pakeFinder::type('file')->name('*'.$ext)->ignore_version_control()->follow_link()->in($dir) as $file)
     {
-      self::$class_paths[str_replace($ext, '', basename($file))] = $file;
+      self::$class_paths[str_replace($ext, '', str_replace('.class', '', basename($file, $ext)))] = $file;
     }
+  }
+
+  static public function add($class, $file)
+  {
+    if (!is_file($file))
+    {
+      return;
+    }
+
+    self::$class_paths[$class] = $file;
+  }
+
+  static public function registerCallable($callable)
+  {
+    if (!is_callable($callable))
+    {
+      throw new Exception('Autoload callable does not exist');
+    }
+
+    self::$autoload_callables[] = $callable;
   }
 }
 
-simpleAutoloader::initialize($sf_symfony_lib_dir);
 function __autoload($class)
 {
+  static $initialized = false;
+
+  if (!$initialized)
+  {
+    simpleAutoloader::initialize(sfConfig::get('sf_symfony_lib_dir'));
+    $initialized = true;
+  }
+
   return simpleAutoloader::__autoload($class);
 }
 
@@ -120,10 +157,13 @@ $dirs = array(
 );
 foreach ($dirs as $globDir => $name)
 {
-  $tasks = pakeFinder::type('file')->name($name)->in(glob($globDir));
-  foreach ($tasks as $task)
+  if ($dirs = glob($globDir))
   {
-    include_once($task);
+    $tasks = pakeFinder::type('file')->name($name)->in($dirs);
+    foreach ($tasks as $task)
+    {
+      include_once($task);
+    }
   }
 }
 

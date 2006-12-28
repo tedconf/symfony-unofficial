@@ -439,7 +439,7 @@ EOF;
 
     foreach ($this->getColumns('tmp.display') as $column)
     {
-      $value = str_replace('%%'.$column->getName().'%%', '{$this->'.$this->getSingularName().'->get'.$column->getPhpName().'()}', $value);
+      $value = str_replace('%%'.$column->getName().'%%', '{'.$this->getColumnGetter($column, true, 'this->').'}', $value);
     }
 
     return $value;
@@ -465,7 +465,7 @@ EOF;
     }
     else if ($type == CreoleTypes::DATE || $type == CreoleTypes::TIMESTAMP)
     {
-      $format = isset($params['date_format']) ? $params['date_format'] : 'f';
+      $format = isset($params['date_format']) ? $params['date_format'] : ($type == CreoleTypes::DATE ? 'D' : 'f');
       return "($columnGetter !== null && $columnGetter !== '') ? format_date($columnGetter, \"$format\") : ''";
     }
     elseif ($type == CreoleTypes::BOOLEAN)
@@ -582,38 +582,40 @@ class sfAdminColumn
     $this->flags   = (array) $flags;
   }
 
-  public function __call ($name, $arguments)
-  {
-    return $this->column ? $this->column->$name() : null;
-  }
-
-  public function isReal ()
+  public function isReal()
   {
     return $this->column ? true : false;
   }
 
-  public function getPhpName ()
-  {
-    return $this->phpName;
-  }
-
-  public function getName ()
+  public function getName()
   {
     return sfInflector::underscore($this->phpName);
   }
 
-  public function isPartial ()
+  public function isPartial()
   {
     return in_array('_', $this->flags) ? true : false;
   }
 
-  public function isComponent ()
+  public function isComponent()
   {
     return in_array('~', $this->flags) ? true : false;
   }
 
-  public function isLink ()
+  public function isLink()
   {
     return (in_array('=', $this->flags) || $this->isPrimaryKey()) ? true : false;
+  }
+  
+  // FIXME: those methods are only used in the propel admin generator
+  
+  public function __call($name, $arguments)
+  {
+    return $this->column ? $this->column->$name() : null;
+  }
+  
+  public function getPhpName()
+  {
+    return $this->phpName;
   }
 }

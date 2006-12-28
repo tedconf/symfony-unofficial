@@ -27,7 +27,7 @@ class sfToolkit
    *
    * @return string A class or interface name, if one can be extracted, otherwise null.
    */
-  public static function extractClassName ($filename)
+  public static function extractClassName($filename)
   {
     $retval = null;
 
@@ -53,7 +53,7 @@ class sfToolkit
    *
    * @return void
    */
-  public static function clearDirectory ($directory)
+  public static function clearDirectory($directory)
   {
     if (!is_dir($directory))
     {
@@ -102,7 +102,7 @@ class sfToolkit
    *
    * @return void
    */
-  public static function clearGlob ($pattern)
+  public static function clearGlob($pattern)
   {
     $files = glob($pattern);
 
@@ -131,7 +131,7 @@ class sfToolkit
    *
    * @return bool true, if the path is absolute, otherwise false.
    */
-  public static function isPathAbsolute ($path)
+  public static function isPathAbsolute($path)
   {
     if ($path[0] == '/' || $path[0] == '\\' ||
         (strlen($path) > 3 && ctype_alpha($path[0]) &&
@@ -174,7 +174,7 @@ class sfToolkit
     return $isLocked;
   }
 
-  public static function stripComments ($source)
+  public static function stripComments($source)
   {
     if (!sfConfig::get('sf_strip_comments', true))
     {
@@ -467,5 +467,68 @@ class sfToolkit
     }
 
     return $default;
+  }
+
+  public static function getPhpCli()
+  {
+    $path = getenv('PATH') ? getenv('PATH') : getenv('Path');
+    $suffixes = DIRECTORY_SEPARATOR == '\\' ? (getenv('PATHEXT') ? explode(PATH_SEPARATOR, getenv('PATHEXT')) : array('.exe', '.bat', '.cmd', '.com')) : array('');
+    foreach (array('php5', 'php') as $phpCli)
+    {
+      foreach ($suffixes as $suffix)
+      {
+        foreach (explode(PATH_SEPARATOR, $path) as $dir)
+        {
+          $file = $dir.DIRECTORY_SEPARATOR.$phpCli.$suffix;
+          if (is_executable($file))
+          {
+            return $file;
+          }
+        }
+      }
+    }
+
+    throw new sfException('Unable to find PHP executable');
+  }
+
+  /**
+   * From PEAR System.php
+   *
+   * LICENSE: This source file is subject to version 3.0 of the PHP license
+   * that is available through the world-wide-web at the following URI:
+   * http://www.php.net/license/3_0.txt.  If you did not receive a copy of
+   * the PHP License and are unable to obtain it through the web, please
+   * send a note to license@php.net so we can mail you a copy immediately.
+   *
+   * @author     Tomas V.V.Cox <cox@idecnet.com>
+   * @copyright  1997-2006 The PHP Group
+   * @license    http://www.php.net/license/3_0.txt  PHP License 3.0
+   */
+  public static function getTmpDir()
+  {
+    if (DIRECTORY_SEPARATOR == '\\')
+    {
+      if ($var = isset($_ENV['TEMP']) ? $_ENV['TEMP'] : getenv('TEMP'))
+      {
+        return $var;
+      }
+      if ($var = isset($_ENV['TMP']) ? $_ENV['TMP'] : getenv('TMP'))
+      {
+        return $var;
+      }
+      if ($var = isset($_ENV['windir']) ? $_ENV['windir'] : getenv('windir'))
+      {
+        return $var;
+      }
+
+      return getenv('SystemRoot').'\temp';
+    }
+
+    if ($var = isset($_ENV['TMPDIR']) ? $_ENV['TMPDIR'] : getenv('TMPDIR'))
+    {
+      return $var;
+    }
+
+    return '/tmp';
   }
 }

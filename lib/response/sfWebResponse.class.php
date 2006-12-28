@@ -21,10 +21,11 @@
 class sfWebResponse extends sfResponse
 {
   protected
-    $cookies    = array(),
-    $statusCode = 200,
-    $statusText = 'OK',
-    $statusTexts = array();
+    $cookies     = array(),
+    $statusCode  = 200,
+    $statusText  = 'OK',
+    $statusTexts = array(),
+    $headerOnly  = false;
 
   /**
    * Initialize this sfWebResponse.
@@ -35,9 +36,14 @@ class sfWebResponse extends sfResponse
    *
    * @throws <b>sfInitializationException</b> If an error occurs while initializing this Response.
    */
-  public function initialize ($context, $parameters = array())
+  public function initialize($context, $parameters = array())
   {
     parent::initialize($context, $parameters);
+
+    if ('HEAD' == $context->getRequest()->getMethodName())
+    {
+      $this->setHeaderOnly(true);
+    }
 
     $this->statusTexts = array(
       '100' => 'Continue',
@@ -85,6 +91,26 @@ class sfWebResponse extends sfResponse
   }
 
   /**
+   * Sets if the response consist of just HTTP headers
+   *
+   * @param boolean
+   */
+  public function setHeaderOnly($value = true)
+  {
+    $this->headerOnly = (boolean) $value;
+  }
+
+  /**
+   * Returns if the response must only consist of HTTP headers
+   *
+   * @return boolean returns true if, false otherwise
+   */
+  public function isHeaderOnly()
+  {
+    return $this->headerOnly;
+  }
+
+  /**
    * Set a cookie.
    *
    * @param string HTTP header name
@@ -92,7 +118,7 @@ class sfWebResponse extends sfResponse
    *
    * @return void
    */
-  public function setCookie ($name, $value, $expire = null, $path = '/', $domain = '', $secure = false, $httpOnly = false)
+  public function setCookie($name, $value, $expire = null, $path = '/', $domain = '', $secure = false, $httpOnly = false)
   {
     if ($expire !== null)
     {
@@ -129,13 +155,13 @@ class sfWebResponse extends sfResponse
    *
    * @return void
    */
-  public function setStatusCode ($code, $name = null)
+  public function setStatusCode($code, $name = null)
   {
     $this->statusCode = $code;
     $this->statusText = null !== $name ? $name : $this->statusTexts[$code];
   }
 
-  public function getStatusCode ()
+  public function getStatusCode()
   {
     return $this->statusCode;
   }
@@ -148,7 +174,7 @@ class sfWebResponse extends sfResponse
    *
    * @return void
    */
-  public function setHttpHeader ($name, $value, $replace = true)
+  public function setHttpHeader($name, $value, $replace = true)
   {
     $name = $this->normalizeHeaderName($name);
 
@@ -176,7 +202,7 @@ class sfWebResponse extends sfResponse
    *
    * @return array
    */
-  public function getHttpHeader ($name, $default = null)
+  public function getHttpHeader($name, $default = null)
   {
     return $this->getParameter($this->normalizeHeaderName($name), $default, 'symfony/response/http/headers');
   }
@@ -186,7 +212,7 @@ class sfWebResponse extends sfResponse
    *
    * @return boolean
    */
-  public function hasHttpHeader ($name)
+  public function hasHttpHeader($name)
   {
     return $this->hasParameter($this->normalizeHeaderName($name), 'symfony/response/http/headers');
   }
@@ -198,7 +224,7 @@ class sfWebResponse extends sfResponse
    *
    * @return void
    */
-  public function setContentType ($value)
+  public function setContentType($value)
   {
     // add charset if needed
     if (false === stripos($value, 'charset'))
@@ -214,7 +240,7 @@ class sfWebResponse extends sfResponse
    *
    * @return array
    */
-  public function getContentType ()
+  public function getContentType()
   {
     return $this->getHttpHeader('Content-Type', 'text/html; charset='.sfConfig::get('sf_charset'));
   }
@@ -224,10 +250,10 @@ class sfWebResponse extends sfResponse
    *
    * @return void
    */
-  public function sendHttpHeaders ()
+  public function sendHttpHeaders()
   {
     // status
-    if (substr(php_sapi_name(), 0, 3) == 'cgi' && isset($_SERVER['SERVER_SOFTWARE']) && false !== stripos($_SERVER['SERVER_SOFTWARE'], 'apache/2'))
+    if (0 == strncasecmp(PHP_SAPI, 'cgi', 3) && isset($_SERVER['SERVER_SOFTWARE']) && false !== stripos($_SERVER['SERVER_SOFTWARE'], 'apache/2'))
     {
       // fix bug http://www.symfony-project.com/trac/ticket/669 for apache2/mod_fastcgi
       $status = 'Status: '.$this->statusCode.' '.$this->statusText;
@@ -271,6 +297,14 @@ class sfWebResponse extends sfResponse
       {
         $this->getContext()->getLogger()->info('{sfResponse} send cookie "'.$cookie['name'].'": "'.$cookie['value'].'"');
       }
+    }
+  }
+
+  public function sendContent()
+  {
+    if (!$this->headerOnly)
+    {
+      parent::sendContent();
     }
   }
 
@@ -447,12 +481,12 @@ class sfWebResponse extends sfResponse
 
   public function mergeProperties($response)
   {
-    $this->parameter_holder = clone $response->getParameterHolder();
+    $this->parameterHolder = clone $response->getParameterHolder();
   }
 
   public function __sleep()
   {
-    return array('content', 'statusCode', 'statusText', 'parameter_holder');
+    return array('content', 'statusCode', 'statusText', 'parameterHolder');
   }
 
   public function __wakeup()
@@ -464,7 +498,7 @@ class sfWebResponse extends sfResponse
    *
    * @return void
    */
-  public function shutdown ()
+  public function shutdown()
   {
   }
 }

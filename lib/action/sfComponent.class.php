@@ -19,11 +19,11 @@
 abstract class sfComponent
 {
   protected
-    $context                  = null,
-    $var_holder               = null,
-    $request                  = null,
-    $response                 = null,
-    $request_parameter_holder = null;
+    $context                = null,
+    $request                = null,
+    $response               = null,
+    $varHolder              = null,
+    $requestParameterHolder = null;
 
   /**
    * Execute any application/business logic for this action.
@@ -43,7 +43,27 @@ abstract class sfComponent
    *               - The parent module of the view that will be executed.
    *               - The view that will be executed.
    */
-  abstract function execute ();
+  abstract function execute();
+
+  /**
+   * Gets current module name
+   *
+   * @return string
+   */
+  public function getModuleName()
+  {
+    return $this->getContext()->getModuleName();
+  }
+
+  /**
+   * Gets current action name
+   *
+   * @return string
+   */
+  public function getActionName()
+  {
+    return $this->getContext()->getActionName();
+  }
 
   /**
    * Initialize this action.
@@ -54,11 +74,11 @@ abstract class sfComponent
    */
   public function initialize($context)
   {
-    $this->context                  = $context;
-    $this->var_holder               = new sfParameterHolder();
-    $this->request                  = $context->getRequest();
-    $this->response                 = $context->getResponse();
-    $this->request_parameter_holder = $this->request->getParameterHolder();
+    $this->context                = $context;
+    $this->varHolder             = new sfParameterHolder();
+    $this->request                = $context->getRequest();
+    $this->response               = $context->getResponse();
+    $this->requestParameterHolder = $this->request->getParameterHolder();
 
     return true;
   }
@@ -68,7 +88,7 @@ abstract class sfComponent
    *
    * @return sfContext The current sfContext instance.
    */
-  public final function getContext ()
+  public final function getContext()
   {
     return $this->context;
   }
@@ -78,7 +98,7 @@ abstract class sfComponent
    *
    * @return sfLogger The current sfLogger instance.
    */
-  public final function getLogger ()
+  public final function getLogger()
   {
     return $this->context->getLogger();
   }
@@ -90,7 +110,7 @@ abstract class sfComponent
    * @param string The priority of the message
    *               (available priorities: emerg, alert, crit, err, warning, notice, info, debug).
    */
-  public function logMessage ($message, $priority = 'info')
+  public function logMessage($message, $priority = 'info')
   {
     if (sfConfig::get('sf_logging_enabled'))
     {
@@ -103,7 +123,7 @@ abstract class sfComponent
    *
    * @param string The message text.
    */
-  public function debugMessage ($message)
+  public function debugMessage($message)
   {
     if (sfConfig::get('sf_web_debug'))
     {
@@ -123,7 +143,7 @@ abstract class sfComponent
    */
   public function getRequestParameter($name, $default = null)
   {
-    return $this->request_parameter_holder->get($name, $default);
+    return $this->requestParameterHolder->get($name, $default);
   }
 
   /**
@@ -138,7 +158,7 @@ abstract class sfComponent
    */
   public function hasRequestParameter($name)
   {
-    return $this->request_parameter_holder->has($name);
+    return $this->requestParameterHolder->has($name);
   }
 
   /**
@@ -206,7 +226,7 @@ abstract class sfComponent
    */
   public function setVar($name, $value)
   {
-    $this->var_holder->set($name, $value);
+    $this->varHolder->set($name, $value);
   }
 
   /**
@@ -217,7 +237,7 @@ abstract class sfComponent
    */
   public function getVar($name)
   {
-    return $this->var_holder->get($name);
+    return $this->varHolder->get($name);
   }
 
   /**
@@ -227,7 +247,7 @@ abstract class sfComponent
    */
   public function getVarHolder()
   {
-    return $this->var_holder;
+    return $this->varHolder;
   }
 
   /**
@@ -242,7 +262,7 @@ abstract class sfComponent
    */
   public function __set($key, $value)
   {
-    return $this->var_holder->setByRef($key, $value);
+    return $this->varHolder->setByRef($key, $value);
   }
 
   /**
@@ -256,7 +276,7 @@ abstract class sfComponent
    */
   public function __get($key)
   {
-    return $this->var_holder->get($key);
+    return $this->varHolder->get($key);
   }
 
   /**
@@ -270,7 +290,7 @@ abstract class sfComponent
    */
   public function __isset($name)
   {
-    return $this->var_holder->has($name);
+    return $this->varHolder->has($name);
   }
 
   /**
@@ -284,7 +304,7 @@ abstract class sfComponent
    */
   public function __unset($name)
   {
-    $this->var_holder->remove($name);
+    $this->varHolder->remove($name);
   }
 
   /**

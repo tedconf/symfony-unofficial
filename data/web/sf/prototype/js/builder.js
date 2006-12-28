@@ -1,4 +1,4 @@
-// script.aculo.us builder.js v1.6.5, Wed Nov 08 14:17:49 CET 2006
+// script.aculo.us builder.js v1.7.0_beta2, Mon Dec 18 23:38:56 CET 2006
 
 // Copyright (c) 2005, 2006 Thomas Fuchs (http://script.aculo.us, http://mir.aculo.us)
 //
