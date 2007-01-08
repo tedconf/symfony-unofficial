@@ -280,6 +280,18 @@ class sfWebRequest extends sfRequest
           $this->setMethod(self::POST);
           break;
 
+        case 'PUT':
+          $this->setMethod(self::PUT);
+          break;
+
+        case 'DELETE':
+          $this->setMethod(self::DELETE);
+          break;
+
+        case 'HEAD':
+          $this->setMethod(self::HEAD);
+          break;
+
         default:
           $this->setMethod(self::GET);
       }
@@ -472,7 +484,7 @@ class sfWebRequest extends sfRequest
     // move symfony parameters in a protected namespace (parameters prefixed with _sf_)
     foreach ($this->getParameterHolder()->getAll() as $key => $value)
     {
-      if (stripos($key, '_sf_') !== false)
+      if (0 === stripos($key, '_sf_'))
       {
         $this->getParameterHolder()->remove($key);
         $this->setParameter($key, $value, 'symfony/request/sfWebRequest');
@@ -713,7 +725,12 @@ class sfWebRequest extends sfRequest
 
   public function getHttpHeader($name, $prefix = 'http')
   {
-    $name = strtoupper($prefix).'_'.strtoupper(strtr($name, '-', '_'));
+    if ($prefix)
+    {
+      $prefix = strtoupper($prefix).'_';
+    }
+
+    $name = $prefix.strtoupper(strtr($name, '-', '_'));
 
     $pathArray = $this->getPathInfoArray();
 

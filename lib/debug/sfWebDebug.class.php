@@ -158,7 +158,7 @@ class sfWebDebug
           <th>message</th>
         </tr>'."\n";
       $line_nb = 0;
-      foreach($this->log as $logEntry)
+      foreach ($this->log as $logEntry)
       {
         $log = $logEntry['message'];
 
@@ -207,7 +207,7 @@ class sfWebDebug
       $types = array();
       foreach ($this->types as $type => $nb)
       {
-        $types[] = '<a id="sfWebDebug'.$type.'" href="#" onclick="sfWebDebugToggleMessages(\''.$type.'\'); return false;">'.$type.'</a>';
+        $types[] = '<a href="#" onclick="sfWebDebugToggleMessages(\''.$type.'\'); return false;">'.$type.'</a>';
       }
     }
 

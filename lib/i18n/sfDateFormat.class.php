@@ -106,7 +106,7 @@ class sfDateFormat
 
     $this->methods = get_class_methods($this);
   }
-  
+
   /**
    * Guesses a date without calling strtotime.
    *
@@ -118,7 +118,9 @@ class sfDateFormat
   public function getDate($time, $pattern = null)
   {
     // if the type is not a php timestamp
-    if (is_string($time))
+    $isString = (string) $time !== (string) (int) $time;
+
+    if ($isString)
     {
       if (!$pattern)
       {
@@ -167,7 +169,7 @@ class sfDateFormat
     // the last attempt has failed we fall back on the default method
     if (!isset($date))
     {
-      if (is_string($time))
+      if ($isString)
       {
         $numericalTime = @strtotime($time);
         if ($numericalTime === false)
@@ -764,11 +766,6 @@ class sfDateFormat
    */
   protected function getHourInDay($date, $pattern = 'k')
   {
-    if (is_null($dateTimeInfo))
-    {
-      $dateTimeInfo = $this->dateTimeInfo;
-    }
-
     if ($pattern != 'k')
     {
       throw new sfException('The pattern for hour in day is "k".');

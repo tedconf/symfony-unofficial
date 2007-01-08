@@ -352,15 +352,23 @@ abstract class sfAction extends sfComponent
    *
    * @return int One of the following values:
    *
-   *             - sfRequest::GET
-   *             - sfRequest::POST
-   *             - sfRequest::NONE
+   * - sfRequest::GET
+   * - sfRequest::POST
+   * - sfRequest::PUT
+   * - sfRequest::DELETE
+   * - sfRequest::HEAD
+   * - sfRequest::NONE
    *
    * @see sfRequest
    */
   public function getRequestMethods()
   {
-    return sfRequest::GET | sfRequest::POST | sfRequest::NONE;
+    return sfRequest::GET
+           | sfRequest::POST
+           | sfRequest::PUT
+           | sfRequest::DELETE
+           | sfRequest::HEAD 
+           | sfRequest::NONE;
   }
 
   /**
@@ -504,5 +512,15 @@ abstract class sfAction extends sfComponent
   public function getLayout()
   {
     return $this->getResponse()->getParameter($this->getModuleName().'_'.$this->getActionName().'_layout', null, 'symfony/action/view');
+  }
+
+  /**
+   * Changes the default view class used for rendering the template associated with the current action.
+   *
+   * @param string View class name
+   */
+  public function setViewClass($class)
+  {
+    sfConfig::set('mod_'.strtolower($this->getModuleName()).'_view_class', $class);
   }
 }
