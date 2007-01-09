@@ -1,4 +1,7 @@
-#!/usr/bin/env php -d html_errors=off -d open_basedir= -q
+#!/bin/sh
+sed -e '1,/^exit/d' "$0" |
+  /usr/bin/env php -dhtml_errors=off -dopen_basedir= -q -- "$@"
+exit
 <?php
 
 /*
