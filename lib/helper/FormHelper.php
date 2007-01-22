@@ -425,10 +425,14 @@ function textarea_tag($name, $content = null, $options = array())
   // rich control?
   if ($rich = _get_option($options, 'rich', false))
   {
+    if (true === $rich)
+    {
+      $rich = sfConfig::get('sf_rich_text_editor_class', 'TinyMCE');
+    }
+
     // switch for backward compatibility
     switch ($rich)
     {
-      case true:
       case 'tinymce':
         $rich = 'TinyMCE';
         break;
@@ -614,6 +618,8 @@ function input_date_tag($name, $value = null, $options = array())
 
   $culture = _get_option($options, 'culture', $context->getUser()->getCulture());
 
+  $withTime = _get_option($options, 'withtime', false);
+
   // rich control?
   if (!_get_option($options, 'rich', false))
   {
@@ -622,19 +628,17 @@ function input_date_tag($name, $value = null, $options = array())
     // set culture for month tag
     $options['culture'] = $culture;
 
-    return select_date_tag($name, $value, $options, isset($options['html']) ? $options['html'] : array());
+    if ($withTime)
+    {
+      return select_datetime_tag($name, $value, $options, isset($options['html']) ? $options['html'] : array());
+    }
+    else
+    {
+      return select_date_tag($name, $value, $options, isset($options['html']) ? $options['html'] : array());
+    }
   }
 
-  if ($withTime = _get_option($options, 'withtime', false))
-  {
-    $pattern = 'g';
-  }
-  else
-  {
-    $pattern = 'd';
-  }
-
-  $pattern = _get_option($options, 'format', $pattern);
+  $pattern = _get_option($options, 'format', $withTime ? 'g' : 'd');
 
   $dateFormat = new sfDateFormat($culture);
 
@@ -661,7 +665,12 @@ function input_date_tag($name, $value = null, $options = array())
   {
     $context->getResponse()->addJavascript($js);
   }
-  $context->getResponse()->addStylesheet(sfConfig::get('sf_calendar_web_dir').'/skins/aqua/theme');
+
+  // css
+  if ($calendar_style = _get_option($options, 'css', 'skins/aqua/theme'))
+  {
+    $context->getResponse()->addStylesheet(sfConfig::get('sf_calendar_web_dir').'/'.$calendar_style);
+  }
 
   // date format
   $date_format = $dateFormat->getPattern($pattern);

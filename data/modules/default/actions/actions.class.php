@@ -18,12 +18,6 @@
  */
 class defaultActions extends sfActions
 {
-  public function preExecute()
-  {
-    $this->setLayout(sfLoader::getTemplateDir('default', 'defaultLayout.php').'/defaultLayout');
-    $this->getResponse()->addStylesheet('/sf/sf_default/css/screen.css', 'last');
-  }
-
   /**
    * Congratulations page for creating an application
    *

@@ -11,11 +11,6 @@
  */
 class <?php echo $this->getGeneratedModuleName() ?>Actions extends sfActions
 {
-  public function preExecute()
-  {
-    $this->getResponse()->addStylesheet('<?php echo $this->getParameterValue('css', sfConfig::get('sf_admin_web_dir').'/css/main') ?>');
-  }
-
   public function executeIndex()
   {
     return $this->forward('<?php echo $this->getModuleName() ?>', 'list');
@@ -81,8 +76,6 @@ class <?php echo $this->getGeneratedModuleName() ?>Actions extends sfActions
     }
     else
     {
-      $this->addJavascriptsForEdit();
-
       $this->labels = $this->getLabels();
     }
   }
@@ -95,7 +88,6 @@ class <?php echo $this->getGeneratedModuleName() ?>Actions extends sfActions
     try
     {
       $this->delete<?php echo $this->getClassName() ?>($this-><?php echo $this->getSingularName() ?>);
-      return $this->redirect('<?php echo $this->getModuleName() ?>/list');
     }
     catch (PropelException $e)
     {
@@ -125,8 +117,6 @@ class <?php echo $this->getGeneratedModuleName() ?>Actions extends sfActions
     $this->preExecute();
     $this-><?php echo $this->getSingularName() ?> = $this->get<?php echo $this->getClassName() ?>OrCreate();
     $this->update<?php echo $this->getClassName() ?>FromRequest();
-
-    $this->addJavascriptsForEdit();
 
     $this->labels = $this->getLabels();
 
@@ -247,10 +237,25 @@ $column = sfPropelManyToMany::getColumn($class, $through_class);
 <?php elseif ($type == CreoleTypes::DATE || $type == CreoleTypes::TIMESTAMP): ?>
       if ($<?php echo $this->getSingularName() ?>['<?php echo $name ?>'])
       {
-        list($d, $m, $y) = sfI18N::getDateForCulture($<?php echo $this->getSingularName() ?>['<?php echo $name ?>'], $this->getUser()->getCulture());
-        if ($d && $m && $y)
+        try
         {
-          $this-><?php echo $this->getSingularName() ?>->set<?php echo $column->getPhpName() ?>("$y-$m-$d");
+          $dateFormat = new sfDateFormat($this->getUser()->getCulture());
+          <?php $inputPattern  = $type == CreoleTypes::DATE ? 'd' : 'g'; ?>
+          <?php $outputPattern = $type == CreoleTypes::DATE ? 'i' : 'I'; ?>
+          if (!is_array($<?php echo $this->getSingularName() ?>['<?php echo $name ?>']))
+          {
+            $value = $dateFormat->format($<?php echo $this->getSingularName() ?>['<?php echo $name ?>'], '<?php echo $outputPattern ?>', $dateFormat->getInputPattern('<?php echo $inputPattern ?>'));
+          }
+          else
+          {
+            $value_array = $<?php echo $this->getSingularName() ?>['<?php echo $name ?>'];
+            $value = $value_array['year'].'-'.$value_array['month'].'-'.$value_array['day'].(isset($value_array['hour']) ? ' '.$value_array['hour'].':'.$value_array['minute'].(isset($value_array['second']) ? ':'.$value_array['second'] : '') : '');
+          }
+          $this-><?php echo $this->getSingularName() ?>->set<?php echo $column->getPhpName() ?>($value);
+        }
+        catch (sfException $e)
+        {
+          // not a date
         }
       }
       else
@@ -410,13 +415,6 @@ $column = sfPropelManyToMany::getColumn($class, $through_class);
         $c->addDescendingOrderByColumn($sort_column);
       }
     }
-  }
-
-  protected function addJavascriptsForEdit()
-  {
-    $this->getResponse()->addJavascript(sfConfig::get('sf_prototype_web_dir').'/js/prototype');
-    $this->getResponse()->addJavascript(sfConfig::get('sf_admin_web_dir').'/js/collapse');
-    $this->getResponse()->addJavascript(sfConfig::get('sf_admin_web_dir').'/js/double_list');
   }
 
   protected function getLabels()
