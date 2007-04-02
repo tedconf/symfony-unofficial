@@ -5,9 +5,6 @@ abstract class BaseCategory extends BaseObject  implements Persistent {
 
 
 	
-	const DATABASE_NAME = 'propel';
-
-	
 	protected static $peer;
 
 
@@ -410,6 +407,41 @@ abstract class BaseCategory extends BaseObject  implements Persistent {
 	{
 		$this->collArticles[] = $l;
 		$l->setCategory($this);
+	}
+
+
+	
+	public function getArticlesJoinBook($criteria = null, $con = null)
+	{
+				include_once 'lib/model/om/BaseArticlePeer.php';
+		if ($criteria === null) {
+			$criteria = new Criteria();
+		}
+		elseif ($criteria instanceof Criteria)
+		{
+			$criteria = clone $criteria;
+		}
+
+		if ($this->collArticles === null) {
+			if ($this->isNew()) {
+				$this->collArticles = array();
+			} else {
+
+				$criteria->add(ArticlePeer::CATEGORY_ID, $this->getId());
+
+				$this->collArticles = ArticlePeer::doSelectJoinBook($criteria, $con);
+			}
+		} else {
+									
+			$criteria->add(ArticlePeer::CATEGORY_ID, $this->getId());
+
+			if (!isset($this->lastArticleCriteria) || !$this->lastArticleCriteria->equals($criteria)) {
+				$this->collArticles = ArticlePeer::doSelectJoinBook($criteria, $con);
+			}
+		}
+		$this->lastArticleCriteria = $criteria;
+
+		return $this->collArticles;
 	}
 
 } 

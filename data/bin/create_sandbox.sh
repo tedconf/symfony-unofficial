@@ -21,7 +21,7 @@ echo ">>> add LICENSE"
 cp ${DIR}/../../LICENSE LICENSE
 
 echo ">>> add README"
-cp ${DIR}/../../doc/SANDBOX_README README
+cp ${DIR}/../../data/data/SANDBOX_README README
 
 echo ">>> add symfony command line for windows users"
 cp ${DIR}/../../data/bin/symfony.bat symfony.bat
@@ -53,6 +53,10 @@ touch data/symfony/modules/default/config/.sf
 touch lib/model/.sf plugins/.sf web/js/.sf
 touch test/unit/.sf test/functional/.sf test/functional/${APP_NAME}/.sf
 touch web/uploads/assets/.sf
+
+touch data/sandbox.db
+chmod 777 data
+chmod 777 data/sandbox.db
 
 echo ">>> create archive"
 cd ..

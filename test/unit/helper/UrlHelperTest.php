@@ -42,7 +42,7 @@ class sfContext
   }
 }
 
-$t = new lime_test(15, new lime_output_color());
+$t = new lime_test(23, new lime_output_color());
 
 $context = sfContext::getInstance();
 $context->controller = new myController();
@@ -94,3 +94,18 @@ $t->is(link_to_if(false, 'test', '', array('tag' => 'div')), '<div>test</div>', 
 $t->diag('link_to_unless()');
 $t->is(link_to_unless(false, 'test', ''), '<a href="module/action">test</a>', 'link_to_unless() returns an HTML "a" tag if the condition is false');
 $t->is(link_to_unless(true, 'test', ''), '<span>test</span>', 'link_to_unless() returns an HTML "span" tag by default if the condition is true');
+
+// mail_to()
+$t->diag('mail_to()');
+$t->is(mail_to('fabien.potencier@symfony-project.com'), '<a href="mailto:fabien.potencier@symfony-project.com">fabien.potencier@symfony-project.com</a>', 'mail_to() creates a mailto a tag');
+$t->is(mail_to('fabien.potencier@symfony-project.com', 'fabien'), '<a href="mailto:fabien.potencier@symfony-project.com">fabien</a>', 'mail_to() creates a mailto a tag');
+preg_match('/href="(.+?)"/', mail_to('fabien.potencier@symfony-project.com', 'fabien', array('encode' => true)), $matches);
+$t->is(html_entity_decode($matches[1], ENT_QUOTES, 'UTF-8'), 'mailto:fabien.potencier@symfony-project.com', 'mail_to() can encode the email address');
+
+$t->diag('mail_to test');
+$t->is(mail_to('webmaster@example.com'),'<a href="mailto:webmaster@example.com">webmaster@example.com</a>','mail_to with only given email works');
+$t->is(mail_to('webmaster@example.com', 'send us an email'),'<a href="mailto:webmaster@example.com">send us an email</a>','mail_to with given email and title works');
+
+$t->is(mail_to('webmaster@example.com', '', array(), array('subject' => 'test subject', 'body' => 'test body')),'<a href="mailto:webmaster@example.com?subject=test+subject&amp;body=test+body">webmaster@example.com</a>', 'mail_to() works with given default values in array form');
+$t->is(mail_to('webmaster@example.com', '', array(), 'subject=test subject body=test body'),'<a href="mailto:webmaster@example.com?subject=test+subject&amp;body=test+body">webmaster@example.com</a>', 'mail_to() works with given default values in string form');
+$t->is(mail_to('webmaster@example.com', '', array(), 'subject=Hello World and more'),'<a href="mailto:webmaster@example.com?subject=Hello+World+and+more">webmaster@example.com</a>', 'mail_to() works with given default value with spaces');

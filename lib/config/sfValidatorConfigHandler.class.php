@@ -69,7 +69,7 @@ class sfValidatorConfigHandler extends sfYamlConfigHandler
           // unsupported request method
           $error = sprintf('Configuration file "%s" specifies unsupported request method "%s"', $configFiles[0], $method);
 
-          throw new sfParseException($method);
+          throw new sfParseException($error);
         }
 
         // create our method
@@ -535,7 +535,15 @@ class sfValidatorConfigHandler extends sfYamlConfigHandler
       }
 
       // methods
-      $methods = isset($values['methods']) ? (array) $values['methods'] : $defaultMethods;
+      if (isset($values['methods']))
+      {
+        $methods = (array) $values['methods'];
+        unset($values['methods']);
+      }
+      else
+      {
+        $methods = $defaultMethods;
+      }
       foreach ($methods as $method)
       {
         $config['methods'][$method][] = $name;
