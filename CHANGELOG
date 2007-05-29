@@ -1,3 +1,10 @@
+Version routing
+---------------
+
+* Refactored sfRouting::connect()
+* Cleaned up sfRoutingTest
+* Routing rules now accept named tokens separated by ; : + | and . (in addition to the usual /)
+
 Version 1.1.0
 -------------
 
