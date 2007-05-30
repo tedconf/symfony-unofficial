@@ -10,7 +10,7 @@
 
 require_once(dirname(__FILE__).'/../../bootstrap/unit.php');
 
-$t = new lime_test(78, new lime_output_color());
+$t = new lime_test(84, new lime_output_color());
 
 // public methods
 $r = sfRouting::getInstance();
@@ -281,6 +281,25 @@ $params = array('foo_1' => 'test', 'bar-2' => 'foobar');
 $url = '/test/foobar';
 $t->is($r->parse($url), $params, '->parse()    accepts token names including _ and -');
 $t->is($r->generate('', $params), $url, '->generate() accepts token names including _ and -');
+
+// token prefix
+$t->diag('token prefix');
+$r->clearRoutes();
+$r->connect('test1', '/1/:module/:action', array());
+$r->connect('test2', '/2/$module/$action/$id', array());
+$r->connect('test3', '/3/$module/:action/$first_name/:last_name', array());
+$params1 = array('module' => 'foo', 'action' => 'bar');
+$url1 = '/1/foo/bar';
+$t->is($r->parse($url1), $params1, '->parse()    accepts token names starting with :');
+$t->is($r->generate('', $params1), $url1, '->generate() accepts token names starting with :');
+$params2 = array('module' => 'foo', 'action' => 'bar', 'id' => 12);
+$url2 = '/2/foo/bar/12';
+$t->is($r->parse($url2), $params2, '->parse()    accepts token names starting with $');
+$t->is($r->generate('', $params2), $url2, '->generate() accepts token names starting with $');
+$params3 = array('module' => 'foo', 'action' => 'bar', 'first_name' => 'John', 'last_name' => 'Doe');
+$url3 = '/3/foo/bar/John/Doe';
+$t->is($r->parse($url3), $params3, '->parse()    accepts token names starting with mixed : and $');
+$t->is($r->generate('', $params3), $url3, '->generate() accepts token names starting with mixed : and $');
 
 // named routes
 $t->diag('named routes');

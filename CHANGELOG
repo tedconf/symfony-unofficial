@@ -1,9 +1,12 @@
 Version routing
 ---------------
 
+* Routing rules now recognize tokens starting with $ (: is still supported), like so:
+    url: /$module/$action
 * Refactored sfRouting::connect()
 * Cleaned up sfRoutingTest
-* Routing rules now accept named tokens separated by ; : + | and . (in addition to the usual /)
+* Routing rules now accept named tokens separated by ; : + | and . (in addition to the usual /), like so:
+    url: /:module/:action|:foo.:format
 
 Version 1.1.0
 -------------
