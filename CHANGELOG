@@ -1,6 +1,7 @@
 Version routing
 ---------------
 
+* Added an insertRouteBefore() method to sfRouting.
 * Routing rules now recognize tokens starting with $ (: is still supported), like so:
     url: /$module/$action
 * Refactored sfRouting::connect()

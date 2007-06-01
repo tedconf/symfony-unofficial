@@ -220,6 +220,40 @@ class sfRouting
   }
 
   /**
+   * Adds a new route before a given one in the current list of routes.
+   *
+   * @see connect
+   */
+  public function insertRouteBefore($referent_route_name, $name, $route, $default = array(), $requirements = array())
+  {
+    // referent route exists?
+    if (!isset($this->routes[$referent_route_name]))
+    {
+      $error = 'The named route to insert before does not exists ("%s").';
+      $error = sprintf($error, $name);
+
+      throw new sfConfigurationException($error);
+    }
+    
+    $routes = $this->routes;
+    $this->routes = array();
+    $newroutes = array();
+    $offset = 0;
+    foreach($routes as $key => $value) 
+    {
+      if($key == $referent_route_name)
+      {
+        $newroutes = array_merge($newroutes, $this->connect($name, $route, $default, $requirements));
+      }
+      $newroutes[$key] = $value;
+      $offset++;
+    }
+    $this->routes = $newroutes;
+    
+    return $this->routes;
+  }
+
+  /**
    * Adds a new route.
    *
    * Alias for the connect method.
