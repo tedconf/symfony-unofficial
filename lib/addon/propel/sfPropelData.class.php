@@ -112,11 +112,12 @@ class sfPropelData extends sfData
               $relatedTable = $this->maps[$class]->getDatabaseMap()->getTable($column->getRelatedTableName());
               if (!isset($this->object_references[$relatedTable->getPhpName().'_'.$value]))
               {
-                $error = 'The object "%s" from class "%s" is not defined in your data file.';
+                $error = 'The object "%s" from class "%s" is not defined in your data file. '.$relatedTable->getPhpName().'_'.$value;
                 $error = sprintf($error, $value, $relatedTable->getPhpName());
                 throw new sfException($error);
               }
-              $value = $this->object_references[$relatedTable->getPhpName().'_'.$value];
+              $getter = 'get'.sfInflector::camelize($column->getRelatedColumnName());
+              $value = $this->object_references[$relatedTable->getPhpName().'_'.$value]->$getter();
             }
           }
           catch (PropelException $e)
@@ -145,7 +146,7 @@ class sfPropelData extends sfData
         // save the id for future reference
         if (method_exists($obj, 'getPrimaryKey'))
         {
-          $this->object_references[$class.'_'.$key] = $obj->getPrimaryKey();
+          $this->object_references[$class.'_'.$key] = $obj;
         }
       }
     }
