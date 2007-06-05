@@ -1,7 +1,7 @@
 <?php
 
 /*
- *  $Id: OracleDDLBuilder.php 3755 2007-04-11 09:52:29Z fabien $
+ *  $Id: OracleDDLBuilder.php,v 1.1 2007/04/23 16:22:15 mpainter Exp $
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -26,55 +26,49 @@ require_once 'propel/engine/builder/sql/DDLBuilder.php';
  * The SQL DDL-building class for Oracle.
  *
  *
- * @author     Hans Lellelid <hans@xmpl.org>
- * @package    propel.engine.builder.sql.pgsql
+ * @author Hans Lellelid <hans@xmpl.org>
+ * @package propel.engine.builder.sql.pgsql
  */
 class OracleDDLBuilder extends DDLBuilder {
 
 	/**
 	 *
-	 * @see        parent::addDropStatement()
+	 * @see parent::addDropStatement()
 	 */
 	protected function addDropStatements(&$script)
 	{
 		$table = $this->getTable();
 		$platform = $this->getPlatform();
 		$script .= "
-DROP TABLE ".$this->quoteIdentifier($table->getName())." CASCADE CONSTRAINTS;
+DROP TABLE ".$this->quoteIdentifier(strtoupper($table->getName()))." CASCADE CONSTRAINTS;
 ";
 		if ($table->getIdMethod() == "native") {
 			$script .= "
-DROP SEQUENCE ".$this->quoteIdentifier($table->getSequenceName()).";
+DROP SEQUENCE ".$this->quoteIdentifier(strtoupper($table->getSequenceName())).";
 ";
 		}
 	}
 
 	/**
 	 *
-	 * @see        parent::addColumns()
+	 * @see parent::addColumns()
 	 */
 	protected function addTable(&$script)
 	{
 		$table = $this->getTable();
-		$script .= "
-
-/* -----------------------------------------------------------------------
-   ".$table->getName()."
-   ----------------------------------------------------------------------- */
-";
 
 		$this->addDropStatements($script);
 
 		$script .= "
 
-CREATE TABLE ".$this->quoteIdentifier($table->getName())."
+CREATE TABLE ".strtoupper($table->getName())."
 (
 	";
 
 		$lines = array();
 
 		foreach ($table->getColumns() as $col) {
-			$lines[] = $this->getColumnDDL($col);
+			$lines[] = strtoupper($this->getColumnDDL($col));
 		}
 
 		$sep = ",
@@ -84,7 +78,7 @@ CREATE TABLE ".$this->quoteIdentifier($table->getName())."
 );
 ";
 		$this->addPrimaryKey($script);
-		$this->addIndices($script);
+		//$this->addIndices($script);
 		$this->addSequences($script);
 
 	}
@@ -102,19 +96,14 @@ CREATE TABLE ".$this->quoteIdentifier($table->getName())."
 		if ($length > 27) {
 			$length = 27;
 		}
-		if ( is_array($table->getPrimaryKey()) && count($table->getPrimaryKey()) ) {
+		
+		if ($table->hasPrimaryKey()) {
 			$script .= "
-	ALTER TABLE ".$this->quoteIdentifier($table->getName())."
-		ADD CONSTRAINT ".$this->quoteIdentifier(substr($tableName,0,$length)."_PK")."
-	PRIMARY KEY (";
-			$delim = "";
-			foreach ($table->getPrimaryKey() as $col) {
-				$script .= $delim . $this->quoteIdentifier($col->getName());
-				$delim = ",";
-			}
-	$script .= ");
-";
+	ALTER TABLE ".$this->quoteIdentifier(strtoupper($table->getName()))."
+	    ADD CONSTRAINT ".substr($tableName,0,$length)."_PK
+	PRIMARY KEY (".strtoupper($this->getColumnList($table->getPrimaryKey())).");\n";
 		}
+		
 	}
 
 	/**
@@ -126,7 +115,7 @@ CREATE TABLE ".$this->quoteIdentifier($table->getName())."
 		$table = $this->getTable();
 		$platform = $this->getPlatform();
 		if ($table->getIdMethod() == "native") {
-			$script .= "CREATE SEQUENCE ".$this->quoteIdentifier($table->getSequenceName())." INCREMENT BY 1 START WITH 1 NOMAXVALUE NOCYCLE NOCACHE ORDER;
+			$script .= "CREATE SEQUENCE ".$this->quoteIdentifier(strtoupper($table->getSequenceName()))." INCREMENT BY 1 START WITH 1 NOMAXVALUE NOCYCLE NOCACHE ORDER;
 ";
 		}
 	}
@@ -134,33 +123,34 @@ CREATE TABLE ".$this->quoteIdentifier($table->getName())."
 
 	/**
 	 * Adds CREATE INDEX statements for this table.
-	 * @see        parent::addIndices()
+	 * @see parent::addIndices()
 	 */
 	protected function addIndices(&$script)
 	{
 		$table = $this->getTable();
 		$platform = $this->getPlatform();
 		foreach ($table->getIndices() as $index) {
-			$script .= "CREATE ";
-			if($index->getIsUnique()) {
-				$script .= "UNIQUE";
-			}
-			$script .= "INDEX ".$this->quoteIdentifier($index->getName()) ." ON ".$this->quoteIdentifier($table->getName())." (".$this->getColumnList($index->getColumns()).");
-";
+			$script .= "CREATE INDEX ".strtoupper($this->quoteIdentifier($table->getName()."_".$index->getName())) ." ON ".$this->quoteIdentifier(strtoupper($table->getName()))." (".strtoupper($this->getColumnList($index->getColumns())).");\n";
 		}
+		foreach ($table->getUnices() as $index) {
+			$script .= "ALTER TABLE ".$this->quoteIdentifier(strtoupper($table->getName()))." ADD CONSTRAINT ".strtoupper($this->quoteIdentifier($table->getName()."_".$index->getName())) ." UNIQUE (".strtoupper($this->getColumnList($index->getColumns())).");\n";
+		}		
+		 
 	}
 
 	/**
 	 *
-	 * @see        parent::addForeignKeys()
+	 * @see parent::addForeignKeys()
 	 */
 	protected function addForeignKeys(&$script)
 	{
+		$count = 0;
 		$table = $this->getTable();
 		$platform = $this->getPlatform();
 		foreach ($table->getForeignKeys() as $fk) {
+			$count ++;
 			$script .= "
-ALTER TABLE ".$this->quoteIdentifier($table->getName())." ADD CONSTRAINT ".$this->quoteIdentifier($fk->getName())." FOREIGN KEY (".$this->getColumnList($fk->getLocalColumns()) .") REFERENCES ".$this->quoteIdentifier($fk->getForeignTableName())." (".$this->getColumnList($fk->getForeignColumns()).")";
+ALTER TABLE ".$this->quoteIdentifier(strtoupper($table->getName()))." ADD CONSTRAINT ".$this->quoteIdentifier(strtoupper($fk->getName()))." FOREIGN KEY (".strtoupper($this->getColumnList($fk->getLocalColumns()) ).") REFERENCES ".$this->quoteIdentifier(strtoupper($fk->getForeignTableName()))." (".strtoupper($this->getColumnList($fk->getForeignColumns())).")";
 			if ($fk->hasOnUpdate()) {
 				$this->warn("ON UPDATE not yet implemented for Oracle builder.(ignoring for ".$this->getColumnList($fk->getLocalColumns())." fk).");
 				//$script .= " ON UPDATE ".$fk->getOnUpdate();
@@ -168,8 +158,8 @@ ALTER TABLE ".$this->quoteIdentifier($table->getName())." ADD CONSTRAINT ".$this
 			if ($fk->hasOnDelete()) {
 				$script .= " ON DELETE ".$fk->getOnDelete();
 			}
-			$script .= ";
-";
+			$script .= ";\n";
+			$script .= "CREATE INDEX ".strtoupper($this->quoteIdentifier(strtoupper($table->getName())."_FKIDX$count")) ." ON ".$this->quoteIdentifier(strtoupper($table->getName()))." (".strtoupper($this->getColumnList($fk->getLocalColumns())).");\n";
 		}
 	}
 

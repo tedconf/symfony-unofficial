@@ -1,7 +1,7 @@
 <?php
 
 /**
- *  $Id: OCI8Connection.php,v 1.18 2005/10/17 19:03:51 dlawson_mi Exp $
+ *  $Id: OCI8Connection.php,v 1.3 2007/04/27 18:06:08 mpainter Exp $
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -31,12 +31,12 @@ include_once 'creole/drivers/oracle/OCI8ResultSet.php';
  * @author    Hans Lellelid <hans@xmpl.org>
  * @author    Stig Bakken <ssb@fast.no> 
  * @author    Lukas Smith
- * @version   $Revision: 1.18 $
+ * @version   $Revision: 1.3 $
  * @package   creole.drivers.oracle
  */ 
 class OCI8Connection extends ConnectionCommon implements Connection
 {        
-    protected $lastStmt			= null;    
+    const TOTAL_ROWS_SEPERATOR	= '____PAGINATION INFO____';    
 
     /**
      * Auto commit mode for oci_execute
@@ -297,13 +297,50 @@ class OCI8Connection extends ConnectionCommon implements Connection
     */
    public function applyLimit( &$sql, $offset, $limit )
    {
+		// start fix for amibiguous col names
+		$re = "/^\s*SELECT\s(.*)\sFROM\s(.*)$/";
+   
+		preg_match($re, $sql, $matches);
+   
+		$cols = $matches[1];
+		$aliased_cols = array();
+   
+		$start = 0;
+		$m = 0;
+		$col_count = 0;
+		while (true) {
+			$end = strpos($cols, ",", $m);			
+			if ($end ===false) { // reached the end of the columns
+				$col_count++;
+				$section = substr($cols, $start );
+				$aliased_cols[] = "{$section} AS col{$col_count}";
+				break;
+			}
+			$section = substr($cols, $start, $end-$start );
+			
+			if (substr_count($section, "(") != substr_count($section, ")")) {
+				// we're ion the middle of a function
+				$m = $end+1;
+			} else {
+				$col_count++;
+				$aliased_cols[] = "{$section} AS col{$col_count}";
+				$start = $end+1;
+				$m = $end+1;
+			}
+		}
+
+   
+		$sql = "SELECT ".join(",", $aliased_cols).", count(1) OVER (PARTITION BY 1) total_rows FROM ".$matches[2];
+   
+		// end fix for amibiguous col names
+   
         $sql					=
 			'SELECT B.* FROM (  '
 			.  'SELECT A.*, rownum AS CREOLE$ROWNUM FROM (  '
 			. $sql
 			. '  ) A '
 			.  ' ) B WHERE ';
-
+			
         if ( $offset > 0 )
 		{
             $sql				.= ' B.CREOLE$ROWNUM > ' . $offset;            
@@ -319,6 +356,7 @@ class OCI8Connection extends ConnectionCommon implements Connection
 		{
 			$sql				.= ' B.CREOLE$ROWNUM <= ' . $limit;
 		}
+		
    } 
 
     /**
