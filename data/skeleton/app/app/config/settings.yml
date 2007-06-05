@@ -86,6 +86,8 @@ test:
 #    # Helpers included in all templates by default
 #    standard_helpers:       [Partial, Cache, Form]
 #
+#    use_xhtml_tags:          on       # use open (html style) or closed (xhtml style) tags, on by default
+#
 #    # Activated modules from plugins or from the symfony core
 #    enabled_modules:        [default]
 #

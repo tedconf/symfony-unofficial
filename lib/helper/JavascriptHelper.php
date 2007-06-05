@@ -109,7 +109,7 @@
 
     return tag('input', $html_options);
   }
-  
+
   /**
    * Returns an html button to a remote action defined by 'url' (using the
    * 'url_for()' format) that's called in the background using XMLHttpRequest.
@@ -806,7 +806,9 @@
    * Addtional '$options' are:
    * 'rows'                Number of rows (more than 1 will use a TEXTAREA)
    * 'cancel_text'         The text on the cancel link. (default: "cancel")
+   * 'cancel_link'         Whether the cancel link must be displayed or not. (default: true)
    * 'save_text'           The text on the save link. (default: "ok")
+   * 'save_button'         Whether the save button must be displayed or not. (default: true)
    * 'external_control'    The id of an external control used to enter edit mode.
    * 'options'             Pass through options to the AJAX call (see prototype's Ajax.Updater)
    * 'with'                JavaScript snippet that should return what is to be sent
@@ -827,9 +829,17 @@
       {
         $js_options['cancelText'] = "'".$options['cancel_text']."'";
       }
+      if (isset($options['cancel_link']))
+      {
+        $js_options['cancelLink'] = $options['cancel_link'];
+      }
       if (isset($options['save_text']))
       {
         $js_options['okText'] = "'".$options['save_text']."'";
+      }
+      if (isset($options['save_button']))
+      {
+        $js_options['okButton'] = "'".$options['save_button']."'";
       }
       if (isset($options['cols']))
       {
@@ -862,6 +872,14 @@
       if (isset($options['loadTextURL']))
       {
         $js_options['loadTextURL'] =  "'".$options['loadTextURL']."'";
+      }
+      if (isset($options['submitOnBlur']))
+      {
+        $js_options['submitOnBlur'] =  "'".$options['submitOnBlur']."'";
+      }
+      if (isset($options['complete']))
+      {
+        $js_options['onComplete'] = $options['complete'];
       }
 
       $javascript .= ', '._options_for_javascript($js_options);

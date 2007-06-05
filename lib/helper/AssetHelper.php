@@ -90,7 +90,7 @@ function javascript_path($source, $absolute = false)
  *
  * @param  string asset names
  * @return string XHTML compliant <script> tag(s)
- * @see    javascript_path 
+ * @see    javascript_path
  */
 function javascript_include_tag()
 {
@@ -100,14 +100,14 @@ function javascript_include_tag()
   $html = '';
   foreach ($sources as $source)
   {
-    
+    $condition = false;
     $absolute = false;
     if (isset($sourceOptions['absolute']))
     {
       unset($sourceOptions['absolute']);
       $absolute = true;
     }
-  
+
     if(!isset($sourceOptions['raw_name']))
     {
       $source = javascript_path($source, $absolute);
@@ -116,11 +116,20 @@ function javascript_include_tag()
     {
       unset($sourceOptions['raw_name']);
     }
+
+    if(isset($sourceOptions['condition']))
+    {
+      $condition = $sourceOptions['condition'];
+      unset($sourceOptions['condition']);
+    }
+
     $options = array_merge(array('type' => 'text/javascript', 'src' => $source), $sourceOptions);
-    $html   .= content_tag('script', '', $options)."\n";
+    $content = content_tag('script', '', $options)."\n";
+    $html .= ($condition) ? conditional($condition, $content) : $content;
+
   }
 
-  return $html;  
+  return $html;
 }
 
 /**
@@ -140,7 +149,7 @@ function javascript_include_tag()
  * @param  string asset name
  * @param  bool return absolute path ?
  * @return string file path to the stylesheet file
- * @see    stylesheet_tag  
+ * @see    stylesheet_tag
  */
 function stylesheet_path($source, $absolute = false)
 {
@@ -172,7 +181,7 @@ function stylesheet_path($source, $absolute = false)
  * @param  string asset names
  * @param  array additional HTML compliant <link> tag parameters
  * @return string XHTML compliant <link> tag(s)
- * @see    stylesheet_path 
+ * @see    stylesheet_path
  */
 function stylesheet_tag()
 {
@@ -182,13 +191,14 @@ function stylesheet_tag()
   $html = '';
   foreach ($sources as $source)
   {
+    $condition = false;
     $absolute = false;
     if (isset($sourceOptions['absolute']))
     {
       unset($sourceOptions['absolute']);
       $absolute = true;
     }
-        
+
     if(!isset($sourceOptions['raw_name']))
     {
       $source = stylesheet_path($source, $absolute);
@@ -197,8 +207,16 @@ function stylesheet_tag()
     {
       unset($sourceOptions['raw_name']);
     }
+
+    if(isset($sourceOptions['condition']))
+    {
+      $condition = $sourceOptions['condition'];
+      unset($sourceOptions['condition']);
+    }
+
     $options = array_merge(array('rel' => 'stylesheet', 'type' => 'text/css', 'media' => 'screen', 'href' => $source), $sourceOptions);
-    $html   .= tag('link', $options)."\n";
+    $content = tag('link', $options)."\n";
+    $html .= ($condition) ? conditional($condition, $content) : $content;
   }
 
   return $html;
@@ -255,11 +273,11 @@ function decorate_with($layout)
  * - full path, like "/my_images/image.gif"
  * - file name, like "rss.gif", that gets expanded to "/images/rss.gif"
  * - file name without extension, like "logo", that gets expanded to "/images/logo.png"
- * 
+ *
  * @param  string asset name
  * @param  bool return absolute path ?
  * @return string file path to the image file
- * @see    image_tag  
+ * @see    image_tag
  */
 function image_path($source, $absolute = false)
 {
@@ -285,7 +303,7 @@ function image_path($source, $absolute = false)
  * @param  string image asset name
  * @param  array additional HTML compliant <img> tag parameters
  * @return string XHTML compliant <img> tag
- * @see    image_path 
+ * @see    image_path
  */
 function image_tag($source, $options = array())
 {
@@ -387,7 +405,7 @@ function _compute_public_path($source, $dir, $ext, $absolute = false)
  * <b>Note:</b> Modify the sfResponse object or the view.yml to change, add or remove metas.
  *
  * @return string XHTML compliant <meta> tag(s)
- * @see    include_http_metas 
+ * @see    include_http_metas
  */
 function include_metas()
 {
@@ -410,7 +428,7 @@ function include_metas()
  * <b>Note:</b> Modify the sfResponse object or the view.yml to change, add or remove metas.
  *
  * @return string XHTML compliant <meta> tag(s)
- * @see    include_metas 
+ * @see    include_metas
  */
 function include_http_metas()
 {
