@@ -3,7 +3,7 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- * 
+ *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -51,14 +51,11 @@ class sfWebDebugLogger
 
     // if we have xdebug, add some stack information
     $debug_stack = array();
-    if (function_exists('xdebug_get_function_stack'))
+    if(sfConfig::get('sf_xdebug', true) && function_exists('xdebug_get_function_stack'))
     {
       foreach (xdebug_get_function_stack() as $i => $stack)
       {
-        if (
-          (isset($stack['function']) && !in_array($stack['function'], array('emerg', 'alert', 'crit', 'err', 'warning', 'notice', 'info', 'debug', 'log')))
-          || !isset($stack['function'])
-        )
+        if ((isset($stack['function']) && !in_array($stack['function'], array('emerg', 'alert', 'crit', 'err', 'warning', 'notice', 'info', 'debug', 'log'))) || !isset($stack['function']))
         {
           $tmp = '';
           if (isset($stack['function']))

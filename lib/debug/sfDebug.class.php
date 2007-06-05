@@ -21,17 +21,26 @@ class sfDebug
   /**
    * Returns PHP information as an array.
    *
-   * @return array An array of php information
+   * @return  array An array of php information
    */
   public static function phpInfoAsArray()
   {
-    $values = array(
-      'php'        => phpversion(),
-      'os'         => php_uname(),
-      'extensions' => get_loaded_extensions(),
-    );
+      $values = array(
+          'php'        => phpversion(),
+          'os'         => php_uname(),
+          'extensions' => get_loaded_extensions(),
+      );
 
-    return $values;
+      // assign extension version
+      if($values['extensions'])
+      {
+        foreach($values['extensions'] as $key => $extension)
+        {
+          $values['extensions'][$key] = phpversion($extension) ? $extension. ' ('. phpversion($extension). ')' : $extension;
+        }
+      }
+
+      return $values;
   }
 
   /**

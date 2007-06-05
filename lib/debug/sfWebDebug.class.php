@@ -223,7 +223,7 @@ class sfWebDebug
         }
 
         ++$line_nb;
-        $logs .= sprintf("<tr class='sfWebDebugLogLine sfWebDebug%s %s'><td class=\"sfWebDebugLogNumber\">%s</td><td class=\"sfWebDebugLogType\">%s&nbsp;%s</td><td>%s%s</td></tr>\n", 
+        $logs .= sprintf("<tr class='sfWebDebugLogLine sfWebDebug%s %s'><td class=\"sfWebDebugLogNumber\">%s</td><td class=\"sfWebDebugLogType\">%s&nbsp;%s</td><td>%s%s</td></tr>\n",
           ucfirst($priority),
           $logEntry['type'],
           $line_nb,
@@ -357,7 +357,7 @@ class sfWebDebug
   {
     $config = array(
       'debug'        => sfConfig::get('sf_debug')             ? 'on' : 'off',
-      'xdebug'       => (extension_loaded('xdebug'))          ? 'on' : 'off',
+      'xdebug'       => (sfConfig::get('sf_xdebug', true) && extension_loaded('xdebug'))   ? 'on' : 'off',
       'logging'      => sfConfig::get('sf_logging_enabled')   ? 'on' : 'off',
       'cache'        => sfConfig::get('sf_cache')             ? 'on' : 'off',
       'eaccelerator' => (extension_loaded('eaccelerator') && ini_get('eaccelerator.enable')) ? 'on' : 'off',
@@ -372,6 +372,8 @@ class sfWebDebug
     {
       $result .= '<li class="is'.$value.''.($key == 'syck' ? ' last' : '').'">'.$key.'</li>';
     }
+
+
     $result .= '</ul>';
 
     $context = sfContext::getInstance();
