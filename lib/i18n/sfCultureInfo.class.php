@@ -439,17 +439,30 @@ class sfCultureInfo
    * to display. Returns <code>array('Language','Country');</code>
    * 'Country' is omitted if the culture is neutral.
    *
+   * @param  string optional other culture to get the native name from.
    * @return array array with language and country as elements, localized.
    */
-  public function getNativeName()
+  public function getNativeName($culture = null)
   {
-    $lang = substr($this->culture, 0, 2);
-    $reg = substr($this->culture, 3, 2);
+    if (is_null($culture))
+    {
+      $culture = $this->culture;
+    }
+
+    $lang = substr($culture, 0, 2);
+    $reg = substr($culture, 3, 2);
     $language = $this->findInfo("Languages/{$lang}");
     $region = $this->findInfo("Countries/{$reg}");
+
+    if (empty($language[0]) && !empty($region[0]))
+    {
+      $language[0] = $region[0];
+      unset($region);
+    }
+
     if ($region)
     {
-      return $language[0].' ('.$region[0].')';
+      return $language[0].' ('. $region[0] .')';
     }
     else
     {
