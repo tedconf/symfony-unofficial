@@ -220,6 +220,40 @@ class sfRouting
   }
 
   /**
+   * Adds a new route before a given one in the current list of routes.
+   *
+   * @see connect
+   */
+  public function insertRouteBefore($referent_route_name, $name, $route, $default = array(), $requirements = array())
+  {
+    // referent route exists?
+    if (!isset($this->routes[$referent_route_name]))
+    {
+      $error = 'The named route to insert before does not exists ("%s").';
+      $error = sprintf($error, $name);
+
+      throw new sfConfigurationException($error);
+    }
+    
+    $routes = $this->routes;
+    $this->routes = array();
+    $newroutes = array();
+    $offset = 0;
+    foreach($routes as $key => $value) 
+    {
+      if($key == $referent_route_name)
+      {
+        $newroutes = array_merge($newroutes, $this->connect($name, $route, $default, $requirements));
+      }
+      $newroutes[$key] = $value;
+      $offset++;
+    }
+    $this->routes = $newroutes;
+    
+    return $this->routes;
+  }
+
+  /**
    * Adds a new route.
    *
    * Alias for the connect method.
@@ -253,7 +287,6 @@ class sfRouting
   */
   public function connect($name, $route, $default = array(), $requirements = array())
   {
-      
     // route already exists?
     if (isset($this->routes[$name]))
     {
@@ -262,109 +295,81 @@ class sfRouting
 
       throw new sfConfigurationException($error);
     }
-
-    $parsed = array();
-    $names  = array();
+    
     $suffix = (($sf_suffix = sfConfig::get('sf_suffix')) == '.') ? '' : $sf_suffix;
-
-    // used for performance reasons
-    $names_hash = array();
-
-    $r = null;
-    if (($route == '') || ($route == '/'))
+    
+    // a route must start by a slash. If there is none, add it automatically
+    if(('/' != $route[0]))
     {
-      $regexp = '/^[\/]*$/';
-      $this->routes[$name] = array($route, $regexp, array(), array(), $default, $requirements, $suffix);
+      $route = '/'.$route; 
+    }
+    
+    if ($route == '/')
+    {
+      $this->routes[$name] = array($route, '/^[\/]*$/', array(), array(), $default, $requirements, $suffix);
     }
     else
     {
-      $elements = array();
-      foreach (explode('/', $route) as $element)
+      preg_match_all('/[:$]([\w\d\-_]+)/', $route, $matches);
+
+      $tokens    = $matches[0];
+      $variables = $matches[1];
+            
+      $patterns = array();
+      foreach($variables as $variable)
       {
-        if (trim($element))
+        // regex is [^\/]+ or the requirement regex
+        if (isset($requirements[$variable]))
         {
-          $elements[] = $element;
-        }
-      }
-
-      if (!isset($elements[0]))
-      {
-        return false;
-      }
-
-      // specific suffix for this route?
-      // or /$ directory
-      if (preg_match('/^(.+)(\.\w*)$/i', $elements[count($elements) - 1], $matches))
-      {
-        $suffix = ($matches[2] == '.') ? '' : $matches[2];
-        $elements[count($elements) - 1] = $matches[1];
-        $route = '/'.implode('/', $elements);
-      }
-      else if ($route{strlen($route) - 1} == '/')
-      {
-        $suffix = '/';
-      }
-
-      $regexp_suffix = preg_quote($suffix);
-
-      foreach ($elements as $element)
-      {                  
-        if (preg_match('/:/', $element, $r))
-        {
-          $full_regex = preg_quote($element);
-          
-          $pos = 0;
-          
-          while (preg_match('/\\:([\w\d_]+)/', $full_regex, $matches, PREG_OFFSET_CAPTURE, $pos)) {
-          
-              $param = $matches[1][0];
-              $pos = $matches[1][1];
-              
-              // regex is [^\/]+ or the requirement regex
-	          if (isset($requirements[$param]))
-	          {
-	            $regex = $requirements[$param];
-	            if (0 === strpos($regex, '^'))
-	            {
-	              $regex = substr($regex, 1);
-	            }
-	            if (strlen($regex) - 1 === strpos($regex, '$'))
-	            {
-	              $regex = substr($regex, 0, -1);
-	            }
-	          }
-	          else
-	          {
-	            $regex = '[^\/]+';
-	          }
-	          
-	          $regex = "($regex)";
-	          
-              $full_regex=substr_replace($full_regex, $regex, $pos-2 , strlen($param)+2 );
-	          $pos+=strlen($regex);
-	          
-	          $names[] = $param;
-	          $names_hash[$param] = 1;
-	          
+          $regex = $requirements[$variable];
+          if (0 === strpos($regex, '^'))
+          {
+            $regex = substr($regex, 1);
           }
-          
-          # Why is everything optional in the regexp? get rid of that!
-          #$parsed[] = '(?:\/'.$full_regex.')?';
-          $parsed[] = '\/'.$full_regex;
-          
-        }
-        elseif (preg_match('/^\*$/', $element, $r))
-        {
-          $parsed[] = '(?:\/(.*))?';
+          if (strlen($regex) - 1 === strpos($regex, '$'))
+          {
+            $regex = substr($regex, 0, -1);
+          }
         }
         else
         {
-          $parsed[] = '/'.$element;
+          $regex = '[^\/]+?';
+        }
+        $patterns[$variable] = $regex;
+      }
+      
+      if (preg_match('/(\.\w*)$/i', $route, $matches) // specific suffix for this route
+           ||
+         ($route[strlen($route) - 1] == '/'))         //route ends by / (directory)
+      {
+        // then ignore the default suffix
+        $suffix = '';
+        if($route[strlen($route) - 1] == '.')
+        {
+          $route = substr($route, 0, strlen($route) -1); 
         }
       }
-      $regexp = '#^'.join('', $parsed).$regexp_suffix.'$#';
+
+      $regexp = $route;
+
+      // translate unnamed tokens
+      $regexp = str_replace('/*', '(?:\/(.*))?', $regexp);
       
-      $this->routes[$name] = array($route, $regexp, $names, $names_hash, $default, $requirements, $suffix);
+      foreach($variables as $key => $variable)
+      {
+        $separator = $regexp{strpos($regexp, $tokens[$key])-1};
+        $regexp = str_replace($separator.$tokens[$key], '(?:'.preg_quote($separator, '/').'('.$patterns[$variable].'))?', $regexp);
+        $patterns[$variable] = array(
+         'separator' => $separator, 
+         'token'     => $tokens[$key], 
+         'pattern'   => $patterns[$variable]
+        );
+      }
+      
+      $regexp = '#^'.$regexp.preg_quote($suffix).'$#';
+      
+      // we keep the patterns array for speed reasons in generate() and parse()
+      $this->routes[$name] = array($route, $regexp, $variables, $patterns, $default, $requirements, $suffix);
     }
 
     if (sfConfig::get('sf_logging_enabled'))
@@ -386,11 +391,11 @@ class sfRouting
   */
   public function generate($name, $params, $querydiv = '/', $divider = '/', $equals = '/')
   {
-    $global_defaults = sfConfig::get('sf_routing_defaults', null);    
-    
+    $global_defaults = sfConfig::get('sf_routing_defaults', null);
+
     // named route?
     if ($name)
-    {      
+    {
       if (!isset($this->routes[$name]))
       {
         $error = 'The route "%s" does not exist.';
@@ -399,18 +404,18 @@ class sfRouting
         throw new sfConfigurationException($error);
       }
 
-      list($url, $regexp, $names, $names_hash, $defaults, $requirements, $suffix) = $this->routes[$name];
+      list($url, $regexp, $variables, $patterns, $defaults, $requirements, $suffix) = $this->routes[$name];
       if ($global_defaults !== null)
       {
         $defaults = array_merge($defaults, $global_defaults);
       }
 
       // all params must be given
-      foreach ($names as $tmp)
+      foreach ($variables as $variable)
       {
-        if (!isset($params[$tmp]) && !isset($defaults[$tmp]))
+        if (!isset($params[$variable]) && !isset($defaults[$variable]))
         {
-          throw new sfException(sprintf('Route named "%s" have a mandatory "%s" parameter', $name, $tmp));
+          throw new sfException(sprintf('Route named "%s" have a mandatory "%s" parameter', $name, $variable));
         }
       }
     }
@@ -420,7 +425,7 @@ class sfRouting
       $found = false;
       foreach ($this->routes as $name => $route)
       {
-        list($url, $regexp, $names, $names_hash, $defaults, $requirements, $suffix) = $route;
+        list($url, $regexp, $variables, $patterns, $defaults, $requirements, $suffix) = $route;
         if ($global_defaults !== null)
         {
           $defaults = array_merge($defaults, $global_defaults);
@@ -429,7 +434,7 @@ class sfRouting
         $tparams = array_merge($defaults, $params);
 
         // we must match all names (all $names keys must be in $params array)
-        foreach ($names as $key)
+        foreach ($variables as $key)
         {
           if (!isset($tparams[$key])) continue 2;
         }
@@ -437,7 +442,7 @@ class sfRouting
         // we must match all defaults with value except if present in names
         foreach ($defaults as $key => $value)
         {
-          if (isset($names_hash[$key])) continue;
+          if (isset($patterns[$key])) continue;
 
           if (!isset($tparams[$key]) || $tparams[$key] != $value) continue 2;
         }
@@ -454,7 +459,7 @@ class sfRouting
         // we must have consumed all $params keys if there is no * in route
         if (!strpos($url, '*'))
         {
-          if (count(array_diff(array_keys($tparams), $names, array_keys($defaults))))
+          if (count(array_diff(array_keys($tparams), $variables, array_keys($defaults))))
           {
             continue;
           }
@@ -475,55 +480,54 @@ class sfRouting
     }
 
     $params = array_merge($defaults, $params);
-
-    $real_url = preg_replace('/\:([\w\d_]+)/e', 'urlencode($params["\\1"])', $url);
+    
+    $real_url = $url;
+    
+    foreach($params as $key => $value)
+    {
+      $real_url = str_replace($patterns[$key]['token'], $value, $real_url); 
+    }
 
     // we add all other params if *
     if (strpos($real_url, '*'))
-    { 
-      $real_url = rtrim($real_url, "*");
-      
-      $real_url = rtrim($real_url, $divider);
-      
-      $tmp = '?';
+    {
+      $tmp = '';
 
       foreach ($params as $key => $value)
       {
-        if (isset($names_hash[$key]) || isset($defaults[$key])) continue;
+        if (isset($patterns[$key]) || isset($defaults[$key])) continue;
 
         if (is_array($value))
         {
           foreach ($value as $v)
           {
-            $tmp .= urlencode($key)."=".urlencode($v).";";
+            $tmp .= $key.$equals.urlencode($v).$divider;
           }
         }
         else
         {
-          $tmp .= urlencode($key)."=".urlencode($value).";";
+          $tmp .= urlencode($key).$equals.urlencode($value).$divider;
         }
       }
-      
-      $tmp = rtrim($tmp, ";");
-      
-      if (strlen($tmp) > 1)
+      if (strlen($tmp) > 0)
       {
-        $real_url = $real_url.$tmp;
+        $tmp = $querydiv.$tmp;
       }
+      $real_url = preg_replace('/\/\*(\/|$)/', $tmp, $real_url);
       
-    }
-
-    // strip off last divider character
-    if (strlen($real_url) > 1)
-    {
-      $real_url = rtrim($real_url, $divider);
+      // strip off last divider character
+      if (strlen($real_url) > 1)
+      {
+        $real_url = rtrim($real_url, $divider);
+      }
+  
     }
 
     if ($real_url != '/')
     {
       $real_url .= $suffix;
     }
-
+    
     return $real_url;
   }
 
@@ -560,7 +564,7 @@ class sfRouting
       list($route, $regexp, $names, $names_hash, $defaults, $requirements, $suffix) = $route;
 
       $break = false;
-      
+
       if (preg_match($regexp, $url, $r))
       {
         $break = true;
