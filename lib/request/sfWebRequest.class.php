@@ -214,7 +214,7 @@ class sfWebRequest extends sfRequest
    *
    * @param string A file name
    * @param string Value to search in the file
-   * 
+   *
    * @return string File value
    */
   public function getFileValue($name, $key)
@@ -461,7 +461,7 @@ class sfWebRequest extends sfRequest
    * Loads GET, PATH_INFO and POST data into the parameter list.
    *
    */
-  protected function loadParameters()
+  public function loadParameters()
   {
     // merge GET parameters
     if (get_magic_quotes_gpc())
