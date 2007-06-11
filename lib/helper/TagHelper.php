@@ -55,7 +55,7 @@ function cdata_section($content)
 
 function conditional($condition, $content)
 {
-  return '<!--[if '.$condition.']>'."\n".$content."\n".'<![endif]-->'."\n";
+  return '<!--[if '.$condition.']>'."\n".$content.'<![endif]-->'."\n";
 }
 
 /**
