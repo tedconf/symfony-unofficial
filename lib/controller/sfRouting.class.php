@@ -354,12 +354,13 @@ class sfRouting
 
       // translate unnamed tokens
       $regexp = str_replace('/*', '(?:\/(.*))?', $regexp);
+      $pattern_details = array();
       
       foreach($variables as $key => $variable)
       {
         $separator = $regexp{strpos($regexp, $tokens[$key])-1};
         $regexp = str_replace($separator.$tokens[$key], '(?:'.preg_quote($separator, '/').'('.$patterns[$variable].'))?', $regexp);
-        $patterns[$variable] = array(
+        $pattern_details[$variable] = array(
          'separator' => $separator, 
          'token'     => $tokens[$key], 
          'pattern'   => $patterns[$variable]
@@ -369,7 +370,7 @@ class sfRouting
       $regexp = '#^'.$regexp.preg_quote($suffix).'$#';
       
       // we keep the patterns array for speed reasons in generate() and parse()
-      $this->routes[$name] = array($route, $regexp, $variables, $patterns, $default, $requirements, $suffix);
+      $this->routes[$name] = array($route, $regexp, $variables, $pattern_details, $default, $requirements, $suffix);
     }
 
     if (sfConfig::get('sf_logging_enabled'))
@@ -483,9 +484,9 @@ class sfRouting
     
     $real_url = $url;
     
-    foreach($params as $key => $value)
+    foreach($variables as $variable)
     {
-      $real_url = str_replace($patterns[$key]['token'], $value, $real_url); 
+      $real_url = str_replace($patterns[$variable]['token'], $params[$variable], $real_url); 
     }
 
     // we add all other params if *
