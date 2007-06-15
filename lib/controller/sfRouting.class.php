@@ -514,7 +514,7 @@ class sfRouting
       {
         $tmp = $querydiv.$tmp;
       }
-      $real_url = preg_replace('/\/\*/', $tmp, $real_url);
+      $real_url = str_replace('/*', $tmp, $real_url);
       
       // strip off last divider character
       if (strlen($real_url) > 1)
