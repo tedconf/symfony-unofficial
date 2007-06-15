@@ -207,9 +207,6 @@ class sfBrowser
       @$this->dom->loadHTML($response->getContent());
       $this->domCssSelector = new sfDomCssSelector($this->dom);
     }
-    else
-    {
-    }
 
     return $this;
   }
