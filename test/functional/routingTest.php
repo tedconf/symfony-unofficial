@@ -21,6 +21,7 @@ if (!include(dirname(__FILE__).'/../bootstrap/functional.php'))
 $b = new sfTestBrowser();
 $b->initialize();
 
+$b->test()->diag('View class depending on routing');
 $b->
   get('/')->
   isStatusCode(200)->
@@ -95,3 +96,14 @@ $b->
   isStatusCode(404)
 ;
 $b->test()->isa_ok($b->getContext()->getCurrentViewInstance(), 'sfPHPView', 'PJS requests to pages that exist in PHP only end up with a PHP View');
+
+$b->test()->diag('PJS helpers');
+$b->
+  get('/test/helper')->
+  checkResponseElement('#test1', '/index.php/js/test/index.pjs')->
+  checkResponseElement('#test2 script[type="text/javascript"][src="/index.php/js/test/index.pjs"]')->
+  checkResponseElement('#test3 script[type="text/javascript"][src="/index.php/js/test/index.pjs"]')->
+  checkResponseElement('#test4', '/index.php/js/test/index/foo/bar.pjs')->
+  checkResponseElement('#test5', '/index.php/js/test/index.pjs?foo=bar')->
+  checkResponseElement('#test6', 'http://routing-test/index.php/js/test/index.pjs')
+;

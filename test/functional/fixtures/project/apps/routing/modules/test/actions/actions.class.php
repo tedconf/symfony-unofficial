@@ -21,4 +21,8 @@ class testActions extends sfActions
   public function executeHtmlOnly()
   {
   }
+
+  public function executeHelper()
+  {
+  }
 }
