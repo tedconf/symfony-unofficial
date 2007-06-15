@@ -10,7 +10,7 @@
 
 require_once(dirname(__FILE__).'/../../bootstrap/unit.php');
 
-$t = new lime_test(86, new lime_output_color());
+$t = new lime_test(94, new lime_output_color());
 
 // public methods
 $r = sfRouting::getInstance();
@@ -70,7 +70,6 @@ $r->clearRoutes();
 $t->is($r->hasRoutes(), false, '->hasRoutes() returns false if there is no route');
 $r->connect('test1', '/:module/:action');
 $t->is($r->hasRoutes(), true, '->hasRoutes() returns true if some routes are registered');
-
 
 // ->connect()
 $t->diag('->connect()');
@@ -215,6 +214,10 @@ sfConfig::set('sf_routing_defaults', array());
 $t->diag('unnamed wildcard *');
 $r->clearRoutes();
 $r->connect('test', '/:module/:action/test/*', array('module' => 'default', 'action' => 'index'));
+$params = array('module' => 'default', 'action' => 'index');
+$url = '/default/index/test';
+$t->is($r->parse($url), $params, '->parse()    finds route for URL   with no additional parameters when route ends with unnamed wildcard *');
+$t->is($r->generate('', $params), $url, '->generate() creates URL for route with no additional parameters when route ends with unnamed wildcard *');
 $params = array('module' => 'default', 'action' => 'index', 'page' => '4.html', 'toto' => true, 'titi' => 'toto', 'OK' => true);
 $url = '/default/index/test/page/4.html/toto/1/titi/toto/OK/1';
 $t->is($r->parse($url), $params, '->parse()    finds route for URL   with additional parameters when route ends with unnamed wildcard *');
@@ -222,6 +225,7 @@ $t->is($r->generate('', $params), $url, '->generate() creates URL for route with
 $t->is($r->parse('/default/index/test/page/4.html/toto/1/titi/toto/OK/1/module/test/action/tutu'), $params, '->parse()    does not override named wildcards with parameters passed in unnamed wildcard *');
 $t->is($r->parse('/default/index/test/page/4.html////toto//1/titi//toto//OK/1'), $params, '->parse()    considers multiple separators as single in unnamed wildcard *');
 
+// unnamed wildcard * after a token
 $r->clearRoutes();
 $r->connect('test',  '/:module', array('action' => 'index'));
 $r->connect('test1', '/:module/:action/*', array());
@@ -234,19 +238,41 @@ $url = '/default';
 $t->is($r->parse($url), $params, '->parse()    takes the first matching route but takes * into accounts');
 $t->is($r->generate('', $params), $url, '->generate() takes the first matching route but takes * into accounts');
 
-// * in the middle of a rule
+// unnamed wildcard * in the middle of a rule
+$t->diag('unnamed wildcard * in the middle of a rule');
 $r->clearRoutes();
 $r->connect('test', '/:module/:action/*/test', array('module' => 'default', 'action' => 'index'));
+
+$params = array('module' => 'default', 'action' => 'index');
+$url = '/default/index/test';
+$t->is($r->parse($url), $params, '->parse()    finds route for URL when no extra parameters are present in the URL');
+$t->is($r->generate('', $params), $url, '->generate() creates URL for route when no extra parameters are added to the internal URI');
+
 $params = array('module' => 'default', 'action' => 'index', 'foo' => true, 'bar' => 'foobar');
 $url = '/default/index/foo/1/bar/foobar/test';
-$t->is($r->parse($url), $params, '->parse()    finds route for URL   when route contains unnamed wildcard * in the middle');
-$t->is($r->generate('', $params), $url, '->generate() creates URL for route when route contains unnamed wildcard * in the middle');
+$t->is($r->parse($url), $params, '->parse()    finds route for URL when extra parameters are present in the URL');
+$t->is($r->generate('', $params), $url, '->generate() creates URL for route when extra parameters are added to the internal URI');
+
+// unnamed wildcard * in the middle of a rule, with a separator after distinct from /
+$r->clearRoutes();
+$r->connect('test', '/:module/:action/*.test', array('module' => 'default', 'action' => 'index'));
+
+$params = array('module' => 'default', 'action' => 'index');
+$url = '/default/index.test';
+$t->is($r->parse($url), $params, '->parse()    finds route for URL when no extra parameters are present in the URL');
+$t->is($r->generate('', $params), $url, '->generate() creates URL for route when no extra parameters are added to the internal URI');
+
+$params = array('module' => 'default', 'action' => 'index', 'foo' => true, 'bar' => 'foobar');
+$url = '/default/index/foo/1/bar/foobar.test';
+$t->is($r->parse($url), $params, '->parse()    finds route for URL when extra parameters are present in the URL');
+$t->is($r->generate('', $params), $url, '->generate() creates URL for route when extra parameters are added to the internal URI');
 
 // requirements
 $t->diag('requirements');
 $r->clearRoutes();
 $r->connect('test', '/:module/:action/id/:id', array('module' => 'default', 'action' => 'integer'), array('id' => '\d+'));
 $r->connect('test1', '/:module/:action/:id', array('module' => 'default', 'action' => 'string'));
+
 $params = array('module' => 'default', 'action' => 'integer', 'id' => 12);
 $url = '/default/integer/id/12';
 $t->is($r->parse($url), $params, '->parse()    finds route for URL   when parameters meet requirements');
@@ -259,6 +285,7 @@ $t->is($r->generate('', $params), $url, '->generate() ignore routes when paramet
 
 $r->clearRoutes();
 $r->connect('test', '/:module/:action/id/:id', array('module' => 'default', 'action' => 'integer'), array('id' => '[^/]{2}'));
+
 $params = array('module' => 'default', 'action' => 'integer', 'id' => 'a1');
 $url = '/default/integer/id/a1';
 $t->is($r->parse($url), $params, '->parse()    finds route for URL   when parameters meet requirements');

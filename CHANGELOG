@@ -1,6 +1,9 @@
 Version routing
 ---------------
 
+* Allowed unnamed wildcard * to be followed by any separator and not only /
+* Fixed a bug in sfRouting::generate() when unnamed wildcard * appears in the middle of a rule
+  (also committed to the trunk r4227 and to the 1.0 branch r4228)
 * Added a new default rule called default_pjs to handle PJS calls
 * Added a new view named sfJavascriptView to handle dynamic JavaScript
 * Added a way to set a default view through the parameters of a routing rule
