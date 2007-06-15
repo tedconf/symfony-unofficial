@@ -423,9 +423,14 @@ abstract class sfController
     }
     else
     {
+      // view class as defined in a routing rule
+      $viewName = $this->getContext()->getRequest()->getParameter('sf_default_view', '');
       // view class (as configured in module.yml or defined in action)
-      $viewName = $this->getContext()->getRequest()->getAttribute($moduleName.'_'.$actionName.'_view_name', sfConfig::get('mod_'.strtolower($moduleName).'_view_class'), 'symfony/action/view');
-      $class    = sfCore::getClassPath($viewName.'View') ? $viewName.'View' : 'sfPHPView';
+      if(!$viewName)
+      {
+        $viewName = $this->getContext()->getRequest()->getAttribute($moduleName.'_'.$actionName.'_view_name', sfConfig::get('mod_'.strtolower($moduleName).'_view_class'), 'symfony/action/view');
+      }
+      $class = sfCore::getClassPath($viewName.'View') ? $viewName.'View' : 'sfPHPView';
     }
 
     return new $class();

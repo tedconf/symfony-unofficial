@@ -1,6 +1,9 @@
 Version routing
 ---------------
 
+* Added a new default rule called default_pjs to handle PJS calls
+* Added a new view named sfJavascriptView to handle dynamic JavaScript
+* Added a way to set a default view through the parameters of a routing rule
 * Added an insertRouteBefore() method to sfRouting.
 * Routing rules now recognize tokens starting with $ (: is still supported), like so:
     url: /$module/$action
