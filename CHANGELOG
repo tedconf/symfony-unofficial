@@ -1,6 +1,20 @@
 Version 1.1.0
 -------------
 
+* Added new asset helpers to include PJS calls in templates: pjs_include_tag(), use_pjs() and pjs_path()
+* Allowed unnamed wildcard * to be followed by any separator and not only /
+* Fixed a bug in sfRouting::generate() when unnamed wildcard * appears in the middle of a rule
+  (also committed to the trunk r4227 and to the 1.0 branch r4228)
+* Added a new default rule called default_pjs to handle PJS calls
+* Added a new view named sfJavascriptView to handle dynamic JavaScript
+* Added a way to set a default view through the parameters of a routing rule
+* Added an insertRouteBefore() method to sfRouting.
+* Routing rules now recognize tokens starting with $ (: is still supported), like so:
+    url: /$module/$action
+* Refactored sfRouting::connect()
+* Cleaned up sfRoutingTest
+* Routing rules now accept named tokens separated by ; : + | and . (in addition to the usual /), like so:
+    url: /:module/:action|:foo.:format
 * r3742: added sfAction::renderPartial() method
 * All bug fixes from 1.0.0 -> 1.0.4
 
@@ -185,7 +199,7 @@ WARNING: Actions in the routing are now case sensitive. If you have a page with 
 * updated calendar language files (pl, zh, nl, no, it)
 * new options for the sfFillInFilter filter
 * major sfWebDebug refactoring (no more dependency on prototype)
-* position option to stylesheets in view.yml 
+* position option to stylesheets in view.yml
 * native support for JSON/AJAX actions
 * better exception layout
 * new sfPropelUniqueValidator validator
@@ -260,7 +274,7 @@ Please read the UPGRADE file before upgrading your projects.
 * [fabien] new validateXXX() method for action
 * [fabien] renamed all classes that are Propel dependant with Propel in their names
 * [fabien] symfony now automatically clear the cache when upgrading
-* [fabien] dynamic defaults to routing 
+* [fabien] dynamic defaults to routing
 * [fabien] module i18n translations
 * [fabien] new i18n.yml configuration file
 * [fabien] new sfPropelAdmin generator
