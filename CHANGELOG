@@ -13,7 +13,7 @@ Version 1.1.0
     url: /$module/$action
 * Refactored sfRouting::connect()
 * Cleaned up sfRoutingTest
-* Routing rules now accept named tokens separated by ; : + | and . (in addition to the usual /), like so:
+* Routing rules now accept named tokens separated by ; : + | - and . (in addition to the usual /), like so:
     url: /:module/:action|:foo.:format
 * r3742: added sfAction::renderPartial() method
 * All bug fixes from 1.0.0 -> 1.0.4
