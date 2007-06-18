@@ -310,7 +310,7 @@ class sfRouting
     }
     else
     {
-      preg_match_all('/[:$]([\w\d\-_]+)/', $route, $matches);
+      preg_match_all('/[:$]([\w\d_]+)/', $route, $matches);
 
       $tokens    = $matches[0];
       $variables = $matches[1];

@@ -10,7 +10,7 @@
 
 require_once(dirname(__FILE__).'/../../bootstrap/unit.php');
 
-$t = new lime_test(94, new lime_output_color());
+$t = new lime_test(108, new lime_output_color());
 
 // public methods
 $r = sfRouting::getInstance();
@@ -294,20 +294,55 @@ $t->is($r->generate('', $params), $url, '->generate() creates URL for route when
 // separators
 $t->diag('separators');
 $r->clearRoutes();
-$r->connect('test1', '/:module/:action;:foo::baz+:toto|:zozo.:format', array());
-$params = array('module' => 'default', 'action' => 'foobar', 'foo' => 'bar', 'baz' => 'baz', 'toto' => 'titi', 'zozo' => 'zaza', 'format' => 'xml');
-$url = '/default/foobar;bar:baz+titi|zaza.xml';
-$t->is($r->parse($url), $params, '->parse()    accepts / ; : + | and . as separators');
-$t->is($r->generate('', $params), $url, '->generate() creates routes with / ; : + | and . separators');
+$r->connect('test', '/:module/:action;:foo::baz+:toto|:hip-:zozo.:format', array());
+$r->connect('test0', '/:module/:action0', array());
+$r->connect('test1', '/:module;:action1', array());
+$r->connect('test2', '/:module::action2', array());
+$r->connect('test3', '/:module+:action3', array());
+$r->connect('test4', '/:module|:action4', array());
+$r->connect('test5', '/:module.:action5', array());
+$r->connect('test6', '/:module-:action6', array());
+$params = array('module' => 'default', 'action0' => 'foobar');
+$url = '/default/foobar';
+$t->is($r->parse($url), $params, '->parse()    recognizes parameters separated by /');
+$t->is($r->generate('', $params), $url, '->generate() creates routes with / separator');
+$params = array('module' => 'default', 'action1' => 'foobar');
+$url = '/default;foobar';
+$t->is($r->parse($url), $params, '->parse()    recognizes parameters separated by ;');
+$t->is($r->generate('', $params), $url, '->generate() creates routes with ; separator');
+$params = array('module' => 'default', 'action2' => 'foobar');
+$url = '/default:foobar';
+$t->is($r->parse($url), $params, '->parse()    recognizes parameters separated by :');
+$t->is($r->generate('', $params), $url, '->generate() creates routes with : separator');
+$params = array('module' => 'default', 'action3' => 'foobar');
+$url = '/default+foobar';
+$t->is($r->parse($url), $params, '->parse()    recognizes parameters separated by +');
+$t->is($r->generate('', $params), $url, '->generate() creates routes with + separator');
+$params = array('module' => 'default', 'action4' => 'foobar');
+$url = '/default|foobar';
+$t->is($r->parse($url), $params, '->parse()    recognizes parameters separated by |');
+$t->is($r->generate('', $params), $url, '->generate() creates routes with | separator');
+$params = array('module' => 'default', 'action5' => 'foobar');
+$url = '/default.foobar';
+$t->is($r->parse($url), $params, '->parse()    recognizes parameters separated by .');
+$t->is($r->generate('', $params), $url, '->generate() creates routes with . separator');
+$params = array('module' => 'default', 'action6' => 'foobar');
+$url = '/default-foobar';
+$t->is($r->parse($url), $params, '->parse()    recognizes parameters separated by -');
+$t->is($r->generate('', $params), $url, '->generate() creates routes with - separator');
+$params = array('module' => 'default', 'action' => 'foobar', 'foo' => 'bar', 'baz' => 'baz', 'toto' => 'titi', 'hip' => 'hop', 'zozo' => 'zaza', 'format' => 'xml');
+$url = '/default/foobar;bar:baz+titi|hop-zaza.xml';
+$t->is($r->parse($url), $params, '->parse()    recognizes parameters separated by mixed separators');
+$t->is($r->generate('', $params), $url, '->generate() creates routes with mixed separators');
 
 // token names
 $t->diag('token names');
 $r->clearRoutes();
-$r->connect('test1', '/:foo_1/:bar-2', array());
-$params = array('foo_1' => 'test', 'bar-2' => 'foobar');
+$r->connect('test1', '/:foo_1/:bar2', array());
+$params = array('foo_1' => 'test', 'bar2' => 'foobar');
 $url = '/test/foobar';
-$t->is($r->parse($url), $params, '->parse()    accepts token names including _ and -');
-$t->is($r->generate('', $params), $url, '->generate() accepts token names including _ and -');
+$t->is($r->parse($url), $params, '->parse()    accepts token names composed of letters, digits and _');
+$t->is($r->generate('', $params), $url, '->generate() accepts token names composed of letters, digits and _');
 
 // token prefix
 $t->diag('token prefix');
