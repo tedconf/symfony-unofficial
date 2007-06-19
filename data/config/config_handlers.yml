@@ -4,6 +4,11 @@ config/autoload.yml:
 config/php.yml:
   class:    sfPhpConfigHandler
 
+config/tone.yml:
+  class:    sfToneConfigHandler
+  param:
+    prefix: sf_tone_
+
 config/databases.yml:
   class:    sfDatabaseConfigHandler
 

@@ -1,0 +1,31 @@
+default:
+
+  Controller:
+    class: sfFrontWebController
+    parent: SymfonyCoreSingleton
+
+  Request:
+    class: sfWebRequest
+    parent: SymfonyCoreSingleton
+
+  Response:
+    class: sfWebResponse
+    parent: SymfonyCoreSingleton
+
+  User:
+    class: myUser
+    parent: SymfonyCoreSingleton
+
+  # default definition of core singletons
+  SymfonyCoreSingleton:
+    abstract: false
+    singleton: true
+    lazy_init: false
+    init_method: initialize
+    destroy_method: shutdown
+
+  # default tone definition
+  SymfonyTone:
+    abstract: false
+    singleton: false
+    lazy_init: true

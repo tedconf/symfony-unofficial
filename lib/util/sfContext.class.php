@@ -13,7 +13,7 @@
  * sfContext provides information about the current application context, such as
  * the module and action names and the module directory. References to the
  * current controller, request, and user implementation instances are also
- * provided.
+ * provided. Support for tones was introduced in June, 2007.
  *
  * @package    symfony
  * @subpackage util
@@ -23,6 +23,8 @@
  */
 class sfContext
 {
+  const DEFAULT_TONE_NAMESPACE = 'symfony/default';
+
   protected
     $actionStack       = null,
     $controller        = null,
@@ -33,10 +35,43 @@ class sfContext
     $viewCacheManager  = null,
     $i18n              = null,
     $logger            = null,
-    $user              = null;
+    $user              = null,
+    $toneFactories     = array();
 
   protected static
-    $instance          = null;
+    $instance          = null,
+    $class             = __CLASS__;
+
+  /**
+   * Retrieve the singleton instance of this class.
+   *
+   * @return sfContext A sfContext implementation instance.
+   */
+  public static function getInstance()
+  {
+    if (!isset(self::$instance))
+    {
+      if (!class_exists(self::$class))
+      {
+        throw new sfException('The class ' . self::$class . " used for creating the instance of sfContext doesn't exist");
+      }
+
+      self::$instance = new self::$class();
+      self::$instance->initialize();
+    }
+
+    return self::$instance;
+  }
+
+  /**
+   * Checks whether sfContext has an instance.
+   *
+   * @return boolean true if sfContext has an instance, false if not.
+   */
+  public static function hasInstance()
+  {
+    return isset(self::$instance);
+  }
 
   /**
    * Removes current sfContext instance
@@ -46,6 +81,22 @@ class sfContext
   public static function removeInstance()
   {
     self::$instance = null;
+  }
+
+  /**
+   * Sets the class name to be used for creating the instance of sfContext.
+   *
+   * This allowes you to subclass sfContext and add or overwrite methods of it.
+   * Recommended place to call it is in yourapp/config/config.php
+   * Example:
+   * <code>
+   *   sfContext::setInstanceClass('MyContext');
+   * </code>
+   * @param string Class name used to create the sfContext instance.
+   */
+  public static function setInstanceClass($class)
+  {
+    self::$class = $class;
   }
 
   protected function initialize()
@@ -69,30 +120,10 @@ class sfContext
     // include the factories configuration
     require(sfConfigCache::getInstance()->checkConfig(sfConfig::get('sf_app_config_dir_name').'/factories.yml'));
 
+    $this->registerToneFactory('sfToneFactoryAdapter', self::DEFAULT_TONE_NAMESPACE);
+
     // register our shutdown function
     register_shutdown_function(array($this, 'shutdown'));
-  }
-
-  /**
-   * Retrieve the singleton instance of this class.
-   *
-   * @return sfContext A sfContext implementation instance.
-   */
-  public static function getInstance()
-  {
-    if (!isset(self::$instance))
-    {
-      $class = __CLASS__;
-      self::$instance = new $class();
-      self::$instance->initialize();
-    }
-
-    return self::$instance;
-  }
-
-  public static function hasInstance()
-  {
-    return isset(self::$instance);
   }
 
   /**
@@ -109,7 +140,6 @@ class sfContext
       return $lastEntry->getActionName();
     }
   }
-
 
   /**
    * Retrieve the ActionStack.
@@ -301,6 +331,122 @@ class sfContext
   }
 
   /**
+   * Registers a tone factory to the context.
+   *
+   * @param mixed  String (class name) or Object (instance) of a tone factory
+   *               implementing the sfToneFactory interface.
+   * @param string Tones of the factory will be accessable by this namespace.
+   * @TODO make it more flexible to also support foreign but similar factories like Garden
+   */
+  public function registerToneFactory($factory, $namespace)
+  {
+    if (!empty($this->toneFactories[$namespace]))
+    {
+      throw new sfException('There is already a tone factory registered at namespace ' . $namespace);
+    }
+
+    if (is_string($factory))
+    {
+      $this->toneFactories[$namespace] = new $factory();
+      $this->toneFactories[$namespace]->initialize();
+    }
+    elseif (is_object($factory))
+    {
+      $this->toneFactories[$namespace] = $factory;
+    }
+
+    if (!$this->toneFactories[$namespace] instanceof sfToneFactory)
+    {
+      throw new sfException('Registering tone factory for namespace ' . $namespace .
+        ' failed. Make sure that it implements the sfToneFactory interface.');
+    }
+  }
+
+  /**
+   * Removes a factory and all its tones from context.
+   *
+   * @param string Namespace of the factory that will be removed.
+   */
+  public function unregisterToneFactory($namespace)
+  {
+    if (empty($this->toneFactories[$namespace]))
+    {
+      throw new sfException('There is no registered tone factory for namespace ' . $namespace);
+    }
+
+    $this->toneFactories[$namespace]->shutdown();
+    unset($this->toneFactories[$namespace]);
+    return true;
+  }
+
+  /**
+   * Checks whether there is a tone factory registered in a given namespace.
+   *
+   * @param string Namespace to check.
+   * @return bool  True if there is a tone factory, false if not.
+   */
+  public function hasToneFactory($namespace)
+  {
+    return !empty($this->toneFactories[$namespace]);
+  }
+
+  public function getTone($name, $namespace = self::DEFAULT_TONE_NAMESPACE)
+  {
+    if (empty($this->toneFactories[$namespace]))
+    {
+      throw new sfException('There is no registered tone factory for namespace ' . $namespace);
+    }
+
+    return $this->toneFactories[$namespace]->getTone($name);
+  }
+
+  public function containsTone($name, $namespace = self::DEFAULT_TONE_NAMESPACE)
+  {
+    if (empty($this->toneFactories[$namespace]))
+    {
+      throw new sfException('There is no registered tone factory for namespace ' . $namespace);
+    }
+
+    return $this->toneFactories[$namespace]->containsTone($name);
+  }
+
+  public function getAliases($name, $namespace = self::DEFAULT_TONE_NAMESPACE)
+  {
+    if (empty($this->toneFactories[$namespace]))
+    {
+      throw new sfException('There is no registered tone factory for namespace ' . $namespace);
+    }
+
+    return $this->toneFactories[$namespace]->getAliases($name);
+  }
+
+  /**
+   * Tells if a tone is singleton
+   *
+   * @param     String $name tone id, name or alias
+   * @return     boolean
+   */
+  public function isSingleton($name, $namespace = self::DEFAULT_TONE_NAMESPACE)
+  {
+    if (empty($this->toneFactories[$namespace]))
+    {
+      throw new sfException('There is no registered tone factory for namespace ' . $namespace);
+    }
+
+    return $this->toneFactories[$namespace]->isSingleton($name);
+  }
+
+  public function removeTone($name, $namespace = self::DEFAULT_TONE_NAMESPACE)
+  {
+    if (empty($this->toneFactories[$namespace]))
+    {
+      throw new sfException('There is no registered tone factory for namespace ' . $namespace);
+    }
+
+    return $this->toneFactories[$namespace]->removeTone($name);
+  }
+
+  /**
    * Execute the shutdown procedure.
    *
    * @return void
@@ -308,6 +454,11 @@ class sfContext
   public function shutdown()
   {
     // shutdown all factories
+    foreach ($this->toneFactories as $toneFactory)
+    {
+      $toneFactory->shutdown();
+    }
+
     $this->getUser()->shutdown();
     $this->getStorage()->shutdown();
     $this->getRequest()->shutdown();
@@ -328,4 +479,5 @@ class sfContext
       $this->getViewCacheManager()->shutdown();
     }
   }
+
 }
