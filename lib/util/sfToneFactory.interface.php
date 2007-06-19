@@ -35,6 +35,11 @@
 interface sfToneFactory
 {
   /**
+   * This is used to inject current context instance
+   */
+  public function setContext($context);
+
+  /**
    * This should initialize the factory
    */
   public function initialize();

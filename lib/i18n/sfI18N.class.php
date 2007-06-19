@@ -37,9 +37,20 @@ class sfI18N
     return self::$instance;
   }
 
-  public function initialize($context)
+  /**
+   * Setter injection of context instance for use with tone factory.
+   */
+  public function setContext($context)
   {
     $this->context = $context;
+  }
+
+  public function initialize($context = null)
+  {
+    if (!is_null($context))
+    {
+      $this->setContext($context);
+    }
 
     $this->globalMessageSource = $this->createMessageSource(sfConfig::get('sf_app_i18n_dir'));
 

@@ -23,3 +23,14 @@ default:
     singleton:      true
     init_method:    initialize
     destroy_method: shutdown
+
+  I18N:
+    class:          sfI18N
+    factory_method: getInstance
+    properties:
+      context: [Tone, Context]
+    singleton:      true
+    init_method:    initialize
+
+    # this is alpha, will probably change to 'load_config_condition' and change its behavior
+    preload_config_condition: sf_i18n   # only preload if sfConfig::get('sf_i18n') == true

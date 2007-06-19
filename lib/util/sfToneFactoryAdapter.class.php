@@ -31,6 +31,8 @@
  */
 class sfToneFactoryAdapter implements sfToneFactory
 {
+  protected $context;
+
   /**
    * Array of ToneDefinition objects, which are available through this factory
    *
@@ -78,13 +80,20 @@ class sfToneFactoryAdapter implements sfToneFactory
    *
    * @var Array of String
    */
-  protected $reservedArgs = array('Tone');
+  protected $reservedArgs = array('Tone', 'Config');
+
+  public function setContext($context)
+  {
+    $this->context = $context;
+  }
 
   /**
    * Initializes the factory.
    */
   public function initialize()
   {
+    $this->logger = sfLogger::getInstance();
+
     $toneDefinitions = require(sfConfigCache::getInstance()->checkConfig(sfConfig::get('sf_app_config_dir_name').'/tone.yml'));
     $this->setToneDefinitions($toneDefinitions);
   }
@@ -243,6 +252,7 @@ class sfToneFactoryAdapter implements sfToneFactory
       }
     }
 
+    $this->logger->info('{sfToneFactory} successfully removed tone: ' . $name);
     return true;
   }
 
@@ -327,6 +337,7 @@ class sfToneFactoryAdapter implements sfToneFactory
     $this->initializeTone($tone, $definition);
     $this->unlockTone($name);
     $this->publishTone($tone, $definition);
+    $this->logger->info('{sfToneFactory} successfully created tone: ' . $name);
   }
 
   /**
@@ -485,8 +496,9 @@ class sfToneFactoryAdapter implements sfToneFactory
       switch ($value[0])
       {
         case 'Tone':
-          return $this->getTone($value[1]);
-          break;
+          return ($value[1] == 'Context') ? $this->context : $this->getTone($value[1]);
+        case 'Config':
+          return sfConfig::get($value[1]);
       }
     }
 
@@ -558,8 +570,25 @@ class sfToneFactoryAdapter implements sfToneFactory
           $this->aliases[$alias] = $id;
         }
       }
-      if (!$toneDef['lazy_init'] && !$this->isInstantiated($id))
+
+      $configCondition =
+        !$toneDef['preload_config_condition'] ||
+        sfConfig::get((string) $toneDef['preload_config_condition']);
+
+      if (!$toneDef['lazy_init'])
       {
+        if (!$configCondition)
+        {
+          $this->logger->info('{sfToneFactory} skipped preloading of tone: ' . $id . ', config condition does not match');
+          continue;
+        }
+
+        if ($this->isInstantiated($id))
+        {
+          continue;
+        }
+
+        $this->logger->info('{sfToneFactory} preloading tone: ' . $id);
         $this->instantiateTone($toneDef);
       }
     }

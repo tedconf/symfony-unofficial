@@ -117,10 +117,13 @@ class sfContext
     // create a new action stack
     $this->actionStack = new sfActionStack();
 
+    $this->registerToneFactory('sfToneFactoryAdapter', self::DEFAULT_TONE_NAMESPACE);
+
     // include the factories configuration
     require(sfConfigCache::getInstance()->checkConfig(sfConfig::get('sf_app_config_dir_name').'/factories.yml'));
-
-    $this->registerToneFactory('sfToneFactoryAdapter', self::DEFAULT_TONE_NAMESPACE);
+    // if we move factories to tones we have to move this line into
+    // sfToneFactoryAdapter->initialize() and change the factories.yml config handler
+    // to build a tone definition array
 
     // register our shutdown function
     register_shutdown_function(array($this, 'shutdown'));
@@ -313,8 +316,7 @@ class sfContext
   {
     if (!$this->i18n && sfConfig::get('sf_i18n'))
     {
-      $this->i18n = sfI18N::getInstance();
-      $this->i18n->initialize($this);
+      $this->i18n = $this->getTone('I18N');
     }
 
     return $this->i18n;
@@ -348,17 +350,24 @@ class sfContext
     if (is_string($factory))
     {
       $this->toneFactories[$namespace] = new $factory();
-      $this->toneFactories[$namespace]->initialize();
+      $init = true;
     }
     elseif (is_object($factory))
     {
       $this->toneFactories[$namespace] = $factory;
+      $init = false;
     }
 
     if (!$this->toneFactories[$namespace] instanceof sfToneFactory)
     {
       throw new sfException('Registering tone factory for namespace ' . $namespace .
         ' failed. Make sure that it implements the sfToneFactory interface.');
+    }
+
+    if ($init)
+    {
+      $this->toneFactories[$namespace]->setContext($this);
+      $this->toneFactories[$namespace]->initialize();
     }
   }
 

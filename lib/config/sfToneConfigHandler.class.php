@@ -48,7 +48,8 @@ class sfToneConfigHandler extends sfYamlConfigHandler
     'file' => false,
     'abstract' => false,
     'singleton' => false,
-    'lazy_init' => true,
+    'lazy_init' => true, // we should swap the logic and rename it to 'preload'
+    'preload_config_condition' => false, // if set it will only preload if sfConfig::get($condition) is true
     'depends_on' => array(),
     'init_method' => false,
     'destroy_method' => false,
@@ -166,7 +167,12 @@ class sfToneConfigHandler extends sfYamlConfigHandler
 
     if (isset($toneDef['lazy_init']))
     {
-      $def['lazy_init'] = (bool) $toneDef['lazy_init'];
+      $def['lazy_init'] = $toneDef['lazy_init'];
+    }
+
+    if (!empty($toneDef['preload_config_condition']))
+    {
+      $def['preload_config_condition'] = $toneDef['preload_config_condition'];
     }
 
     if (!empty($toneDef['depends_on']))
