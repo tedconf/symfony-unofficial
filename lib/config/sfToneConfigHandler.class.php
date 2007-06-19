@@ -38,6 +38,7 @@ class sfToneConfigHandler extends sfYamlConfigHandler
    * @var array
    */
   protected $defaultTone = array(
+    'id' => '',
     'aliases' => array(),
     'description' => '',
     'constructor_args' => array(),
@@ -108,6 +109,10 @@ class sfToneConfigHandler extends sfYamlConfigHandler
 
     // first we need the default values
     $def = $this->defaultTone;
+
+    // we have to add the id here as the definition is passed around
+    // in the tone factory while it needs to know what it is
+    $def['id'] = $name;
 
     if (!empty($toneDef['description']))
     {
@@ -232,10 +237,10 @@ class sfToneConfigHandler extends sfYamlConfigHandler
 
     $parentDef = $this->toneDefinitions[$parent];
 
-    // do not inherit these values
-    unset($parentDef['description'], $parentDef['aliases'], $parentDef['class'], $parentDef['file'], $parentDef['parent']);
-
-    $inheritedDef = array_merge($def, $parentDef);
+    // only inherit some values
+    $inheritedDef = $def;
+    $inheritedDef['constructor_args'] = $parentDef['constructor_args'];
+    $inheritedDef['properties'] = $parentDef['properties'];
 
     return $inheritedDef;
   }
