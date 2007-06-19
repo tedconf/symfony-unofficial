@@ -97,6 +97,90 @@ $b->
 ;
 $b->test()->isa_ok($b->getContext()->getCurrentViewInstance(), 'sfPHPView', 'PJS requests to pages that exist in PHP only end up with a PHP View');
 
+
+$b->test()->diag('');
+$b->test()->diag('Multiformat actions');
+$b->
+  get('/test_multiformat.html')->
+  isStatusCode(200)->
+  isRequestParameter('module', 'test')->
+  isRequestParameter('action', 'testMultiformat')->
+  responseContains('html response')
+;
+$b->test()->isa_ok($b->getContext()->getCurrentViewInstance(), 'sfPHPView', 'requests with html format end up with a PHP View');
+$b->
+  get('/test_multiformat.pjs')->
+  isStatusCode(200)->
+  isRequestParameter('module', 'test')->
+  isRequestParameter('action', 'testMultiformat')->
+  responseContains('javascript response')
+;
+$b->test()->isa_ok($b->getContext()->getCurrentViewInstance(), 'sfJavascriptView', 'requests with pjs format end up with a Javascript View');
+$b->
+  get('/test_multiformat.titi')->
+  responseContains('There is no default view for format "titi"')
+;
+$b->
+  get('/test_multiformat.toto')->
+  responseContains('The format "toto" is not allowed in this action')
+;
+
+$b->test()->diag('Multiformat actions with default parameters');
+$b->
+  get('/test_multiformat_defaults.html')->
+  isStatusCode(200)->
+  isRequestParameter('module', 'test')->
+  isRequestParameter('action', 'testMultiformatDefaults')->
+  responseContains('html response')
+;
+$b->test()->isa_ok($b->getContext()->getCurrentViewInstance(), 'sfPHPView', 'requests with html format end up with a PHP View');
+$b->
+  get('/test_multiformat_defaults.pjs')->
+  isStatusCode(200)->
+  isRequestParameter('module', 'test')->
+  isRequestParameter('action', 'testMultiformatDefaults')->
+  responseContains('javascript response')
+;
+$b->test()->isa_ok($b->getContext()->getCurrentViewInstance(), 'sfJavascriptView', 'requests with pjs format end up with a Javascript View');
+$b->
+  get('/test_multiformat_defaults.toto')->
+  responseContains('There is no default view for format "toto"')
+;
+
+$b->test()->diag('Multiformat actions with undefined format');
+$b->
+  get('/test/testMultiformatUndefined')->
+  isRequestParameter('module', 'test')->
+  isRequestParameter('action', 'testMultiformatUndefined')->
+  responseContains('The format parameter "format" is not defined in the request')
+;
+
+$b->test()->diag('Multiformat actions implemented by hand');
+$b->
+  get('/test_multiformat_by_hand.html')->
+  isStatusCode(200)->
+  isRequestParameter('module', 'test')->
+  isRequestParameter('action', 'testMultiformatByHand')->
+  responseContains('html response')
+;
+$b->test()->isa_ok($b->getContext()->getCurrentViewInstance(), 'sfPHPView', 'requests with html format end up with a PHP View');
+$b->
+  get('/test_multiformat_by_hand.pjs')->
+  isStatusCode(200)->
+  isRequestParameter('module', 'test')->
+  isRequestParameter('action', 'testMultiformatByHand')->
+  responseContains('javascript response')
+;
+$b->test()->isa_ok($b->getContext()->getCurrentViewInstance(), 'sfJavascriptView', 'requests with pjs format end up with a Javascript View');
+$b->
+  get('/test_multiformat_by_hand.toto')->
+  isStatusCode(200)->
+  isRequestParameter('module', 'test')->
+  isRequestParameter('action', 'testMultiformatByHand')->
+  responseContains('javascript response')
+;
+
+$b->test()->diag('');
 $b->test()->diag('PJS helpers');
 $b->
   get('/test/helper')->

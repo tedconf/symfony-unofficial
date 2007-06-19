@@ -1,6 +1,8 @@
 Version 1.1.0
 -------------
 
+* Added a sfAction::renderMultiformat() method to automate the ability for an action 
+  to render with different view according to a request parameter
 * Added new asset helpers to include PJS calls in templates: pjs_include_tag(), use_pjs() and pjs_path()
 * Allowed unnamed wildcard * to be followed by any separator and not only /
 * Fixed a bug in sfRouting::generate() when unnamed wildcard * appears in the middle of a rule
