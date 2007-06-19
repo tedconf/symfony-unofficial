@@ -66,6 +66,11 @@ default:
     # Activated modules from plugins or from the symfony core
     enabled_modules:        [default]
 
+    # View classes for multiformat actions
+    multiformat:
+      html: sfPHP
+      pjs:  sfJavascript
+    
     # Charset used for the response
     charset:                utf-8
 

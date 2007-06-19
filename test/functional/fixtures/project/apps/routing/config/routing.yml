@@ -1,4 +1,16 @@
 # default rules
+test_multiformat:
+  url:   /test_multiformat.:format
+  param: { module: test, action: testMultiformat }
+
+test_multiformat_defaults:
+  url:   /test_multiformat_defaults.:format
+  param: { module: test, action: testMultiformatDefaults }
+
+test_multiformat_by_hand:
+  url:   /test_multiformat_by_hand.:format
+  param: { module: test, action: testMultiformatByHand }
+
 homepage:
   url:   /
   param: { module: default, action: index }

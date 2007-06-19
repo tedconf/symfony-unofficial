@@ -25,4 +25,39 @@ class testActions extends sfActions
   public function executeHelper()
   {
   }
+      
+  public function executeTestMultiformat()
+  {
+    $this->renderMultiformat('format', array('html', 'pjs', 'titi'));
+  }
+
+  public function executeTestMultiformatDefaults()
+  {
+    $this->setTemplate('testMultiformat');
+    $this->renderMultiformat();
+  }
+
+  public function executeTestMultiformatUndefined()
+  {
+    $this->setTemplate('testMultiformat');
+    $this->renderMultiformat();
+  }
+
+  public function executeTestMultiformatByHand()
+  {
+    $this->setTemplate('testMultiformat');
+    switch ($this->getRequestParameter('format')) 
+    {
+      case 'html':
+        $this->setViewClass('sfPHP');
+        break;
+      case 'pjs':
+        $this->setViewClass('sfJavascript');
+        break;
+      default:
+        $this->setViewClass('sfJavascript');
+        break;
+    }
+  }
+  
 }
