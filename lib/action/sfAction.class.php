@@ -290,12 +290,10 @@ abstract class sfAction extends sfComponent
    * @param  array Allowed formats. If left empty, all the formats defined in settings.yml are accepted.
    */
   public function renderMultiformat($format_param = 'format', $accepted_formats = array())
-  {
-    // FIXME: Make the exceptions of this method redirect to a 404 in production
-    
+  { 
     if(!$format = $this->getRequestParameter($format_param))
     {
-      throw new sfException(sprintf('The format parameter "%s" is not defined in the request', $format_param));
+      throw new sfError404Exception(sprintf('The format parameter "%s" is not defined in the request', $format_param));
     }
     
     $format_is_allowed = in_array($format, $accepted_formats);
@@ -303,7 +301,7 @@ abstract class sfAction extends sfComponent
     if($accepted_formats && !$format_is_allowed)
     {
       // format not in the list of allowed formats
-      throw new sfException(sprintf('The format "%s" is not allowed in this action. If you want to use this format, add it to the list of allowed formats in the second argument of the call to renderMultiformat()', $format));
+      throw new sfError404Exception(sprintf('The format "%s" is not allowed in this action. If you want to use this format, add it to the list of allowed formats in the second argument of the call to renderMultiformat()', $format));
     }
     
     if(!$accepted_formats || $format_is_allowed)
@@ -312,7 +310,7 @@ abstract class sfAction extends sfComponent
       $default_classes = sfConfig::get('sf_multiformat');
       if(!isset($default_classes[$format]))
       {
-        throw new sfException(sprintf('There is no default view for format "%s". You can define one in the settings.yml file, under the multiformat: label.', $format));
+        throw new sfError404Exception(sprintf('There is no default view for format "%s". You can define one in the settings.yml file, under the multiformat: label.', $format));
       }
       $this->setViewClass($default_classes[$format]);
     }

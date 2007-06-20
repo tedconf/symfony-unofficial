@@ -118,10 +118,12 @@ $b->
 $b->test()->isa_ok($b->getContext()->getCurrentViewInstance(), 'sfJavascriptView', 'requests with pjs format end up with a Javascript View');
 $b->
   get('/test_multiformat.titi')->
+  responseContains('sfError404Exception')->
   responseContains('There is no default view for format "titi"')
 ;
 $b->
   get('/test_multiformat.toto')->
+  responseContains('sfError404Exception')->
   responseContains('The format "toto" is not allowed in this action')
 ;
 
@@ -144,6 +146,7 @@ $b->
 $b->test()->isa_ok($b->getContext()->getCurrentViewInstance(), 'sfJavascriptView', 'requests with pjs format end up with a Javascript View');
 $b->
   get('/test_multiformat_defaults.toto')->
+  responseContains('sfError404Exception')->
   responseContains('There is no default view for format "toto"')
 ;
 
@@ -152,6 +155,7 @@ $b->
   get('/test/testMultiformatUndefined')->
   isRequestParameter('module', 'test')->
   isRequestParameter('action', 'testMultiformatUndefined')->
+  responseContains('sfError404Exception')->
   responseContains('The format parameter "format" is not defined in the request')
 ;
 
