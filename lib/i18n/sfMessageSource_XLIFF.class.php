@@ -295,7 +295,7 @@ class sfMessageSource_XLIFF extends sfMessageSource
     }
     else
     {
-      return false;
+      list($variant, $filename) = $this->createMessageTemplate($catalogue);
     }
 
     if (is_writable($filename) == false)
@@ -304,13 +304,23 @@ class sfMessageSource_XLIFF extends sfMessageSource
     }
 
     // create a new dom, import the existing xml
-    $dom = DOMDocument::load($filename);
+    $dom = new DOMDocument();
+    $dom->load($filename);
 
     // find the body element
     $xpath = new DomXPath($dom);
     $body = $xpath->query('//body')->item(0);
 
-    $count = $xpath->query('//trans-unit')->length;
+    // find the biggest "id" used
+    $lastNodes = $xpath->query('//trans-unit[not(@id <= preceding-sibling::trans-unit/@id) and not(@id <= following-sibling::trans-unit/@id)]');
+    if (null !== $last = $lastNodes->item(0))
+    {
+      $count = intval($last->getAttribute('id'));
+    }
+    else
+    {
+      $count = 0;
+    }
 
     // for each message add it to the XML file using DOM
     foreach ($messages as $message)
@@ -372,7 +382,8 @@ class sfMessageSource_XLIFF extends sfMessageSource
     }
 
     // create a new dom, import the existing xml
-    $dom = DOMDocument::load($filename);
+    $dom = new DOMDocument();
+    $dom->load($filename);
 
     // find the body element
     $xpath = new DomXPath($dom);
@@ -474,7 +485,8 @@ class sfMessageSource_XLIFF extends sfMessageSource
     }
 
     // create a new dom, import the existing xml
-    $dom = DOMDocument::load($filename);
+    $dom = new DOMDocument();
+    $dom->load($filename);
 
     // find the body element
     $xpath = new DomXPath($dom);
@@ -514,5 +526,54 @@ class sfMessageSource_XLIFF extends sfMessageSource
     }
 
     return false;
+  }
+
+  protected function createMessageTemplate($catalogue)
+  {
+    if (is_null($catalogue))
+    {
+      $catalogue = 'messages';
+    }
+
+    $variants = $this->getCatalogueList($catalogue);
+    $variant = array_shift($variants);
+    $file = $this->getSource($variant);
+    $dir = dirname($file);
+    if (!is_dir($dir))
+    {
+      @mkdir($dir);
+      @chmod($dir, 0777);
+    }
+
+    if (!is_dir($dir))
+    {
+      throw new sfException("Unable to create directory $dir");
+    }
+
+    file_put_contents($file, $this->getTemplate($catalogue));
+    chmod($file, 0777);
+
+    return array($variant, $file);
+  }
+
+  protected function getTemplate($catalogue)
+  {
+    $date = date('c');
+
+    return <<<EOD
+<?xml version="1.0" ?>
+<xliff version="1.0">
+ <file
+  source-language="EN"
+  target-language="{$this->culture}"
+  datatype="plaintext"
+  original="$catalogue"
+  date="$date"
+  product-name="$catalogue">
+  <body>
+  </body>
+ </file>
+</xliff>
+EOD;
   }
 }
