@@ -19,11 +19,6 @@
  */
 
 /**
- * Get the I18N utility file, contains the DSN parser.
- */
-require_once(dirname(__FILE__).'/util.php');
-
-/**
  * sfMessageSource_SQLite class.
  * 
  * Retrieve the message translation from a SQLite database.
@@ -89,7 +84,7 @@ require_once(dirname(__FILE__).'/util.php');
  * @version v1.0, last update on Fri Dec 24 16:58:58 EST 2004
  * @package System.I18N.core
  */
-class sfMessageSource_SQLite extends sfMessageSource
+class sfMessageSource_SQLite extends sfMessageSource_Database
 {
   /**
    * The SQLite datasource, the filename of the database.
@@ -99,18 +94,18 @@ class sfMessageSource_SQLite extends sfMessageSource
 
   /**
    * Constructor.
-   * Create a new message source using SQLite.
+   * Creates a new message source using SQLite.
    * @see MessageSource::factory();
    * @param string SQLite datasource, in PEAR's DB DSN format.
    */
   function __construct($source)
   {
-    $dsn = parseDSN((string)$source);
+    $dsn = $this->parseDSN((string) $source);
     $this->source = $dsn['database'];
   }
 
   /**
-   * Get an array of messages for a particular catalogue and cultural variant.
+   * Gets an array of messages for a particular catalogue and cultural variant.
    *
    * @param string the catalogue name + variant
    * @return array translation messages.
@@ -145,7 +140,7 @@ class sfMessageSource_SQLite extends sfMessageSource
   }
 
   /**
-   * Get the last modified unix-time for this particular catalogue+variant.
+   * Gets the last modified unix-time for this particular catalogue+variant.
    * We need to query the database to get the date_modified.
    *
    * @param string catalogue+variant
@@ -167,7 +162,7 @@ class sfMessageSource_SQLite extends sfMessageSource
   }
 
   /**
-   * Check if a particular catalogue+variant exists in the database.
+   * Checks if a particular catalogue+variant exists in the database.
    *
    * @param string catalogue+variant
    * @return boolean true if the catalogue+variant is in the database, false otherwise.
@@ -184,7 +179,7 @@ class sfMessageSource_SQLite extends sfMessageSource
   }
 
   /**
-   * Get all the variants of a particular catalogue.
+   * Gets all the variants of a particular catalogue.
    *
    * @param string catalogue name
    * @return array list of all variants for this catalogue.
@@ -210,7 +205,7 @@ class sfMessageSource_SQLite extends sfMessageSource
   }
 
   /**
-   * Retrieve catalogue details, array($cat_id, $variant, $count).
+   * Retrieves catalogue details, array($cat_id, $variant, $count).
    *
    * @param string catalogue
    * @return array catalogue details, array($cat_id, $variant, $count).
@@ -248,7 +243,7 @@ class sfMessageSource_SQLite extends sfMessageSource
   }
 
   /**
-   * Update the catalogue last modified time.
+   * Updates the catalogue last modified time.
    *
    * @return boolean true if updated, false otherwise. 
    */
@@ -267,7 +262,7 @@ class sfMessageSource_SQLite extends sfMessageSource
   }
 
   /**
-   * Save the list of untranslated blocks to the translation source. 
+   * Saves the list of untranslated blocks to the translation source. 
    * If the translation was not found, you should add those
    * strings to the translation source via the <b>append()</b> method.
    *
@@ -324,7 +319,7 @@ class sfMessageSource_SQLite extends sfMessageSource
   }
 
   /**
-   * Update the translation.
+   * Updates the translation.
    *
    * @param string the source string.
    * @param string the new translation string.
@@ -367,7 +362,7 @@ class sfMessageSource_SQLite extends sfMessageSource
   }
 
   /**
-   * Delete a particular message from the specified catalogue.
+   * Deletes a particular message from the specified catalogue.
    *
    * @param string the source message to delete.
    * @param string the catalogue to delete from.

@@ -9,6 +9,7 @@
  */
 
 /**
+ * sfI18N wraps the core i18n classes for a symfony context.
  *
  * @package    symfony
  * @subpackage i18n
@@ -18,45 +19,56 @@
 class sfI18N
 {
   protected
-    $context             = null,
-    $globalMessageSource = null,
-    $messageSource       = null,
-    $messageFormat       = null;
+    $context        = null,
+    $culture        = null,
+    $messageSources = array(),
+    $messageFormats = array();
 
-  static protected
-    $instance            = null;
-
-  static public function getInstance()
-  {
-    if (!isset(self::$instance))
-    {
-      $class = __CLASS__;
-      self::$instance = new $class();
-    }
-
-    return self::$instance;
-  }
-
+  /**
+   * Initializes this class.
+   *
+   * @param sfContext A sfContext implementation instance
+   */
   public function initialize($context)
   {
     $this->context = $context;
 
-    $this->globalMessageSource = $this->createMessageSource(sfConfig::get('sf_app_i18n_dir'));
-
-    $this->globalMessageFormat = $this->createMessageFormat($this->globalMessageSource);
+    $this->messageSources = array($this->createMessageSource(is_dir(sfConfig::get('sf_app_i18n_dir')) ? sfConfig::get('sf_app_i18n_dir') : null));
+    $this->messageFormats = array();
   }
 
-  public function setMessageSourceDir($dir, $culture)
+  /**
+   * Sets the message sources for the given symfony context
+   *
+   * @param mixed  An array of i18n directories if message source configuration is XLIFF or gettext, null otherwise
+   * @param string The culture
+   */
+  public function setMessageSource($dirs, $culture)
   {
-    $this->messageSource = $this->createMessageSource($dir);
-    $this->messageSource->setCulture($culture);
-    $this->messageFormat = $this->createMessageFormat($this->messageSource);
+    $this->messageSources = array();
 
-    $this->globalMessageSource->setCulture($culture);
-    $this->globalMessageFormat = $this->createMessageFormat($this->globalMessageSource);
+    if (is_null($dirs))
+    {
+      $this->messageSources = $this->createMessageSource();
+    }
+    else
+    {
+      foreach ($dirs as $dir)
+      {
+        $this->messageSources[] = $this->createMessageSource($dir);
+      }
+    }
+
+    $this->setCulture($culture);
   }
 
-  public function createMessageSource($dir)
+  /**
+   * Returns a new message source.
+   *
+   * @param  mixed           An array of i18n directories to create a XLIFF or gettext message source, null otherwise
+   * @return sfMessageSource A sfMessageSource object
+   */
+  public function createMessageSource($dir = null)
   {
     if (in_array(sfConfig::get('sf_i18n_source'), array('Creole', 'MySQL', 'SQLite')))
     {
@@ -84,7 +96,13 @@ class sfI18N
     return $messageSource;
   }
 
-  public function createMessageFormat($source)
+  /**
+   * Returns a new message format for the given message source.
+   *
+   * @param  sfIMessageSource A sfMessageSource object
+   * @return sfMessageFormat  A sfMessageFormat object
+   */
+  public function createMessageFormat(sfIMessageSource $source)
   {
     $messageFormat = new sfMessageFormat($source, sfConfig::get('sf_charset'));
 
@@ -96,51 +114,128 @@ class sfI18N
     return $messageFormat;
   }
 
+  /**
+   * Sets the current culture for i18n format objects.
+   *
+   * @param string The culture
+   */
   public function setCulture($culture)
   {
-    if ($this->messageSource)
+    if ($culture != $this->culture)
     {
-      $this->messageSource->setCulture($culture);
-      $this->messageFormat = $this->createMessageFormat($this->messageSource);
+      $this->culture = $culture;
+
+      $this->messageFormats = array();
     }
 
-    $this->globalMessageSource->setCulture($culture);
-    $this->globalMessageFormat = $this->createMessageFormat($this->globalMessageSource);
+    foreach ($this->messageSources as $messageSource)
+    {
+      $messageSource->setCulture($culture);
+    }
   }
 
-  public function getMessageSource()
+  /**
+   * Gets all current message sources.
+   *
+   * @return array An array of sfMessageSource objects
+   */
+  public function getMessageSources()
   {
-    return $this->messageSource;
+    return $this->messageSources;
   }
 
-  public function getGlobalMessageSource()
+  /**
+   * Gets the message source for the given index.
+   *
+   * @param  integer         The indice (1 based)
+   * @return sfMessageSource A sfMessageSource object
+   */
+  public function getMessageSource($i = 1)
   {
-    return $this->globalMessageSource;
+    if (!isset($this->messageSources[$i - 1]))
+    {
+      throw new sfException(sprintf('The "$i" message source does not exist.', $i));
+    }
+
+    return $this->messageSources[$i - 1];
   }
 
-  public function getMessageFormat()
+  /**
+   * Gets the last message source.
+   */
+  public function getLastMessageSource()
   {
-    return $this->messageFormat;
+    return $this->getMessageSource(count($this->messageSources));
   }
 
-  public function getGlobalMessageFormat()
+  /**
+   * Gets all current message formats.
+   *
+   * @return array An array of sfMessageFormat objects
+   */
+  public function getMessageFormats()
   {
-    return $this->globalMessageFormat;
+    for ($i = 0, $count = count($this->messageSources); $i < $count; $i++)
+    {
+      $this->getMessageFormat($i);
+    }
+
+    return $this->messageFormats;
   }
 
+  /**
+   * Gets the message format for the given index.
+   *
+   * @param  integer         The indice (1 based)
+   * @return sfMessageFormat A sfMessageFormat object
+   */
+  public function getMessageFormat($i = 1)
+  {
+    if (!isset($this->messageFormats[$i - 1]))
+    {
+      $this->messageFormats[$i - 1] = $this->createMessageFormat($this->getMessageSource($i));
+    }
+
+    return $this->messageFormats[$i - 1];
+  }
+
+  /**
+   * Gets the last message format.
+   */
+  public function getLastMessageFormat()
+  {
+    return $this->getMessageFormat(count($this->messageSources));
+  }
+
+  /**
+   * Gets the translation for the given string
+   *
+   * @param  string The string to translate
+   * @param  array  An array of arguments for the translation
+   * @param  string The catalogue name
+   * @return string The translated string
+   */
   public function __($string, $args = array(), $catalogue = 'messages')
   {
-    $retval = $this->messageFormat->formatExists($string, $args, $catalogue);
-
-    if (!$retval)
+    for ($i = 0, $count = count($this->messageSources); $i < $count; $i++)
     {
-      $retval = $this->globalMessageFormat->format($string, $args, $catalogue);
+      if ($retval = $this->getMessageFormat($i + 1)->formatExists($string, $args, $catalogue))
+      {
+        return $retval;
+      }
     }
 
-    return $retval;
+    return $this->getLastMessageFormat()->format($string, $args, $catalogue);
   }
 
-  public static function getCountry($iso, $culture)
+  /**
+   * Gets a country name.
+   *
+   * @param  string The ISO code
+   * @param  string The culture
+   * @return string The country name
+   */
+  public function getCountry($iso, $culture)
   {
     $c = new sfCultureInfo($culture);
     $countries = $c->getCountries();
@@ -148,21 +243,41 @@ class sfI18N
     return (array_key_exists($iso, $countries)) ? $countries[$iso] : '';
   }
 
-  public static function getNativeName($culture)
+  /**
+   * Gets a native culture name.
+   *
+   * @param  string The culture
+   * @return string The culture name
+   */
+  public function getNativeName($culture)
   {
     $cult = new sfCultureInfo($culture);
+
     return $cult->getNativeName();
   }
 
-  // Return timestamp from a date formatted with a given culture
-  public static function getTimestampForCulture($date, $culture)
+  /**
+   * Returns a timestamp from a date formatted with a given culture.
+   *
+   * @param  string  The formatted date as string
+   * @param  string  The culture
+   * @return integer The timestamp
+   */
+  public function getTimestampForCulture($date, $culture)
   {
-    list($d, $m, $y) = self::getDateForCulture($date, $culture);
+    list($d, $m, $y) = $this->getDateForCulture($date, $culture);
+
     return mktime(0, 0, 0, $m, $d, $y);
   }
 
-  // Return a d, m and y from a date formatted with a given culture
-  public static function getDateForCulture($date, $culture)
+  /**
+   * Returns the day, month and year from a date formatted with a given culture.
+   *
+   * @param  string  The formatted date as string
+   * @param  string  The culture
+   * @return array   An array with the day, month and year
+   */
+  public function getDateForCulture($date, $culture)
   {
     if (!$date) return 0;
 

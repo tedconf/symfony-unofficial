@@ -19,11 +19,6 @@
  */
 
 /**
- * Get the encoding utilities
- */
-require_once(dirname(__FILE__).'/util.php');
-
-/**
  * sfMessageFormat class.
  * 
  * Format a message, that is, for a particular message find the 
@@ -96,7 +91,7 @@ class sfMessageFormat
    * Create a new instance of sfMessageFormat using the messages
    * from the supplied message source.
    *
-   * @param MessageSource the source of translation messages.
+   * @param sfMessageSource the source of translation messages.
    * @param string charset for the message output.
    */
   function __construct(sfIMessageSource $source, $charset = 'UTF-8')
@@ -105,7 +100,7 @@ class sfMessageFormat
     $this->setCharset($charset);
   }
 
-  /** 
+  /**
    * Sets the charset for message output.
    *
    * @param string charset, default is UTF-8
@@ -126,7 +121,7 @@ class sfMessageFormat
   }
   
   /**
-   * Load the message from a particular catalogue. A listed
+   * Loads the message from a particular catalogue. A listed
    * loaded catalogues is kept to prevent reload of the same
    * catalogue. The load catalogue messages are stored
    * in the $this->message array.
@@ -135,7 +130,7 @@ class sfMessageFormat
    */
   protected function loadCatalogue($catalogue)
   {
-    if (in_array($catalogue,$this->catalogues))
+    if (in_array($catalogue, $this->catalogues))
     {
       return;
     }
@@ -148,7 +143,7 @@ class sfMessageFormat
   }
 
   /**
-   * Format the string. That is, for a particular string find
+   * Formats the string. That is, for a particular string find
    * the corresponding translation. Variable subsitution is performed
    * for the $args parameter. A different catalogue can be specified
    * using the $catalogue parameter.
@@ -167,9 +162,9 @@ class sfMessageFormat
       $charset = $this->getCharset();
     }
 
-    $s = $this->formatString(I18N_toUTF8($string, $charset), $args, $catalogue);
+    $s = $this->formatString(sfToolkit::I18N_toUTF8($string, $charset), $args, $catalogue);
 
-    return I18N_toEncoding($s, $charset);
+    return sfToolkit::I18N_toEncoding($s, $charset);
   }
 
   public function formatExists($string, $args = array(), $catalogue = null, $charset = null)
@@ -179,9 +174,9 @@ class sfMessageFormat
       $charset = $this->getCharset();
     }
 
-    $s = $this->getFormattedString(I18N_toUTF8($string, $charset), $args, $catalogue);
+    $s = $this->getFormattedString(sfToolkit::I18N_toUTF8($string, $charset), $args, $catalogue);
 
-    return I18N_toEncoding($s, $charset);
+    return sfToolkit::I18N_toEncoding($s, $charset);
   }
 
   /**
@@ -234,14 +229,7 @@ class sfMessageFormat
         if ($source == $string)
         {
           // check if it contains only strings.
-          if (is_string($result))
-          {
-            $target = $result;
-          }
-          else
-          {
-            $target = $result[0];
-          }
+          $target = is_string($result) ? $result : $result[0];
 
           // found, but untranslated
           if (empty($target))
@@ -274,7 +262,7 @@ class sfMessageFormat
   }
 
   /**
-   * Get the message source.
+   * Gets the message source.
    *
    * @return MessageSource 
    */
@@ -284,7 +272,7 @@ class sfMessageFormat
   }
   
   /**
-   * Set the prefix and suffix to append to untranslated messages.
+   * Sets the prefix and suffix to append to untranslated messages.
    * e.g. $postscript=array('[T]','[/T]'); will output 
    * "[T]Hello[/T]" if the translation for "Hello" can not be determined.
    *

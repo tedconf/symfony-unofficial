@@ -399,8 +399,11 @@ class sfToolkit
   }
 
   /**
-   * Check if a string is an utf8 using a W3C regular expression
-   * http://fr3.php.net/manual/en/function.mb-detect-encoding.php#50087
+   * Checks if a string is an utf8.
+   *
+   * Yi Stone Li<yili@yahoo-inc.com>
+   * Copyright (c) 2007 Yahoo! Inc. All rights reserved.
+   * Licensed under the BSD open source license
    *
    * @param string
    *
@@ -408,17 +411,48 @@ class sfToolkit
    */
   public static function isUTF8($string)
   {
-    // from http://w3.org/International/questions/qa-forms-utf-8.html
-    return preg_match('%^(?:
-             [\x09\x0A\x0D\x20-\x7E]            # ASCII
-           | [\xC2-\xDF][\x80-\xBF]             # non-overlong 2-byte
-           |  \xE0[\xA0-\xBF][\x80-\xBF]        # excluding overlongs
-           | [\xE1-\xEC\xEE\xEF][\x80-\xBF]{2}  # straight 3-byte
-           |  \xED[\x80-\x9F][\x80-\xBF]        # excluding surrogates
-           |  \xF0[\x90-\xBF][\x80-\xBF]{2}     # planes 1-3
-           | [\xF1-\xF3][\x80-\xBF]{3}          # planes 4-15
-           |  \xF4[\x80-\x8F][\x80-\xBF]{2}     # plane 16
-       )*$%xs', $string);
+    for ($idx = 0, $strlen = strlen($string); $idx < $strlen; $idx++)
+    {
+      $byte = ord($string[$idx]);
+
+      if ($byte & 0x80)
+      {
+        if (($byte & 0xE0) == 0xC0)
+        {
+          // 2 byte char
+          $bytes_remaining = 1;
+        }
+        else if (($byte & 0xF0) == 0xE0)
+        {
+          // 3 byte char
+          $bytes_remaining = 2;
+        }
+        else if (($byte & 0xF8) == 0xF0)
+        {
+          // 4 byte char
+          $bytes_remaining = 3;
+        }
+        else
+        {
+          return false;
+        }
+
+        if ($idx + $bytes_remaining >= $strlen)
+        {
+          return false;
+        }
+
+        while ($bytes_remaining--)
+        {
+          if ((ord($string[++$idx]) & 0xC0) != 0x80)
+          {
+            return false;
+          }
+        }
+      }
+    }
+
+    return true;
   }
 
   public static function getArrayValueForPath($values, $name, $default = null)
@@ -513,5 +547,47 @@ class sfToolkit
     }
 
     return '/tmp';
+  }
+
+  /**
+   * Converts strings to UTF-8 via iconv. NB, the result may not by UTF-8 if the conversion failed.
+   *
+   * This file comes from Prado (BSD License)
+   *
+   * @param string string to convert to UTF-8
+   * @return string UTF-8 encoded string, original string if iconv failed.
+   */
+  function I18N_toUTF8($string, $from)
+  {
+    $from = strtoupper($from);
+    if ($from != 'UTF-8')
+    {
+      $s = iconv($from,'UTF-8',$string); //to UTF-8
+
+      return $s !== false ? $s : $string; //it could return false
+    }
+
+    return $string;
+  }
+
+  /**
+   * Converts UTF-8 strings to a different encoding. NB. The result may not have been encoded if iconv fails.
+   *
+   * This file comes from Prado (BSD License)
+   *
+   * @param string the UTF-8 string for conversion
+   * @return string encoded string.
+   */
+  function I18N_toEncoding($string, $to)
+  {
+    $to = strtoupper($to);
+    if ($to != 'UTF-8')
+    {
+      $s = iconv('UTF-8', $to, $string);
+
+      return $s !== false ? $s : $string;
+    }
+
+    return $string;
   }
 }
