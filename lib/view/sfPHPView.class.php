@@ -19,6 +19,7 @@
  */
 class sfPHPView extends sfView
 {
+
   /**
    * Executes any presentation logic for this view.
    */
@@ -146,11 +147,47 @@ class sfPHPView extends sfView
     $viewConfigFile = $this->moduleName.'/'.sfConfig::get('sf_app_module_config_dir_name').'/view.yml';
     require(sfConfigCache::getInstance()->checkConfig(sfConfig::get('sf_app_module_dir_name').'/'.$viewConfigFile));
 
-    // set template directory
+    if(isset($this->extensions) && is_array($this->extensions))
+    {
+      $customDecoratorFound = false;
+      // Look for special layout
+      foreach($this->extensions as $extension)
+      {
+        $decoratorTemplate = basename($this->decoratorTemplate, $this->getExtension()).$extension;
+        if(is_readable($this->getDecoratorDirectory().DIRECTORY_SEPARATOR.$decoratorTemplate))
+        {
+          $this->setDecoratorDirectory($this->getDecoratorDirectory());
+          $this->setDecoratorTemplate($decoratorTemplate);
+          $customDecoratorFound = true;
+          break;
+        }
+      }
+
+      if(!$customDecoratorFound && !in_array($this->getContext()->getRequest()->getParameter('format', 'xhtml'), array('xhtml', 'html')))
+      {
+        // if no decorator besides default then ignore layout (assumes default layout is for html)
+        $this->getContext()->getResponse()->setParameter($this->moduleName.'_'.$this->actionName.'_layout', false, 'symfony/action/view');
+      }
+
+      // Look for special templates
+      foreach($this->extensions as $extension)
+      {
+        $template = basename($this->template, $this->getExtension()).$extension;
+        if($templateDirectory = sfLoader::getTemplateDir($this->moduleName, $template))
+        {
+          $this->setTemplate($template);
+          $this->setDirectory($templateDirectory);
+          break;
+        }
+      }
+    }
+
+    // Set template directory
     if (!$this->directory)
     {
       $this->setDirectory(sfLoader::getTemplateDir($this->moduleName, $this->getTemplate()));
     }
+
   }
 
   /**

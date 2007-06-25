@@ -69,11 +69,19 @@ default:
     # Activated modules from plugins or from the symfony core
     enabled_modules:        [default]
 
-    # View classes for multiformat actions
+    # View classes for multiple output format actions
     multiformat:
-      html: sfPHP
-      pjs:  sfJavascript
-    
+      html:  sfHTML
+      xhtml: sfXHTML
+      xml:   sfXML
+      rss:   sfRSS
+      atom:  sfATOM
+      rdf:   sfRDF
+      js:    sfJavascript
+      json:  sfJSON
+
+    default_format:        xhtml        # default output format
+
     # Charset used for the response
     charset:                utf-8
 

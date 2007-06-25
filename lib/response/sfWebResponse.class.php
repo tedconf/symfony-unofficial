@@ -3,7 +3,7 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- * 
+ *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -12,7 +12,7 @@
  * sfWebResponse class.
  *
  * This class manages web reponses. It supports cookies and headers management.
- * 
+ *
  * @package    symfony
  * @subpackage response
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
@@ -40,7 +40,7 @@ class sfWebResponse extends sfResponse
   {
     parent::initialize($context, $parameters);
 
-    if ('HEAD' == $context->getRequest()->getMethodName())
+    if('HEAD' == $context->getRequest()->getMethodName())
     {
       $this->setHeaderOnly(true);
     }
@@ -125,16 +125,16 @@ class sfWebResponse extends sfResponse
    */
   public function setCookie($name, $value, $expire = null, $path = '/', $domain = '', $secure = false, $httpOnly = false)
   {
-    if ($expire !== null)
+    if($expire !== null)
     {
-      if (is_numeric($expire))
+      if(is_numeric($expire))
       {
         $expire = (int) $expire;
       }
       else
       {
         $expire = strtotime($expire);
-        if ($expire === false || $expire == -1)
+        if($expire === false || $expire == -1)
         {
           throw new sfException('Your expire parameter is not valid.');
         }
@@ -187,9 +187,9 @@ class sfWebResponse extends sfResponse
   {
     $name = $this->normalizeHeaderName($name);
 
-    if ('Content-Type' == $name)
+    if('Content-Type' == $name)
     {
-      if ($replace || !$this->getHttpHeader('Content-Type', null))
+      if($replace || !$this->getHttpHeader('Content-Type', null))
       {
         $this->setContentType($value);
       }
@@ -197,7 +197,7 @@ class sfWebResponse extends sfResponse
       return;
     }
 
-    if (!$replace)
+    if(!$replace)
     {
       $current = $this->getParameter($name, '', 'symfony/response/http/headers');
       $value = ($current ? $current.', ' : '').$value;
@@ -235,12 +235,34 @@ class sfWebResponse extends sfResponse
   public function setContentType($value)
   {
     // add charset if needed
-    if (false === stripos($value, 'charset'))
+    if(false === stripos($value, 'charset'))
     {
       $value .= '; charset='.sfConfig::get('sf_charset');
     }
 
     $this->setParameter('Content-Type', $value, 'symfony/response/http/headers');
+  }
+
+  /**
+   * Sets preferred response content type by comparing accepted content types to input values
+   *
+   * @param string Content type
+   *
+   */
+  public function setPreferredContentType($preferredContentTypes)
+  {
+    if(is_array($preferredContentTypes))
+    {
+      $acceptedContentTypes = $this->getContext()->getRequest()->getAcceptableContentTypes();
+      foreach($preferredContentTypes as $contentType)
+      {
+       if(in_array($contentType, $acceptedContentTypes))
+       {
+         $this->setContentType($contentType);
+         break;
+       }
+      }
+    }
   }
 
   /**
@@ -263,7 +285,7 @@ class sfWebResponse extends sfResponse
     $status = 'HTTP/1.0 '.$this->statusCode.' '.$this->statusText;
     header($status);
 
-    if (sfConfig::get('sf_logging_enabled'))
+    if(sfConfig::get('sf_logging_enabled'))
     {
       $this->getContext()->getLogger()->info('{sfResponse} send status "'.$status.'"');
     }
@@ -273,7 +295,7 @@ class sfWebResponse extends sfResponse
     {
       header($name.': '.$value);
 
-      if (sfConfig::get('sf_logging_enabled') && $value != '')
+      if(sfConfig::get('sf_logging_enabled') && $value != '')
       {
         $this->getContext()->getLogger()->info('{sfResponse} send header "'.$name.'": "'.$value.'"');
       }
@@ -282,7 +304,7 @@ class sfWebResponse extends sfResponse
     // cookies
     foreach ($this->cookies as $cookie)
     {
-      if (version_compare(phpversion(), '5.2', '>='))
+      if(version_compare(phpversion(), '5.2', '>='))
       {
         setrawcookie($cookie['name'], $cookie['value'], $cookie['expire'], $cookie['path'], $cookie['domain'], $cookie['secure'], $cookie['httpOnly']);
       }
@@ -291,7 +313,7 @@ class sfWebResponse extends sfResponse
         setrawcookie($cookie['name'], $cookie['value'], $cookie['expire'], $cookie['path'], $cookie['domain'], $cookie['secure']);
       }
 
-      if (sfConfig::get('sf_logging_enabled'))
+      if(sfConfig::get('sf_logging_enabled'))
       {
         $this->getContext()->getLogger()->info('{sfResponse} send cookie "'.$cookie['name'].'": "'.$cookie['value'].'"');
       }
@@ -304,7 +326,7 @@ class sfWebResponse extends sfResponse
    */
   public function sendContent()
   {
-    if (!$this->headerOnly)
+    if(!$this->headerOnly)
     {
       parent::sendContent();
     }
@@ -334,15 +356,15 @@ class sfWebResponse extends sfResponse
   {
     $type = strtolower($type);
 
-    if ($type == 'rfc1123')
+    if($type == 'rfc1123')
     {
       return substr(gmdate('r', $timestamp), 0, -5).'GMT';
     }
-    else if ($type == 'rfc1036')
+    else if($type == 'rfc1036')
     {
       return gmdate('l, d-M-y H:i:s ', $timestamp).'GMT';
     }
-    else if ($type == 'asctime')
+    else if($type == 'asctime')
     {
       return gmdate('D M j H:i:s', $timestamp);
     }
@@ -363,13 +385,13 @@ class sfWebResponse extends sfResponse
   {
     $vary = $this->getHttpHeader('Vary');
     $currentHeaders = array();
-    if ($vary)
+    if($vary)
     {
       $currentHeaders = split('/\s*,\s*/', $vary);
     }
     $header = $this->normalizeHeaderName($header);
 
-    if (!in_array($header, $currentHeaders))
+    if(!in_array($header, $currentHeaders))
     {
       $currentHeaders[] = $header;
       $this->setHttpHeader('Vary', implode(', ', $currentHeaders));
@@ -386,7 +408,7 @@ class sfWebResponse extends sfResponse
   {
     $cacheControl = $this->getHttpHeader('Cache-Control');
     $currentHeaders = array();
-    if ($cacheControl)
+    if($cacheControl)
     {
       foreach (split('/\s*,\s*/', $cacheControl) as $tmp)
       {
@@ -429,12 +451,12 @@ class sfWebResponse extends sfResponse
     // set HTTP header
     $this->setHttpHeader($key, $value, $replace);
 
-    if ('Content-Type' == $key)
+    if('Content-Type' == $key)
     {
       $value = $this->getContentType();
     }
 
-    if (!$replace)
+    if(!$replace)
     {
       $current = $this->getParameter($key, '', 'helper/asset/auto/httpmeta');
       $value = ($current ? $current.', ' : '').$value;
@@ -465,17 +487,17 @@ class sfWebResponse extends sfResponse
   {
     $key = strtolower($key);
 
-    if (sfConfig::get('sf_i18n'))
+    if(sfConfig::get('sf_i18n'))
     {
       $value = $this->getContext()->getI18N()->__($value);
     }
 
-    if ($escape)
+    if($escape)
     {
       $value = htmlentities($value, ENT_QUOTES, sfConfig::get('sf_charset'));
     }
 
-    if ($replace || !$this->getParameter($key, null, 'helper/asset/auto/meta'))
+    if($replace || !$this->getParameter($key, null, 'helper/asset/auto/meta'))
     {
       $this->setParameter($key, $value, 'helper/asset/auto/meta');
     }

@@ -13,17 +13,18 @@
  * @package    symfony
  * @subpackage view
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
- * @version    SVN: $Id: sfJavascriptView.class.php 3864 2007-04-24 15:27:52Z fabien $
+ * @author     Dustin Whittle <dustin.whittle@symfony-project.com>
+ * @version    SVN: $Id: sfRDFView.class.php 3864 2007-04-24 15:27:52Z fabien $
  */
-class sfJavascriptView extends sfPHPView
+class sfRDFView extends sfXMLView
 {
-  protected $extensions = array('.pjs', '.js.php', '.js', '.php');
+  protected $extensions = array('.rdf.php', '.rdf', '.xml.php', '.xml', '.php');
 
   public function configure()
   {
     parent::configure();
 
-    $response = $this->getContext()->getResponse();
-    $response->setContentType('application/x-javascript');
+    $this->getContext()->getResponse()->setPreferredContentType(array('application/rdf+xml', 'application/xml', 'text/xml'));
   }
 }
+
