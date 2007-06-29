@@ -33,7 +33,8 @@ class sfContext
     $viewCacheManager  = null,
     $i18n              = null,
     $logger            = null,
-    $user              = null;
+    $user              = null,
+    $routing           = null;
 
   protected static
     $instance          = null;
@@ -291,6 +292,16 @@ class sfContext
   }
 
   /**
+   * Retrieve the routing instance.
+   *
+   * @return sfRouting The current sfRouting implementation instance.
+   */
+  public function getRouting()
+  {
+    return $this->routing;
+  }
+
+  /**
    * Retrieve the user.
    *
    * @return sfUser The current sfUser implementation instance.
@@ -312,6 +323,7 @@ class sfContext
     $this->getStorage()->shutdown();
     $this->getRequest()->shutdown();
     $this->getResponse()->shutdown();
+    $this->getRouting()->shutdown();
 
     if (sfConfig::get('sf_logging_enabled'))
     {

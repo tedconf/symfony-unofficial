@@ -360,7 +360,7 @@ class sfTestBrowser extends sfBrowser
    */
   public function isCached($boolean, $with_layout = false)
   {
-    return $this->isUriCached(sfRouting::getInstance()->getCurrentInternalUri(), $boolean, $with_layout);
+    return $this->isUriCached($this->getContext()->getRouting()->getCurrentInternalUri(), $boolean, $with_layout);
   }
 
   /**
@@ -384,7 +384,7 @@ class sfTestBrowser extends sfBrowser
       return $this;
     }
 
-    if ($uri == sfRouting::getInstance()->getCurrentInternalUri())
+    if ($uri == $this->getContext()->getRouting()->getCurrentInternalUri())
     {
       $main = true;
       $type = $with_layout ? 'page' : 'action';

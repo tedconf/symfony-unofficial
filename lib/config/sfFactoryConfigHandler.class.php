@@ -48,7 +48,7 @@ class sfFactoryConfigHandler extends sfYamlConfigHandler
     $instances = array();
 
     // available list of factories
-    $factories = array('controller', 'request', 'response', 'storage', 'user', 'view_cache');
+    $factories = array('routing', 'controller', 'request', 'response', 'storage', 'user', 'view_cache');
 
     // let's do our fancy work
     foreach ($factories as $factory)
@@ -139,6 +139,7 @@ class sfFactoryConfigHandler extends sfYamlConfigHandler
           // append instance initialization
           $inits[] = sprintf("  \$this->user->initialize(\$this, sfConfig::get('sf_factory_user_parameters', %s));", $parameters);
           break;
+
         case 'view_cache':
           // append view cache class name
           $inits[] = sprintf("\n  if (sfConfig::get('sf_cache'))\n  {\n".
@@ -146,6 +147,15 @@ class sfFactoryConfigHandler extends sfYamlConfigHandler
                              "    \$this->viewCacheManager->initialize(\$this, sfConfig::get('sf_factory_view_cache', '%s'), sfConfig::get('sf_factory_view_cache_parameters', %s));\n".
                              " }\n",
                              $class, $parameters);
+          break;
+
+        case 'routing':
+          // append instance creation
+          $instances[] = sprintf("  \$this->routing = sfRouting::newInstance(sfConfig::get('sf_factory_routing', '%s'));", $class);
+
+          // append instance initialization
+          $inits[] = sprintf("  \$this->routing->initialize(\$this, sfConfig::get('sf_factory_routing_parameters', %s));", $parameters);
+                      
           break;
       }
     }
@@ -156,7 +166,7 @@ class sfFactoryConfigHandler extends sfYamlConfigHandler
                       "// date: %s\n%s\n%s\n%s\n",
                       date('Y/m/d H:i:s'), implode("\n", $includes),
                       implode("\n", $instances), implode("\n", $inits));
-
+    
     return $retval;
   }
 }

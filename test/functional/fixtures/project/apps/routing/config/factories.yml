@@ -33,3 +33,6 @@ test:
 #    param:
 #      automaticCleaningFactor: 0
 #      cacheDir:                %SF_TEMPLATE_CACHE_DIR%
+# 
+#  routing: 
+#    class: sfPatternRouting 

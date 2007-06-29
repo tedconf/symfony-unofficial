@@ -1,6 +1,7 @@
 Version routing
 ---------------
 
+* Merged routing refactoring from trunk (r4435)
 * Added a sfAction::renderMultiformat() method to automate the ability for an action 
   to render with different view according to a request parameter
 * Added new asset helpers to include PJS calls in templates: pjs_include_tag(), use_pjs() and pjs_path()
