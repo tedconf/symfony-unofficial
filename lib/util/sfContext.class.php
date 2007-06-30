@@ -12,8 +12,7 @@
 /**
  * sfContext provides information about the current application context, such as
  * the module and action names and the module directory. References to the
- * current controller, request, and user implementation instances are also
- * provided.
+ * main symfony instances are also provided.
  *
  * @package    symfony
  * @subpackage util
@@ -24,47 +23,32 @@
 class sfContext
 {
   protected
-    $actionStack       = null,
-    $controller        = null,
-    $databaseManager   = null,
-    $request           = null,
-    $response          = null,
-    $storage           = null,
-    $viewCacheManager  = null,
-    $i18n              = null,
-    $logger            = null,
-    $user              = null;
+    $factories = array();
 
   protected static
-    $instance          = null;
+    $instances = array(),
+    $current   = 'default';
 
   /**
-   * Removes current sfContext instance
-   *
-   * This method only exists for testing purpose. Don't use it in your application code.
+   * Initializes the current sfContext instance.
    */
-  public static function removeInstance()
+  public function initialize()
   {
-    self::$instance = null;
-  }
-
-  protected function initialize()
-  {
-    $this->logger = sfLogger::getInstance();
+    $this->factories['logger'] = sfLogger::getInstance();
     if (sfConfig::get('sf_logging_enabled'))
     {
-      $this->logger->info('{sfContext} initialization');
+      $this->factories['logger']->info('{sfContext} initialization');
     }
 
     if (sfConfig::get('sf_use_database'))
     {
       // setup our database connections
-      $this->databaseManager = new sfDatabaseManager();
-      $this->databaseManager->initialize();
+      $this->factories['databaseManager'] = new sfDatabaseManager();
+      $this->factories['databaseManager']->initialize();
     }
 
     // create a new action stack
-    $this->actionStack = new sfActionStack();
+    $this->factories['actionStack'] = new sfActionStack();
 
     // include the factories configuration
     require(sfConfigCache::getInstance()->checkConfig(sfConfig::get('sf_app_config_dir_name').'/factories.yml'));
@@ -74,25 +58,52 @@ class sfContext
   }
 
   /**
-   * Retrieve the singleton instance of this class.
+   * Retrieves the singleton instance of this class.
+   *
+   * @param  string    The name of the sfContext to retrieve.
    *
    * @return sfContext A sfContext implementation instance.
    */
-  public static function getInstance()
+  public static function getInstance($name = null, $class = null)
   {
-    if (!isset(self::$instance))
+    if (is_null($name))
     {
-      $class = __CLASS__;
-      self::$instance = new $class();
-      self::$instance->initialize();
+      $name = self::$current;
     }
 
-    return self::$instance;
+    if (!isset(self::$instances[$name]))
+    {
+      if (is_null($class))
+      {
+        $class = __CLASS__;
+      }
+
+      self::$instances[$name] = new $class();
+
+      if (!self::$instances[$name] instanceof sfContext)
+      {
+        throw new sfFactoryException(sprintf('Class "%s" is not of the type sfContext', $class));
+      }
+
+      self::$instances[$name]->initialize();
+    }
+
+    return self::$instances[$name];
   }
 
-  public static function hasInstance()
+  public static function hasInstance($name = null)
   {
-    return isset(self::$instance);
+    if (is_null($name))
+    {
+      $name = self::$current;
+    }
+
+    return isset(self::$instances[$name]);
+  }
+
+  public static function switchTo($name)
+  {
+    self::$current = $name;
   }
 
   /**
@@ -104,7 +115,7 @@ class sfContext
   public function getActionName()
   {
     // get the last action stack entry
-    if ($this->actionStack && $lastEntry = $this->actionStack->getLastEntry())
+    if ($this->factories['actionStack'] && $lastEntry = $this->factories['actionStack']->getLastEntry())
     {
       return $lastEntry->getActionName();
     }
@@ -118,7 +129,7 @@ class sfContext
    */
   public function getActionStack()
   {
-    return $this->actionStack;
+    return $this->factories['actionStack'];
   }
 
   /**
@@ -128,12 +139,12 @@ class sfContext
    */
    public function getController()
    {
-     return $this->controller;
+     return $this->factories['controller'];
    }
 
    public function getLogger()
    {
-     return $this->logger;
+     return $this->factories['logger'];
    }
 
   /**
@@ -152,9 +163,9 @@ class sfContext
    */
   public function getDatabaseConnection($name = 'default')
   {
-    if ($this->databaseManager != null)
+    if ($this->factories['databaseManager'] != null)
     {
-      return $this->databaseManager->getDatabase($name)->getConnection();
+      return $this->factories['databaseManager']->getDatabase($name)->getConnection();
     }
 
     return null;
@@ -174,7 +185,7 @@ class sfContext
    */
   public function getDatabaseManager()
   {
-    return $this->databaseManager;
+    return $this->factories['databaseManager'];
   }
 
   /**
@@ -186,7 +197,7 @@ class sfContext
   public function getModuleDirectory()
   {
     // get the last action stack entry
-    if ($this->actionStack && $lastEntry = $this->actionStack->getLastEntry())
+    if ($this->factories['actionStack'] && $lastEntry = $this->factories['actionStack']->getLastEntry())
     {
       return sfConfig::get('sf_app_module_dir').'/'.$lastEntry->getModuleName();
     }
@@ -201,14 +212,14 @@ class sfContext
   public function getModuleName()
   {
     // get the last action stack entry
-    if ($this->actionStack && $lastEntry = $this->actionStack->getLastEntry())
+    if ($this->factories['actionStack'] && $lastEntry = $this->factories['actionStack']->getLastEntry())
     {
       return $lastEntry->getModuleName();
     }
   }
 
   /**
-   * Retrieve the curretn view instance for this context.
+   * Retrieve the current view instance for this context.
    *
    * @return sfView The currently view instance, if one is set,
    *                otherwise null.
@@ -216,7 +227,7 @@ class sfContext
   public function getCurrentViewInstance()
   {
     // get the last action stack entry
-    if ($this->actionStack && $lastEntry = $this->actionStack->getLastEntry())
+    if ($this->factories['actionStack'] && $lastEntry = $this->factories['actionStack']->getLastEntry())
     {
       return $lastEntry->getViewInstance();
     }
@@ -229,7 +240,7 @@ class sfContext
    */
   public function getRequest()
   {
-    return $this->request;
+    return $this->factories['request'];
   }
 
   /**
@@ -239,7 +250,7 @@ class sfContext
    */
   public function getResponse()
   {
-    return $this->response;
+    return $this->factories['response'];
   }
 
   /**
@@ -251,7 +262,7 @@ class sfContext
    */
   public function setResponse($response)
   {
-    $this->response = $response;
+    $this->factories['response'] = $response;
   }
 
   /**
@@ -261,7 +272,7 @@ class sfContext
    */
   public function getStorage()
   {
-    return $this->storage;
+    return $this->factories['storage'];
   }
 
   /**
@@ -271,7 +282,7 @@ class sfContext
    */
   public function getViewCacheManager()
   {
-    return $this->viewCacheManager;
+    return $this->factories['viewCacheManager'];
   }
 
   /**
@@ -286,7 +297,17 @@ class sfContext
       throw new sfConfigurationException('You must enabled i18n support in your settings.yml configuration file.');
     }
 
-    return $this->i18n;
+    return $this->factories['i18n'];
+  }
+
+  /**
+   * Retrieve the routing instance.
+   *
+   * @return sfRouting The current sfRouting implementation instance.
+   */
+  public function getRouting()
+  {
+    return $this->factories['routing'];
   }
 
   /**
@@ -296,7 +317,47 @@ class sfContext
    */
   public function getUser()
   {
-    return $this->user;
+    return $this->factories['user'];
+  }
+
+  /**
+   * Gets an object from the current context.
+   *
+   * @param  string The name of the object to retrieve
+   *
+   * @return object The object associated with the given name
+   */
+  public function get($name)
+  {
+    if (!$this->has($name))
+    {
+      throw new sfException(sprintf('The "%s" object does not exist in the current context.', $name));
+    }
+
+    return $this->factories[$name];
+  }
+
+  /**
+   * Puts an object in the current context.
+   *
+   * @param string The name of the object to store
+   * @param object The object to store
+   */
+  public function set($name, $object)
+  {
+    $this->factories[$name] = $object;
+  }
+
+  /**
+   * Returns true if an object is currently stored in the current context with the given name, false otherwise.
+   *
+   * @param  string The object name
+   *
+   * @return boolean True if the object is not null, false otherwise
+   */
+  public function has($name)
+  {
+    return isset($this->factories[$name]);
   }
 
   /**
@@ -311,6 +372,7 @@ class sfContext
     $this->getStorage()->shutdown();
     $this->getRequest()->shutdown();
     $this->getResponse()->shutdown();
+    $this->getRouting()->shutdown();
 
     if (sfConfig::get('sf_logging_enabled'))
     {

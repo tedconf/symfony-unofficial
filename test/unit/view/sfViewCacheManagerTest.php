@@ -9,6 +9,7 @@
  */
 
 require_once(dirname(__FILE__).'/../../bootstrap/unit.php');
+require_once($_test_dir.'/unit/sfContextMock.class.php');
 
 $t = new lime_test(12, new lime_output_color());
 
@@ -26,34 +27,6 @@ class myRequest
   public function getScriptName()
   {
     return 'index.php';
-  }
-}
-
-class sfContext
-{
-  public $controller = null;
-  public $request = null;
-
-  static public $instance = null;
-
-  public static function getInstance()
-  {
-    if (!isset(self::$instance))
-    {
-      self::$instance = new sfContext();
-    }
-
-    return self::$instance;
-  }
-
-  public function getController()
-  {
-    return $this->controller;
-  }
-
-  public function getRequest()
-  {
-    return $this->request;
   }
 }
 
@@ -102,11 +75,9 @@ class myCache extends sfCache
   }
 }
 
-$context = sfContext::getInstance();
-$context->controller = new myController();
-$context->controller->initialize($context);
-$context->request = new myRequest();
-$r = sfRouting::getInstance();
+$context = sfContext::getInstance(array('controller' => 'myController', 'routing' => 'sfPatternRouting', 'request' => 'myRequest'));
+
+$r = $context->routing;
 $r->connect('default', '/:module/:action/*');
 
 // ->initialize()
@@ -116,7 +87,7 @@ $t->is($m->getContext(), null, '->initialize() takes a sfContext object as its f
 
 // ->getContext()
 $t->diag('->getContext()');
-$m->initialize($context, 'myCache');
+$m->initialize($context, new myCache());
 $t->is($m->getContext(), $context, '->getContext() returns the current context');
 
 // ->generateNamespace()
@@ -169,7 +140,7 @@ function get_cache_manager($context)
 {
   myCache::clear();
   $m = new sfViewCacheManager();
-  $m->initialize($context, 'myCache');
+  $m->initialize($context, new myCache());
 
   return $m;
 }
