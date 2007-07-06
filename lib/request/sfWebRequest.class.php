@@ -461,7 +461,7 @@ class sfWebRequest extends sfRequest
    * Loads GET, PATH_INFO and POST data into the parameter list.
    *
    */
-  public function loadParameters()
+  protected function loadParameters()
   {
     // merge GET parameters
     if (get_magic_quotes_gpc())
