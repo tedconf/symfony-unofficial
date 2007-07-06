@@ -11,11 +11,11 @@
 if (sfConfig::get('sf_zend_lib_dir'))
 {
   set_include_path(sfConfig::get('sf_zend_lib_dir').PATH_SEPARATOR.get_include_path());
-  require_once(sfConfig::get('sf_zend_lib_dir').'/Zend.php');
+  require_once(sfConfig::get('sf_zend_lib_dir').DIRECTORY_SEPARATOR.'Zend'.DIRECTORY_SEPARATOR.'Loader.php');
 }
 else
 {
-  require_once('Zend.php');
+  require_once('Loader.php');
 }
 
 /**
@@ -32,14 +32,7 @@ class sfZendFrameworkBridge
   {
     try
     {
-      if (class_exists('Zend_Version'))
-      {
-        Zend_Loader::loadClass($class);
-      }
-      else
-      {
-        Zend::loadClass($class);
-      }
+      Zend_Loader::loadClass($class);
     }
     catch (Zend_Exception $e)
     {
