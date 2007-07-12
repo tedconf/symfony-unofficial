@@ -18,7 +18,7 @@ class sfPatternRoutingTest extends sfPatternRouting
   }
 }
 
-$t = new lime_test(107, new lime_output_color());
+$t = new lime_test(109, new lime_output_color());
 
 // public methods
 $r = new sfPatternRoutingTest();
@@ -122,16 +122,22 @@ $r->connect('foo2', '/foo2/:module/:action/:param2/', array('module' => 'default
 $url2 = '/foo2/default/index2/foo2/';
 $r->connect('foo3', '/foo3/:module/:action/:param3.foo', array('module' => 'default', 'action' => 'index3'));
 $url3 = '/foo3/default/index3/foo3.foo';
+$r->connect('foo4', '/foo4/:module/:action/:param4.:param5', array('module' => 'default', 'action' => 'index4'));
+$url4 = '/foo4/default/index4/foo.bar';
 
 $t->is($r->generate('', array('module' => 'default', 'action' => 'index0', 'param0' => 'foo0')), $url0, '->generate() creates URL suffixed by "sf_suffix" parameter');
 $t->is($r->generate('', array('module' => 'default', 'action' => 'index1', 'param1' => 'foo1')), $url1, '->generate() creates URL with no suffix when route ends with .');
 $t->is($r->generate('', array('module' => 'default', 'action' => 'index2', 'param2' => 'foo2')), $url2, '->generate() creates URL with no suffix when route ends with /');
 $t->is($r->generate('', array('module' => 'default', 'action' => 'index3',  'param3'  => 'foo3'),  '/', '/', '='), $url3,  '->generate() creates URL with special suffix when route ends with .suffix');
+$t->is($r->generate('', array('module' => 'default', 'action' => 'index4', 'param4' => 'foo', 'param5' => 'bar')), $url4, '->generate() creates URL with no special suffix when route ends with .:suffix');
+
 
 $t->is($r->parse($url0), array('module' => 'default', 'action' => 'index0', 'param0' => 'foo0'), '->parse() finds route from URL suffixed by "sf_suffix"');
 $t->is($r->parse($url1), array('module' => 'default', 'action' => 'index1', 'param1' => 'foo1'), '->parse() finds route with no suffix when route ends with .');
 $t->is($r->parse($url2), array('module' => 'default', 'action' => 'index2', 'param2' => 'foo2'), '->parse() finds route with no suffix when route ends with /');
 $t->is($r->parse($url3),  array('module' => 'default', 'action' => 'index3',  'param3'  => 'foo3'),  '->parse() finds route with special suffix when route ends with .suffix');
+$t->is($r->parse($url4),  array('module' => 'default', 'action' => 'index4',  'param4'  => 'foo', 'param5' => 'bar'),  '->parse() finds route with special suffix when route ends with .:suffix');
+
 sfConfig::set('sf_suffix', '');
 
 // query string
