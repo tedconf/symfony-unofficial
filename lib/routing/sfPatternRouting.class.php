@@ -293,7 +293,7 @@ class sfPatternRouting extends sfRouting
         $patterns[$variable] = $regex;
       }
       
-      if (preg_match('/(\.[:$]?\w*)$/i', $route, $matches) // specific suffix for this route
+      if (preg_match('/(\.[:$]?[\w\d_]*)$/i', $route, $matches) // specific suffix for this route
            ||
          ($route[strlen($route) - 1] == '/'))         //route ends by / (directory)
       {
