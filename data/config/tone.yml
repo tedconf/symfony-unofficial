@@ -31,6 +31,7 @@ default:
       context: [Tone, Context]
     singleton:      true
     init_method:    initialize
-
-    # this is alpha, will probably change to 'load_config_condition' and change its behavior
-    preload_config_condition: sf_i18n   # only preload if sfConfig::get('sf_i18n') == true
+    load_condition:
+      config_var: sf_i18n   # only load if sfConfig::get('sf_i18n') == true
+      config_name: i18n support
+      config_file: settings.yml

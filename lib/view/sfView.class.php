@@ -49,9 +49,9 @@ abstract class sfView
   const SUCCESS = 'Success';
 
   /**
-    * Skip view rendering but output http headers
-    */
-  const HEADER_ONLY = 'Headers';
+   * Do not render the presentation.
+   */
+  const RENDER_NONE = 1;
 
   /**
    * Render the presentation to the client.
@@ -59,14 +59,14 @@ abstract class sfView
   const RENDER_CLIENT = 2;
 
   /**
-   * Do not render the presentation.
-   */
-  const RENDER_NONE = 1;
-
-  /**
    * Render the presentation to a variable.
    */
   const RENDER_VAR = 4;
+
+  /**
+   * Skip view rendering but output http headers
+   */
+  const HEADER_ONLY = 8;
 
   protected
     $context            = null,
@@ -76,8 +76,6 @@ abstract class sfView
     $directory          = null,
     $componentSlots     = array(),
     $template           = null,
-    $escaping           = null,
-    $escapingMethod     = null,
     $attributeHolder    = null,
     $parameterHolder    = null,
     $moduleName         = '',
@@ -155,146 +153,14 @@ abstract class sfView
   }
 
   /**
-   * Gets the default escaping strategy associated with this view.
-   *
-   * The escaping strategy specifies how the variables get passed to the view.
-   *
-   * @return string the escaping strategy
-   */
-  public function getEscaping()
-  {
-    return null === $this->escaping ? sfConfig::get('sf_escaping_strategy') : $this->escaping;
-  }
-
-  /**
-   * Returns the name of the function that is to be used as the escaping method.
-   *
-   * If the escaping method is empty, then that is returned. The default value
-   * specified by the sub-class will be used. If the method does not exist (in
-   * the sense there is no define associated with the method) and exception is
-   * thrown.
-   *
-   * @return string The escaping method as the name of the function to use
-   *
-   * @throws <b>sfException</b> If the method does not exist
-   */
-  public function getEscapingMethod()
-  {
-    $method = null === $this->escapingMethod ? sfConfig::get('sf_escaping_method') : $this->escapingMethod;
-
-    if (empty($method))
-    {
-      return $method;
-    }
-
-    if (!defined($method))
-    {
-      throw new sfException(sprintf('Escaping method "%s" is not available; perhaps another helper needs to be loaded in?', $method));
-    }
-
-    return constant($method);
-  }
-
-  /**
-   * Imports parameter values and error messages from the request directly as view attributes.
-   *
-   * @param array An indexed array of file/parameter names
-   * @param boolean  Is this a list of files?
-   * @param boolean  Import error messages too?
-   * @param boolean  Run strip_tags() on attribute value?
-   * @param boolean  Run htmlspecialchars() on attribute value?
-   */
-  public function importAttributes($names, $files = false, $errors = true, $stripTags = true, $specialChars = true)
-  {
-    // alias $request to keep the code clean
-    $request = $this->context->getRequest();
-
-    // get our array
-    if ($files)
-    {
-      // file names
-      $array =& $request->getFiles();
-    }
-    else
-    {
-      // parameter names
-      $array =& $request->getParameterHolder()->getAll();
-    }
-
-    // loop through our parameter names and import them
-    foreach ($names as &$name)
-    {
-        if (preg_match('/^([a-z0-9\-_]+)\{([a-z0-9\s\-_]+)\}$/i', $name, $match))
-        {
-          // we have a parent
-          $parent  = $match[1];
-          $subname = $match[2];
-
-          // load the file/parameter value for this attribute if one exists
-          if (isset($array[$parent]) && isset($array[$parent][$subname]))
-          {
-            $value = $array[$parent][$subname];
-
-            if ($stripTags)
-              $value = strip_tags($value);
-
-            if ($specialChars)
-              $value = htmlspecialchars($value);
-
-            $this->setAttribute($name, $value);
-          }
-          else
-          {
-            // set an empty value
-            $this->setAttribute($name, '');
-          }
-        }
-        else
-        {
-          // load the file/parameter value for this attribute if one exists
-          if (isset($array[$name]))
-          {
-            $value = $array[$name];
-
-            if ($stripTags)
-              $value = strip_tags($value);
-
-            if ($specialChars)
-              $value = htmlspecialchars($value);
-
-            $this->setAttribute($name, $value);
-          }
-          else
-          {
-            // set an empty value
-            $this->setAttribute($name, '');
-          }
-        }
-
-        if ($errors)
-        {
-          if ($request->hasError($name))
-          {
-            $this->setAttribute($name.'_error', $request->getError($name));
-          }
-          else
-          {
-            // set empty error
-            $this->setAttribute($name.'_error', '');
-          }
-        }
-    }
-  }
-
-  /**
    * Initializes this view.
    *
    * @param sfContext The current application context
-   * @param string The module name for this view
-   * @param string The action name for this view
-   * @param string The view name
+   * @param string    The module name for this view
+   * @param string    The action name for this view
+   * @param string    The view name
    *
-   * @return boolean true, if initialization completes successfully, otherwise false
+   * @return boolean  true, if initialization completes successfully, otherwise false
    */
   public function initialize($context, $moduleName, $actionName, $viewName)
   {
@@ -308,9 +174,11 @@ abstract class sfView
     $this->viewName   = $viewName;
 
     $this->context = $context;
-    $this->attributeHolder = new sfParameterHolder();
-    $this->parameterHolder = new sfParameterHolder();
 
+    $this->attributeHolder = false === sfConfig::get('sf_escaping_method') ? new sfViewParameterHolder() : new sfEscapedViewParameterHolder();
+    $this->attributeHolder->initialize($context);
+
+    $this->parameterHolder = new sfParameterHolder();
     $this->parameterHolder->add(sfConfig::get('mod_'.strtolower($moduleName).'_view_param', array()));
 
     $this->decoratorDirectory = sfConfig::get('sf_app_template_dir');
@@ -447,35 +315,21 @@ abstract class sfView
    */
   protected function preRenderCheck()
   {
-    if ($this->template == null)
+    if (is_null($this->template))
     {
       // a template has not been set
-      $error = 'A template has not been set';
-
-      throw new sfRenderException($error);
+      throw new sfRenderException('A template has not been set.');
     }
 
-    $template = $this->directory.'/'.$this->template;
-
-    if (!is_readable($template))
+    if (!is_readable($this->directory.'/'.$this->template))
     {
-      // the template isn't readable
-      throw new sfRenderException(sprintf('The template "%s" does not exist in: %s', $template, $this->directory));
+      throw new sfRenderException(sprintf('The template "%s" does not exist or is unreadable in "%s".', $this->template, $this->directory));
     }
 
     // check to see if this is a decorator template
-    if ($this->decorator)
+    if ($this->decorator && !is_readable($this->decoratorDirectory.'/'.$this->decoratorTemplate))
     {
-      $template = $this->decoratorDirectory.'/'.$this->decoratorTemplate;
-
-      if (!is_readable($template))
-      {
-        // the decorator template isn't readable
-        $error = 'The decorator template "%s" does not exist or is unreadable';
-        $error = sprintf($error, $template);
-
-        throw new sfRenderException($error);
-      }
+      throw new sfRenderException(sprintf('The decorator template "%s" does not exist or is unreadable in "%s".', $this->decoratorTemplate, $this->decoratorDirectory));
     }
   }
 
@@ -485,12 +339,10 @@ abstract class sfView
    * When the controller render mode is sfView::RENDER_CLIENT, this method will
    * render the presentation directly to the client and null will be returned.
    *
-   * @param  array  An array with variables that will be extracted for the template
-   *                If empty, the current actions var holder will be extracted
    * @return string A string representing the rendered presentation, if
    *                the controller render mode is sfView::RENDER_VAR, otherwise null
    */
-  abstract function render($templateVars = null);
+  abstract function render();
 
   /**
    * Sets the decorator template directory for this view.
@@ -500,26 +352,6 @@ abstract class sfView
   public function setDecoratorDirectory($directory)
   {
     $this->decoratorDirectory = $directory;
-  }
-
-  /**
-   * Sets the escape caracter mode.
-   *
-   * @param string Escape code
-   */
-  public function setEscaping($escaping)
-  {
-    $this->escaping = $escaping;
-  }
-
-  /**
-   * Sets the escaping method for the current view.
-   *
-   * @param string Method for escaping
-   */
-  public function setEscapingMethod($method)
-  {
-    $this->escapingMethod = $method;
   }
 
   /**
@@ -640,9 +472,9 @@ abstract class sfView
    *
    * @param string The extension name.
    */
-  public function setExtension($ext)
+  public function setExtension($extension)
   {
-    $this->extension = $ext;
+    $this->extension = $extension;
   }
 
   /**

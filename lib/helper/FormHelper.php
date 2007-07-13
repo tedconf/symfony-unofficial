@@ -625,11 +625,15 @@ function input_date_range_tag($name, $value, $options = array())
 {
   $options = _parse_attributes($options);
 
-  return _get_option($options, 'before', '').
+  $before = _get_option($options, 'before', '');
+  $middle = _get_option($options, 'middle', '');
+  $after  = _get_option($options, 'after', '');
+
+  return $before.
          input_date_tag($name.'[from]', $value['from'], $options).
-         _get_option($options, 'middle', '').
+         $middle.
          input_date_tag($name.'[to]', $value['to'], $options).
-         _get_option($options, 'after', '');
+         $after;
 }
 
 /**
@@ -727,8 +731,8 @@ function input_date_tag($name, $value = null, $options = array())
 
   $calendar_date_format = preg_replace('/([mdyhklspe])+/i', '%\\1', $calendar_date_format);
 
-  $id_inputField = (isset($options['id']))? $options['id'] : get_id_from_name($name);
-  $id_calendarButton = 'trigger_'.get_id_from_name($name);
+  $id_inputField = isset($options['id']) ? $options['id'] : get_id_from_name($name);
+  $id_calendarButton = 'trigger_'.$id_inputField;
   $js = '
     document.getElementById("'.$id_calendarButton.'").disabled = false;
     Calendar.setup({

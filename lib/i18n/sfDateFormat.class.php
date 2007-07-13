@@ -18,11 +18,6 @@
  */
 
 /**
- * Get the encoding utilities
- */
-require_once(dirname(__FILE__).'/util.php');
-
-/**
  * sfDateFormat class.
  * 
  * The sfDateFormat class allows you to format dates and times with 
@@ -48,23 +43,23 @@ class sfDateFormat
    * @var array 
    */
   protected $tokens = array(
-    'G'=>'Era',
-    'y'=>'year',
-    'M'=>'mon',
-    'd'=>'mday',
-    'h'=>'Hour12',
-    'H'=>'hours',
-    'm'=>'minutes',
-    's'=>'seconds',
-    'E'=>'wday',
-    'D'=>'yday',
-    'F'=>'DayInMonth',
-    'w'=>'WeekInYear',
-    'W'=>'WeekInMonth',
-    'a'=>'AMPM',
-    'k'=>'HourInDay',
-    'K'=>'HourInAMPM',
-    'z'=>'TimeZone'
+    'G' => 'Era',
+    'y' => 'year',
+    'M' => 'mon',
+    'd' => 'mday',
+    'h' => 'Hour12',
+    'H' => 'hours',
+    'm' => 'minutes',
+    's' => 'seconds',
+    'E' => 'wday',
+    'D' => 'yday',
+    'F' => 'DayInMonth',
+    'w' => 'WeekInYear',
+    'W' => 'WeekInMonth',
+    'a' => 'AMPM',
+    'k' => 'HourInDay',
+    'K' => 'HourInAMPM',
+    'z' => 'TimeZone'
   );
 
   /**
@@ -80,7 +75,7 @@ class sfDateFormat
   protected $formatInfo;
 
   /**
-   * Initialize a new sfDateFormat.
+   * Initializes a new sfDateFormat.
    *
    * @param mixed either, null, a sfCultureInfo instance, a DateTimeFormatInfo instance, or a locale.
    * @return sfDateFormat instance
@@ -179,7 +174,7 @@ class sfDateFormat
         $numericalTime = @strtotime($time);
         if ($numericalTime === false)
         {
-          throw new sfException(sprintf('Impossible to parse date "%s" with format "%s"', $time, $pattern));
+          throw new sfException(sprintf('Impossible to parse date "%s" with format "%s".', $time, $pattern));
         }
       }
       else
@@ -202,7 +197,7 @@ class sfDateFormat
   }
 
   /**
-   * Format a date according to the pattern.
+   * Formats a date according to the pattern.
    *
    * @param mixed the time as integer or string in strtotime format.
    * @return string formatted date time. 
@@ -242,13 +237,13 @@ class sfDateFormat
           }
           else
           {
-            throw new sfException('function '.$function.' not found.');
+            throw new sfException(sprintf('Function %s not found.', $function));
           }
         }
       }
     }
 
-    return I18N_toEncoding(implode('', $tokens), $charset);
+    return sfToolkit::I18N_toEncoding(implode('', $tokens), $charset);
   }
 
   /**
@@ -266,7 +261,7 @@ class sfDateFormat
   }
 
   /**
-   * Get the pattern from DateTimeFormatInfo or some predefined patterns.
+   * Gets the pattern from DateTimeFormatInfo or some predefined patterns.
    * If the $pattern parameter is an array of 2 element, it will assume
    * that the first element is the date, and second the time
    * and try to find an appropriate pattern and apply 
@@ -372,7 +367,7 @@ class sfDateFormat
   }
 
   /**
-   * Tokenize the pattern. The tokens are delimited by group of
+   * Tokenizes the pattern. The tokens are delimited by group of
    * similar characters, e.g. 'aabb' will form 2 tokens of 'aa' and 'bb'.
    * Any substrings, starting and ending with a single quote (') 
    * will be treated as a single token.
@@ -428,7 +423,7 @@ class sfDateFormat
   }
 
   /**
-   * Get the year.
+   * Gets the year.
    * "yy" will return the last two digits of year.
    * "yyyy" will return the full integer year.
    *
@@ -451,7 +446,7 @@ class sfDateFormat
   }
 
   /**
-   * Get the month.
+   * Gets the month.
    * "M" will return integer 1 through 12
    * "MM" will return the narrow month name, e.g. "J"
    * "MMM" will return the abrreviated month name, e.g. "Jan"
@@ -482,7 +477,7 @@ class sfDateFormat
   }
 
   /**
-   * Get the day of the week.
+   * Gets the day of the week.
    * "E" will return integer 0 (for Sunday) through 6 (for Saturday).
    * "EE" will return the narrow day of the week, e.g. "M"
    * "EEE" will return the abrreviated day of the week, e.g. "Mon"
@@ -520,7 +515,7 @@ class sfDateFormat
   }
 
   /**
-   * Get the day of the month.
+   * Gets the day of the month.
    * "d" for non-padding, "dd" will always return 2 characters.
    *
    * @param array getdate format.
@@ -545,7 +540,7 @@ class sfDateFormat
   }
 
   /**
-   * Get the era. i.e. in gregorian, year > 0 is AD, else BC.
+   * Gets the era. i.e. in gregorian, year > 0 is AD, else BC.
    *
    * @todo How to support multiple Eras?, e.g. Japanese.
    * @param array getdate format.
@@ -563,7 +558,7 @@ class sfDateFormat
   }
 
   /**
-   * Get the hours in 24 hour format, i.e. [0-23]. 
+   * Gets the hours in 24 hour format, i.e. [0-23]. 
    * "H" for non-padding, "HH" will always return 2 characters.
    *
    * @param array getdate format.
@@ -603,7 +598,7 @@ class sfDateFormat
   }
 
   /**
-   * Get the hours in 12 hour format. 
+   * Gets the hours in 12 hour format. 
    * "h" for non-padding, "hh" will always return 2 characters.
    *
    * @param array getdate format.
@@ -613,7 +608,7 @@ class sfDateFormat
   protected function getHour12($date, $pattern = 'h')
   {
     $hour = $date['hours'];
-    $hour = ($hour == 12 | $hour == 0) ? 12 : ($hour) % 12;
+    $hour = ($hour == 12 | $hour == 0) ? 12 : $hour % 12;
 
     switch ($pattern)
     {
@@ -627,7 +622,7 @@ class sfDateFormat
   }
 
   /**
-   * Get the minutes.
+   * Gets the minutes.
    * "m" for non-padding, "mm" will always return 2 characters.
    *
    * @param array getdate format.
@@ -650,7 +645,7 @@ class sfDateFormat
   }
 
   /**
-   * Get the seconds.
+   * Gets the seconds.
    * "s" for non-padding, "ss" will always return 2 characters.
    *
    * @param array getdate format.
@@ -673,7 +668,7 @@ class sfDateFormat
   }
 
   /**
-   * Get the timezone from the server machine.
+   * Gets the timezone from the server machine.
    *
    * @todo How to get the timezone for a different region?
    * @param array getdate format.
@@ -691,7 +686,7 @@ class sfDateFormat
   }
 
   /**
-   * Get the day in the year, e.g. [1-366]
+   * Gets the day in the year, e.g. [1-366]
    *
    * @param array getdate format.
    * @param string a pattern.
@@ -708,7 +703,7 @@ class sfDateFormat
   }
 
   /**
-   * Get day in the month.
+   * Gets day in the month.
    *
    * @param array getdate format.
    * @param string a pattern.
@@ -730,7 +725,7 @@ class sfDateFormat
   }
 
   /**
-   * Get the week in the year.
+   * Gets the week in the year.
    *
    * @param array getdate format.
    * @param string a pattern.
@@ -747,7 +742,7 @@ class sfDateFormat
   }
 
   /**
-   * Get week in the month.
+   * Gets week in the month.
    *
    * @param array getdate format.
    * @return int week in month
@@ -763,7 +758,7 @@ class sfDateFormat
   }
 
   /**
-   * Get the hours [1-24].
+   * Gets the hours [1-24].
    *
    * @param array getdate format.
    * @param string a pattern.
@@ -780,7 +775,7 @@ class sfDateFormat
   }
 
   /**
-   * Get the hours in AM/PM format, e.g [1-12]
+   * Gets the hours in AM/PM format, e.g [1-12]
    *
    * @param array getdate format.
    * @param string a pattern.

@@ -12,8 +12,7 @@
 /**
  * sfContext provides information about the current application context, such as
  * the module and action names and the module directory. References to the
- * current controller, request, and user implementation instances are also
- * provided. Support for tones was introduced in June, 2007.
+ * main symfony instances are also provided.
  *
  * @package    symfony
  * @subpackage util
@@ -23,110 +22,88 @@
  */
 class sfContext
 {
-  const DEFAULT_TONE_NAMESPACE = 'symfony/default';
-
   protected
-    $actionStack       = null,
-    $controller        = null,
-    $databaseManager   = null,
-    $request           = null,
-    $response          = null,
-    $storage           = null,
-    $viewCacheManager  = null,
-    $i18n              = null,
-    $logger            = null,
-    $user              = null,
-    $toneFactories     = array();
+    $factories = array();
 
   protected static
-    $instance          = null,
-    $class             = __CLASS__;
+    $instances = array(),
+    $current   = 'default';
 
   /**
-   * Retrieve the singleton instance of this class.
-   *
-   * @return sfContext A sfContext implementation instance.
+   * Initializes the current sfContext instance.
    */
-  public static function getInstance()
+  public function initialize()
   {
-    if (!isset(self::$instance))
-    {
-      if (!class_exists(self::$class))
-      {
-        throw new sfException('The class ' . self::$class . " used for creating the instance of sfContext doesn't exist");
-      }
-
-      self::$instance = new self::$class();
-      self::$instance->initialize();
-    }
-
-    return self::$instance;
-  }
-
-  /**
-   * Checks whether sfContext has an instance.
-   *
-   * @return boolean true if sfContext has an instance, false if not.
-   */
-  public static function hasInstance()
-  {
-    return isset(self::$instance);
-  }
-
-  /**
-   * Removes current sfContext instance
-   *
-   * This method only exists for testing purpose. Don't use it in your application code.
-   */
-  public static function removeInstance()
-  {
-    self::$instance = null;
-  }
-
-  /**
-   * Sets the class name to be used for creating the instance of sfContext.
-   *
-   * This allowes you to subclass sfContext and add or overwrite methods of it.
-   * Recommended place to call it is in yourapp/config/config.php
-   * Example:
-   * <code>
-   *   sfContext::setInstanceClass('MyContext');
-   * </code>
-   * @param string Class name used to create the sfContext instance.
-   */
-  public static function setInstanceClass($class)
-  {
-    self::$class = $class;
-  }
-
-  protected function initialize()
-  {
-    $this->logger = sfLogger::getInstance();
+    $this->factories['logger'] = sfLogger::getInstance();
     if (sfConfig::get('sf_logging_enabled'))
     {
-      $this->logger->info('{sfContext} initialization');
+      $this->factories['logger']->info('{sfContext} initialization');
     }
 
     if (sfConfig::get('sf_use_database'))
     {
       // setup our database connections
-      $this->databaseManager = new sfDatabaseManager();
-      $this->databaseManager->initialize();
+      $this->factories['databaseManager'] = new sfDatabaseManager();
+      $this->factories['databaseManager']->initialize();
     }
 
     // create a new action stack
-    $this->actionStack = new sfActionStack();
-
-    $this->registerToneFactory('sfToneFactoryAdapter', self::DEFAULT_TONE_NAMESPACE);
+    $this->factories['actionStack'] = new sfActionStack();
 
     // include the factories configuration
     require(sfConfigCache::getInstance()->checkConfig(sfConfig::get('sf_app_config_dir_name').'/factories.yml'));
-    // if we move factories to tones we have to move this line into
-    // sfToneFactoryAdapter->initialize() and change the factories.yml config handler
-    // to build a tone definition array
 
     // register our shutdown function
     register_shutdown_function(array($this, 'shutdown'));
+  }
+
+  /**
+   * Retrieves the singleton instance of this class.
+   *
+   * @param  string    The name of the sfContext to retrieve.
+   *
+   * @return sfContext A sfContext implementation instance.
+   */
+  public static function getInstance($name = null, $class = null)
+  {
+    if (is_null($name))
+    {
+      $name = self::$current;
+    }
+
+    if (!isset(self::$instances[$name]))
+    {
+      if (is_null($class))
+      {
+        $class = __CLASS__;
+      }
+
+      self::$instances[$name] = new $class();
+
+      if (!self::$instances[$name] instanceof sfContext)
+      {
+        throw new sfFactoryException(sprintf('Class "%s" is not of the type sfContext', $class));
+      }
+
+      self::$instances[$name]->initialize();
+    }
+
+    return self::$instances[$name];
+  }
+
+  public static function hasInstance($name = null)
+  {
+    if (is_null($name))
+    {
+      $name = self::$current;
+    }
+
+    return isset(self::$instances[$name]);
+  }
+
+  public static function switchTo($name)
+  {
+    self::$current = $name;
   }
 
   /**
@@ -138,11 +115,12 @@ class sfContext
   public function getActionName()
   {
     // get the last action stack entry
-    if ($this->actionStack && $lastEntry = $this->actionStack->getLastEntry())
+    if ($this->factories['actionStack'] && $lastEntry = $this->factories['actionStack']->getLastEntry())
     {
       return $lastEntry->getActionName();
     }
   }
+
 
   /**
    * Retrieve the ActionStack.
@@ -151,7 +129,7 @@ class sfContext
    */
   public function getActionStack()
   {
-    return $this->actionStack;
+    return $this->factories['actionStack'];
   }
 
   /**
@@ -161,12 +139,12 @@ class sfContext
    */
    public function getController()
    {
-     return $this->controller;
+     return $this->factories['controller'];
    }
 
    public function getLogger()
    {
-     return $this->logger;
+     return $this->factories['logger'];
    }
 
   /**
@@ -185,9 +163,9 @@ class sfContext
    */
   public function getDatabaseConnection($name = 'default')
   {
-    if ($this->databaseManager != null)
+    if ($this->factories['databaseManager'] != null)
     {
-      return $this->databaseManager->getDatabase($name)->getConnection();
+      return $this->factories['databaseManager']->getDatabase($name)->getConnection();
     }
 
     return null;
@@ -207,7 +185,7 @@ class sfContext
    */
   public function getDatabaseManager()
   {
-    return $this->databaseManager;
+    return $this->factories['databaseManager'];
   }
 
   /**
@@ -219,7 +197,7 @@ class sfContext
   public function getModuleDirectory()
   {
     // get the last action stack entry
-    if ($this->actionStack && $lastEntry = $this->actionStack->getLastEntry())
+    if ($this->factories['actionStack'] && $lastEntry = $this->factories['actionStack']->getLastEntry())
     {
       return sfConfig::get('sf_app_module_dir').'/'.$lastEntry->getModuleName();
     }
@@ -234,14 +212,14 @@ class sfContext
   public function getModuleName()
   {
     // get the last action stack entry
-    if ($this->actionStack && $lastEntry = $this->actionStack->getLastEntry())
+    if ($this->factories['actionStack'] && $lastEntry = $this->factories['actionStack']->getLastEntry())
     {
       return $lastEntry->getModuleName();
     }
   }
 
   /**
-   * Retrieve the curretn view instance for this context.
+   * Retrieve the current view instance for this context.
    *
    * @return sfView The currently view instance, if one is set,
    *                otherwise null.
@@ -249,7 +227,7 @@ class sfContext
   public function getCurrentViewInstance()
   {
     // get the last action stack entry
-    if ($this->actionStack && $lastEntry = $this->actionStack->getLastEntry())
+    if ($this->factories['actionStack'] && $lastEntry = $this->factories['actionStack']->getLastEntry())
     {
       return $lastEntry->getViewInstance();
     }
@@ -262,7 +240,7 @@ class sfContext
    */
   public function getRequest()
   {
-    return $this->request;
+    return $this->factories['request'];
   }
 
   /**
@@ -272,7 +250,7 @@ class sfContext
    */
   public function getResponse()
   {
-    return $this->response;
+    return $this->factories['response'];
   }
 
   /**
@@ -284,7 +262,7 @@ class sfContext
    */
   public function setResponse($response)
   {
-    $this->response = $response;
+    $this->factories['response'] = $response;
   }
 
   /**
@@ -294,7 +272,7 @@ class sfContext
    */
   public function getStorage()
   {
-    return $this->storage;
+    return $this->factories['storage'];
   }
 
   /**
@@ -304,7 +282,7 @@ class sfContext
    */
   public function getViewCacheManager()
   {
-    return $this->viewCacheManager;
+    return $this->factories['viewCacheManager'];
   }
 
   /**
@@ -314,12 +292,22 @@ class sfContext
    */
   public function getI18N()
   {
-    if (!$this->i18n && sfConfig::get('sf_i18n'))
+    if (!sfConfig::get('sf_i18n'))
     {
-      $this->i18n = $this->getTone('I18N');
+      throw new sfConfigurationException('You must enabled i18n support in your settings.yml configuration file.');
     }
 
-    return $this->i18n;
+    return $this->factories['i18n'];
+  }
+
+  /**
+   * Retrieve the routing instance.
+   *
+   * @return sfRouting The current sfRouting implementation instance.
+   */
+  public function getRouting()
+  {
+    return $this->factories['routing'];
   }
 
   /**
@@ -329,130 +317,47 @@ class sfContext
    */
   public function getUser()
   {
-    return $this->user;
+    return $this->factories['user'];
   }
 
   /**
-   * Registers a tone factory to the context.
+   * Gets an object from the current context.
    *
-   * @param mixed  String (class name) or Object (instance) of a tone factory
-   *               implementing the sfToneFactory interface.
-   * @param string Tones of the factory will be accessable by this namespace.
-   * @TODO make it more flexible to also support foreign but similar factories like Garden
+   * @param  string The name of the object to retrieve
+   *
+   * @return object The object associated with the given name
    */
-  public function registerToneFactory($factory, $namespace)
+  public function get($name)
   {
-    if (!empty($this->toneFactories[$namespace]))
+    if (!$this->has($name))
     {
-      throw new sfException('There is already a tone factory registered at namespace ' . $namespace);
+      throw new sfException(sprintf('The "%s" object does not exist in the current context.', $name));
     }
 
-    if (is_string($factory))
-    {
-      $this->toneFactories[$namespace] = new $factory();
-      $init = true;
-    }
-    elseif (is_object($factory))
-    {
-      $this->toneFactories[$namespace] = $factory;
-      $init = false;
-    }
-
-    if (!$this->toneFactories[$namespace] instanceof sfToneFactory)
-    {
-      throw new sfException('Registering tone factory for namespace ' . $namespace .
-        ' failed. Make sure that it implements the sfToneFactory interface.');
-    }
-
-    if ($init)
-    {
-      $this->toneFactories[$namespace]->setContext($this);
-      $this->toneFactories[$namespace]->initialize();
-    }
+    return $this->factories[$name];
   }
 
   /**
-   * Removes a factory and all its tones from context.
+   * Puts an object in the current context.
    *
-   * @param string Namespace of the factory that will be removed.
+   * @param string The name of the object to store
+   * @param object The object to store
    */
-  public function unregisterToneFactory($namespace)
+  public function set($name, $object)
   {
-    if (empty($this->toneFactories[$namespace]))
-    {
-      throw new sfException('There is no registered tone factory for namespace ' . $namespace);
-    }
-
-    $this->toneFactories[$namespace]->shutdown();
-    unset($this->toneFactories[$namespace]);
-    return true;
+    $this->factories[$name] = $object;
   }
 
   /**
-   * Checks whether there is a tone factory registered in a given namespace.
+   * Returns true if an object is currently stored in the current context with the given name, false otherwise.
    *
-   * @param string Namespace to check.
-   * @return bool  True if there is a tone factory, false if not.
-   */
-  public function hasToneFactory($namespace)
-  {
-    return !empty($this->toneFactories[$namespace]);
-  }
-
-  public function getTone($name, $namespace = self::DEFAULT_TONE_NAMESPACE)
-  {
-    if (empty($this->toneFactories[$namespace]))
-    {
-      throw new sfException('There is no registered tone factory for namespace ' . $namespace);
-    }
-
-    return $this->toneFactories[$namespace]->getTone($name);
-  }
-
-  public function containsTone($name, $namespace = self::DEFAULT_TONE_NAMESPACE)
-  {
-    if (empty($this->toneFactories[$namespace]))
-    {
-      throw new sfException('There is no registered tone factory for namespace ' . $namespace);
-    }
-
-    return $this->toneFactories[$namespace]->containsTone($name);
-  }
-
-  public function getAliases($name, $namespace = self::DEFAULT_TONE_NAMESPACE)
-  {
-    if (empty($this->toneFactories[$namespace]))
-    {
-      throw new sfException('There is no registered tone factory for namespace ' . $namespace);
-    }
-
-    return $this->toneFactories[$namespace]->getAliases($name);
-  }
-
-  /**
-   * Tells if a tone is singleton
+   * @param  string The object name
    *
-   * @param     String $name tone id, name or alias
-   * @return     boolean
+   * @return boolean True if the object is not null, false otherwise
    */
-  public function isSingleton($name, $namespace = self::DEFAULT_TONE_NAMESPACE)
+  public function has($name)
   {
-    if (empty($this->toneFactories[$namespace]))
-    {
-      throw new sfException('There is no registered tone factory for namespace ' . $namespace);
-    }
-
-    return $this->toneFactories[$namespace]->isSingleton($name);
-  }
-
-  public function removeTone($name, $namespace = self::DEFAULT_TONE_NAMESPACE)
-  {
-    if (empty($this->toneFactories[$namespace]))
-    {
-      throw new sfException('There is no registered tone factory for namespace ' . $namespace);
-    }
-
-    return $this->toneFactories[$namespace]->removeTone($name);
+    return isset($this->factories[$name]);
   }
 
   /**
@@ -463,15 +368,11 @@ class sfContext
   public function shutdown()
   {
     // shutdown all factories
-    foreach ($this->toneFactories as $toneFactory)
-    {
-      $toneFactory->shutdown();
-    }
-
     $this->getUser()->shutdown();
     $this->getStorage()->shutdown();
     $this->getRequest()->shutdown();
     $this->getResponse()->shutdown();
+    $this->getRouting()->shutdown();
 
     if (sfConfig::get('sf_logging_enabled'))
     {
@@ -488,5 +389,4 @@ class sfContext
       $this->getViewCacheManager()->shutdown();
     }
   }
-
 }

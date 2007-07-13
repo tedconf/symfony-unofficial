@@ -19,22 +19,72 @@
  */
 
 /**
- * Get the I18N utility file, contains the DSN parser.
- */
-require_once(dirname(__FILE__).'/util.php');
-
-/**
  * sfMessageSource_SQLite class.
  * 
  * Retrieve the message translation from a SQLite database.
  *
  * See the MessageSource::factory() method to instantiate this class.
  *
+ * SQLite schema:
+ *
+ * CREATE TABLE catalogue (
+ *   cat_id INTEGER PRIMARY KEY,
+ *   name VARCHAR NOT NULL,
+ *   source_lang VARCHAR,
+ *   target_lang VARCHAR,
+ *   date_created INT,
+ *   date_modified INT,
+ *   author VARCHAR);
+ *
+ * CREATE TABLE trans_unit (
+ *   msg_id INTEGER PRIMARY KEY,
+ *   cat_id INTEGER NOT NULL DEFAULT '1',
+ *   id VARCHAR,
+ *   source TEXT,
+ *   target TEXT,
+ *   comments TEXT,
+ *   date_added INT,
+ *   date_modified INT,
+ *   author VARCHAR,
+ *   translated INT(1) NOT NULL DEFAULT '0');
+ *
+ * Propel schema (in .xml format):
+ *
+ *  <database ...>
+ *    ...
+ *    <table name="catalogue">
+ *     <column name="cat_id" type="integer" required="true" primaryKey="true" autoincrement="true" />
+ *     <column name="name" type="varchar" size="100" />
+ *     <column name="source_lang" type="varchar" size="100" />
+ *     <column name="target_lang" type="varchar" size="100" />
+ *     <column name="date_created" type="timestamp" />
+ *     <column name="date_modified" type="timestamp" />
+ *     <column name="author" type="varchar" size="255" />
+ *    </table>
+ *
+ *    <table name="trans_unit">
+ *     <column name="msg_id" type="integer" required="true" primaryKey="true" autoincrement="true" />
+ *     <column name="cat_id" type="integer" />
+ *       <foreign-key foreignTable="catalogue" onDelete="cascade">
+ *         <reference local="cat_id" foreign="cat_id"/>
+ *       </foreign-key>
+ *     <column name="id" type="varchar" size="255" />
+ *     <column name="source" type="longvarchar" />
+ *     <column name="target" type="longvarchar" />
+ *     <column name="comments" type="longvarchar" />
+ *     <column name="date_created" type="timestamp" />
+ *     <column name="date_modified" type="timestamp" />
+ *     <column name="author" type="varchar" size="255" />
+ *     <column name="translated" type="integer" />
+ *    </table>
+ *    ...
+ *  </database>
+ *
  * @author Xiang Wei Zhuo <weizhuo[at]gmail[dot]com>
  * @version v1.0, last update on Fri Dec 24 16:58:58 EST 2004
  * @package System.I18N.core
  */
-class sfMessageSource_SQLite extends sfMessageSource
+class sfMessageSource_SQLite extends sfMessageSource_Database
 {
   /**
    * The SQLite datasource, the filename of the database.
@@ -44,31 +94,31 @@ class sfMessageSource_SQLite extends sfMessageSource
 
   /**
    * Constructor.
-   * Create a new message source using SQLite.
+   * Creates a new message source using SQLite.
    * @see MessageSource::factory();
    * @param string SQLite datasource, in PEAR's DB DSN format.
    */
   function __construct($source)
   {
-    $dsn = parseDSN((string)$source);
+    $dsn = $this->parseDSN((string) $source);
     $this->source = $dsn['database'];
   }
 
   /**
-   * Get an array of messages for a particular catalogue and cultural variant.
+   * Gets an array of messages for a particular catalogue and cultural variant.
    *
    * @param string the catalogue name + variant
    * @return array translation messages.
    */
-  protected function &loadData($variant)
+  public function &loadData($variant)
   {
     $variant = sqlite_escape_string($variant);
 
-    $statement = 
+    $statement =
       "SELECT t.id, t.source, t.target, t.comments
         FROM trans_unit t, catalogue c
         WHERE c.cat_id =  t.cat_id
-          AND c.name = '{$variant}' 
+          AND c.name = '{$variant}'
         ORDER BY id ASC";
 
     $db = sqlite_open($this->source);
@@ -90,7 +140,7 @@ class sfMessageSource_SQLite extends sfMessageSource
   }
 
   /**
-   * Get the last modified unix-time for this particular catalogue+variant.
+   * Gets the last modified unix-time for this particular catalogue+variant.
    * We need to query the database to get the date_modified.
    *
    * @param string catalogue+variant
@@ -112,12 +162,12 @@ class sfMessageSource_SQLite extends sfMessageSource
   }
 
   /**
-   * Check if a particular catalogue+variant exists in the database.
+   * Checks if a particular catalogue+variant exists in the database.
    *
    * @param string catalogue+variant
    * @return boolean true if the catalogue+variant is in the database, false otherwise.
    */
-  protected function isValidSource($variant)
+  public function isValidSource($variant)
   {
     $variant = sqlite_escape_string($variant);
     $db = sqlite_open($this->source);
@@ -129,33 +179,7 @@ class sfMessageSource_SQLite extends sfMessageSource
   }
 
   /**
-   * Get all the variants of a particular catalogue.
-   *
-   * @param string catalogue name
-   * @return array list of all variants for this catalogue.
-   */
-  protected function getCatalogueList($catalogue)
-  {
-    $variants = explode('_', $this->culture);
-
-    $catalogues = array($catalogue);
-
-    $variant = null;
-
-    for ($i = 0, $max = count($variants); $i < $max; $i++)
-    {
-      if (strlen($variants[$i]) > 0)
-      {
-        $variant .= ($variant) ? '_'.$variants[$i] : $variants[$i];
-        $catalogues[] = $catalogue.'.'.$variant;
-      }
-    }
-
-    return array_reverse($catalogues);
-  }
-
-  /**
-   * Retrieve catalogue details, array($cat_id, $variant, $count).
+   * Retrieves catalogue details, array($cat_id, $variant, $count).
    *
    * @param string catalogue
    * @return array catalogue details, array($cat_id, $variant, $count).
@@ -182,7 +206,7 @@ class sfMessageSource_SQLite extends sfMessageSource
 
     $cat_id = intval(sqlite_fetch_single($rs));
 
-    //first get the catalogue ID
+    // first get the catalogue ID
     $rs = sqlite_query("SELECT count(msg_id) FROM trans_unit WHERE cat_id = {$cat_id}", $db);
 
     $count = intval(sqlite_fetch_single($rs));
@@ -193,7 +217,7 @@ class sfMessageSource_SQLite extends sfMessageSource
   }
 
   /**
-   * Update the catalogue last modified time.
+   * Updates the catalogue last modified time.
    *
    * @return boolean true if updated, false otherwise. 
    */
@@ -212,14 +236,14 @@ class sfMessageSource_SQLite extends sfMessageSource
   }
 
   /**
-   * Save the list of untranslated blocks to the translation source. 
+   * Saves the list of untranslated blocks to the translation source. 
    * If the translation was not found, you should add those
    * strings to the translation source via the <b>append()</b> method.
    *
    * @param string the catalogue to add to
    * @return boolean true if saved successfuly, false otherwise.
    */
-  function save($catalogue='messages')
+  function save($catalogue = 'messages')
   {
     $messages = $this->untranslated;
 
@@ -251,8 +275,7 @@ class sfMessageSource_SQLite extends sfMessageSource
     foreach ($messages as $message)
     {
       $message = sqlite_escape_string($message);
-      $statement = "INSERT INTO trans_unit (cat_id,id,source,date_added) VALUES ({$cat_id}, {$count},'{$message}',$time)";
-      if (sqlite_query($statement, $db))
+      if (sqlite_query("INSERT INTO trans_unit (cat_id, id, source, date_added) VALUES ({$cat_id}, {$count}, '{$message}', $time)", $db))
       {
         $count++;
         $inserted++;
@@ -269,7 +292,7 @@ class sfMessageSource_SQLite extends sfMessageSource
   }
 
   /**
-   * Update the translation.
+   * Updates the translation.
    *
    * @param string the source string.
    * @param string the new translation string.
@@ -297,13 +320,16 @@ class sfMessageSource_SQLite extends sfMessageSource
 
     $db = sqlite_open($this->source);
 
-    $statement = "UPDATE trans_unit SET target = '{$target}', comments = '{$comments}', date_modified = '{$time}' WHERE cat_id = {$cat_id} AND source = '{$text}'";
+    sqlite_query("UPDATE trans_unit SET target = '{$target}', comments = '{$comments}', date_modified = '{$time}' WHERE cat_id = {$cat_id} AND source = '{$text}'", $db);
 
-    $updated = false;
-
-    if (sqlite_query($statement, $db))
+    if (sqlite_changes($db))
     {
-      $updated = $this->updateCatalogueTime($cat_id, $variant, $db);
+      $this->updateCatalogueTime($cat_id, $variant, $db);
+      $updated = true;
+    }
+    else
+    {
+      $updated = false;
     }
 
     sqlite_close($db);
@@ -312,7 +338,7 @@ class sfMessageSource_SQLite extends sfMessageSource
   }
 
   /**
-   * Delete a particular message from the specified catalogue.
+   * Deletes a particular message from the specified catalogue.
    *
    * @param string the source message to delete.
    * @param string the catalogue to delete from.
@@ -333,12 +359,16 @@ class sfMessageSource_SQLite extends sfMessageSource
     $db = sqlite_open($this->source);
     $text = sqlite_escape_string($message);
 
-    $statement = "DELETE FROM trans_unit WHERE cat_id = {$cat_id} AND source = '{$message}'";
-    $deleted = false;
+    sqlite_query("DELETE FROM trans_unit WHERE cat_id = {$cat_id} AND source = '{$message}'", $db);
 
-    if (sqlite_query($statement, $db))
+    if (sqlite_changes($db))
     {
-      $deleted = $this->updateCatalogueTime($cat_id, $variant, $db);
+      $this->updateCatalogueTime($cat_id, $variant, $db);
+      $deleted = true;
+    }
+    else
+    {
+      $deleted = false;
     }
 
     sqlite_close($db);
@@ -359,7 +389,7 @@ class sfMessageSource_SQLite extends sfMessageSource
     $result = array();
     while ($row = sqlite_fetch_array($rs, SQLITE_NUM))
     {
-      $details = explode('.',$row[0]);
+      $details = explode('.', $row[0]);
       if (!isset($details[1]))
       {
         $details[1] = null;

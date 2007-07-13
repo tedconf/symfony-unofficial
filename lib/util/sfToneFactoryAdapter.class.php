@@ -282,6 +282,18 @@ class sfToneFactoryAdapter implements sfToneFactory
 
   protected function instantiateTone($definition)
   {
+    $configCondition =
+      empty($toneDef['load_condition']) ||
+      sfConfig::get((string) $toneDef['load_condition']['config_var']);
+
+    if (!$configCondition)
+    {
+      throw new sfConfigurationException(
+        'You must enable ' . $toneDef['load_condition']['config_name'] .
+        ' in your ' . $toneDef['load_condition']['config_file'] . ' configuration file' .
+        ' to instantiate objects of factory: ' . $definition['id']);
+    }
+
     $tone   = null;
     $class  = $definition['class'];
     $parent = $definition['parent'];
@@ -571,24 +583,14 @@ class sfToneFactoryAdapter implements sfToneFactory
         }
       }
 
-      $configCondition =
-        !$toneDef['preload_config_condition'] ||
-        sfConfig::get((string) $toneDef['preload_config_condition']);
-
-      if (!$toneDef['lazy_init'])
+      if ($toneDef['preload'])
       {
-        if (!$configCondition)
-        {
-          $this->logger->info('{sfToneFactory} skipped preloading of tone: ' . $id . ', config condition does not match');
-          continue;
-        }
-
         if ($this->isInstantiated($id))
         {
           continue;
         }
 
-        $this->logger->info('{sfToneFactory} preloading tone: ' . $id);
+        $this->logger->info('{sfFactory} preloading tone: ' . $id);
         $this->instantiateTone($toneDef);
       }
     }

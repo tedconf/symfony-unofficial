@@ -9,61 +9,41 @@
  */
 
 /**
- * sfRouting class controls the creation of URLs and parses URLs. It maps an array of parameters to URLs definition.
- * Each map is called a route.
- * It implements the Singleton pattern.
+ * sfPatternRouting class controls the generation and parsing of URLs.
  *
- * Routing can be disabled when [sf_routing] is set to false.
+ * It maps an array of parameters to URLs definition. Each map is called a route.
  *
- * This class is based on the Routes class of Cake framework.
+ * This class was initialy based on the Routes class of the Cake framework.
  *
  * @package    symfony
  * @subpackage controller
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
- * @version    SVN: $Id$
+ * @version    SVN: $Id: sfPatternRouting.class.php 4443 2007-06-27 15:32:21Z fabien $
  */
-class sfRouting
+class sfPatternRouting extends sfRouting
 {
-  protected static
-    $instance           = null;
-
   protected
     $current_route_name = '',
     $routes             = array();
 
   /**
-  * Retrieve the singleton instance of this class.
+   * Initialize this Routing.
    *
-   * @return  sfRouting The sfRouting implementation instance
+   * @param sfContext A sfContext instance.
+   * @param array     An associative array of initialization parameters.
+   *
+   * @return bool true, if initialization completes successfully, otherwise false.
+   *
+   * @throws <b>sfInitializationException</b> If an error occurs while initializing this User.
    */
-  public static function getInstance()
+  public function initialize($context, $parameters = array())
   {
-    if (!isset(self::$instance))
+    parent::initialize($context, $parameters);
+
+    if ($config = sfConfigCache::getInstance()->checkConfig(sfConfig::get('sf_app_config_dir_name').'/routing.yml', true))
     {
-      self::$instance = new sfRouting();
+      include($config);
     }
-
-    return self::$instance;
-  }
-
-  /**
-   * Sets the current route name.
-   *
-   * @param string The route name
-   */
-  protected function setCurrentRouteName($name)
-  {
-    $this->current_route_name = $name;
-  }
-
-  /**
-   * Gets the current route name.
-   *
-   * @return string The route name
-   */
-  public function getCurrentRouteName()
-  {
-    return $this->current_route_name;
   }
 
   /**
@@ -80,7 +60,7 @@ class sfRouting
     {
       list($url, $regexp, $names, $names_hash, $defaults, $requirements, $suffix) = $this->routes[$this->current_route_name];
 
-      $request = sfContext::getInstance()->getRequest();
+      $request = $this->context->getRequest();
 
       if ($with_route_name)
       {
@@ -155,6 +135,19 @@ class sfRouting
   }
 
   /**
+   * Clears all current routes.
+   */
+  public function clearRoutes()
+  {
+    if (sfConfig::get('sf_logging_enabled'))
+    {
+      $this->context->getLogger()->info('{sfRouting} clear all current routes');
+    }
+
+    $this->routes = array();
+  }
+
+  /**
    * Returns true if the route name given is defined.
    *
    * @param string The route name
@@ -164,44 +157,6 @@ class sfRouting
   public function hasRouteName($name)
   {
     return isset($this->routes[$name]) ? true : false;
-  }
-
-  /**
-   * Gets a route by its name.
-   *
-   * @param string The route name
-   *
-   * @return  array A route array
-   */
-  public function getRouteByName($name)
-  {
-    if ($name[0] == '@')
-    {
-      $name = substr($name, 1);
-    }
-
-    if (!isset($this->routes[$name]))
-    {
-      $error = 'The route "%s" does not exist';
-      $error = sprintf($error, $name);
-
-      throw new sfConfigurationException($error);
-    }
-
-    return $this->routes[$name];
-  }
-
-  /**
-   * Clears all current routes.
-   */
-  public function clearRoutes()
-  {
-    if (sfConfig::get('sf_logging_enabled'))
-    {
-      sfLogger::getInstance()->info('{sfRouting} clear all current routes');
-    }
-
-    $this->routes = array();
   }
 
   /**
@@ -350,7 +305,7 @@ class sfRouting
 
     if (sfConfig::get('sf_logging_enabled'))
     {
-      sfLogger::getInstance()->info('{sfRouting} connect "'.$route.'"'.($suffix ? ' ("'.$suffix.'" suffix)' : ''));
+      $this->context->getLogger()->info('{sfRouting} connect "'.$route.'"'.($suffix ? ' ("'.$suffix.'" suffix)' : ''));
     }
 
     return $this->routes;
@@ -462,8 +417,7 @@ class sfRouting
     // we add all other params if *
     if (strpos($real_url, '*'))
     {
-      $tmp = '';
-
+      $tmp = array();
       foreach ($params as $key => $value)
       {
         if (isset($names_hash[$key]) || isset($defaults[$key])) continue;
@@ -472,19 +426,20 @@ class sfRouting
         {
           foreach ($value as $v)
           {
-            $tmp .= $key.$equals.urlencode($v).$divider;
+            $tmp[] = $key.$equals.urlencode($v);
           }
         }
         else
         {
-          $tmp .= urlencode($key).$equals.urlencode($value).$divider;
+          $tmp[] = urlencode($key).$equals.urlencode($value);
         }
       }
+      $tmp = implode($divider, $tmp);
       if (strlen($tmp) > 0)
       {
         $tmp = $querydiv.$tmp;
       }
-      $real_url = preg_replace('/\/\*(\/|$)/', $tmp, $real_url);
+      $real_url = preg_replace('/\/\*(\/|$)/', "$tmp$1", $real_url);
     }
 
     // strip off last divider character
@@ -605,11 +560,11 @@ class sfRouting
         if ($break)
         {
           // we store route name
-          $this->setCurrentRouteName($route_name);
+          $this->current_route_name = $route_name;
 
           if (sfConfig::get('sf_logging_enabled'))
           {
-            sfLogger::getInstance()->info('{sfRouting} match route ['.$route_name.'] "'.$route.'"');
+            $this->context->getLogger()->info('{sfRouting} match route ['.$route_name.'] "'.$route.'"');
           }
 
           break;
@@ -622,7 +577,7 @@ class sfRouting
     {
       if (sfConfig::get('sf_logging_enabled'))
       {
-        sfLogger::getInstance()->info('{sfRouting} no matching route found');
+        $this->context->getLogger()->info('{sfRouting} no matching route found');
       }
 
       return null;

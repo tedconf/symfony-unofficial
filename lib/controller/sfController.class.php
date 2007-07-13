@@ -174,22 +174,6 @@ abstract class sfController
     $app     = sfConfig::get('sf_app');
     $env     = sfConfig::get('sf_environment');
 
-    if (!sfConfig::get('sf_available') || sfToolkit::hasLockFile($rootDir.'/'.$app.'_'.$env.'.clilock'))
-    {
-      // application is unavailable
-      $moduleName = sfConfig::get('sf_unavailable_module');
-      $actionName = sfConfig::get('sf_unavailable_action');
-
-      if (!$this->actionExists($moduleName, $actionName))
-      {
-        // cannot find unavailable module/action
-        $error = 'Invalid configuration settings: [sf_unavailable_module] "%s", [sf_unavailable_action] "%s"';
-        $error = sprintf($error, $moduleName, $actionName);
-
-        throw new sfConfigurationException($error);
-      }
-    }
-
     // check for a module generator config file
     sfConfigCache::getInstance()->import(sfConfig::get('sf_app_module_dir_name').'/'.$moduleName.'/'.sfConfig::get('sf_app_module_config_dir_name').'/generator.yml', true, true);
 
@@ -269,7 +253,7 @@ abstract class sfController
         // change i18n message source directory to our module
         if (sfConfig::get('sf_i18n'))
         {
-          $this->context->getI18N()->setMessageSourceDir(sfLoader::getI18NDir($moduleName), $this->context->getUser()->getCulture());
+          $this->context->getI18N()->setMessageSource(sfLoader::getI18NDirs($moduleName), $this->context->getUser()->getCulture());
         }
 
         // process the filter chain
@@ -425,7 +409,7 @@ abstract class sfController
     {
       // view class (as configured in module.yml or defined in action)
       $viewName = $this->getContext()->getRequest()->getAttribute($moduleName.'_'.$actionName.'_view_name', sfConfig::get('mod_'.strtolower($moduleName).'_view_class'), 'symfony/action/view');
-      $class    = sfCore::getClassPath($viewName.'View') ? $viewName.'View' : 'sfPHPView';
+      $class    = sfAutoload::getClassPath($viewName.'View') ? $viewName.'View' : 'sfPHPView';
     }
 
     return new $class();
@@ -462,16 +446,11 @@ abstract class sfController
   {
     try
     {
-      // the class exists
       $object = new $class();
 
-      if (!($object instanceof sfController))
+      if (!$object instanceof sfController)
       {
-          // the class name is of the wrong type
-          $error = 'Class "%s" is not of the type sfController';
-          $error = sprintf($error, $class);
-
-          throw new sfFactoryException($error);
+        throw new sfFactoryException(sprintf('Class "%s" is not of the type sfController', $class));
       }
 
       return $object;

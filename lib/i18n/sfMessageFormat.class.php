@@ -19,11 +19,6 @@
  */
 
 /**
- * Get the encoding utilities
- */
-require_once(dirname(__FILE__).'/util.php');
-
-/**
  * sfMessageFormat class.
  * 
  * Format a message, that is, for a particular message find the 
@@ -59,7 +54,7 @@ class sfMessageFormat
    * A list of loaded message catalogues.
    * @var array
    */
-  protected $catagloues = array();
+  protected $catalogues = array();
 
   /**
    * The translation messages.
@@ -83,7 +78,7 @@ class sfMessageFormat
    * Set the default catalogue.
    * @var string 
    */
-  public $Catalogue;
+  public $catalogue;
 
   /**
    * Output encoding charset
@@ -96,7 +91,7 @@ class sfMessageFormat
    * Create a new instance of sfMessageFormat using the messages
    * from the supplied message source.
    *
-   * @param MessageSource the source of translation messages.
+   * @param sfMessageSource the source of translation messages.
    * @param string charset for the message output.
    */
   function __construct(sfIMessageSource $source, $charset = 'UTF-8')
@@ -105,7 +100,7 @@ class sfMessageFormat
     $this->setCharset($charset);
   }
 
-  /** 
+  /**
    * Sets the charset for message output.
    *
    * @param string charset, default is UTF-8
@@ -126,7 +121,7 @@ class sfMessageFormat
   }
   
   /**
-   * Load the message from a particular catalogue. A listed
+   * Loads the message from a particular catalogue. A listed
    * loaded catalogues is kept to prevent reload of the same
    * catalogue. The load catalogue messages are stored
    * in the $this->message array.
@@ -135,7 +130,7 @@ class sfMessageFormat
    */
   protected function loadCatalogue($catalogue)
   {
-    if (in_array($catalogue,$this->catagloues))
+    if (in_array($catalogue, $this->catalogues))
     {
       return;
     }
@@ -143,12 +138,12 @@ class sfMessageFormat
     if ($this->source->load($catalogue))
     {
       $this->messages[$catalogue] = $this->source->read();
-      $this->catagloues[] = $catalogue;
+      $this->catalogues[] = $catalogue;
     }
   }
 
   /**
-   * Format the string. That is, for a particular string find
+   * Formats the string. That is, for a particular string find
    * the corresponding translation. Variable subsitution is performed
    * for the $args parameter. A different catalogue can be specified
    * using the $catalogue parameter.
@@ -167,21 +162,9 @@ class sfMessageFormat
       $charset = $this->getCharset();
     }
 
-    $s = $this->formatString(I18N_toUTF8($string, $charset), $args, $catalogue);
+    $s = $this->formatString(sfToolkit::I18N_toUTF8($string, $charset), $args, $catalogue);
 
-    return I18N_toEncoding($s, $charset);
-  }
-
-  public function formatExists($string, $args = array(), $catalogue = null, $charset = null)
-  {
-    if (empty($charset))
-    {
-      $charset = $this->getCharset();
-    }
-
-    $s = $this->getFormattedString(I18N_toUTF8($string, $charset), $args, $catalogue);
-
-    return I18N_toEncoding($s, $charset);
+    return sfToolkit::I18N_toEncoding($s, $charset);
   }
 
   /**
@@ -194,36 +177,17 @@ class sfMessageFormat
    */
   protected function formatString($string, $args = array(), $catalogue = null)
   {
-    if (empty($args))
-    {
-      $args = array();
-    }
-
-    $target = $this->getFormattedString($string, $args, $catalogue);
-
-    // well we did not find the translation string.
-    if (!$target)
-    {
-      $this->source->append($string);
-      $target = $this->postscript[0].$this->replaceArgs($string, $args).$this->postscript[1];
-    }
-
-    return $target;
-  }
-
-  protected function getFormattedString($string, $args = array(), $catalogue = null)
-  {
     if (empty($catalogue))
     {
-      $catalogue = empty($this->Catalogue) ? 'messages' : $this->Catalogue;
-    }
-
-    if (empty($args))
-    {
-      $args = array();
+      $catalogue = empty($this->catalogue) ? 'messages' : $this->catalogue;
     }
 
     $this->loadCatalogue($catalogue);
+
+    if (empty($args))
+    {
+      $args = array();
+    }
 
     foreach ($this->messages[$catalogue] as $variant)
     {
@@ -234,14 +198,7 @@ class sfMessageFormat
         if ($source == $string)
         {
           // check if it contains only strings.
-          if (is_string($result))
-          {
-            $target = $result;
-          }
-          else
-          {
-            $target = $result[0];
-          }
+          $target = is_string($result) ? $result : $result[0];
 
           // found, but untranslated
           if (empty($target))
@@ -256,7 +213,10 @@ class sfMessageFormat
       }
     }
 
-    return null;
+    // well we did not find the translation string.
+    $this->source->append($string);
+
+    return $this->postscript[0].$this->replaceArgs($string, $args).$this->postscript[1];
   }
 
   protected function replaceArgs($string, $args)
@@ -274,7 +234,7 @@ class sfMessageFormat
   }
 
   /**
-   * Get the message source.
+   * Gets the message source.
    *
    * @return MessageSource 
    */
@@ -284,7 +244,7 @@ class sfMessageFormat
   }
   
   /**
-   * Set the prefix and suffix to append to untranslated messages.
+   * Sets the prefix and suffix to append to untranslated messages.
    * e.g. $postscript=array('[T]','[/T]'); will output 
    * "[T]Hello[/T]" if the translation for "Hello" can not be determined.
    *

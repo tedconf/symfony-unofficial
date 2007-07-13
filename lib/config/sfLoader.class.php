@@ -131,29 +131,82 @@ class sfLoader
   }
 
   /**
-   * Gets the i18n directory to use for a given module.
+   * Gets the i18n directories to use globally.
    *
-   * @param string The module name
+   * Returns null if the current i18n source is not a file based i18n backend (XLIFF or gettext).
    *
-   * @return string An i18n directory
+   * @return array An array of i18n directories
    */
-  static public function getI18NDir($moduleName)
+  static public function getI18NGlobalDirs()
   {
-    $suffix = $moduleName.'/'.sfConfig::get('sf_app_module_i18n_dir_name');
+    if (!in_array(sfConfig::get('sf_i18n_source'), array('XLIFF', 'gettext')))
+    {
+      return null;
+    }
+
+    $dirs = array();
 
     // application
-    $dir = sfConfig::get('sf_app_module_dir').'/'.$suffix;
-    if (is_dir($dir))
+    if (is_dir($dir = sfConfig::get('sf_app_dir').'/'.sfConfig::get('sf_app_module_i18n_dir_name')))
     {
-      return $dir;
+      $dirs[] = $dir;
     }
 
     // plugins
-    $dirs = glob(sfConfig::get('sf_plugins_dir').'/*/modules/'.$suffix);
-    if (isset($dirs[0]))
+    $pluginDirs = glob(sfConfig::get('sf_plugins_dir').'/*/'.sfConfig::get('sf_app_module_i18n_dir_name'));
+    if (isset($pluginDirs[0]))
     {
-      return $dirs[0];
+      $dirs[] = $pluginDirs[0];
     }
+
+    return $dirs;
+  }
+
+  /**
+   * Gets the i18n directories to use for a given module.
+   *
+   * Returns null if the current i18n source is not a file based i18n backend (XLIFF or gettext).
+   *
+   * @param string The module name
+   *
+   * @return array An array of i18n directories
+   */
+  static public function getI18NDirs($moduleName)
+  {
+    if (!in_array(sfConfig::get('sf_i18n_source'), array('XLIFF', 'gettext')))
+    {
+      return null;
+    }
+
+    $dirs = array();
+
+    // module
+    if (is_dir($dir = sfConfig::get('sf_app_module_dir').'/'.$moduleName.'/'.sfConfig::get('sf_app_module_i18n_dir_name')))
+    {
+      $dirs[] = $dir;
+    }
+
+    // application
+    if (is_dir($dir = sfConfig::get('sf_app_dir').'/'.sfConfig::get('sf_app_module_i18n_dir_name')))
+    {
+      $dirs[] = $dir;
+    }
+
+    // module in plugins
+    $pluginDirs = glob(sfConfig::get('sf_plugins_dir').'/*/modules/'.$moduleName.'/'.sfConfig::get('sf_app_module_i18n_dir_name'));
+    if (isset($pluginDirs[0]))
+    {
+      $dirs[] = $pluginDirs[0];
+    }
+
+    // plugins
+    $pluginDirs = glob(sfConfig::get('sf_plugins_dir').'/*/'.sfConfig::get('sf_app_module_i18n_dir_name'));
+    if (isset($pluginDirs[0]))
+    {
+      $dirs[] = $pluginDirs[0];
+    }
+
+    return $dirs;
   }
 
   /**
@@ -166,14 +219,13 @@ class sfLoader
    */
   static public function getGeneratorTemplateDirs($class, $theme)
   {
-    $dirs = array();
+    $dirs = array(sfConfig::get('sf_data_dir').'/generator/'.$class.'/'.$theme.'/template');                  // project
 
     if ($pluginDirs = glob(sfConfig::get('sf_plugins_dir').'/*/data/generator/'.$class.'/'.$theme.'/template'))
     {
       $dirs = array_merge($dirs, $pluginDirs);                                                                // plugin
     }
 
-    $dirs[] = sfConfig::get('sf_data_dir').'/generator/'.$class.'/'.$theme.'/template';                       // project
     $dirs[] = sfConfig::get('sf_symfony_data_dir').'/generator/'.$class.'/default/template';                  // default theme
 
     return $dirs;
@@ -189,14 +241,13 @@ class sfLoader
    */
   static public function getGeneratorSkeletonDirs($class, $theme)
   {
-    $dirs = array();
+    $dirs = array(sfConfig::get('sf_data_dir').'/generator/'.$class.'/'.$theme.'/skeleton');                  // project
 
     if ($pluginDirs = glob(sfConfig::get('sf_plugins_dir').'/*/data/generator/'.$class.'/'.$theme.'/skeleton'))
     {
       $dirs = array_merge($dirs, $pluginDirs);                                                                // plugin
     }
 
-    $dirs[] = sfConfig::get('sf_data_dir').'/generator/'.$class.'/'.$theme.'/skeleton';                       // project
     $dirs[] = sfConfig::get('sf_symfony_data_dir').'/generator/'.$class.'/default/skeleton';                  // default theme
 
     return $dirs;

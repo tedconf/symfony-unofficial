@@ -52,7 +52,8 @@ else
 }
 
 // autoloading
-sfCore::initAutoload();
+require_once($sf_symfony_lib_dir.'/util/sfAutoload.class.php');
+sfAutoload::initAutoload();
 
 try
 {
@@ -93,16 +94,6 @@ try
   {
     include($file);
   }
-  if (sfConfig::get('sf_i18n'))
-  {
-    include($configCache->checkConfig($sf_app_config_dir_name.'/i18n.yml'));
-  }
-
-  // add autoloading callables
-  foreach ((array) sfConfig::get('sf_autoloading_functions', array()) as $callable)
-  {
-    sfCore::addAutoloadCallable($callable);
-  }
 
   // error settings
   ini_set('display_errors', $sf_debug ? 'on' : 'off');
@@ -123,7 +114,6 @@ try
   }
 
   $configCache->import($sf_app_config_dir_name.'/php.yml', false);
-  $configCache->import($sf_app_config_dir_name.'/routing.yml', false);
 
   // include all config.php from plugins
   sfLoader::loadPluginConfig();

@@ -19,11 +19,6 @@
  */
 
 /**
- * Get the encoding utilities
- */
-require_once(dirname(__FILE__).'/util.php');
-
-/**
  * sfNumberFormat class.
  * 
  * sfNumberFormat formats decimal numbers in any locale. The decimal
@@ -69,18 +64,18 @@ class sfNumberFormat
 {
   /**
    * The DateTimeFormatInfo, containing culture specific patterns and names.
-   * @var DateTimeFormatInfo   
+   * @var DateTimeFormatInfo
    */
   protected $formatInfo;
 
   /**
-   * Create a new number format instance. The constructor can be instantiated
+   * Creates a new number format instance. The constructor can be instantiated
    * with a string that represent a culture/locale. Similarly, passing
    * a sfCultureInfo or sfNumberFormatInfo instance will instantiated a instance
-   * for that particular culture. 
+   * for that particular culture.
    *
    * @param mixed either null, a sfCultureInfo, a sfNumberFormatInfo, or string
-   * @return sfNumberFormat 
+   * @return sfNumberFormat
    */
   function __construct($formatInfo = null)
   {
@@ -103,7 +98,7 @@ class sfNumberFormat
   }
 
   /**
-   * For the number for a certain pattern. The valid patterns are
+   * Formats the number for a certain pattern. The valid patterns are
    * 'c', 'd', 'e', 'p' or a custom pattern, such as "#.000" for
    * 3 decimal places.
    *
@@ -126,7 +121,7 @@ class sfNumberFormat
 
     $string = (string) $number;
 
-    list($number, $decimal) = $this->formatDecimal($string);
+    $decimal = $this->formatDecimal($string);
     $integer = $this->formatInteger(abs($number));
 
     $result = (strlen($decimal) > 0) ? $integer.$decimal : $integer;
@@ -157,11 +152,11 @@ class sfNumberFormat
 
     $result = str_replace('¤', $symbol, $result);
 
-    return I18N_toEncoding($result, $charset);
+    return sfToolkit::I18N_toEncoding($result, $charset);
   }
 
   /**
-   * For the integer, perform groupings and string padding.
+   * Formats the integer, perform groupings and string padding.
    *
    * @param string the decimal number in string form.
    * @return string  formatted integer string with grouping
@@ -169,6 +164,14 @@ class sfNumberFormat
   protected function formatInteger($string)
   {
     $string = (string) $string;
+
+    $decimalDigits = $this->formatInfo->DecimalDigits;
+    // if not decimal digits, assume 0 decimal points.
+    if (is_int($decimalDigits) && $decimalDigits > 0)
+    {
+      $string = (string) round(floatval($string), $decimalDigits);
+    }
+
     $dp = strpos($string, '.');
 
     if (is_int($dp))
@@ -177,6 +180,9 @@ class sfNumberFormat
     }
 
     $integer = '';
+
+    $digitSize = $this->formatInfo->getDigitSize();
+    $string = str_pad($string, $digitSize, '0', STR_PAD_LEFT);
 
     $len = strlen($string);
 
@@ -231,7 +237,7 @@ class sfNumberFormat
   }
 
   /**
-   * Format the decimal places.
+   * Formats the decimal places.
    *
    * @param string the decimal number in string form.
    * @return string formatted decimal places.
@@ -252,8 +258,8 @@ class sfNumberFormat
       }
       else if (is_int($decimalDigits))
       {
-        $string = $float = round((float)$string, $decimalDigits);
-        if (strpos((string)$float, '.') === false)
+        $string = $float = round((float) $string, $decimalDigits);
+        if (strpos((string) $float, '.') === false)
         {
           $decimal = str_pad($decimal, $decimalDigits, '0');
         }
@@ -268,21 +274,21 @@ class sfNumberFormat
       }
       else
       {
-        return array($string, $decimal);
+        return $decimal;
       }
 
-      return array($string, $decimalSeparator.$decimal);
+      return $decimalSeparator.$decimal;
     }
     else if ($decimalDigits > 0)
     {
-      return array($string, $decimalSeparator.str_pad($decimal, $decimalDigits, '0'));
+      return $decimalSeparator.str_pad($decimal, $decimalDigits, '0');
     }
 
-    return array($string, $decimal);
+    return $decimal;
   }
 
   /**
-   * Set the pattern to format against. The default patterns
+   * Sets the pattern to format against. The default patterns
    * are retrieved from the sfNumberFormatInfo instance.
    *
    * @param string the requested patterns.
