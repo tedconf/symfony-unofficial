@@ -17,7 +17,7 @@
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  * @version    SVN: $Id$
  */
-abstract class sfResponse
+abstract class sfResponse implements Serializable
 {
   protected
     $parameterHolder = null,
@@ -42,16 +42,6 @@ abstract class sfResponse
   }
 
   /**
-   * Sets the context for the current response.
-   *
-   * @param sfContext  A sfContext instance
-   */
-  public function setContext($context)
-  {
-    $this->context = $context;
-  }
-
-  /**
    * Retrieves the current application context.
    *
    * @return sfContext The application context
@@ -72,16 +62,11 @@ abstract class sfResponse
    */
   public static function newInstance($class)
   {
-    // the class exists
     $object = new $class();
 
-    if (!($object instanceof sfResponse))
+    if (!$object instanceof sfResponse)
     {
-      // the class name is of the wrong type
-      $error = 'Class "%s" is not of the type sfResponse';
-      $error = sprintf($error, $class);
-
-      throw new sfFactoryException($error);
+      throw new sfFactoryException(sprintf('Class "%s" is not of the type sfResponse', $class));
     }
 
     return $object;
@@ -114,10 +99,10 @@ abstract class sfResponse
   {
     if (sfConfig::get('sf_logging_enabled'))
     {
-      $this->getContext()->getLogger()->info('{sfResponse} send content ('.strlen($this->content).' o)');
+      $this->getContext()->getLogger()->info('{sfResponse} send content ('.strlen($this->getContent()).' o)');
     }
 
-    echo $this->content;
+    echo $this->getContent();
   }
 
   /**

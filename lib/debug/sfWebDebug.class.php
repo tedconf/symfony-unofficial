@@ -326,7 +326,7 @@ class sfWebDebug
       <div id="sfWebDebugBar" class="sfWebDebug'.ucfirst($max_priority).'">
         <a href="#" onclick="sfWebDebugToggleMenu(); return false;">'.image_tag(sfConfig::get('sf_web_debug_web_dir').'/images/sf.png').'</a>
         <ul id="sfWebDebugDetails" class="menu">
-          <li>'.file_get_contents(sfConfig::get('sf_symfony_lib_dir').'/VERSION').'</li>
+          <li>'.sfCore::VERSION.'</li>
           <li><a href="#" onclick="sfWebDebugShowDetailsFor(\'sfWebDebugConfig\'); return false;">'.image_tag(sfConfig::get('sf_web_debug_web_dir').'/images/config.png').' vars &amp; config</a></li>
           '.$cacheLink.'
           '.$logLink.'
@@ -426,7 +426,7 @@ class sfWebDebug
     $this->loadHelpers();
 
     $bg_color      = $new ? '#9ff' : '#ff9';
-    $last_modified = $cache->lastModified($internalUri);
+    $last_modified = $cache->getLastModified($internalUri);
     $id            = md5($internalUri);
     $content = '
       <div id="main_'.$id.'" class="sfWebDebugActionCache" style="border: 1px solid #f00">

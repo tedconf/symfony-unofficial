@@ -9,94 +9,88 @@
  */
 
 /**
- * This class can be used to cache the result and output of functions/methods.
- *
- * This class is based on the PEAR_Cache_Lite class.
- * All cache files are stored in files in the [sf_root_dir].'/cache/'.[sf_app].'/function' directory.
- * To disable all caching, you can set to false [sf_cache] constant.
+ * This class can be used to cache the result and output of any PHP callable (function and method calls).
  *
  * @package    symfony
  * @subpackage cache
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
- * @author     Fabien Marty <fab@php.net>
  * @version    SVN: $Id$
  */
-class sfFunctionCache extends sfFileCache
+class sfFunctionCache
 {
+  protected $cache = null;
+
+  /**
+   * Constructor.
+   *
+   * @param sfCache An sfCache object instance
+   */
+  public function __construct($cache)
+  {
+    if (!is_object($cache))
+    {
+      $this->cache = new sfFileCache($cache);
+
+      throw new sfException('DEPRECATED: You must now pass a sfCache object when initializing a sfFunctionCache object. Be warned that the call() method signature has also changed.');
+    }
+
+    $this->cache = $cache;
+  }
+
   /**
    * Calls a cacheable function or method (or not if there is already a cache for it).
    *
-   * Arguments of this method are read with func_get_args. So it doesn't appear in the function definition. Synopsis : 
-   * call('functionName', $arg1, $arg2, ...)
-   * (arg1, arg2... are arguments of 'functionName')
+   * Arguments of this method are read with func_get_args. So it doesn't appear in the function definition.
+   *
+   * The first argument can be any PHP callable:
+   *
+   * $cache->call('functionName', array($arg1, $arg2));
+   * $cache->call(array($object, 'methodName'), array($arg1, $arg2));
+   *
+   * @param mixed  A PHP callable
+   * @param array  An array of arguments to pass to the callable
    *
    * @return mixed The result of the function/method
    */
-  public function call()
+  public function call($callable, $arguments = array())
   {
-    $arguments = func_get_args();
-
     // Generate a cache id
-    $id = md5(serialize($arguments));
+    $key = md5(serialize($callable).serialize($arguments));
 
-    $data = $this->get($id);
-    if ($data !== null)
+    $serialized = $this->cache->get($key);
+    if ($serialized !== null)
     {
-      $array = unserialize($data);
-      $output = $array['output'];
-      $result = $array['result'];
+      $data = unserialize($serialized);
     }
     else
     {
-      $target = array_shift($arguments);
+      $data = array();
+
       ob_start();
       ob_implicit_flush(false);
-      if (is_string($target) && strstr($target, '::'))
-      {
-        // classname::staticMethod
-        list($class, $method) = explode('::', $target);
-        try
-        {
-          $result = call_user_func_array(array($class, $method), $arguments);
-        }
-        catch (Exception $e)
-        {
-          ob_end_clean();
-          throw $e;
-        }
-      }
-      else if (is_string($target) && strstr($target, '->'))
-      {
-        // object->method
-        // use a stupid name ($objet_123456789 because) of problems when the object
-        // name is the same as this var name
-        list($object_123456789, $method) = explode('->', $target);
-        global $$object_123456789;
-        try
-        {
-          $result = call_user_func_array(array($$object_123456789, $method), $arguments);
-        }
-        catch (Exception $e)
-        {
-          ob_end_clean();
-          throw $e;
-        }
-      }
-      else
-      {
-        // function
-        $result = call_user_func_array($target, $arguments);
-      }
-      $output = ob_get_contents();
-      ob_end_clean();
 
-      $array['output'] = $output;
-      $array['result'] = $result;
+      if (!is_callable($callable))
+      {
+        throw new sfException('The first argument to call() must be a valid callable.');
+      }
 
-      $this->set($id, '', serialize($array));
+      try
+      {
+        $data['result'] = call_user_func_array($callable, $arguments);
+      }
+      catch (Exception $e)
+      {
+        ob_end_clean();
+        throw $e;
+      }
+
+      $data['output'] = ob_get_clean();
+
+      $this->cache->set($key, serialize($data));
     }
 
-    echo($output);
-    return $result;
+    echo $data['output'];
+
+    return $data['result'];
   }
 }

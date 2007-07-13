@@ -37,12 +37,7 @@ test:
 #    module_disabled_module: default   # To be called when a user requests 
 #    module_disabled_action: disabled  # A module disabled in the module.yml
 #
-#    unavailable_module:     default   # To be called when a user requests a page
-#    unavailable_action:  unavailable  # From an application disabled via the available setting below
-#
 #  .settings:
-#    available:              on        # Enable the whole application. Switch to off to redirect all requests to the unavailable module and action.
-#
 #    # Optional features. Deactivating unused features boots performance a bit.
 #    use_database:           on        # Enable database manager. Set to off if you don't use a database.
 #    use_security:           on        # Enable security features (login and credentials). Set to off for public applications.
@@ -92,7 +87,6 @@ test:
 #
 #    # Miscellaneous
 #    strip_comments:         on         # Remove comments in core framework classes as defined in the core_compile.yml
-#    autoloading_functions:  ~          # Functions called when a class is requested and this it is not already loaded. Expects an array of callables. Used by the framework bridges.
 #    timeout:                1800       # Session timeout, in seconds
 #    max_forwards:           5
 #    path_info_array:        SERVER
