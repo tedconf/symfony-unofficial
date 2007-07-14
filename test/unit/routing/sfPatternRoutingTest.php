@@ -18,11 +18,11 @@ class sfPatternRoutingTest extends sfPatternRouting
   }
 }
 
-$t = new lime_test(109, new lime_output_color());
+$t = new lime_test(110, new lime_output_color());
 
 // public methods
 $r = new sfPatternRoutingTest();
-foreach (array('initialize', 'getCurrentInternalUri', 'getRoutes', 'setRoutes', 'hasRoutes', 'clearRoutes', 'hasRouteName', 'prependRoute', 'insertRouteBefore', 'appendRoute', 'connect', 'generate', 'parse') as $method)
+foreach (array('initialize', 'getCurrentInternalUri', 'getCurrentRouteName', 'setCurrentRouteName', 'getRouteByName', 'getRoutes', 'setRoutes', 'hasRoutes', 'clearRoutes', 'hasRouteName', 'prependRoute', 'insertRouteBefore', 'appendRoute', 'connect', 'generate', 'parse') as $method)
 {
   $t->can_ok($r, $method, sprintf('"%s" is a method of sfRouting', $method));
 }
@@ -61,6 +61,13 @@ $r->clearRoutes();
 $t->is($r->hasRoutes(), false, '->hasRoutes() returns false if there is no route');
 $r->connect('test1', '/:module/:action');
 $t->is($r->hasRoutes(), true, '->hasRoutes() returns true if some routes are registered');
+
+// ->getRouteByName()
+$t->diag('->getRouteByName()');
+$r->clearRoutes();
+$r->connect('test1', '/:module/:action');
+$routes = $r->getRoutes();
+$t->is($r->getRouteByName('test1'), $routes['test1'], '->getRouteByName() returns a route by its name');
 
 // ->connect()
 $t->diag('->connect()');

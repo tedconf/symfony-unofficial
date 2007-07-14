@@ -160,6 +160,48 @@ class sfPatternRouting extends sfRouting
   }
 
   /**
+   * Gets a route by its name.
+   *
+   * @param string The route name
+   *
+   * @return  array A route array
+   */
+  public function getRouteByName($name)
+  {
+    if ($name[0] == '@')
+    {
+      $name = substr($name, 1);
+    }
+
+    if (!isset($this->routes[$name]))
+    {
+      throw new sfConfigurationException(sprintf('The route "%s" does not exist', $name));
+    }
+
+    return $this->routes[$name];
+  }
+
+  /**
+   * Sets the current route name.
+   *
+   * @param string The route name
+   */
+  protected function setCurrentRouteName($name)
+  {
+    $this->current_route_name = $name;
+  }
+
+  /**
+   * Gets the current route name.
+   *
+   * @return string The route name
+   */
+  public function getCurrentRouteName()
+  {
+    return $this->current_route_name;
+  }
+
+  /**
    * Adds a new route at the beginning of the current list of routes.
    *
    * @see connect
