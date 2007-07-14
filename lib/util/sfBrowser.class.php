@@ -199,6 +199,26 @@ class sfBrowser
       $this->cookieJar[$name] = $cookie;
     }
 
+    // support for the ETag header
+    if ($etag = $this->context->getResponse()->getHttpHeader('Etag'))
+    {
+      $this->vars['HTTP_IF_NONE_MATCH'] = $etag;
+    }
+    else
+    {
+      unset($this->vars['HTTP_IF_NONE_MATCH']);
+    }
+
+    // support for the last modified header
+    if ($lastModified = $this->context->getResponse()->getHttpHeader('Last-Modified'))
+    {
+      $this->vars['HTTP_IF_MODIFIED_SINCE'] = $lastModified;
+    }
+    else
+    {
+      unset($this->vars['HTTP_IF_MODIFIED_SINCE']);
+    }
+
     // for HTML/XML content, create a DOM and sfDomCssSelector objects for the response content
     if (preg_match('/(x|ht)ml/i', $response->getContentType()))
     {
@@ -290,12 +310,12 @@ class sfBrowser
 
   public function followRedirect()
   {
-    if (null === $this->getContext()->getResponse()->getHttpHeader('Location'))
+    if (null === $this->context->getResponse()->getHttpHeader('Location'))
     {
-      throw new sfException('The request was not redirected');
+      throw new sfException('The request was not redirected.');
     }
 
-    return $this->get($this->getContext()->getResponse()->getHttpHeader('Location'));
+    return $this->get($this->context->getResponse()->getHttpHeader('Location'));
   }
 
   public function setField($name, $value)
@@ -313,7 +333,7 @@ class sfBrowser
 
     if (!$dom)
     {
-      throw new sfException('Cannot click because there is no current page in the browser');
+      throw new sfException('Cannot click because there is no current page in the browser.');
     }
 
     $xpath = new DomXpath($dom);
@@ -517,6 +537,6 @@ class sfFakeRenderingFilter extends sfFilter
   {
     $filterChain->execute();
 
-    $this->getContext()->getResponse()->sendContent();
+    $this->context->getResponse()->sendContent();
   }
 }

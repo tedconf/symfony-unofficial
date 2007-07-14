@@ -32,7 +32,7 @@ class sfExecutionFilter extends sfFilter
   public function execute($filterChain)
   {
     // get the current action instance
-    $actionInstance = $this->getContext()->getController()->getActionStack()->getLastEntry()->getActionInstance();
+    $actionInstance = $this->context->getController()->getActionStack()->getLastEntry()->getActionInstance();
 
     // validate and execute the action
     if (sfConfig::get('sf_debug') && sfConfig::get('sf_logging_enabled'))
@@ -75,10 +75,9 @@ class sfExecutionFilter extends sfFilter
   protected function handleAction($filterChain, $actionInstance)
   {
     // get the request method
-    $context = $this->getContext();
-    $method  = $context->getRequest()->getMethod();
+    $method  = $this->context->getRequest()->getMethod();
 
-    if (sfConfig::get('sf_cache') && null !== $context->getResponse()->getParameter($context->getRouting()->getCurrentInternalUri().'_action', null, 'symfony/cache'))
+    if (sfConfig::get('sf_cache') && null !== $this->context->getResponse()->getParameter($this->context->getRouting()->getCurrentInternalUri().'_action', null, 'symfony/cache'))
     {
       // action in cache, so go to the view
       return sfView::SUCCESS;
@@ -94,14 +93,14 @@ class sfExecutionFilter extends sfFilter
     $validated = $this->validateAction($actionInstance);
 
     // register fill-in filter
-    if (null !== ($parameters = $context->getRequest()->getAttribute('fillin', null, 'symfony/filter')))
+    if (null !== ($parameters = $this->context->getRequest()->getAttribute('fillin', null, 'symfony/filter')))
     {
       $this->registerFillInFilter($filterChain, $parameters);
     }
 
     if (!$validated && sfConfig::get('sf_logging_enabled'))
     {
-      $context->getLogger()->info('{sfFilter} action validation failed');
+      $this->context->getLogger()->info('{sfFilter} action validation failed');
     }
 
     return $validated ? $this->executeAction($actionInstance) : $this->handleErrorAction($actionInstance);
@@ -123,7 +122,6 @@ class sfExecutionFilter extends sfFilter
     $validated = true;
 
     // get the current action validation configuration
-    $context = $this->getContext();
     $validationConfig = $moduleName.'/'.sfConfig::get('sf_app_module_validate_dir_name').'/'.$actionName.'.yml';
 
     // load validation configuration
@@ -132,7 +130,7 @@ class sfExecutionFilter extends sfFilter
     {
       // create validator manager
       $validatorManager = new sfValidatorManager();
-      $validatorManager->initialize($this->getContext());
+      $validatorManager->initialize($this->context);
 
       require($validateFile);
 
@@ -147,7 +145,7 @@ class sfExecutionFilter extends sfFilter
     // action is validated if:
     // - all validation methods (manual and automatic) return true
     // - or automatic validation returns false but errors have been 'removed' by manual validation
-    return ($manualValidated && $validated) || ($manualValidated && !$validated && !$context->getRequest()->hasErrors());
+    return ($manualValidated && $validated) || ($manualValidated && !$validated && !$this->context->getRequest()->hasErrors());
   }
 
   /**
@@ -194,7 +192,7 @@ class sfExecutionFilter extends sfFilter
   {
     if (sfView::HEADER_ONLY == $viewName)
     {
-      $context->getResponse()->setHeaderOnly(true);
+      $this->context->getResponse()->setHeaderOnly(true);
 
       return;
     }
@@ -204,37 +202,55 @@ class sfExecutionFilter extends sfFilter
       return;
     }
 
-    $viewData = $this->executeView($actionInstance->getModuleName(), $actionInstance->getActionName(), $viewName);
-
-    $controller = $this->getContext()->getController();
-    if (sfView::RENDER_VAR == $controller->getRenderMode())
-    {
-      $controller->getActionStack()->getLastEntry()->setPresentation($viewData);
-    }
+    $this->executeView($actionInstance->getModuleName(), $actionInstance->getActionName(), $viewName, $actionInstance->getVarHolder()->getAll());
   }
 
   /**
    * Executes and renders the view.
    *
+   * The behavior of this method depends on the controller render mode:
+   *
+   *   - sfView::NONE: Nothing happens.
+   *   - sfView::RENDER_CLIENT: View data populates the response content.
+   *   - sfView::RENDER_DATA: View data populates the data presentation variable.
+   *
    * @param  string The module name
    * @param  string The action name
    * @param  string The view name
+   * @param  array  An array of view attributes
    *
    * @return string The view data
    */
-  protected function executeView($moduleName, $actionName, $viewName)
+  protected function executeView($moduleName, $actionName, $viewName, $viewAttributes)
   {
+    $controller = $this->context->getController();
+
     // get the view instance
-    $viewInstance = $this->getContext()->getController()->getView($moduleName, $actionName, $viewName);
-    $viewInstance->initialize($this->getContext(), $moduleName, $actionName, $viewName);
+    $view = $controller->getView($moduleName, $actionName, $viewName);
+    $view->initialize($this->context, $moduleName, $actionName, $viewName);
 
-    $viewInstance->execute();
+    // execute the view
+    $view->execute();
 
-    // render the view and if data is returned, stick it in the
-    // action entry which was retrieved from the execution chain
-    $viewData = $viewInstance->render();
+    // pass attributes to the view
+    $view->getAttributeHolder()->add($viewAttributes);
 
-    return $viewData;
+    // render the view
+    switch ($controller->getRenderMode())
+    {
+      case sfView::RENDER_NONE:
+        break;
+
+      case sfView::RENDER_CLIENT:
+        $viewData = $view->render();
+        $this->context->getResponse()->setContent($viewData);
+        break;
+
+      case sfView::RENDER_VAR:
+        $viewData = $view->render();
+        $controller->getActionStack()->getLastEntry()->setPresentation($viewData);
+        break;
+    }
   }
 
   /**

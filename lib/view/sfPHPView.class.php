@@ -28,33 +28,6 @@ class sfPHPView extends sfView
   }
 
   /**
-   * Returns variables that will be accessible to the template.
-   *
-   * @return array Attributes from the template
-   */
-  protected function getGlobalVars()
-  {
-    $context = $this->getContext();
-
-    $shortcuts = array(
-      'sf_context' => $context,
-      'sf_params'  => $context->getRequest()->getParameterHolder(),
-      'sf_request' => $context->getRequest(),
-      'sf_user'    => $context->getUser(),
-      'sf_view'    => $this,
-    );
-
-    if (sfConfig::get('sf_use_flash'))
-    {
-      $sf_flash = new sfParameterHolder();
-      $sf_flash->add($context->getUser()->getAttributeHolder()->getAll('symfony/flash'));
-      $shortcuts['sf_flash'] = $sf_flash;
-    }
-
-    return $shortcuts;
-  }
-
-  /**
    * Load core and standard helpers to be use in the template.
    */
   protected function loadCoreAndStandardHelpers()
@@ -85,29 +58,12 @@ class sfPHPView extends sfView
   {
     if (sfConfig::get('sf_logging_enabled'))
     {
-      $this->getContext()->getLogger()->info('{sfView} render "'.$_sfFile.'"');
+      $this->context->getLogger()->info('{sfView} render "'.$_sfFile.'"');
     }
 
     $this->loadCoreAndStandardHelpers();
 
-    $_escaping = $this->getEscaping();
-    if ($_escaping === false || $_escaping === 'bc')
-    {
-      extract($this->attributeHolder->getAll());
-    }
-
-    if ($_escaping !== false)
-    {
-      $sf_data = sfOutputEscaper::escape($this->getEscapingMethod(), $this->attributeHolder->getAll());
-
-      if ($_escaping === 'both')
-      {
-        foreach ($sf_data as $_key => $_value)
-        {
-          ${$_key} = $_value;
-        }
-      }
-    }
+    extract($this->attributeHolder->toArray());
 
     // render
     ob_start();
@@ -137,7 +93,7 @@ class sfPHPView extends sfView
   public function configure()
   {
     // store our current view
-    $actionStackEntry = $this->getContext()->getActionStack()->getLastEntry();
+    $actionStackEntry = $this->context->getActionStack()->getLastEntry();
     if (!$actionStackEntry->getViewInstance())
     {
       $actionStackEntry->setViewInstance($this);
@@ -200,45 +156,27 @@ class sfPHPView extends sfView
    */
   protected function decorate($content)
   {
-    $template = $this->getDecoratorDirectory().'/'.$this->getDecoratorTemplate();
-
     if (sfConfig::get('sf_logging_enabled'))
     {
-      $this->getContext()->getLogger()->info('{sfView} decorate content with "'.$template.'"');
+      $this->context->getLogger()->info(sprintf('{sfView} decorate content with "%s"', $this->getDecoratorDirectory().'/'.$this->getDecoratorTemplate()));
     }
 
     // set the decorator content as an attribute
     $this->attributeHolder->set('sf_content', $content);
 
     // render the decorator template and return the result
-    $retval = $this->renderFile($template);
-
-    return $retval;
+    return $this->renderFile($this->getDecoratorDirectory().'/'.$this->getDecoratorTemplate());
   }
 
   /**
    * Renders the presentation.
    *
-   * When the controller render mode is sfView::RENDER_CLIENT, this method will
-   * render the presentation directly to the client and null will be returned.
-   *
-   * @return string A string representing the rendered presentation, if
-   *                the controller render mode is sfView::RENDER_VAR, otherwise null
+   * @return string A string representing the rendered presentation
    */
-  public function render($templateVars = null)
+  public function render()
   {
-    $context = $this->getContext();
-
-    // get the render mode
-    $mode = $context->getController()->getRenderMode();
-
-    if ($mode == sfView::RENDER_NONE)
-    {
-      return null;
-    }
-
     $retval = null;
-    $response = $context->getResponse();
+    $response = $this->context->getResponse();
     if (sfConfig::get('sf_cache'))
     {
       $key   = $response->getParameterHolder()->remove('current_key', 'symfony/cache/current');
@@ -247,7 +185,7 @@ class sfPHPView extends sfView
       {
         $cache  = unserialize($cache);
         $retval = $cache['content'];
-        $vars   = $cache['vars'];
+        $this->attributeHolder = unserialize($cache['attributes']);
         $response->mergeProperties($cache['response']);
       }
     }
@@ -263,17 +201,6 @@ class sfPHPView extends sfView
       $this->setDecoratorTemplate($layout.$this->getExtension());
     }
 
-    // template variables
-    if ($templateVars === null)
-    {
-      $actionInstance = $context->getActionStack()->getLastEntry()->getActionInstance();
-      $templateVars   = $actionInstance->getVarHolder()->getAll();
-    }
-
-    // assigns some variables to the template
-    $this->attributeHolder->add($this->getGlobalVars());
-    $this->attributeHolder->add($retval !== null ? $vars : $templateVars);
-
     // render template if no cache
     if ($retval === null)
     {
@@ -287,10 +214,10 @@ class sfPHPView extends sfView
       if (sfConfig::get('sf_cache') && $key !== null)
       {
         $cache = array(
-          'content'   => $retval,
-          'vars'      => $templateVars,
-          'view_name' => $this->viewName,
-          'response'  => $context->getResponse(),
+          'content'    => $retval,
+          'attributes' => serialize($this->attributeHolder),
+          'view_name'  => $this->viewName,
+          'response'   => $this->context->getResponse(),
         );
         $response->setParameter($key, serialize($cache), 'symfony/cache');
 
@@ -305,12 +232,6 @@ class sfPHPView extends sfView
     if ($this->isDecorator())
     {
       $retval = $this->decorate($retval);
-    }
-
-    // render to client
-    if ($mode == sfView::RENDER_CLIENT)
-    {
-      $context->getResponse()->setContent($retval);
     }
 
     return $retval;

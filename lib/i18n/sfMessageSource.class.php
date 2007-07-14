@@ -51,7 +51,7 @@
  *
  *   //set the culture and cache, store the cache in the /tmp directory.
  *   $source->setCulture('en_AU')l
- *   $source->setCache(new sfMessageCache('/tmp'));
+ *   $source->setCache(new sfMessageCache(new sfFileCache(array('/tmp'))));
  *
  *   $formatter = new sfMessageFormat($source);
  * </code>
@@ -100,8 +100,9 @@ abstract class sfMessageSource implements sfIMessageSource
   /**
    * Factory method to instantiate a new sfMessageSource depending on the
    * source type. The built-in source types are 'XLIFF', 'SQLite',
-   * 'MySQL', 'gettext' and Creole. The source parameter is dependent on the
-   * source type. For 'gettext' and 'XLIFF', it should point to the directory
+   * 'MySQL', 'gettext', 'Creole' and 'Aggregate'.
+   * The source parameter is dependent on the source type.
+   * For 'gettext' and 'XLIFF', it should point to the directory
    * where the messages are stored. For database types, e.g. 'SQLite' and
    * 'MySQL', it should be a PEAR DB style DSN string.
    *
@@ -171,15 +172,19 @@ abstract class sfMessageSource implements sfIMessageSource
 
       if ($this->cache)
       {
-        $data = $this->cache->get($variant, $this->culture, $this->getLastModified($source));
-
-        if (is_array($data))
+        $lastModified = $this->getLastModified($source);
+        if ($this->getLastModified($source) >= 0 && $this->getLastModified($source) < $this->cache->getLastModified($variant.':'.$this->culture))
         {
-          $this->messages[$variant] = $data;
-          $loadData = false;
-        }
+          $data = unserialize($this->cache->get($variant.':'.$this->culture));
 
-        unset($data);
+          if (is_array($data))
+          {
+            $this->messages[$variant] = $data;
+            $loadData = false;
+          }
+
+          unset($data);
+        }
       }
 
       if ($loadData)
@@ -190,7 +195,7 @@ abstract class sfMessageSource implements sfIMessageSource
           $this->messages[$variant] = $data;
           if ($this->cache)
           {
-            $this->cache->save($data, $variant, $this->culture);
+            $this->cache->set($variant.':'.$this->culture, serialize($data));
           }
         }
 
@@ -227,7 +232,7 @@ abstract class sfMessageSource implements sfIMessageSource
    *
    * @param sfMessageCache the cache handler.
    */
-  public function setCache(sfMessageCache $cache)
+  public function setCache(sfCache $cache)
   {
     $this->cache = $cache;
   }
@@ -284,7 +289,7 @@ abstract class sfMessageSource implements sfIMessageSource
    * @param string catalogue+variant.
    * @return array of translation messages.
    */
-  protected function &loadData($variant)
+  public function &loadData($variant)
   {
     return array();
   }
@@ -295,7 +300,7 @@ abstract class sfMessageSource implements sfIMessageSource
    * @param string catalogue+variant
    * @return string the resource key
    */
-  protected function getSource($variant)
+  public function getSource($variant)
   {
     return $variant;
   }
@@ -306,7 +311,7 @@ abstract class sfMessageSource implements sfIMessageSource
    * @param string catalogue+variant
    * @return boolean true if valid, false otherwise.
    */
-  protected function isValidSource($source)
+  public function isValidSource($source)
   {
     return false;
   }
@@ -318,7 +323,7 @@ abstract class sfMessageSource implements sfIMessageSource
    * @param string catalogue name
    * @return array list of all variants for this catalogue.
    */
-  protected function getCatalogueList($catalogue)
+  public function getCatalogueList($catalogue)
   {
     return array();
   }

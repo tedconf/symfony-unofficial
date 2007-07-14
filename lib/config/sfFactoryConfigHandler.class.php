@@ -59,8 +59,7 @@ class sfFactoryConfigHandler extends sfYamlConfigHandler
       if (!isset($keys['class']))
       {
         // missing class key
-        $error = sprintf('Configuration file "%s" specifies category "%s" with missing class key', $configFiles[0], $factory);
-        throw new sfParseException($error);
+        throw new sfParseException(sprintf('Configuration file "%s" specifies category "%s" with missing class key.', $configFiles[0], $factory));
       }
 
       $class = $keys['class'];
@@ -73,9 +72,8 @@ class sfFactoryConfigHandler extends sfYamlConfigHandler
 
         if (!is_readable($file))
         {
-            // factory file doesn't exist
-            $error = sprintf('Configuration file "%s" specifies class "%s" with nonexistent or unreadable file "%s"', $configFiles[0], $class, $file);
-            throw new sfParseException($error);
+          // factory file doesn't exist
+          throw new sfParseException(sprintf('Configuration file "%s" specifies class "%s" with nonexistent or unreadable file "%s".', $configFiles[0], $class, $file));
         }
 
         // append our data
@@ -95,7 +93,6 @@ class sfFactoryConfigHandler extends sfYamlConfigHandler
       {
         $parameters = null;
       }
-      $parameters = var_export($parameters, true);
 
       // append new data
       switch ($factory)
@@ -113,7 +110,7 @@ class sfFactoryConfigHandler extends sfYamlConfigHandler
           $instances[] = sprintf("  \$this->factories['request'] = sfRequest::newInstance(sfConfig::get('sf_factory_request', '%s'));", $class);
 
           // append instance initialization
-          $inits[] = sprintf("  \$this->factories['request']->initialize(\$this, sfConfig::get('sf_factory_request_parameters', %s), sfConfig::get('sf_factory_request_attributes', array()));", $parameters);
+          $inits[] = sprintf("  \$this->factories['request']->initialize(\$this, sfConfig::get('sf_factory_request_parameters', %s), sfConfig::get('sf_factory_request_attributes', array()));", var_export($parameters, true));
           break;
 
         case 'response':
@@ -121,7 +118,7 @@ class sfFactoryConfigHandler extends sfYamlConfigHandler
           $instances[] = sprintf("  \$this->factories['response'] = sfResponse::newInstance(sfConfig::get('sf_factory_response', '%s'));", $class);
 
           // append instance initialization
-          $inits[] = sprintf("  \$this->factories['response']->initialize(\$this, sfConfig::get('sf_factory_response_parameters', %s));", $parameters);
+          $inits[] = sprintf("  \$this->factories['response']->initialize(\$this, sfConfig::get('sf_factory_response_parameters', %s));", var_export($parameters, true));
           break;
 
         case 'storage':
@@ -129,7 +126,7 @@ class sfFactoryConfigHandler extends sfYamlConfigHandler
           $instances[] = sprintf("  \$this->factories['storage'] = sfStorage::newInstance(sfConfig::get('sf_factory_storage', '%s'));", $class);
 
           // append instance initialization
-          $inits[] = sprintf("  \$this->factories['storage']->initialize(\$this, sfConfig::get('sf_factory_storage_parameters', %s));", $parameters);
+          $inits[] = sprintf("  \$this->factories['storage']->initialize(\$this, sfConfig::get('sf_factory_storage_parameters', %s));", var_export($parameters, true));
           break;
 
         case 'user':
@@ -137,31 +134,43 @@ class sfFactoryConfigHandler extends sfYamlConfigHandler
           $instances[] = sprintf("  \$this->factories['user'] = sfUser::newInstance(sfConfig::get('sf_factory_user', '%s'));", $class);
 
           // append instance initialization
-          $inits[] = sprintf("  \$this->factories['user']->initialize(\$this, sfConfig::get('sf_factory_user_parameters', %s));", $parameters);
+          $inits[] = sprintf("  \$this->factories['user']->initialize(\$this, sfConfig::get('sf_factory_user_parameters', %s));", var_export($parameters, true));
           break;
 
         case 'view_cache':
           // append view cache class name
           $inits[] = sprintf("\n  if (sfConfig::get('sf_cache'))\n  {\n".
                              "    \$this->factories['viewCacheManager'] = new sfViewCacheManager();\n".
-                             "    \$viewCacheClass = sfConfig::get('sf_factory_view_cache', '%s');\n".
-                             "    \$viewCache = new \$viewCacheClass();\n".
-                             "    \$viewCache->initialize(sfConfig::get('sf_factory_view_cache_parameters', %s));\n".
-                             "    \$this->factories['viewCacheManager']->initialize(\$this, \$viewCache);\n".
+                             "    \$cache = sfCache::newInstance(sfConfig::get('sf_factory_view_cache', '%s'));\n".
+                             "    \$cache->initialize(sfConfig::get('sf_factory_view_cache_parameters', %s));\n".
+                             "    \$this->factories['viewCacheManager']->initialize(\$this, \$cache);\n".
                              "  }\n".
                              "  else\n".
                              "  {\n".
                              "    \$this->factories['viewCacheManager'] = null;\n".
                              "  }\n",
-                             $class, $parameters);
+                             $class, var_export($parameters, true));
           break;
 
         case 'i18n':
           // append i18n instance initialization
-          $inits[] = "\n  if (sfConfig::get('sf_i18n'))\n  {\n".
-                     "    \$this->factories['i18n'] = new sfI18N();\n".
-                     "    \$this->factories['i18n']->initialize(\$this);\n".
-                     "  }\n";
+          if (isset($parameters['cache']))
+          {
+            $cache = sprintf("    \$cache = sfCache::newInstance('%s');\n    \$cache->initialize(%s);\n", $parameters['cache']['class'], var_export($parameters['cache']['param'], true));
+            unset($parameters['cache']);
+          }
+          else
+          {
+            $cache = "    \$cache = null;\n";
+          }
+          $inits[] = sprintf("\n  if (sfConfig::get('sf_i18n'))\n  {\n".
+                     "    \$class = sfConfig::get('sf_factory_i18n', '%s');\n".
+                     "    \$this->factories['i18n'] = new \$class();\n".
+                     "%s".
+                     "    \$this->factories['i18n']->initialize(\$this, \$cache);\n".
+                     "  }\n"
+                     , $class, $cache
+                     );
           break;
 
         case 'routing':
@@ -169,7 +178,7 @@ class sfFactoryConfigHandler extends sfYamlConfigHandler
           $instances[] = sprintf("  \$this->factories['routing'] = sfRouting::newInstance(sfConfig::get('sf_factory_routing', '%s'));", $class);
 
           // append instance initialization
-          $inits[] = sprintf("  \$this->factories['routing']->initialize(\$this, sfConfig::get('sf_factory_routing_parameters', %s));", $parameters);
+          $inits[] = sprintf("  \$this->factories['routing']->initialize(\$this, sfConfig::get('sf_factory_routing_parameters', %s));", var_export($parameters, true));
           break;
       }
     }

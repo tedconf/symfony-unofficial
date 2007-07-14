@@ -47,10 +47,8 @@ class sfMessageSource_XLIFF extends sfMessageSource_File
    * @param string XLIFF file.
    * @return array of messages.
    */
-  protected function &loadData($filename)
+  public function &loadData($filename)
   {
-    //load it.
-
     $XML = simplexml_load_file($filename);
 
     if (!$XML)
@@ -66,8 +64,8 @@ class sfMessageSource_XLIFF extends sfMessageSource_File
     {
       $source = (string) $unit->source;
       $translations[$source][] = (string) $unit->target;
-      $translations[$source][]= (string) $unit['id'];
-      $translations[$source][]= (string) $unit->note;
+      $translations[$source][] = (string) $unit['id'];
+      $translations[$source][] = (string) $unit->note;
     }
 
     return $translations;
@@ -176,9 +174,9 @@ class sfMessageSource_XLIFF extends sfMessageSource_File
 
     // save it and clear the cache for this variant
     $dom->save($filename);
-    if (!empty($this->cache))
+    if ($this->cache)
     {
-      $this->cache->clean($variant, $this->culture);
+      $this->cache->remove($variant.':'.$this->culture);
     }
 
     return true;
@@ -278,9 +276,9 @@ class sfMessageSource_XLIFF extends sfMessageSource_File
 
     if ($dom->save($filename) > 0)
     {
-      if (!empty($this->cache))
+      if ($this->cache)
       {
-        $this->cache->clean($variant, $this->culture);
+        $this->cache->remove($variant.':'.$this->culture);
       }
 
       return true;

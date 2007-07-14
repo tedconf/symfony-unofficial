@@ -66,7 +66,7 @@ abstract class sfResponse implements Serializable
 
     if (!$object instanceof sfResponse)
     {
-      throw new sfFactoryException(sprintf('Class "%s" is not of the type sfResponse', $class));
+      throw new sfFactoryException(sprintf('Class "%s" is not of the type sfResponse.', $class));
     }
 
     return $object;
@@ -99,10 +99,10 @@ abstract class sfResponse implements Serializable
   {
     if (sfConfig::get('sf_logging_enabled'))
     {
-      $this->getContext()->getLogger()->info('{sfResponse} send content ('.strlen($this->content).' o)');
+      $this->context->getLogger()->info('{sfResponse} send content ('.strlen($this->getContent()).' o)');
     }
 
-    echo $this->content;
+    echo $this->getContent();
   }
 
   /**
@@ -174,7 +174,7 @@ abstract class sfResponse implements Serializable
   {
     if (!$callable = sfMixer::getCallable('sfResponse:'.$method))
     {
-      throw new sfException(sprintf('Call to undefined method sfResponse::%s', $method));
+      throw new sfException(sprintf('Call to undefined method sfResponse::%s.', $method));
     }
 
     array_unshift($arguments, $this);
