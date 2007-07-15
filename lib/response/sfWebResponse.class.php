@@ -621,7 +621,7 @@ class sfWebResponse extends sfResponse
    */
   public function serialize()
   {
-    return serialize(array($this->content, $this->statusCode, $this->statusText, serialize($this->parameterHolder)));
+    return serialize(array($this->content, $this->statusCode, $this->statusText, $this->parameterHolder));
   }
 
   /**
@@ -636,7 +636,7 @@ class sfWebResponse extends sfResponse
     $this->content = $data[0];
     $this->statusCode = $data[1];
     $this->statusText = $data[2];
-    $this->parameterHolder = unserialize($data[3]);
+    $this->parameterHolder = $data[3];
   }
 
   /**

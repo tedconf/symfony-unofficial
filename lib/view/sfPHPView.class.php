@@ -58,7 +58,7 @@ class sfPHPView extends sfView
   {
     if (sfConfig::get('sf_logging_enabled'))
     {
-      $this->context->getLogger()->info('{sfView} render "'.$_sfFile.'"');
+      $this->context->getLogger()->info(sprintf('{sfView} render "%s"', $_sfFile));
     }
 
     $this->loadCoreAndStandardHelpers();
@@ -103,46 +103,8 @@ class sfPHPView extends sfView
     $viewConfigFile = $this->moduleName.'/'.sfConfig::get('sf_app_module_config_dir_name').'/view.yml';
     require(sfConfigCache::getInstance()->checkConfig(sfConfig::get('sf_app_module_dir_name').'/'.$viewConfigFile));
 
-    if(isset($this->extensions) && is_array($this->extensions))
-    {
-      $customDecoratorFound = false;
-      // Look for special layout
-      foreach($this->extensions as $extension)
-      {
-        $decoratorTemplate = basename($this->decoratorTemplate, $this->getExtension()).$extension;
-        if(is_readable($this->getDecoratorDirectory().DIRECTORY_SEPARATOR.$decoratorTemplate))
-        {
-          $this->setDecoratorDirectory($this->getDecoratorDirectory());
-          $this->setDecoratorTemplate($decoratorTemplate);
-          $customDecoratorFound = true;
-          break;
-        }
-      }
-
-      if(!$customDecoratorFound && !in_array($this->getContext()->getRequest()->getParameter('format', 'xhtml'), array('xhtml', 'html')))
-      {
-        // if no decorator besides default then ignore layout (assumes default layout is for html)
-        $this->getContext()->getResponse()->setParameter($this->moduleName.'_'.$this->actionName.'_layout', false, 'symfony/action/view');
-      }
-
-      // Look for special templates
-      foreach($this->extensions as $extension)
-      {
-        $template = basename($this->template, $this->getExtension()).$extension;
-        if($templateDirectory = sfLoader::getTemplateDir($this->moduleName, $template))
-        {
-          $this->setTemplate($template);
-          $this->setDirectory($templateDirectory);
-          break;
-        }
-      }
-    }
-
-    // Set template directory
-    if (!$this->directory)
-    {
-      $this->setDirectory(sfLoader::getTemplateDir($this->moduleName, $this->getTemplate()));
-    }
+    // decorator configuration
+    $this->updateDecoratorConfiguration();
 
   }
 
@@ -175,65 +137,99 @@ class sfPHPView extends sfView
    */
   public function render()
   {
-    $retval = null;
-    $response = $this->context->getResponse();
+    $content = null;
     if (sfConfig::get('sf_cache'))
     {
-      $key   = $response->getParameterHolder()->remove('current_key', 'symfony/cache/current');
-      $cache = $response->getParameter($key, null, 'symfony/cache');
-      if ($cache !== null)
-      {
-        $cache  = unserialize($cache);
-        $retval = $cache['content'];
-        $this->attributeHolder = unserialize($cache['attributes']);
-        $response->mergeProperties($cache['response']);
-      }
-    }
+      $viewCache = $this->context->getViewCacheManager();
+      $uri = $this->context->getRouting()->getCurrentInternalUri();
 
-    // decorator
-    $layout = $response->getParameter($this->moduleName.'_'.$this->actionName.'_layout', null, 'symfony/action/view');
-    if (false === $layout)
-    {
-      $this->setDecorator(false);
-    }
-    else if (null !== $layout)
-    {
-      $this->setDecoratorTemplate($layout.$this->getExtension());
+      list($content, $attributeHolder) = $viewCache->getActionCache($uri);
+      if (!is_null($content))
+      {
+        $this->attributeHolder = $attributeHolder;
+      }
+
+      // FIXME: needed because the response in cache can change the layout
+      $this->updateDecoratorConfiguration();
     }
 
     // render template if no cache
-    if ($retval === null)
+    if (is_null($content))
     {
       // execute pre-render check
       $this->preRenderCheck();
 
       // render template file
-      $template = $this->getDirectory().'/'.$this->getTemplate();
-      $retval = $this->renderFile($template);
+      $content = $this->renderFile($this->getDirectory().'/'.$this->getTemplate());
 
-      if (sfConfig::get('sf_cache') && $key !== null)
+      if (sfConfig::get('sf_cache'))
       {
-        $cache = array(
-          'content'    => $retval,
-          'attributes' => serialize($this->attributeHolder),
-          'view_name'  => $this->viewName,
-          'response'   => $this->context->getResponse(),
-        );
-        $response->setParameter($key, serialize($cache), 'symfony/cache');
-
-        if (sfConfig::get('sf_web_debug'))
-        {
-          $retval = sfWebDebug::getInstance()->decorateContentWithDebug($key, $retval, true);
-        }
+        $content = $viewCache->setActionCache($uri, $content, $this->attributeHolder);
       }
     }
 
     // now render decorator template, if one exists
     if ($this->isDecorator())
     {
-      $retval = $this->decorate($retval);
+      $content = $this->decorate($content);
     }
 
-    return $retval;
+    return $content;
+  }
+
+  protected function updateDecoratorConfiguration()
+  {
+    // decorator configuration
+    $layout = $this->context->getResponse()->getParameter($this->moduleName.'_'.$this->actionName.'_layout', null, 'symfony/action/view');
+    if (false === $layout)
+    {
+      $this->setDecorator(false);
+    }
+    else if (!is_null($layout))
+    {
+      $this->setDecoratorTemplate($layout.$this->getExtension());
+    }
+
+    if(isset($this->extensions) && is_array($this->extensions))
+    {
+      $customDecoratorFound = false;
+
+      // Look for special layout like
+      foreach($this->extensions as $extension)
+      {
+        $decoratorTemplate = basename($this->getDecoratorTemplate(), $this->getExtension()).$extension;
+        if(is_readable($this->getDecoratorDirectory().DIRECTORY_SEPARATOR.$decoratorTemplate))
+        {
+          $this->setDecoratorDirectory($this->getDecoratorDirectory());
+          $this->setDecoratorTemplate($decoratorTemplate);
+          $customDecoratorFound = true;
+          break;
+        }
+      }
+
+      if(!$customDecoratorFound && !in_array($this->getContext()->getRequest()->getParameter('format', 'xhtml'), array('xhtml', 'html')))
+      {
+        // if no decorator besides default then ignore layout (assumes default layout is for html)
+        $this->getContext()->getResponse()->setParameter($this->moduleName.'_'.$this->actionName.'_layout', false, 'symfony/action/view');
+      }
+
+      // Look for special templates
+      foreach($this->extensions as $extension)
+      {
+        $template = basename($this->getTemplate(), $this->getExtension()).$extension;
+        if($templateDirectory = sfLoader::getTemplateDir($this->moduleName, $template))
+        {
+          $this->setTemplate($template);
+          $this->setDirectory($templateDirectory);
+          break;
+        }
+      }
+    }
+
+    // set template directory if not set
+    if (!$this->directory)
+    {
+      $this->setDirectory(sfLoader::getTemplateDir($this->moduleName, $this->getTemplate()));
+    }
   }
 }
