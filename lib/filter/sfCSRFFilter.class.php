@@ -14,7 +14,7 @@
  * @package    symfony
  * @subpackage filter
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
- * @version    SVN: $Id: sfCSRFFilter.class.php 4406 2007-06-26 14:57:51Z fabien $
+ * @version    SVN: $Id: sfCSRFFilter.class.php 4593 2007-07-13 11:47:43Z fabien $
  */
 class sfCSRFFilter extends sfFilter
 {
@@ -30,7 +30,7 @@ class sfCSRFFilter extends sfFilter
       throw new sfConfigurationException('You must provide a "secret" option for the sfCSRFPlugin filter.');
     }
 
-    $request = $this->getContext()->getRequest();
+    $request = $this->context->getRequest();
 
     // check only if request method is POST
     if (sfRequest::POST === $request->getMethod())
@@ -48,7 +48,7 @@ class sfCSRFFilter extends sfFilter
     $filterChain->execute();
 
     // nothing to do if content is not HTML
-    $response = $this->getContext()->getResponse();
+    $response = $this->context->getResponse();
     $contentType = $response->getContentType();
     if (false === strpos($contentType, 'html') && $contentType)
     {

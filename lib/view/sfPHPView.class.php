@@ -57,7 +57,7 @@ class sfPHPView extends sfView
   {
     if (sfConfig::get('sf_logging_enabled'))
     {
-      $this->getContext()->getLogger()->info('{sfView} render "'.$_sfFile.'"');
+      $this->context->getLogger()->info(sprintf('{sfView} render "%s"', $_sfFile));
     }
 
     $this->loadCoreAndStandardHelpers();
@@ -92,7 +92,7 @@ class sfPHPView extends sfView
   public function configure()
   {
     // store our current view
-    $actionStackEntry = $this->getContext()->getActionStack()->getLastEntry();
+    $actionStackEntry = $this->context->getActionStack()->getLastEntry();
     if (!$actionStackEntry->getViewInstance())
     {
       $actionStackEntry->setViewInstance($this);
@@ -101,6 +101,9 @@ class sfPHPView extends sfView
     // require our configuration
     $viewConfigFile = $this->moduleName.'/'.sfConfig::get('sf_app_module_config_dir_name').'/view.yml';
     require(sfConfigCache::getInstance()->checkConfig(sfConfig::get('sf_app_module_dir_name').'/'.$viewConfigFile));
+
+    // decorator configuration
+    $this->updateDecoratorConfiguration();
 
     // set template directory
     if (!$this->directory)
@@ -119,108 +122,76 @@ class sfPHPView extends sfView
    */
   protected function decorate($content)
   {
-    $template = $this->getDecoratorDirectory().'/'.$this->getDecoratorTemplate();
-
     if (sfConfig::get('sf_logging_enabled'))
     {
-      $this->getContext()->getLogger()->info('{sfView} decorate content with "'.$template.'"');
+      $this->context->getLogger()->info(sprintf('{sfView} decorate content with "%s"', $this->getDecoratorDirectory().'/'.$this->getDecoratorTemplate()));
     }
 
     // set the decorator content as an attribute
     $this->attributeHolder->set('sf_content', $content);
 
     // render the decorator template and return the result
-    $retval = $this->renderFile($template);
-
-    return $retval;
+    return $this->renderFile($this->getDecoratorDirectory().'/'.$this->getDecoratorTemplate());
   }
 
   /**
    * Renders the presentation.
    *
-   * When the controller render mode is sfView::RENDER_CLIENT, this method will
-   * render the presentation directly to the client and null will be returned.
-   *
-   * @return string A string representing the rendered presentation, if
-   *                the controller render mode is sfView::RENDER_VAR, otherwise null
+   * @return string A string representing the rendered presentation
    */
   public function render()
   {
-    $context = $this->getContext();
-
-    // get the render mode
-    $mode = $context->getController()->getRenderMode();
-
-    if ($mode == sfView::RENDER_NONE)
-    {
-      return null;
-    }
-
-    $retval = null;
-    $response = $context->getResponse();
+    $content = null;
     if (sfConfig::get('sf_cache'))
     {
-      $key   = $response->getParameterHolder()->remove('current_key', 'symfony/cache/current');
-      $cache = $response->getParameter($key, null, 'symfony/cache');
-      if ($cache !== null)
-      {
-        $cache  = unserialize($cache);
-        $retval = $cache['content'];
-        $this->attributeHolder = unserialize($cache['attributes']);
-        $response->mergeProperties($cache['response']);
-      }
-    }
+      $viewCache = $this->context->getViewCacheManager();
+      $uri = $this->context->getRouting()->getCurrentInternalUri();
 
-    // decorator
-    $layout = $response->getParameter($this->moduleName.'_'.$this->actionName.'_layout', null, 'symfony/action/view');
-    if (false === $layout)
-    {
-      $this->setDecorator(false);
-    }
-    else if (null !== $layout)
-    {
-      $this->setDecoratorTemplate($layout.$this->getExtension());
+      list($content, $attributeHolder) = $viewCache->getActionCache($uri);
+      if (!is_null($content))
+      {
+        $this->attributeHolder = $attributeHolder;
+      }
+
+      // FIXME: needed because the response in cache can change the layout
+      $this->updateDecoratorConfiguration();
     }
 
     // render template if no cache
-    if ($retval === null)
+    if (is_null($content))
     {
       // execute pre-render check
       $this->preRenderCheck();
 
       // render template file
-      $template = $this->getDirectory().'/'.$this->getTemplate();
-      $retval = $this->renderFile($template);
+      $content = $this->renderFile($this->getDirectory().'/'.$this->getTemplate());
 
-      if (sfConfig::get('sf_cache') && $key !== null)
+      if (sfConfig::get('sf_cache'))
       {
-        $cache = array(
-          'content'    => $retval,
-          'attributes' => serialize($this->attributeHolder),
-          'view_name'  => $this->viewName,
-          'response'   => $context->getResponse(),
-        );
-        $response->setParameter($key, serialize($cache), 'symfony/cache');
-
-        if (sfConfig::get('sf_web_debug'))
-        {
-          $retval = sfWebDebug::getInstance()->decorateContentWithDebug($key, $retval, true);
-        }
+        $content = $viewCache->setActionCache($uri, $content, $this->attributeHolder);
       }
     }
 
     // now render decorator template, if one exists
     if ($this->isDecorator())
     {
-      $retval = $this->decorate($retval);
+      $content = $this->decorate($content);
     }
 
-    // render to client
-    if ($mode == sfView::RENDER_CLIENT)
+    return $content;
+  }
+
+  protected function updateDecoratorConfiguration()
+  {
+    // decorator configuration
+    $layout = $this->context->getResponse()->getParameter($this->moduleName.'_'.$this->actionName.'_layout', null, 'symfony/action/view');
+    if (false === $layout)
     {
-      $context->getResponse()->setContent($retval);
+      $this->setDecorator(false);
     }
-
-    return $retval;
+    else if (!is_null($layout))
+    {
+      $this->setDecoratorTemplate($layout.$this->getExtension());
+    }
   }
 }

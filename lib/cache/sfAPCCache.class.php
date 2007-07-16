@@ -14,7 +14,7 @@
  * @package    symfony
  * @subpackage cache
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
- * @version    SVN: $Id: sfAPCCache.class.php 4579 2007-07-11 13:37:40Z fabien $
+ * @version    SVN: $Id: sfAPCCache.class.php 4586 2007-07-12 20:41:34Z fabien $
  */
 class sfAPCCache extends sfCache
 {
@@ -64,9 +64,7 @@ class sfAPCCache extends sfCache
    */
   public function set($key, $data, $lifetime = null)
   {
-    $lifetime = is_null($lifetime) ? $this->getParameter('lifetime') : $lifetime;
-
-    return apc_store($this->prefix.$key, $data, $lifetime);
+    return apc_store($this->prefix.$key, $data, $this->getLifetime($lifetime));
   }
 
   /**

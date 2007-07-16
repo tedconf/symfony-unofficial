@@ -310,12 +310,12 @@ class sfBrowser
 
   public function followRedirect()
   {
-    if (null === $this->getContext()->getResponse()->getHttpHeader('Location'))
+    if (null === $this->context->getResponse()->getHttpHeader('Location'))
     {
-      throw new sfException('The request was not redirected');
+      throw new sfException('The request was not redirected.');
     }
 
-    return $this->get($this->getContext()->getResponse()->getHttpHeader('Location'));
+    return $this->get($this->context->getResponse()->getHttpHeader('Location'));
   }
 
   public function setField($name, $value)
@@ -333,7 +333,7 @@ class sfBrowser
 
     if (!$dom)
     {
-      throw new sfException('Cannot click because there is no current page in the browser');
+      throw new sfException('Cannot click because there is no current page in the browser.');
     }
 
     $xpath = new DomXpath($dom);
@@ -537,6 +537,6 @@ class sfFakeRenderingFilter extends sfFilter
   {
     $filterChain->execute();
 
-    $this->getContext()->getResponse()->sendContent();
+    $this->context->getResponse()->sendContent();
   }
 }

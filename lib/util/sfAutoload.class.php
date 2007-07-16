@@ -13,18 +13,23 @@
  *
  * @package    symfony
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
- * @version    SVN: $Id: sfAutoload.class.php 4572 2007-07-11 12:10:09Z fabien $
+ * @version    SVN: $Id: sfAutoload.class.php 4628 2007-07-16 13:39:19Z fabien $
  */
 class sfAutoload
 {
   static protected
     $classes = array();
 
-  static public function initAutoload()
+  static public function register()
   {
     ini_set('unserialize_callback_func', 'spl_autoload_call');
 
     spl_autoload_register(array('sfAutoload', 'autoload'));
+  }
+
+  static public function unregister()
+  {
+    spl_autoload_unregister(array('sfAutoload', 'autoload'));
   }
 
   static public function getClassPath($class)
@@ -107,49 +112,5 @@ class sfAutoload
     }
 
     return false;
-  }
-
-  static public function splSimpleAutoload($class)
-  {
-    // class already exists
-    if (class_exists($class, false))
-    {
-      return true;
-    }
-
-    // we have a class path, let's include it
-    if (isset(self::$classes[$class]))
-    {
-      require(self::$classes[$class]);
-
-      return true;
-    }
-
-    return false;
-  }
-
-  static public function initSimpleAutoload($dirs)
-  {
-    require_once(dirname(__FILE__).'/sfFinder.class.php');
-    self::$classes = array();
-    $finder = sfFinder::type('file')->ignore_version_control()->name('*.php');
-    foreach ((array) $dirs as $dir)
-    {
-      $files = $finder->in(glob($dir));
-      if (is_array($files))
-      {
-        foreach ($files as $file)
-        {
-          preg_match_all('~^\s*(?:abstract\s+|final\s+)?(?:class|interface)\s+(\w+)~mi', file_get_contents($file), $classes);
-          foreach ($classes[1] as $class)
-          {
-            self::$classes[$class] = $file;
-          }
-        }
-      }
-    }
-
-    ini_set('unserialize_callback_func', 'spl_autoload_call');
-    spl_autoload_register(array('sfAutoload', 'splSimpleAutoload'));
   }
 }

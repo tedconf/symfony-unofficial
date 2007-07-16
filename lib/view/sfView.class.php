@@ -336,11 +336,7 @@ abstract class sfView
   /**
    * Renders the presentation.
    *
-   * When the controller render mode is sfView::RENDER_CLIENT, this method will
-   * render the presentation directly to the client and null will be returned.
-   *
-   * @return string A string representing the rendered presentation, if
-   *                the controller render mode is sfView::RENDER_VAR, otherwise null
+   * @return string A string representing the rendered presentation
    */
   abstract function render();
 
@@ -491,7 +487,7 @@ abstract class sfView
   {
     if (!$callable = sfMixer::getCallable('sfView:'.$method))
     {
-      throw new sfException(sprintf('Call to undefined method sfView::%s', $method));
+      throw new sfException(sprintf('Call to undefined method sfView::%s.', $method));
     }
 
     array_unshift($arguments, $this);

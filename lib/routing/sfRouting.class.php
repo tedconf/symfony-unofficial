@@ -14,7 +14,7 @@
  * @package    symfony
  * @subpackage controller
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
- * @version    SVN: $Id: sfRouting.class.php 4513 2007-07-02 20:24:01Z fabien $
+ * @version    SVN: $Id: sfRouting.class.php 4597 2007-07-13 19:02:30Z fabien $
  */
 abstract class sfRouting
 {
@@ -29,7 +29,7 @@ abstract class sfRouting
    *
    * @return sfRouting A sfRouting implementation instance.
    *
-   * @throws <b>sfFactoryException</b> If a user implementation instance cannot
+   * @throws <b>sfFactoryException</b> If a routing implementation instance cannot
    */
   public static function newInstance($class)
   {
@@ -38,7 +38,7 @@ abstract class sfRouting
 
     if (!$object instanceof sfRouting)
     {
-      throw new sfFactoryException(sprintf('Class "%s" is not of the type sfRouting', $class));
+      throw new sfFactoryException(sprintf('Class "%s" is not of the type sfRouting.', $class));
     }
 
     return $object;

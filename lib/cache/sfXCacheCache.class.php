@@ -14,7 +14,7 @@
  * @package    symfony
  * @subpackage cache
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
- * @version    SVN: $Id: sfXCacheCache.class.php 4579 2007-07-11 13:37:40Z fabien $
+ * @version    SVN: $Id: sfXCacheCache.class.php 4586 2007-07-12 20:41:34Z fabien $
  */
 class sfXCacheCache extends sfCache
 {
@@ -62,9 +62,7 @@ class sfXCacheCache extends sfCache
    */
   public function set($key, $data, $lifetime = null)
   {
-    $lifetime = is_null($lifetime) ? $this->getParameter('lifetime') : $lifetime;
-
-    return xcache_set($this->prefix.$key, str_pad(time() + $lifetime, 12, 0, STR_PAD_LEFT).$data, $lifetime);
+    return xcache_set($this->prefix.$key, str_pad(time() + $lifetime, 12, 0, STR_PAD_LEFT).$data, $this->getLifetime($lifetime));
   }
 
   /**

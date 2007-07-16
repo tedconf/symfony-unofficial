@@ -18,12 +18,13 @@
  * @package    symfony
  * @subpackage controller
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
- * @version    SVN: $Id: sfPatternRouting.class.php 4443 2007-06-27 15:32:21Z fabien $
+ * @version    SVN: $Id: sfPatternRouting.class.php 4602 2007-07-14 09:44:30Z fabien $
  */
 class sfPatternRouting extends sfRouting
 {
   protected
-    $current_route_name = '',
+    $currentRouteName   = null,
+    $currentInternalUri = null,
     $routes             = array();
 
   /**
@@ -56,15 +57,20 @@ class sfPatternRouting extends sfRouting
    */
   public function getCurrentInternalUri($with_route_name = false)
   {
-    if ($this->current_route_name)
+    if (is_null($this->currentRouteName))
     {
-      list($url, $regexp, $names, $names_hash, $defaults, $requirements, $suffix) = $this->routes[$this->current_route_name];
+      return null;
+    }
+
+    if (is_null($this->currentInternalUri))
+    {
+      list($url, $regexp, $names, $names_hash, $defaults, $requirements, $suffix) = $this->routes[$this->currentRouteName];
 
       $request = $this->context->getRequest();
 
       if ($with_route_name)
       {
-        $internal_uri = '@'.$this->current_route_name;
+        $internal_uri = '@'.$this->currentRouteName;
       }
       else
       {
@@ -98,8 +104,10 @@ class sfPatternRouting extends sfRouting
       // sort to guaranty unicity
       sort($params);
 
-      return $internal_uri.($params ? '?'.implode('&', $params) : '');
+      $this->currentInternalUri = $internal_uri.($params ? '?'.implode('&', $params) : '');
     }
+
+    return $this->currentInternalUri;
   }
 
   /**
@@ -211,10 +219,7 @@ class sfPatternRouting extends sfRouting
     // route already exists?
     if (isset($this->routes[$name]))
     {
-      $error = 'This named route already exists ("%s").';
-      $error = sprintf($error, $name);
-
-      throw new sfConfigurationException($error);
+      throw new sfConfigurationException(sprintf('This named route already exists ("%s").', $name));
     }
 
     $parsed = array();
@@ -329,10 +334,7 @@ class sfPatternRouting extends sfRouting
     {
       if (!isset($this->routes[$name]))
       {
-        $error = 'The route "%s" does not exist.';
-        $error = sprintf($error, $name);
-
-        throw new sfConfigurationException($error);
+        throw new sfConfigurationException(sprintf('The route "%s" does not exist.', $name));
       }
 
       list($url, $regexp, $names, $names_hash, $defaults, $requirements, $suffix) = $this->routes[$name];
@@ -346,7 +348,7 @@ class sfPatternRouting extends sfRouting
       {
         if (!isset($params[$tmp]) && !isset($defaults[$tmp]))
         {
-          throw new sfException(sprintf('Route named "%s" have a mandatory "%s" parameter', $name, $tmp));
+          throw new sfException(sprintf('Route named "%s" have a mandatory "%s" parameter.', $name, $tmp));
         }
       }
     }
@@ -403,10 +405,7 @@ class sfPatternRouting extends sfRouting
 
       if (!$found)
       {
-        $error = 'Unable to find a matching routing rule to generate url for params "%s".';
-        $error = sprintf($error, var_export($params));
-
-        throw new sfConfigurationException($error);
+        throw new sfConfigurationException(sprintf('Unable to find a matching routing rule to generate url for params "%s".', var_export($params)));
       }
     }
 
@@ -560,7 +559,8 @@ class sfPatternRouting extends sfRouting
         if ($break)
         {
           // we store route name
-          $this->current_route_name = $route_name;
+          $this->currentRouteName = $route_name;
+          $this->currentInternalUri = null;
 
           if (sfConfig::get('sf_logging_enabled'))
           {

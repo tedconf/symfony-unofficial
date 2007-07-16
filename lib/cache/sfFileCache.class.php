@@ -82,9 +82,7 @@ class sfFileCache extends sfCache
       $this->clean(sfCache::OLD);
     }
 
-    $lifetime = is_null($lifetime) ? $this->getParameter('lifetime') : $lifetime;
-
-    return $this->write($this->getFilePath($key), $data, time() + $lifetime);
+    return $this->write($this->getFilePath($key), $data, time() + $this->getLifetime($lifetime));
   }
 
   /**
@@ -214,7 +212,7 @@ class sfFileCache extends sfCache
   {
     if (!$fp = @fopen($path, 'rb'))
     {
-      throw new sfCacheException(sprintf('Unable to read cache file "%s"', $path));
+      throw new sfCacheException(sprintf('Unable to read cache file "%s".', $path));
     }
 
     @flock($fp, LOCK_SH);
@@ -243,7 +241,7 @@ class sfFileCache extends sfCache
         }
         break;
       default:
-        throw new sfConfigurationException(sprintf('Unknown type "%s"', $type));
+        throw new sfConfigurationException(sprintf('Unknown type "%s".', $type));
     }
     set_magic_quotes_runtime($mqr);
     @flock($fp, LOCK_UN);
@@ -276,7 +274,7 @@ class sfFileCache extends sfCache
 
     if (!$fp = @fopen($path, 'wb'))
     {
-      throw new sfCacheException(sprintf('Unable to write cache file "%s"', $path));
+      throw new sfCacheException(sprintf('Unable to write cache file "%s".', $path));
     }
 
     @flock($fp, LOCK_EX);

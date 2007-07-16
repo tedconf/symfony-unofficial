@@ -265,7 +265,7 @@ class sfWebResponse extends sfResponse
 
     if (sfConfig::get('sf_logging_enabled'))
     {
-      $this->getContext()->getLogger()->info('{sfResponse} send status "'.$status.'"');
+      $this->context->getLogger()->info('{sfResponse} send status "'.$status.'"');
     }
 
     // headers
@@ -275,7 +275,7 @@ class sfWebResponse extends sfResponse
 
       if (sfConfig::get('sf_logging_enabled') && $value != '')
       {
-        $this->getContext()->getLogger()->info('{sfResponse} send header "'.$name.'": "'.$value.'"');
+        $this->context->getLogger()->info('{sfResponse} send header "'.$name.'": "'.$value.'"');
       }
     }
 
@@ -293,7 +293,7 @@ class sfWebResponse extends sfResponse
 
       if (sfConfig::get('sf_logging_enabled'))
       {
-        $this->getContext()->getLogger()->info('{sfResponse} send cookie "'.$cookie['name'].'": "'.$cookie['value'].'"');
+        $this->context->getLogger()->info('{sfResponse} send cookie "'.$cookie['name'].'": "'.$cookie['value'].'"');
       }
     }
   }
@@ -348,7 +348,7 @@ class sfWebResponse extends sfResponse
     }
     else
     {
-      throw new sfParameterException('The second getDate() method parameter must be one of: rfc1123, rfc1036 or asctime');
+      throw new sfParameterException('The second getDate() method parameter must be one of: rfc1123, rfc1036 or asctime.');
     }
   }
 
@@ -465,7 +465,7 @@ class sfWebResponse extends sfResponse
 
     if (sfConfig::get('sf_i18n'))
     {
-      $value = $this->getContext()->getI18N()->__($value);
+      $value = $this->context->getI18N()->__($value);
     }
 
     if ($escape)
@@ -599,7 +599,7 @@ class sfWebResponse extends sfResponse
    */
   public function serialize()
   {
-    return serialize(array($this->content, $this->statusCode, $this->statusText, serialize($this->parameterHolder)));
+    return serialize(array($this->content, $this->statusCode, $this->statusText, $this->parameterHolder));
   }
 
   /**
@@ -614,7 +614,7 @@ class sfWebResponse extends sfResponse
     $this->content = $data[0];
     $this->statusCode = $data[1];
     $this->statusText = $data[2];
-    $this->parameterHolder = unserialize($data[3]);
+    $this->parameterHolder = $data[3];
   }
 
   /**
