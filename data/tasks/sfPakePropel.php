@@ -282,15 +282,13 @@ function run_propel_dump_data($task, $args)
 /**
  * Loads yml data from fixtures directory and inserts into database.
  *
- * @example symfony load-data frontend
- * @example symfony load-data frontend dev fixtures append
- *
- * @todo replace delete argument with flag -d
+ * @example symfony propel-load-data frontend
+ * @example symfony --env=dev --dir[]=data/fixtures --append propel-load-data --connection=propel frontend
  *
  * @param object $task
- * @param array $args
+ * @param array  $args
  */
-function run_propel_load_data($task, $args)
+function run_propel_load_data($task, $args, $options)
 {
   if (!count($args))
   {
@@ -301,20 +299,12 @@ function run_propel_load_data($task, $args)
 
   if (!is_dir(sfConfig::get('sf_app_dir').DIRECTORY_SEPARATOR.$app))
   {
-    throw new Exception('The app "'.$app.'" does not exist.');
+    throw new Exception(sprintf('The app "%s" does not exist.', $app));
   }
 
-  if (count($args) > 1 && $args[count($args) - 1] == 'append')
-  {
-    array_pop($args);
-    $delete = false;
-  }
-  else
-  {
-    $delete = true;
-  }
-
-  $env = empty($args[1]) ? 'dev' : $args[1];
+  $delete = isset($options['append']) ? false : true;
+  $env = isset($options['env']) ? $options['env'] : 'dev';
+  $connection_name = isset($options['connection']) ? $options['connection'] : 'propel';
 
   // define constants
   define('SF_ROOT_DIR',    sfConfig::get('sf_root_dir'));
@@ -324,18 +314,21 @@ function run_propel_load_data($task, $args)
 
   // get configuration
   require_once SF_ROOT_DIR.DIRECTORY_SEPARATOR.'apps'.DIRECTORY_SEPARATOR.SF_APP.DIRECTORY_SEPARATOR.'config'.DIRECTORY_SEPARATOR.'config.php';
+  global $sf_autoload;
+  $sf_autoload->unregister();
+  $sf_autoload->register();
 
-  if (count($args) == 1)
+  if (isset($options['dir[]']))
+  {
+    $fixtures_dirs = $options['dir[]'];
+  }
+  else
   {
     if (!$pluginDirs = glob(sfConfig::get('sf_root_dir').'/plugins/*/data'))
     {
       $pluginDirs = array();
     }
     $fixtures_dirs = pakeFinder::type('dir')->name('fixtures')->in(array_merge($pluginDirs, array(sfConfig::get('sf_data_dir'))));
-  }
-  else
-  {
-    $fixtures_dirs = array_slice($args, 1);
   }
 
   $databaseManager = new sfDatabaseManager();
@@ -352,7 +345,7 @@ function run_propel_load_data($task, $args)
     }
 
     pake_echo_action('propel', sprintf('load data from "%s"', $fixtures_dir));
-    $data->loadData($fixtures_dir);
+    $data->loadData($fixtures_dir, $connection_name);
   }
 }
 
