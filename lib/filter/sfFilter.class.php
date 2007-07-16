@@ -20,6 +20,23 @@
  */
 abstract class sfFilter
 {
+  /**
+   * Filter is executed for the whole request.
+   */
+  const REQUEST = 1;
+
+  /**
+   * Filter is executed for an action.
+   */
+  const ACTION  = 2;
+
+  /**
+   * filter categories
+   */
+  const INPUT   = 1;
+  const PROCESS = 2;
+  const OUTPUT  = 3;
+
   protected
     $parameterHolder = null,
     $context         = null;
@@ -58,6 +75,31 @@ abstract class sfFilter
   }
 
   /**
+   * Sets the type of this filter.
+   *
+   * @param integer One of the constants sfFilter::REQUEST, sfFilter::ACTION
+   */
+  public final function setType($type)
+  {
+    if ($type !== self::REQUEST && $type !== self::ACTION)
+    {
+      throw new sfFilterException('Invalid filter type.');
+    }
+
+    $this->setParameter('type', $type);
+  }
+
+  /**
+   * Returns the type of this filter.
+   *
+   * @return integer one of the constants sfFilter::REQUEST, sfFilter::ACTION
+   */
+  public final function getType()
+  {
+    return $this->getParameter('type', self::REQUEST);
+  }
+
+  /**
    * Initializes this Filter.
    *
    * @param sfContext The current application context
@@ -74,8 +116,31 @@ abstract class sfFilter
     $this->parameterHolder = new sfParameterHolder();
     $this->parameterHolder->add($parameters);
 
+    $type = $this->parameterHolder->get('type', self::REQUEST);
+    $this->setType($type);
+
     return true;
   }
+
+  /**
+   * Executes this filter.
+   *
+   * @param sfFilterChain A sfFilterChain instance
+   */
+  abstract public function execute($filterChain);
+
+  /**
+   * Returns true if this filter must not be executed.
+   *
+   * Override this method to check for certain conditions.
+   *
+   * @return boolean true if this filter must not be executed, false if it should
+   */
+  public function skip()
+  {
+    return false;
+  }
+
 
   /**
    * Gets the parameter holder for this object.
