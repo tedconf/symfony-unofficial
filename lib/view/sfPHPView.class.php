@@ -92,10 +92,10 @@ class sfPHPView extends sfView
   public function configure()
   {
     // store our current view
-    $actionStackEntry = $this->context->getActionStack()->getLastEntry();
-    if (!$actionStackEntry->getViewInstance())
+    $controller = $this->context->getController();
+    if (!$controller->getViewInstance())
     {
-      $actionStackEntry->setViewInstance($this);
+      $controller->setViewInstance($this);
     }
 
     // require our configuration

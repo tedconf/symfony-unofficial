@@ -47,9 +47,6 @@ class sfContext
       $this->factories['databaseManager']->initialize();
     }
 
-    // create a new action stack
-    $this->factories['actionStack'] = new sfActionStack();
-
     // include the factories configuration
     require(sfConfigCache::getInstance()->checkConfig(sfConfig::get('sf_app_config_dir_name').'/factories.yml'));
 
@@ -114,11 +111,7 @@ class sfContext
    */
   public function getActionName()
   {
-    // get the last action stack entry
-    if ($this->factories['actionStack'] && $lastEntry = $this->factories['actionStack']->getLastEntry())
-    {
-      return $lastEntry->getActionName();
-    }
+    return $this->factories['controller']->get('action_name');
   }
 
 
@@ -129,7 +122,7 @@ class sfContext
    */
   public function getActionStack()
   {
-    return $this->factories['actionStack'];
+    throw new sfException('Action stack is not supported anymore.');
   }
 
   /**
@@ -196,10 +189,9 @@ class sfContext
    */
   public function getModuleDirectory()
   {
-    // get the last action stack entry
-    if ($this->factories['actionStack'] && $lastEntry = $this->factories['actionStack']->getLastEntry())
+    if ($moduleName = $this->getModuleName())
     {
-      return sfConfig::get('sf_app_module_dir').'/'.$lastEntry->getModuleName();
+      return sfConfig::get('sf_app_module_dir').'/'.$moduleName;
     }
   }
 
@@ -211,11 +203,7 @@ class sfContext
    */
   public function getModuleName()
   {
-    // get the last action stack entry
-    if ($this->factories['actionStack'] && $lastEntry = $this->factories['actionStack']->getLastEntry())
-    {
-      return $lastEntry->getModuleName();
-    }
+    return $this->factories['controller']->get('module_name');
   }
 
   /**
@@ -226,11 +214,7 @@ class sfContext
    */
   public function getCurrentViewInstance()
   {
-    // get the last action stack entry
-    if ($this->factories['actionStack'] && $lastEntry = $this->factories['actionStack']->getLastEntry())
-    {
-      return $lastEntry->getViewInstance();
-    }
+    return $this->factories['controller']->get('view_instance');
   }
 
   /**

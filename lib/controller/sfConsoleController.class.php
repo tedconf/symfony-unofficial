@@ -32,6 +32,8 @@ class sfConsoleController extends sfController
 
       // make the first request
       $this->forward($moduleName, $actionName);
+
+      $this->execute();
     }
     catch (sfException $e)
     {
@@ -44,4 +46,5 @@ class sfConsoleController extends sfController
       $sfException->printStackTrace($e);
     }
   }
+
 }

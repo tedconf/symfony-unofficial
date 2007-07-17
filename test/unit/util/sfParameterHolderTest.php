@@ -10,7 +10,7 @@
 
 require_once(dirname(__FILE__).'/../../bootstrap/unit.php');
 
-$t = new lime_test(53, new lime_output_color());
+$t = new lime_test(55, new lime_output_color());
 
 // ->clear()
 $t->diag('->clear()');
@@ -68,6 +68,13 @@ $ph->set('yourfoo', 'bar');
 $ph->set('myfoo', 'bar', 'symfony/mynamespace');
 
 $t->is($ph->getNamespaces(), array($ph->getDefaultNamespace(), 'symfony/mynamespace'), '->getNamespaces() returns all non empty namespaces');
+
+// ->setDefaultNamespace()
+$t->diag('->setDefaultNamespace()');
+$ph = new sfParameterHolder('symfony/mynamespace');
+$ph->setDefaultNamespace('othernamespace');
+
+$t->is($ph->getDefaultNamespace(), 'othernamespace', '->setDefaultNamespace() sets the default namespace');
 
 // ->getAll()
 $t->diag('->getAll()');
@@ -214,3 +221,7 @@ $t->is($myparameters, $ph->getAll('symfony/mynamespace'), '->add() takes a names
 
 $foo = 'mybar';
 $t->is($parameters, $ph->getAll(), '->add() adds a reference of an array of parameters');
+
+// ->serialize() ->unserialize()
+$t->diag('->serialize() ->unserialize()');
+$t->ok($ph == unserialize(serialize($ph)), 'sfParameterHolder implements the Serializable interface');

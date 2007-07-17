@@ -23,56 +23,23 @@
 class sfFrontWebController extends sfWebController
 {
   /**
-   * Dispatches a request.
+   * Executes the request.
    *
    * This will determine which module and action to use by request parameters specified by the user.
    */
-  public function dispatch()
+  protected function execute()
   {
-    try
-    {
-      if (sfConfig::get('sf_logging_enabled'))
-      {
-        $this->context->getLogger()->info('{sfController} dispatch request');
-      }
+    // reinitialize filters (needed for unit and functional tests)
+    sfFilter::$filterCalled = array();
 
-      // reinitialize filters (needed for unit and functional tests)
-      sfFilter::$filterCalled = array();
+    // determine our module and action
+    $request    = $this->context->getRequest();
+    $moduleName = $request->getParameter('module');
+    $actionName = $request->getParameter('action');
 
-      // determine our module and action
-      $request    = $this->context->getRequest();
-      $moduleName = $request->getParameter('module');
-      $actionName = $request->getParameter('action');
+    // make the first request
+    $this->forward($moduleName, $actionName);
 
-      // make the first request
-      $this->forward($moduleName, $actionName);
-    }
-    catch (sfException $e)
-    {
-      if (sfConfig::get('sf_test'))
-      {
-        throw $e;
-      }
-
-      $e->printStackTrace();
-    }
-    catch (Exception $e)
-    {
-      if (sfConfig::get('sf_test'))
-      {
-        throw $e;
-      }
-
-      try
-      {
-        // wrap non symfony exceptions
-        $sfException = new sfException();
-        $sfException->printStackTrace($e);
-      }
-      catch (Exception $e)
-      {
-        header('HTTP/1.0 500 Internal Server Error');
-      }
-    }
+    parent::execute();
   }
 }

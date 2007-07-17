@@ -21,6 +21,49 @@
 abstract class sfWebController extends sfController
 {
   /**
+   * Dispatches a request.
+   */
+  public function dispatch()
+  {
+    try
+    {
+      if (sfConfig::get('sf_logging_enabled'))
+      {
+        $this->context->getLogger()->info('{sfController} dispatch request');
+      }
+
+      $this->execute();
+    }
+    catch (sfException $e)
+    {
+      if (sfConfig::get('sf_test'))
+      {
+        throw $e;
+      }
+
+      $e->printStackTrace();
+    }
+    catch (Exception $e)
+    {
+      if (sfConfig::get('sf_test'))
+      {
+        throw $e;
+      }
+
+      try
+      {
+        // wrap non symfony exceptions
+        $sfException = new sfException();
+        $sfException->printStackTrace($e);
+      }
+      catch (Exception $e)
+      {
+        header('HTTP/1.0 500 Internal Server Error');
+      }
+    }
+  }
+
+  /**
    * Generates an URL from an array of parameters.
    *
    * @param mixed   An associative array of URL parameters or an internal URI as a string.

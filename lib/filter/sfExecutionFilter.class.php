@@ -11,7 +11,7 @@
 
 /**
  * sfExecutionFilter is the last filter registered for each filter chain. This
- * filter does all action and view execution.
+ * filter does all action and view execution. It performs the actual forward.
  *
  * @package    symfony
  * @subpackage filter
@@ -32,7 +32,8 @@ class sfExecutionFilter extends sfFilter
   public function execute($filterChain)
   {
     // get the current action instance
-    $actionInstance = $this->context->getController()->getActionStack()->getLastEntry()->getActionInstance();
+    $controller = $this->context->getController();
+    $actionInstance = $this->makeAction($controller->getModuleName(), $controller->getActionName(), $controller->getVars(), false);
 
     // validate and execute the action
     if (sfConfig::get('sf_debug') && sfConfig::get('sf_logging_enabled'))
@@ -64,7 +65,41 @@ class sfExecutionFilter extends sfFilter
     $filterChain->execute();
   }
 
-  /*
+  /**
+   * Creates and initializes an action.
+   *
+   * @param string Module name.
+   * @param string Action name.
+   */
+  protected function makeAction($moduleName, $actionName)
+  {
+    $controller = $this->context->getController();
+
+    $actionInstance = $controller->makeAction($moduleName, $actionName);
+
+    if (!$actionInstance instanceof sfComponent)
+    {
+      switch ($actionInstance)
+      {
+        case sfController::ERROR_NOT_ENABLED:
+          $actionInstance = $controller->makeNotEnabledAction($moduleName, $actionName);
+          break;
+        default:
+          $actionInstance = $controller->make404Action($moduleName, $actionName);
+          break;
+      }
+    }
+
+    // change i18n message source directory to our module
+    if (sfConfig::get('sf_i18n'))
+    {
+      $this->context->getI18N()->setMessageSource(sfLoader::getI18NDirs($moduleName), $this->context->getUser()->getCulture());
+    }
+
+    return $actionInstance;
+  }
+
+  /**
    * Handles the action.
    *
    * @param  sfFilterChain The current filter chain
@@ -247,7 +282,7 @@ class sfExecutionFilter extends sfFilter
 
       case sfView::RENDER_VAR:
         $viewData = $view->render();
-        $controller->getActionStack()->getLastEntry()->setPresentation($viewData);
+        $controller->setPresentation($viewData);
         break;
     }
   }
