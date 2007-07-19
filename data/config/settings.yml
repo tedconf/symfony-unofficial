@@ -45,7 +45,7 @@ default:
 
     # Logging and debugging settings
     web_debug:              off       # Enable the web debug toolbar
-    error_reporting:        341       # Determines which events are logged. The default value is E_PARSE | E_COMPILE_ERROR | E_ERROR | E_CORE_ERROR | E_USER_ERROR = 341
+    error_reporting:        <?php echo (E_PARSE | E_COMPILE_ERROR | E_ERROR | E_CORE_ERROR | E_USER_ERROR)."\n" ?>  # Determines which events are logged.
     xdebug:                 on        # Enable xdebug stack trace in the logs, if xdebug is not available this has no effect.
 
     # Assets paths
