@@ -16,7 +16,7 @@ default:
     module_disabled_action: disabled  # A module disabled in the module.yml
 
   .settings:
-    # Optional features. Deactivating unused features boots performance a bit.
+    # Optional features. Deactivating unused features boosts performance a bit.
     use_database:           on        # Enable database manager. Set to off if you don't use a database.
     use_security:           on        # Enable security features (login and credentials). Set to off for public applications.
     use_flash:              on        # Enable flash parameter feature. Set to off if you never use the set_flash() method in actions.
