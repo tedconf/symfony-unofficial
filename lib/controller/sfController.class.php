@@ -21,20 +21,12 @@
  */
 abstract class sfController
 {
-  const
-    ERROR_NOT_FOUND = -1,
-    ERROR_IS_INTERNAL = -2,
-    ERROR_NOT_ENABLED = -3;
-
   protected
-    $context                  = null,
-    $controllerClasses        = array(),
-    $maxForwards              = 5,
-    $renderMode               = sfView::RENDER_CLIENT,
-    //$viewCacheClassName       = null,
-    $stackCounter             = 1,
-    $stack                    = null,
-    $entries                  = array();
+    $context           = null,
+    $controllerClasses = array(),
+    $maxForwards       = 5,
+    $renderMode        = sfView::RENDER_CLIENT,
+    $stack             = null;
 
   /**
    * Retrieves a new sfController implementation instance.
@@ -81,7 +73,8 @@ abstract class sfController
     // set max forwards
     $this->maxForwards = sfConfig::get('sf_max_forwards');
 
-    $this->stack = new sfParameterHolder($this->getNextEntryName());
+    $stackClass = sfConfig::get('sf_controller_stack_classname', 'sfControllerStack');
+    $this->stack = new $stackClass();
   }
 
   /**
@@ -92,6 +85,16 @@ abstract class sfController
   public function getContext()
   {
     return $this->context;
+  }
+
+  /**
+   * Retrieves the stack of this controller.
+   *
+   * @return sfControllerStack A sfControllerStack instance
+   */
+  public function getStack()
+  {
+    return $this->stack;
   }
 
   /**
@@ -209,155 +212,13 @@ abstract class sfController
   }
 
   /**
-   * Creates and initializes an action instance and performs several checks.
-   *
-   * @param string  Module name.
-   * @param string  Action name.
-   * @param array   Optional parameters that are passed to the action instance.
-   * @param boolean If false, an error code is returned on errors, otherwise exceptions are thrown.
-   * @return mixed  Either an action instance or an error code on errors.
-   */
-  public function makeAction($moduleName, $actionName, $vars = array(), $throwExceptions = true)
-  {
-    if (!$this->actionExists($moduleName, $actionName))
-    {
-      // the action doesn't exist
-      $error = sprintf('{sfController} action "%s" does not exist', $moduleName.'/'.$actionName);
-
-      if (sfConfig::get('sf_logging_enabled'))
-      {
-        $this->context->getLogger()->info($error);
-      }
-
-      if ($throwExceptions)
-      {
-        throw new sfConfigurationException($error);
-      }
-      return self::ERROR_NOT_FOUND;
-    }
-
-    // check for a module generator config file
-    sfConfigCache::getInstance()->import(sfConfig::get('sf_app_module_dir_name').'/'.$moduleName.'/'.sfConfig::get('sf_app_module_config_dir_name').'/generator.yml', true, true);
-
-    // include module configuration
-    require(sfConfigCache::getInstance()->checkConfig(sfConfig::get('sf_app_module_dir_name').'/'.$moduleName.'/'.sfConfig::get('sf_app_module_config_dir_name').'/module.yml'));
-
-    // check if this module is internal
-    if ($this->count() == 1 && sfConfig::get('mod_'.strtolower($moduleName).'_is_internal') && !sfConfig::get('sf_test'))
-    {
-      if ($throwExceptions)
-      {
-        throw new sfConfigurationException(sprintf('Action "%s" from module "%s" cannot be called directly.', $actionName, $moduleName));
-      }
-      return self::ERROR_IS_INTERNAL;
-    }
-
-    if (!sfConfig::get('mod_'.strtolower($moduleName).'_enabled'))
-    {
-      if ($throwExceptions)
-      {
-        throw new sfConfigurationException(sprintf('Action "%s" from module "%s" is not enabled.', $actionName, $moduleName));
-      }
-      return self::ERROR_NOT_ENABLED;
-    }
-
-    // create an instance of the action
-    $actionInstance = $this->getAction($moduleName, $actionName);
-
-    // check for a module config.php
-    $moduleConfig = sfConfig::get('sf_app_module_dir').'/'.$moduleName.'/'.sfConfig::get('sf_app_module_config_dir_name').'/config.php';
-    if (is_readable($moduleConfig))
-    {
-      require_once($moduleConfig);
-    }
-
-    if (!$actionInstance->initialize($this->context))
-    {
-      // action failed to initialize
-      throw new sfInitializationException(sprintf('Action initialization failed for module "%s", action "%s".', $moduleName, $actionName));
-    }
-
-    if (is_array($vars) && !empty($vars))
-    {
-      $actionInstance->getVarHolder()->add($vars);
-    }
-
-    if ($moduleName == sfConfig::get('sf_error_404_module') && $actionName == sfConfig::get('sf_error_404_action'))
-    {
-      $this->context->getResponse()->setStatusCode(404);
-      $this->context->getResponse()->setHttpHeader('Status', '404 Not Found');
-
-      foreach (sfMixer::getCallables('sfController:forward:error404') as $callable)
-      {
-        call_user_func($callable, $this, $moduleName, $actionName);
-      }
-    }
-
-    return $actionInstance;
-  }
-
-  /**
-   * Returns the instance for the 404 error action.
-   *
-   * Given parameters will be replaced by the actual parameters of this action.
-   *
-   * @param string Requested module name.
-   * @param string Requested action name.
-   */
-  public function make404Action(&$moduleName, &$actionName)
-  {
-    // track the requested module so we have access to the data in the error 404 page
-    $this->context->getRequest()->setAttribute('requested_action', $moduleName);
-    $this->context->getRequest()->setAttribute('requested_module', $actionName);
-
-    // switch to error 404 action
-    $moduleName = sfConfig::get('sf_error_404_module');
-    $actionName = sfConfig::get('sf_error_404_action');
-
-    if (!$this->actionExists($moduleName, $actionName))
-    {
-      // cannot find unavailable module/action
-      throw new sfConfigurationException(sprintf('Invalid configuration settings: [sf_error_404_module] "%s", [sf_error_404_action] "%s".', $moduleName, $actionName));
-    }
-
-    return $this->makeAction($moduleName, $actionName);
-  }
-
-  /**
-   * Returns the instance for the 'module not enabled' action.
-   *
-   * Given parameters will be replaced by the actual parameters of this action.
-   *
-   * @param string Requested module name.
-   * @param string Requested action name.
-   */
-  public function makeNotEnabledAction(&$moduleName, &$actionName)
-  {
-    // track the requested module so we have access to the data in the error 404 page
-    $this->context->getRequest()->setAttribute('requested_action', $moduleName);
-    $this->context->getRequest()->setAttribute('requested_module', $actionName);
-
-    // module is disabled
-    $moduleName = sfConfig::get('sf_module_disabled_module');
-    $actionName = sfConfig::get('sf_module_disabled_action');
-
-    if (!$this->actionExists($moduleName, $actionName))
-    {
-      // cannot find mod disabled module/action
-      throw new sfConfigurationException(sprintf('Invalid configuration settings: [sf_module_disabled_module] "%s", [sf_module_disabled_action] "%s".', $moduleName, $actionName));
-    }
-
-    return $this->makeAction($moduleName, $actionName);
-  }
-
-  /**
    * Checks whether further forwarding is possible.
    *
    * @return True if forwarding is possible, false if not.
    */
   public function forwardAllowed()
   {
-    return count($this->entries) < $this->maxForwards;
+    return $this->stack->count() < $this->maxForwards;
   }
 
   /**
@@ -381,6 +242,41 @@ abstract class sfController
    */
   public function forward($moduleName, $actionName = null, $parameters = array())
   {
+    if (!$this->forwardAllowed())
+    {
+      // let's kill this party before it turns into cpu cycle hell
+      throw new sfForwardException(sprintf('Too many forwards have been detected for this request (> %d).', $this->maxForwards));
+    }
+
+    $this->switchTo($moduleName, $actionName, $parameters, false);
+    $this->executeFilterChain();
+  }
+
+  /**
+   * Switches the request to the given module/action.
+   *
+   * This is a lightweight version of forward as it does not execute anything.
+   * It only changes what module/action should be executed next on the stack.
+   *
+   * Note: It can only be called <b>before</b> the execution which is
+   * actually performed by the sfExecutionFilter. A filter that is configured to run
+   * before the sfExecutionFilter is probably the best place to call this method.
+   *
+   * The parameters allow different signatures. The two with $pageId are only supported with sfPageController controllers:
+   * <code>
+   * forward($moduleName, $actionName, $options)
+   * forward($moduleName, $actionName)
+   * forward($pageId, $options)
+   * forward($pageId)
+   * </code>
+   * @param string  A module name or a page id
+   * @param string  An action name or options
+   * @param array   Optional an array of options.
+   * @param boolean If true the last entry on the stack is replaced, otherwise a new one is added.
+   *                The default behavior is to replace the last entry.
+   */
+  public function switchTo($moduleName, $actionName = null, $parameters = array(), $replace = true)
+  {
     if (is_array($actionName))
     {
       $parameters = $actionName;
@@ -395,35 +291,167 @@ abstract class sfController
     $parameters['module_name'] = preg_replace('/[^a-z0-9\-_]+/i', '', $moduleName);
     $parameters['action_name'] = preg_replace('/[^a-z0-9\-_]+/i', '', $actionName);
 
-    $this->addEntry($parameters);
+    if ($replace && $this->stack->count())
+    {
+      $this->stack->getLast()->add($parameters);
+    }
+    else
+    {
+      $this->stack->push($parameters);
+    }
   }
 
   /**
-   * Builds the response.
-   *
-   * This method is called by dispatch().
+   * Execute the process of building the response.
    */
-  protected function execute()
+  protected function executeFilterChain()
   {
     // create a new filter chain
     $filterChain = new sfFilterChain();
 
     require sfConfigCache::getInstance()->checkConfig(sfConfig::get('sf_app_config_dir_name').'/filters.yml');
 
-    // hook before execution starts
-    if ($callable = sfMixer::getCallable('sfController:execute:pre'))
-    {
-      call_user_func($callable, $this, $filterChain);
-    }
-
     // process the filter chain
     $filterChain->execute();
+  }
 
-    // hook after execution
-    if ($callable = sfMixer::getCallable('sfController:execute:post'))
+  /**
+   * Convenience method to retrieve the instance of the last action of the stack.
+   *
+   * @return The action instance of the last entry in the stack.
+   */
+  public function makeLastAction()
+  {
+    $entry = $this->stack->getLast();
+
+    return $this->makeAction($entry['module_name'], $entry['action_name'], $entry->get('vars', array()));
+  }
+
+  /**
+   * Creates and initializes an action instance and performs several checks.
+   *
+   * @param string  Module name.
+   * @param string  Action name.
+   * @param array   Optional parameters that are passed to the action instance.
+   * @return mixed  Either an action instance or an error code on errors.
+   */
+  public function makeAction($moduleName, $actionName, $vars = array())
+  {
+    if (!$this->actionExists($moduleName, $actionName))
     {
-      call_user_func($callable, $this, $filterChain);
+      // the action doesn't exist
+      $error = sprintf('{sfController} action "%s" does not exist', $moduleName.'/'.$actionName);
+
+      if (sfConfig::get('sf_logging_enabled'))
+      {
+        $this->context->getLogger()->info($error);
+      }
+
+      return $this->make404Action($moduleName, $actionName);
     }
+
+    // check for a module generator config file
+    sfConfigCache::getInstance()->import(sfConfig::get('sf_app_module_dir_name').'/'.$moduleName.'/'.sfConfig::get('sf_app_module_config_dir_name').'/generator.yml', true, true);
+
+    // include module configuration
+    require(sfConfigCache::getInstance()->checkConfig(sfConfig::get('sf_app_module_dir_name').'/'.$moduleName.'/'.sfConfig::get('sf_app_module_config_dir_name').'/module.yml'));
+
+    // check if this module is internal
+    if ($this->stack->count() == 1 && sfConfig::get('mod_'.strtolower($moduleName).'_is_internal') && !sfConfig::get('sf_test'))
+    {
+      throw new sfConfigurationException(sprintf('Action "%s" from module "%s" cannot be called directly.', $actionName, $moduleName));
+    }
+
+    if (!sfConfig::get('mod_'.strtolower($moduleName).'_enabled'))
+    {
+      return $this->makeNotEnabledAction($moduleName, $actionName);
+    }
+
+    // required if switched to 404 or NotEnabled actions before
+    $entry = $this->stack->getLast();
+    $entry->set('module_name', $moduleName);
+    $entry->set('action_name', $actionName);
+
+    // create an instance of the action
+    $actionInstance = $this->getAction($moduleName, $actionName);
+
+    // check for a module config.php
+    $moduleConfig = sfConfig::get('sf_app_module_dir').'/'.$moduleName.'/'.sfConfig::get('sf_app_module_config_dir_name').'/config.php';
+    if (is_readable($moduleConfig))
+    {
+      require_once($moduleConfig);
+    }
+
+    if (!$actionInstance->initialize($this->context))
+    {
+      // action failed to initialize
+      throw new sfInitializationException(sprintf('Action initialization failed for module "%s", action "%s".', $moduleName, $actionName));
+    }
+
+    if (is_array($vars) && !empty($vars))
+    {
+      $actionInstance->getVarHolder()->add($vars);
+    }
+
+    return $actionInstance;
+  }
+
+  /**
+   * Returns the instance for the 404 error action.
+   *
+   * @param string Requested module name.
+   * @param string Requested action name.
+   */
+  protected function make404Action($moduleName, $actionName)
+  {
+    // track the requested module so we have access to the data in the error 404 page
+    $this->context->getRequest()->setAttribute('requested_action', $moduleName);
+    $this->context->getRequest()->setAttribute('requested_module', $actionName);
+
+    // switch to error 404 action
+    $moduleName = sfConfig::get('sf_error_404_module');
+    $actionName = sfConfig::get('sf_error_404_action');
+
+    if (!$this->actionExists($moduleName, $actionName))
+    {
+      // cannot find unavailable module/action
+      throw new sfConfigurationException(sprintf('Invalid configuration settings: [sf_error_404_module] "%s", [sf_error_404_action] "%s".', $moduleName, $actionName));
+    }
+
+    $this->context->getResponse()->setStatusCode(404);
+    $this->context->getResponse()->setHttpHeader('Status', '404 Not Found');
+
+    foreach (sfMixer::getCallables('sfController:forward:error404') as $callable)
+    {
+      call_user_func($callable, $this, $moduleName, $actionName);
+    }
+
+    return $this->makeAction($moduleName, $actionName);
+  }
+
+  /**
+   * Returns the instance for the 'module not enabled' action.
+   *
+   * @param string Requested module name.
+   * @param string Requested action name.
+   */
+  protected function makeNotEnabledAction($moduleName, $actionName)
+  {
+    // track the requested module so we have access to the data in the error 404 page
+    $this->context->getRequest()->setAttribute('requested_action', $moduleName);
+    $this->context->getRequest()->setAttribute('requested_module', $actionName);
+
+    // module is disabled
+    $moduleName = sfConfig::get('sf_module_disabled_module');
+    $actionName = sfConfig::get('sf_module_disabled_action');
+
+    if (!$this->actionExists($moduleName, $actionName))
+    {
+      // cannot find mod disabled module/action
+      throw new sfConfigurationException(sprintf('Invalid configuration settings: [sf_module_disabled_module] "%s", [sf_module_disabled_action] "%s".', $moduleName, $actionName));
+    }
+
+    return $this->makeAction($moduleName, $actionName);
   }
 
   /**
@@ -586,13 +614,24 @@ abstract class sfController
    *
    * @param  string A module name
    * @param  string An action name
-   * @param  string A View class name
+   * @param  string An array of parameters
+   *                For compatibility this can still also be a string (view name).
    *
    * @return string The generated content
    */
-  # NOT TESTED !!!
-  public function getPresentationFor($module, $action, $viewName = null)
+  public function getPresentationFor($module, $action, $parameters = array())
   {
+    // just for compatibility
+    if (is_string($parameters))
+    {
+      $viewName = $parameters;
+      $parameters = array();
+    }
+    else
+    {
+      $viewName = null;
+    }
+
     if (sfConfig::get('sf_logging_enabled'))
     {
       $this->context->getLogger()->info('{sfController} get presentation for action "'.$module.'/'.$action.'" (view class: "'.$viewName.'")');
@@ -610,16 +649,11 @@ abstract class sfController
       $this->context->getRequest()->setAttribute($module.'_'.$action.'_view_name', $viewName, 'symfony/action/view');
     }
 
-    $parameters = array();
-    $parameters['module_name'] = preg_replace('/[^a-z0-9\-_]+/i', '', $moduleName);
-    $parameters['action_name'] = preg_replace('/[^a-z0-9\-_]+/i', '', $actionName);
-    $parameters['view_name'] = $viewName;
+    $this->forward($module, $action, $parameters);
 
-    $this->addEntry($parameters);
+    $presentation = $this->stack->getLast()->get('presentation');
 
-    $presentation = $this->getPresentation();
-
-    $this->removeEntry();
+    $this->stack->pop();
 
     // put render mode back
     $this->setRenderMode($renderMode);
@@ -631,229 +665,6 @@ abstract class sfController
     }
 
     return $presentation;
-  }
-
-  /**
-   * Retrieve the current module name.
-   *
-   * @return string The currently executing module name, if one is set,
-   *                otherwise null.
-   */
-  public function getModuleName()
-  {
-    return $this->stack->get('module_name');
-  }
-
-  /**
-   * Retrieve the current action name.
-   *
-   * @return string The currently executing action name, if one is set,
-   *                otherwise null.
-   */
-  public function getActionName()
-  {
-    return $this->stack->get('action_name');
-  }
-
-  /**
-   * Retrieves the current view instance.
-   *
-   * @return sfView A sfView implementation instance.
-   */
-  public function getViewInstance()
-  {
-    return $this->stack->get('view_instance');
-  }
-
-  /**
-   * Sets the current view instance.
-   *
-   * @param sfView A sfView implementation instance.
-   */
-  public function setViewInstance($viewInstance)
-  {
-    $this->stack->set('view_instance', $viewInstance);
-  }
-
-  /**
-   * Retrieves the current rendered view presentation.
-   *
-   * This will only exist if the view has processed and the render mode is set to sfView::RENDER_VAR.
-   *
-   * @return string Rendered view presentation
-   */
-  public function getPresentation()
-  {
-    return $this->stack->get('presentation');
-  }
-
-  /**
-   * Sets the rendered presentation of the current action.
-   *
-   * @param string A rendered presentation.
-   */
-  public function setPresentation($content)
-  {
-    $this->stack->set('presentation', $content);
-  }
-
-  /**
-   * Returns variables for current action.
-   *
-   * @EXPERIMENTAL
-   *
-   * @return array Variables for current action.
-   */
-  public function getVars()
-  {
-    $vars = array();
-
-    return $vars;
-  }
-
-  /**
-   * Gets the parameter associated with the given key.
-   *
-   * This is a shortcut for:
-   *
-   * <code>$this->getStackHolder()->get()</code>
-   *
-   * @param string The key name
-   * @param string The default value
-   * @param string The namespace to use
-   *
-   * @return string The value associated with the key
-   *
-   * @see sfParameterHolder
-   */
-  public function get($name, $default = null, $ns = null)
-  {
-    return $this->stack->get($name, $default, $ns);
-  }
-
-  /**
-   * Returns true if the given key exists in the parameter holder.
-   *
-   * This is a shortcut for:
-   *
-   * <code>$this->getStackHolder()->has()</code>
-   *
-   * @param string The key name
-   * @param string The namespace to use
-   *
-   * @return boolean true if the given key exists, false otherwise
-   *
-   * @see sfParameterHolder
-   */
-  public function has($name, $ns = null)
-  {
-    return $this->stack->has($name, $ns);
-  }
-
-  /**
-   * Sets the value for the given key.
-   *
-   * This is a shortcut for:
-   *
-   * <code>$this->getStackHolder()->set()</code>
-   *
-   * @param string The key name
-   * @param string The value
-   * @param string The namespace to use
-   *
-   * @see sfParameterHolder
-   */
-  public function set($name, $value, $ns = null)
-  {
-    return $this->stack->set($name, $value, $ns);
-  }
-
-  /**
-   * Returns the number of entries added to the stack.
-   *
-   * @return integer Number of entries added to the stack.
-   */
-  public function count()
-  {
-    return count($this->entries);
-  }
-
-  /**
-   * Gets the stack holder.
-   *
-   * @return sfParameterHolder A sfParameterHolder instance
-   */
-  public function getStackHolder()
-  {
-    return $this->stack;
-  }
-
-  /**
-   * Opens a new entry and adds it to the stack.
-   *
-   * An entry is the internal representation of the current request within the controller.
-   */
-  protected function addEntry($parameters = array())
-  {
-    if (!$this->forwardAllowed())
-    {
-      // let's kill this party before it turns into cpu cycle hell
-      throw new sfForwardException(sprintf('Too many forwards have been detected for this request (> %d).', $this->maxForwards));
-    }
-
-    $name = $this->getNextEntryName();
-
-    $this->entries[] = $name;
-    $this->setCurrentEntryName($name);
-
-    if (is_array($parameters) && !empty($parameters))
-    {
-      $this->stack->add($parameters);
-    }
-  }
-
-  /**
-   * Removes current entry from stack and returns to that entry being added before.
-   */
-  protected function removeEntry()
-  {
-    $current = $this->stack->getDefaultNamespace();
-    $closed = array_pop($this->entries);
-
-    if ($current !== $closed)
-    {
-      throw new sfException('Current entry and default namespace of the stack parameter holder do not match.');
-    }
-
-    $this->stack->removeNamespace($current);
-
-    if (count($this->entries))
-    {
-      $name = end($this->entries);
-    }
-    else
-    {
-      $name = 1;
-    }
-
-    $this->setCurrentEntryName($name);
-
-    return $closed;
-  }
-
-  protected function getNextEntryName()
-  {
-    return $this->stackCounter++;
-  }
-
-  protected function getCurrentEntryName()
-  {
-    return $this->stack->getDefaultNamespace();
-  }
-
-  protected function setCurrentEntryName($name)
-  {
-    $this->stack->setDefaultNamespace($name, false);
   }
 
   /**

@@ -39,7 +39,6 @@ class sfFrontWebController extends sfWebController
 
     // make the first request
     $this->forward($moduleName, $actionName);
-
-    parent::execute();
   }
+
 }

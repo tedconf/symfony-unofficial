@@ -111,7 +111,7 @@ class sfContext
    */
   public function getActionName()
   {
-    return $this->factories['controller']->get('action_name');
+    return $this->factories['controller']->getStack()->getLast()->get('action_name');
   }
 
 
@@ -203,7 +203,7 @@ class sfContext
    */
   public function getModuleName()
   {
-    return $this->factories['controller']->get('module_name');
+    return $this->factories['controller']->getStack()->getLast()->get('module_name');
   }
 
   /**

@@ -31,9 +31,15 @@ class sfExecutionFilter extends sfFilter
    */
   public function execute($filterChain)
   {
-    // get the current action instance
+    // make instance of the current entry
     $controller = $this->context->getController();
-    $actionInstance = $this->makeAction($controller->getModuleName(), $controller->getActionName(), $controller->getVars(), false);
+    $actionInstance = $controller->makeLastAction();
+
+    // change i18n message source directory to our module
+    if (sfConfig::get('sf_i18n'))
+    {
+      $this->context->getI18N()->setMessageSource(sfLoader::getI18NDirs($actionInstance->getModuleName()), $this->context->getUser()->getCulture());
+    }
 
     // validate and execute the action
     if (sfConfig::get('sf_debug') && sfConfig::get('sf_logging_enabled'))
@@ -63,40 +69,6 @@ class sfExecutionFilter extends sfFilter
 
     // execute the filter chain (needed if fill-in filter is activated by the validation system)
     $filterChain->execute();
-  }
-
-  /**
-   * Creates and initializes an action.
-   *
-   * @param string Module name.
-   * @param string Action name.
-   */
-  protected function makeAction($moduleName, $actionName)
-  {
-    $controller = $this->context->getController();
-
-    $actionInstance = $controller->makeAction($moduleName, $actionName);
-
-    if (!$actionInstance instanceof sfComponent)
-    {
-      switch ($actionInstance)
-      {
-        case sfController::ERROR_NOT_ENABLED:
-          $actionInstance = $controller->makeNotEnabledAction($moduleName, $actionName);
-          break;
-        default:
-          $actionInstance = $controller->make404Action($moduleName, $actionName);
-          break;
-      }
-    }
-
-    // change i18n message source directory to our module
-    if (sfConfig::get('sf_i18n'))
-    {
-      $this->context->getI18N()->setMessageSource(sfLoader::getI18NDirs($moduleName), $this->context->getUser()->getCulture());
-    }
-
-    return $actionInstance;
   }
 
   /**
@@ -282,7 +254,7 @@ class sfExecutionFilter extends sfFilter
 
       case sfView::RENDER_VAR:
         $viewData = $view->render();
-        $controller->setPresentation($viewData);
+        $controller->getStack()->getLast()->set('presentation', $viewData);
         break;
     }
   }
