@@ -231,7 +231,7 @@ function use_javascript($js, $position = '', $options = array())
  */
 function decorate_with($layout)
 {
-  $view = sfContext::getInstance()->getController()->getStack()->getFirst()->get('view_instance');
+  $view = sfContext::getInstance()->getController()->getStack()->getLast()->get('view_instance');
   if (false === $layout)
   {
     $view->setDecorator(false);
