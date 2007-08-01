@@ -20,6 +20,13 @@
  */
 class sfFilterChain
 {
+  /**
+   * Execution modes
+   */
+  const MODE_EXEC = 1;
+  const MODE_AUTO = 2;
+  const MODE_SKIP = 3;
+
   protected
     $chain = array(),
     $index = -1;

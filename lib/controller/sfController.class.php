@@ -222,64 +222,42 @@ abstract class sfController
   }
 
   /**
-   * Forwards the request to either another action or page.
+   * Forwards or switches the request to another module and action.
    *
-   * The parameters allow different signatures. The two with $pageId are only supported with sfPageController controllers:
-   * <code>
-   * forward($moduleName, $actionName, $options)
-   * forward($moduleName, $actionName)
-   * forward($pageId, $options)
-   * forward($pageId)
-   * </code>
-   * @param string  A module name or a page id
-   * @param string  An action name or options
-   * @param array   Optional an array of options.
+   * The default behavior ($replaceEntry = false) is to go through the filter chain
+   * after module, action and options were pushed to the stack.
+   * Setting $replaceEntry = true will replace the last controller entry of the stack
+   * and allow you to skip the execution of the filter chain. See $options parameter.
+   *
+   * Note: The replace feature is meant to be called <b>before</b> the execution
+   * which is actually performed by the sfExecutionFilter. A filter that is
+   * configured to run before this one is probably the best place
+   * to call forward() with $replaceEntry = true.
+   *
+   * @param string  A module name.
+   * @param string  An action name. If ommited 'index' is used.
+   * @param array   Optional an array of options passed to the action as vars.
+   *                If $replaceEntry is set to true you can optionally change the
+   *                a filter chain execution mode using $options['filterChainExecutionMode'].
+   *                The following modes (constants) are possible:
+   *                sfFilterChain::MODE_EXEC - execute the filter chain
+   *                sfFilterChain::MODE_AUTO - only execute the filter chain
+   *                                           if moduleName has changed (default)
+   *                sfFilterChain::MODE_SKIP - do not execute the filter chain
+   * @param boolean If true the last entry on the stack is replaced, otherwise a new one is added.
+   *                The default behavior is to add a new entry.
    *
    * @throws <b>sfConfigurationException</b> If an invalid configuration setting has been found
    * @throws <b>sfForwardException</b> If an error occurs while forwarding the request
    * @throws <b>sfInitializationException</b> If the action could not be initialized
    * @throws <b>sfSecurityException</b> If the action requires security but the user implementation is not of type sfSecurityUser
    */
-  public function forward($moduleName, $actionName = null, $parameters = array())
+  public function forward($moduleName, $actionName = null, $options = array(), $replaceEntry = false)
   {
     if (!$this->forwardAllowed())
     {
       // let's kill this party before it turns into cpu cycle hell
       throw new sfForwardException(sprintf('Too many forwards have been detected for this request (> %d).', $this->maxForwards));
-    }
-
-    $this->switchTo($moduleName, $actionName, $parameters, false);
-    $this->executeFilterChain();
-  }
-
-  /**
-   * Switches the request to the given module/action.
-   *
-   * This is a lightweight version of forward as it does not execute anything.
-   * It only changes what module/action should be executed next on the stack.
-   *
-   * Note: It can only be called <b>before</b> the execution which is
-   * actually performed by the sfExecutionFilter. A filter that is configured to run
-   * before the sfExecutionFilter is probably the best place to call this method.
-   *
-   * The parameters allow different signatures. The two with $pageId are only supported with sfPageController controllers:
-   * <code>
-   * forward($moduleName, $actionName, $options)
-   * forward($moduleName, $actionName)
-   * forward($pageId, $options)
-   * forward($pageId)
-   * </code>
-   * @param string  A module name or a page id
-   * @param string  An action name or options
-   * @param array   Optional an array of options.
-   * @param boolean If true the last entry on the stack is replaced, otherwise a new one is added.
-   *                The default behavior is to replace the last entry.
-   */
-  public function switchTo($moduleName, $actionName = null, $parameters = array(), $replace = true)
-  {
-    if (is_array($actionName))
-    {
-      $parameters = $actionName;
     }
 
     if (!is_string($actionName))
@@ -288,16 +266,35 @@ abstract class sfController
     }
 
     // replace unwanted characters and add to parameters
-    $parameters['module_name'] = preg_replace('/[^a-z0-9\-_]+/i', '', $moduleName);
-    $parameters['action_name'] = preg_replace('/[^a-z0-9\-_]+/i', '', $actionName);
+    $options['module_name'] = preg_replace('/[^a-z0-9\-_]+/i', '', $moduleName);
+    $options['action_name'] = preg_replace('/[^a-z0-9\-_]+/i', '', $actionName);
 
-    if ($replace && $this->stack->count())
+    if ($replaceEntry)
     {
-      $this->stack->getLast()->add($parameters);
+      $filterChainExecutionMode = !empty($options['filterChainExecutionMode'])
+        ? $options['filterChainExecutionMode'] : sfFilterChain::MODE_AUTO;
+      unset($options['filterChainExecutionMode']);
     }
     else
     {
-      $this->stack->push($parameters);
+      $filterChainExecutionMode = sfFilterChain::MODE_EXEC;
+    }
+
+    $lastModuleName = $this->stack->count() ? $this->stack->getLast()->get('module_name') : false;
+
+    if ($replaceEntry && $lastModuleName)
+    {
+      $this->stack->getLast()->add($options);
+    }
+    else
+    {
+      $this->stack->push($options);
+    }
+
+    if ($filterChainExecutionMode === sfFilterChain::MODE_EXEC
+        || ($filterChainExecutionMode === sfFilterChain::MODE_AUTO && $moduleName != $lastModuleName)
+    ) {
+      $this->executeFilterChain();
     }
   }
 
@@ -309,7 +306,11 @@ abstract class sfController
     // create a new filter chain
     $filterChain = new sfFilterChain();
 
-    require sfConfigCache::getInstance()->checkConfig(sfConfig::get('sf_app_config_dir_name').'/filters.yml');
+    $entry = $this->stack->getLast();
+    require sfConfigCache::getInstance()->checkConfig(
+      sfConfig::get('sf_app_module_dir_name').'/'.$entry['module_name'].'/'.
+      sfConfig::get('sf_app_module_config_dir_name').'/filters.yml'
+    );
 
     // process the filter chain
     $filterChain->execute();

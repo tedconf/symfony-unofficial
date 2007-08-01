@@ -4,7 +4,7 @@
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
  * (c) 2004-2006 Sean Kerr.
- * 
+ *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -121,17 +121,18 @@ abstract class sfAction extends sfComponent
    *
    * @param  string A module name
    * @param  string An action name
+   * @param  array  An array of options that is passed to the action as vars.
    *
    * @throws sfStopException
    */
-  public function forward($module, $action)
+  public function forward($module, $action, $options = array())
   {
     if (sfConfig::get('sf_logging_enabled'))
     {
       $this->context->getLogger()->info('{sfAction} forward to action "'.$module.'/'.$action.'"');
     }
 
-    $this->getController()->forward($module, $action);
+    $this->getController()->forward($module, $action, $options);
 
     throw new sfStopException();
   }
@@ -144,14 +145,15 @@ abstract class sfAction extends sfComponent
    * @param  bool   A condition that evaluates to true or false
    * @param  string A module name
    * @param  string An action name
+   * @param  array  An array of options that is passed to the action as vars.
    *
    * @throws sfStopException
    */
-  public function forwardIf($condition, $module, $action)
+  public function forwardIf($condition, $module, $options = array())
   {
     if ($condition)
     {
-      $this->forward($module, $action);
+      $this->forward($module, $action, $options);
     }
   }
 
@@ -163,14 +165,15 @@ abstract class sfAction extends sfComponent
    * @param  bool   A condition that evaluates to true or false
    * @param  string A module name
    * @param  string An action name
+   * @param  array  An array of options that is passed to the action as vars.
    *
    * @throws sfStopException
    */
-  public function forwardUnless($condition, $module, $action)
+  public function forwardUnless($condition, $module, $action, $options = array())
   {
     if (!$condition)
     {
-      $this->forward($module, $action);
+      $this->forward($module, $action, $options);
     }
   }
 
