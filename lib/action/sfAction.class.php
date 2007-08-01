@@ -149,7 +149,7 @@ abstract class sfAction extends sfComponent
    *
    * @throws sfStopException
    */
-  public function forwardIf($condition, $module, $options = array())
+  public function forwardIf($condition, $module, $action, $options = array())
   {
     if ($condition)
     {
