@@ -20,19 +20,11 @@ config/app.yml:
 config/factories.yml:
   class:    sfFactoryConfigHandler
 
-config/bootstrap_compile.yml:
-  class:    sfCompileConfigHandler
-
 config/core_compile.yml:
   class:    sfCompileConfigHandler
 
 config/filters.yml:
   class:    sfFilterConfigHandler
-
-config/logging.yml:
-  class:    sfLoggingConfigHandler
-  param:
-    prefix: sf_logging_
 
 config/routing.yml:
   class:    sfRoutingConfigHandler

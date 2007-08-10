@@ -1010,7 +1010,7 @@
 
   function _build_observer($klass, $name, $options = array())
   {
-    if (!isset($options['with']) && $options['update'])
+    if (!isset($options['with']) && isset($options['update']))
     {
       $options['with'] = 'value';
     }

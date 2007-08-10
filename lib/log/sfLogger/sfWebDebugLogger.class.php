@@ -16,9 +16,11 @@
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  * @version    SVN: $Id$
  */
-class sfWebDebugLogger implements sfLoggerInterface
+class sfWebDebugLogger extends sfLogger
 {
   protected
+    $context  = null,
+    $buffer   = array(),
     $webDebug = null;
 
   /**
@@ -33,7 +35,10 @@ class sfWebDebugLogger implements sfLoggerInterface
       return;
     }
 
-    $this->webDebug = sfWebDebug::getInstance();
+    $this->buffer  = array();
+    $this->context = sfContext::getInstance();
+
+    return parent::initialize($options);
   }
 
   /**
@@ -42,7 +47,7 @@ class sfWebDebugLogger implements sfLoggerInterface
    * @param string Message
    * @param string Message priority
    */
-  public function log($message, $priority = null)
+  protected function doLog($message, $priority)
   {
     if (!sfConfig::get('sf_web_debug'))
     {
@@ -50,7 +55,7 @@ class sfWebDebugLogger implements sfLoggerInterface
     }
 
     // if we have xdebug, add some stack information
-    $debug_stack = array();
+    $debugStack = array();
     if(sfConfig::get('sf_xdebug', true) && function_exists('xdebug_get_function_stack'))
     {
       foreach (xdebug_get_function_stack() as $i => $stack)
@@ -63,7 +68,7 @@ class sfWebDebugLogger implements sfLoggerInterface
             $tmp .= 'in "'.$stack['function'].'" ';
           }
           $tmp .= 'from "'.$stack['file'].'" line '.$stack['line'];
-          $debug_stack[] = $tmp;
+          $debugStack[] = $tmp;
         }
       }
     }
@@ -76,17 +81,32 @@ class sfWebDebugLogger implements sfLoggerInterface
       $message = $matches[2];
     }
 
-    // build the object containing the complete log information.
+    // build the object containing the complete log information
     $logEntry = array(
-      'priority'       => $priority,
-      'priorityString' => sfLogger::getPriorityName($priority),
-      'time'           => time(),
-      'message'        => $message,
-      'type'           => $type,
-      'debugStack'     => $debug_stack,
+      'priority'   => $priority,
+      'time'       => time(),
+      'message'    => $message,
+      'type'       => $type,
+      'debugStack' => $debugStack,
     );
 
-    // send the log object.
-    $this->webDebug->log($logEntry);
+    // send the log object
+    if (is_null($this->webDebug))
+    {
+      $this->buffer[] = $logEntry;
+
+      if ($this->context->has('sf_web_debug'))
+      {
+        $this->webDebug = $this->context->get('sf_web_debug');
+        while ($buffer = array_shift($this->buffer))
+        {
+          $this->webDebug->log($buffer);
+        }
+      }
+    }
+    else
+    {
+      $this->webDebug->log($logEntry);
+    }
   }
 }

@@ -88,7 +88,7 @@ class sfPropelData extends sfData
       // might have been empty just for force a table to be emptied on import
       if (!is_array($datas))
       {
-        return;
+        continue;
       }
 
       foreach ($datas as $key => $data)
@@ -196,31 +196,31 @@ class sfPropelData extends sfData
   /**
    * Loads the mappings for the classes
    *
-   * @param string The name of a data object
+   * @param string The model class name
    *
    * @throws sfException If the class cannot be found
    */
   protected function loadMapBuilder($class)
   {
-    $class_map_builder = $class.'MapBuilder';
+    $mapBuilderClass = $class.'MapBuilder';
     if (!isset($this->maps[$class]))
     {
-      if (!$classPath = sfAutoload::getClassPath($class_map_builder))
+      if (!$classPath = sfAutoload::getClassPath($mapBuilderClass))
       {
-        throw new sfException(sprintf('Unable to find path for class "%s".', $class_map_builder));
+        throw new sfException(sprintf('Unable to find path for class "%s".', $mapBuilderClass));
       }
 
       require_once($classPath);
-      $this->maps[$class] = new $class_map_builder();
+      $this->maps[$class] = new $mapBuilderClass();
       $this->maps[$class]->doBuild();
     }
   }
 
   /**
-   * Dumps data to fixture from 1 or more tables.
+   * Dumps data to fixture from one or more tables.
    *
    * @param string directory or file to dump to
-   * @param mixed name or names of tables to dump
+   * @param mixed  name or names of tables to dump (or all to dump all tables)
    * @param string connection name
    */
   public function dumpData($directory_or_file = null, $tables = 'all', $connectionName = 'propel')
@@ -240,12 +240,22 @@ class sfPropelData extends sfData
     $con = Propel::getConnection($connectionName);
 
     // get tables
-    if ('all' === $tables || null === $tables)
+    if ('all' === $tables || is_null($tables))
     {
-      $tables = sfFinder::type('file')->name('/(?<!Peer)\.php$/')->maxdepth(0)->in(sfConfig::get('sf_model_lib_dir'));
-      foreach ($tables as &$table)
+      // load all map builder classes
+      $files = sfFinder::type('file')->name('*MapBuilder.php')->in(sfLoader::getModelDirs());
+      foreach ($files as $file)
       {
-        $table = basename($table, '.php');
+        $mapBuilderClass = basename($file, '.php');
+        $map = new $mapBuilderClass();
+        $map->doBuild();
+      }
+
+      $dbMap = Propel::getDatabaseMap($connectionName);
+      $tables = array();
+      foreach ($dbMap->getTables() as $table)
+      {
+        $tables[] = $table->getPhpName();
       }
     }
     else if (!is_array($tables))
@@ -258,32 +268,7 @@ class sfPropelData extends sfData
     // load map classes
     array_walk($tables, array($this, 'loadMapBuilder'));
 
-    // reordering tables to take foreign keys into account
-    $move = true;
-    while ($move)
-    {
-      foreach ($tables as $i => $tableName)
-      {
-        $tableMap = $this->maps[$tableName]->getDatabaseMap()->getTable(constant($tableName.'Peer::TABLE_NAME'));
-
-        foreach ($tableMap->getColumns() as $column)
-        {
-          if ($column->isForeignKey())
-          {
-            $relatedTable = $this->maps[$tableName]->getDatabaseMap()->getTable($column->getRelatedTableName());
-            if (array_search($relatedTable->getPhpName(), $tables) > $i)
-            {
-              unset($tables[$i]);
-              $tables[] = $tableName;
-              $move = true;
-              continue 2;
-            }
-          }
-        }
-
-        $move = false;
-      }
-    }
+    $tables = $this->fixOrderingOfForeignKeyData($tables);
 
     foreach ($tables as $tableName)
     {
@@ -291,8 +276,6 @@ class sfPropelData extends sfData
 
       // get db info
       $rs = $con->executeQuery('SELECT * FROM '.constant($tableName.'Peer::TABLE_NAME'));
-
-      $dumpData[$tableName] = array();
 
       while ($rs->next())
       {
@@ -317,6 +300,11 @@ class sfPropelData extends sfData
           }
         }
 
+        if (!isset($dumpData[$tableName]))
+        {
+          $dumpData[$tableName] = array();
+        }
+
         $dumpData[$tableName][$pk] = $values;
       }
     }
@@ -324,16 +312,60 @@ class sfPropelData extends sfData
     // save to file(s)
     if ($sameFile)
     {
-      $yaml = Spyc::YAMLDump($dumpData);
-      file_put_contents($directory_or_file, $yaml);
+      file_put_contents($directory_or_file, Spyc::YAMLDump($dumpData));
     }
     else
     {
-      foreach ($dumpData as $table => $data)
+      $i = 0;
+      foreach ($tables as $tableName)
       {
-        $yaml = Spyc::YAMLDump($data);
-        file_put_contents($directory_or_file."/$table.yml", $yaml);
+        if (!isset($dumpData[$tableName]))
+        {
+          continue;
+        }
+
+        file_put_contents(sprintf("%s/%03d-%s.yml", $directory_or_file, ++$i, $tableName), Spyc::YAMLDump($dumpData[$tableName]));
       }
     }
+  }
+
+  /**
+   * Fixes the ordering of foreign key data, by outputting data a foreign key depends on before the table with the foreign key.
+   *
+   * @param array The array with the class names.
+   */
+  public function fixOrderingOfForeignKeyData($classes)
+  {
+    // reordering classes to take foreign keys into account
+    for ($i = 0, $count = count($classes); $i < $count; $i++)
+    {
+      $class = $classes[$i];
+      $tableMap = $this->maps[$class]->getDatabaseMap()->getTable(constant($class.'Peer::TABLE_NAME'));
+      foreach ($tableMap->getColumns() as $column)
+      {
+        if ($column->isForeignKey())
+        {
+          $relatedTable = $this->maps[$class]->getDatabaseMap()->getTable($column->getRelatedTableName());
+          $relatedTablePos = array_search($relatedTable->getPhpName(), $classes);
+
+          // check if relatedTable is after the current table
+          if ($relatedTablePos > $i)
+          {
+            // move related table 1 position before current table
+            $classes = array_merge(
+              array_slice($classes, 0, $i),
+              array($classes[$relatedTablePos]),
+              array_slice($classes, $i, $relatedTablePos - $i),
+              array_slice($classes, $relatedTablePos + 1)
+            );
+
+            // we have moved a table, so let's see if we are done
+            return $this->fixOrderingOfForeignKeyData($classes);
+          }
+        }
+      }
+    }
+
+    return $classes;
   }
 }
