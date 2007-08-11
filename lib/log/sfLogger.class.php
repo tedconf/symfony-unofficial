@@ -3,7 +3,7 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- * 
+ *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -28,14 +28,14 @@
  */
 abstract class sfLogger
 {
-  const EMERG   = 0; // System is unusable
-  const ALERT   = 1; // Immediate action required
-  const CRIT    = 2; // Critical conditions
-  const ERR     = 3; // Error conditions
-  const WARNING = 4; // Warning conditions
-  const NOTICE  = 5; // Normal but significant
-  const INFO    = 6; // Informational
-  const DEBUG   = 7; // Debug-level messages
+  const FATAL     = 0; // System is unusable
+  const ALERT     = 1; // Immediate action required
+  const CRITICAL  = 2; // Critical conditions
+  const ERROR     = 3; // Error conditions
+  const WARNING   = 4; // Warning conditions
+  const NOTICE    = 5; // Normal but significant
+  const INFO      = 6; // Informational
+  const DEBUG     = 7; // Debug-level messages
 
   protected
     $level = self::INFO;
@@ -141,9 +141,9 @@ abstract class sfLogger
    *
    * @param string Message
    */
-  public function emerg($message)
+  public function fatal($message)
   {
-    $this->log($message, self::EMERG);
+    $this->log($message, self::FATAL);
   }
 
   /**
@@ -161,9 +161,9 @@ abstract class sfLogger
    *
    * @param string Message
    */
-  public function crit($message)
+  public function critical($message)
   {
-    $this->log($message, self::CRIT);
+    $this->log($message, self::CRITICAL);
   }
 
   /**
@@ -171,9 +171,9 @@ abstract class sfLogger
    *
    * @param string Message
    */
-  public function err($message)
+  public function error($message)
   {
-    $this->log($message, self::ERR);
+    $this->log($message, self::ERROR);
   }
 
   /**
@@ -237,14 +237,14 @@ abstract class sfLogger
   static public function getPriorityName($priority)
   {
     static $levels  = array(
-      self::EMERG   => 'emerg',
-      self::ALERT   => 'alert',
-      self::CRIT    => 'crit',
-      self::ERR     => 'err',
-      self::WARNING => 'warning',
-      self::NOTICE  => 'notice',
-      self::INFO    => 'info',
-      self::DEBUG   => 'debug',
+      self::FATAL    => 'fatal',
+      self::ALERT    => 'alert',
+      self::CRITICAL => 'critical',
+      self::ERROR    => 'error',
+      self::WARNING  => 'warning',
+      self::NOTICE   => 'notice',
+      self::INFO     => 'info',
+      self::DEBUG    => 'debug',
     );
 
     if (!isset($levels[$priority]))

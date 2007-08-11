@@ -4,7 +4,7 @@
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
  * (c) 2004-2006 Sean Kerr.
- * 
+ *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -79,7 +79,7 @@ class sfException extends Exception
 
     if (sfConfig::get('sf_logging_enabled') && sfContext::hasInstance())
     {
-      sfContext::getInstance()->getLogger()->err(sprintf('{%s} %s', __CLASS__, $exception->getMessage()));
+      sfContext::getInstance()->getLogger()->error(sprintf('{%s} %s', __CLASS__, $exception->getMessage()));
     }
 
     if (!sfConfig::get('sf_test'))
@@ -231,7 +231,7 @@ class sfException extends Exception
    * Formats an array as a string.
    *
    * @param array The argument array
-   * @param boolean 
+   * @param boolean
    * @param string The format string (html or plain)
    *
    * @return string

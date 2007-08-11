@@ -3,7 +3,7 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- * 
+ *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -19,17 +19,17 @@
 class sfLogManager
 {
   /** the default period to rotate logs in days */
-  const DEF_PERIOD    = 7;
+  const DEFAULT_PERIOD    = 7;
 
   /** the default number of log historys to store, one history is created for every period */
-  const DEF_HISTORY   = 10;
+  const DEFAULT_HISTORY   = 10;
 
   /**
    * Rotates log file.
    *
    * @param string Application name
    * @param string Enviroment name
-   * @param string Period 
+   * @param string Period
    * @param string History
    * @param boolean Override
    *
@@ -41,8 +41,8 @@ class sfLogManager
     $logdir = sfConfig::get('sf_log_dir');
 
     // set history and period values if not passed to default values
-    $period = isset($period) ? $period : self::DEF_PERIOD;
-    $history = isset($history) ? $history : self::DEF_HISTORY;
+    $period = isset($period) ? $period : self::DEFAULT_PERIOD;
+    $history = isset($history) ? $history : self::DEFAULT_HISTORY;
 
     // get todays date
     $today = date('Ymd');

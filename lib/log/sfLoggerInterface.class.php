@@ -14,7 +14,7 @@
  * @package    symfony
  * @subpackage log
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
- * @version    SVN: $Id$
+ * @version    SVN: $Id: sfLoggerInterface.class.php 4855 2007-08-10 07:36:48Z dwhittle $
  */
 interface sfLoggerInterface
 {

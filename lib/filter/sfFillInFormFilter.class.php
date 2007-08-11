@@ -59,7 +59,7 @@ class sfFillInFormFilter extends sfFilter
     {
       if (sfConfig::get('sf_logging_enabled'))
       {
-        $this->context->getLogger()->err(sprintf('{sfFilter} %s', $e->getMessage()));
+        $this->context->getLogger()->error(sprintf('{sfFilter} %s', $e->getMessage()));
       }
     }
   }

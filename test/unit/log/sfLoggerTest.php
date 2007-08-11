@@ -3,7 +3,7 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- * 
+ *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -45,13 +45,13 @@ $t->diag('->setLogLevel() ->getLogLevel()');
 $t->is($logger->getLogLevel(), sfLogger::INFO, '->getLogLevel() gets the current log level');
 $logger->setLogLevel(sfLogger::WARNING);
 $t->is($logger->getLogLevel(), sfLogger::WARNING, '->setLogLevel() sets the log level');
-$logger->setLogLevel('err');
-$t->is($logger->getLogLevel(), sfLogger::ERR, '->setLogLevel() accepts a class constant or a string as its argument');
+$logger->setLogLevel('error');
+$t->is($logger->getLogLevel(), sfLogger::ERROR, '->setLogLevel() accepts a class constant or a string as its argument');
 
 // ->initialize()
 $t->diag('->initialize()');
-$logger->initialize(array('level' => sfLogger::ERR));
-$t->is($logger->getLogLevel(), sfLogger::ERR, '->initialize() takes an array of parameters as its first argument');
+$logger->initialize(array('level' => sfLogger::ERROR));
+$t->is($logger->getLogLevel(), sfLogger::ERROR, '->initialize() takes an array of parameters as its first argument');
 
 // ::getPriorityName()
 $t->diag('::getPriorityName()');
@@ -74,11 +74,11 @@ $t->is($logger->log, 'message', '->log() logs a message');
 
 // log level
 $t->diag('log levels');
-foreach (array('emerg', 'alert', 'crit', 'err', 'warning', 'notice', 'info', 'debug') as $level)
+foreach (array('fatal', 'alert', 'critical', 'error', 'warning', 'notice', 'info', 'debug') as $level)
 {
   $levelConstant = 'sfLogger::'.strtoupper($level);
 
-  foreach (array('emerg', 'alert', 'crit', 'err', 'warning', 'notice', 'info', 'debug') as $logLevel)
+  foreach (array('fatal', 'alert', 'critical', 'error', 'warning', 'notice', 'info', 'debug') as $logLevel)
   {
     $logLevelConstant = 'sfLogger::'.strtoupper($logLevel);
     $logger->setLogLevel(constant($logLevelConstant));
@@ -92,11 +92,11 @@ foreach (array('emerg', 'alert', 'crit', 'err', 'warning', 'notice', 'info', 'de
 
 // shortcuts
 $t->diag('log shortcuts');
-foreach (array('emerg', 'alert', 'crit', 'err', 'warning', 'notice', 'info', 'debug') as $level)
+foreach (array('fatal', 'alert', 'critical', 'error', 'warning', 'notice', 'info', 'debug') as $level)
 {
   $levelConstant = 'sfLogger::'.strtoupper($level);
 
-  foreach (array('emerg', 'alert', 'crit', 'err', 'warning', 'notice', 'info', 'debug') as $logLevel)
+  foreach (array('fatal', 'alert', 'critical', 'error', 'warning', 'notice', 'info', 'debug') as $logLevel)
   {
     $logger->setLogLevel(constant('sfLogger::'.strtoupper($logLevel)));
 

@@ -60,7 +60,7 @@ class sfWebDebugLogger extends sfLogger
     {
       foreach (xdebug_get_function_stack() as $i => $stack)
       {
-        if ((isset($stack['function']) && !in_array($stack['function'], array('emerg', 'alert', 'crit', 'err', 'warning', 'notice', 'info', 'debug', 'log'))) || !isset($stack['function']))
+        if ((isset($stack['function']) && !in_array($stack['function'], array('fatal', 'alert', 'critical', 'error', 'warning', 'notice', 'info', 'debug', 'log'))) || !isset($stack['function']))
         {
           $tmp = '';
           if (isset($stack['function']))
