@@ -12,6 +12,9 @@ cli:
     class: sfConsoleRequest
   response:
     class: sfConsoleResponse
+  storage:
+    param:
+      auto_start:  false
 
 test:
   storage:
