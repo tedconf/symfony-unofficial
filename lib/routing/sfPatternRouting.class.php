@@ -149,7 +149,7 @@ class sfPatternRouting extends sfRouting
   {
     if (sfConfig::get('sf_logging_enabled'))
     {
-      sfLogger::getInstance()->info('{sfRouting} clear all current routes');
+      sfContext::getInstance()->getLogger()->info('{sfRouting} clear all current routes');
     }
 
     $this->routes = array();
@@ -380,7 +380,7 @@ class sfPatternRouting extends sfRouting
 
     if (sfConfig::get('sf_logging_enabled'))
     {
-      sfLogger::getInstance()->info('{sfRouting} connect "'.$route.'"'.($suffix ? ' ("'.$suffix.'" suffix)' : ''));
+      sfContext::getInstance()->getLogger()->info('{sfRouting} connect "'.$route.'"'.($suffix ? ' ("'.$suffix.'" suffix)' : ''));
     }
 
     return $this->routes;
@@ -646,7 +646,7 @@ class sfPatternRouting extends sfRouting
 
           if (sfConfig::get('sf_logging_enabled'))
           {
-            sfLogger::getInstance()->info('{sfRouting} match route ['.$route_name.'] "'.$route.'"');
+            sfContext::getInstance()->getLogger()->info('{sfRouting} match route ['.$route_name.'] "'.$route.'"');
           }
 
           break;
@@ -659,7 +659,7 @@ class sfPatternRouting extends sfRouting
     {
       if (sfConfig::get('sf_logging_enabled'))
       {
-        sfLogger::getInstance()->info('{sfRouting} no matching route found');
+        sfContext::getInstance()->getLogger()->info('{sfRouting} no matching route found');
       }
 
       return null;
