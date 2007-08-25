@@ -28,7 +28,7 @@ class sfContext
       self::$instance = new sfContext();
 
       self::$instance->storage = sfStorage::newInstance('sfSessionTestStorage');
-      self::$instance->storage->initialize(self::$instance);
+      self::$instance->storage->initialize(array('session_path' => sfConfig::get('sf_test_cache_dir').'/sessions'));
 
       foreach ($factories as $type => $class)
       {
@@ -79,12 +79,23 @@ class sfContext
     return $this->controller;
   }
 
-  public function inject($type, $class)
+  public function inject($type, $class, $parameters = array())
   {
     $object = new $class();
     if (method_exists($object, 'initialize'))
     {
-      $object->initialize($this);
+      switch ($type)
+      {
+        case 'routing':
+        case 'response':
+          $object->initialize(null, $parameters);
+          break;
+        case request:
+          $object->initialize(null, $this->routing, $parameters);
+          break;
+        default:
+          $object->initialize($this, $parameters);
+      }
     }
     $this->$type = $object;
   }

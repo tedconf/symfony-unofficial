@@ -23,26 +23,69 @@
  */
 class sfWebRequest extends sfRequest
 {
-  /**
-   * A list of languages accepted by the browser.
-   * @var array
-   */
-  protected $languages = null;
+  protected
+    $languages              = null,
+    $charsets               = null,
+    $acceptableContentTypes = null,
+    $pathInfoArray          = null,
+    $relativeUrlRoot        = null,
+    $getParameters          = null,
+    $postParameters         = null,
+    $routingParameters      = null;
 
   /**
-   * A list of charsets accepted by the browser
-   * @var array
+   * Initializes this sfRequest.
+   *
+   * @param  sfLogger  A sfLogger instance (can be null)
+   * @param  sfRouting A sfRouting instance (can be null)
+   * @param  array     An associative array of initialization parameters
+   * @param  array     An associative array of initialization attributes
+   *
+   * @return Boolean   true, if initialization completes successfully, otherwise false
+   *
+   * @throws <b>sfInitializationException</b> If an error occurs while initializing this Request
    */
-  protected $charsets = null;
+  public function initialize(sfLogger $logger = null, sfRouting $routing = null, $parameters = array(), $attributes = array())
+  {
+    parent::initialize($logger, $routing, $parameters, $attributes);
 
-  /**
-   * @var array  List of content types accepted by the client.
-   */
-  protected $acceptableContentTypes = null;
+    if (isset($_SERVER['REQUEST_METHOD']))
+    {
+      switch ($_SERVER['REQUEST_METHOD'])
+      {
+        case 'GET':
+          $this->setMethod(self::GET);
+          break;
 
-  protected $pathInfoArray = null;
+        case 'POST':
+          $this->setMethod(self::POST);
+          break;
 
-  protected $relativeUrlRoot = null;
+        case 'PUT':
+          $this->setMethod(self::PUT);
+          break;
+
+        case 'DELETE':
+          $this->setMethod(self::DELETE);
+          break;
+
+        case 'HEAD':
+          $this->setMethod(self::HEAD);
+          break;
+
+        default:
+          $this->setMethod(self::GET);
+      }
+    }
+    else
+    {
+      // set the default method
+      $this->setMethod(self::GET);
+    }
+
+    // load parameters from GET/PATH_INFO/POST
+    $this->loadParameters();
+  }
 
   /**
    * Retrieves an array of file information.
@@ -53,7 +96,7 @@ class sfWebRequest extends sfRequest
    */
   public function getFile($name)
   {
-    return ($this->hasFile($name) ? $this->getFileValues($name) : null);
+    return $this->hasFile($name) ? $this->getFileValues($name) : null;
   }
 
   /**
@@ -76,7 +119,7 @@ class sfWebRequest extends sfRequest
    */
   public function getFileError($name)
   {
-    return ($this->hasFile($name) ? $this->getFileValue($name, 'error') : UPLOAD_ERR_NO_FILE);
+    return $this->hasFile($name) ? $this->getFileValue($name, 'error') : UPLOAD_ERR_NO_FILE;
   }
 
   /**
@@ -88,7 +131,7 @@ class sfWebRequest extends sfRequest
    */
   public function getFileName($name)
   {
-    return ($this->hasFile($name) ? $this->getFileValue($name, 'name') : null);
+    return $this->hasFile($name) ? $this->getFileValue($name, 'name') : null;
   }
 
   /**
@@ -120,7 +163,7 @@ class sfWebRequest extends sfRequest
    */
   public function getFilePath($name)
   {
-    return ($this->hasFile($name) ? $this->getFileValue($name, 'tmp_name') : null);
+    return $this->hasFile($name) ? $this->getFileValue($name, 'tmp_name') : null;
   }
 
   /**
@@ -132,7 +175,7 @@ class sfWebRequest extends sfRequest
    */
   public function getFileSize($name)
   {
-    return ($this->hasFile($name) ? $this->getFileValue($name, 'size') : null);
+    return $this->hasFile($name) ? $this->getFileValue($name, 'size') : null;
   }
 
   /**
@@ -147,7 +190,7 @@ class sfWebRequest extends sfRequest
    */
   public function getFileType($name)
   {
-    return ($this->hasFile($name) ? $this->getFileValue($name, 'type') : null);
+    return $this->hasFile($name) ? $this->getFileValue($name, 'type') : null;
   }
 
   /**
@@ -178,7 +221,7 @@ class sfWebRequest extends sfRequest
    */
   public function hasFileError($name)
   {
-    return ($this->hasFile($name) ? ($this->getFileValue($name, 'error') != UPLOAD_ERR_OK) : false);
+    return $this->hasFile($name) ? ($this->getFileValue($name, 'error') != UPLOAD_ERR_OK) : false;
   }
 
   /**
@@ -276,86 +319,6 @@ class sfWebRequest extends sfRequest
   }
 
   /**
-   * Initializes this sfRequest.
-   *
-   * @param sfContext A sfContext instance
-   * @param array   An associative array of initialization parameters
-   * @param array   An associative array of initialization attributes
-   *
-   * @return boolean true, if initialization completes successfully, otherwise false
-   *
-   * @throws <b>sfInitializationException</b> If an error occurs while initializing this Request
-   */
-  public function initialize($context, $parameters = array(), $attributes = array())
-  {
-    parent::initialize($context, $parameters, $attributes);
-
-    if (isset($_SERVER['REQUEST_METHOD']))
-    {
-      switch ($_SERVER['REQUEST_METHOD'])
-      {
-        case 'GET':
-          $this->setMethod(self::GET);
-          break;
-
-        case 'POST':
-          $this->setMethod(self::POST);
-          break;
-
-        case 'PUT':
-          $this->setMethod(self::PUT);
-          break;
-
-        case 'DELETE':
-          $this->setMethod(self::DELETE);
-          break;
-
-        case 'HEAD':
-          $this->setMethod(self::HEAD);
-          break;
-
-        default:
-          $this->setMethod(self::GET);
-      }
-    }
-    else
-    {
-      // set the default method
-      $this->setMethod(self::GET);
-    }
-
-    // load parameters from GET/PATH_INFO/POST
-    $this->loadParameters();
-  }
-
-  /**
-   * Returns the array that contains all request information ($_SERVER or $_ENV).
-   *
-   * This information is stored in the [sf_path_info_array] constant.
-   *
-   * @return  array Path information
-   */
-  protected function getPathInfoArray()
-  {
-    if (!$this->pathInfoArray)
-    {
-      // parse PATH_INFO
-      switch (sfConfig::get('sf_path_info_array'))
-      {
-        case 'SERVER':
-          $this->pathInfoArray =& $_SERVER;
-          break;
-
-        case 'ENV':
-        default:
-          $this->pathInfoArray =& $_ENV;
-      }
-    }
-
-    return $this->pathInfoArray;
-  }
-
-  /**
    * Retrieves the uniform resource identifier for the current web request.
    *
    * @return string Unified resource identifier
@@ -420,7 +383,7 @@ class sfWebRequest extends sfRequest
     $pathArray = $this->getPathInfoArray();
 
     // simulate PATH_INFO if needed
-    $sf_path_info_key = sfConfig::get('sf_path_info_key');
+    $sf_path_info_key = sfConfig::get('sf_path_info_key', 'PATH_INFO');
     if (!isset($pathArray[$sf_path_info_key]) || !$pathArray[$sf_path_info_key])
     {
       if (isset($pathArray['REQUEST_URI']))
@@ -457,76 +420,19 @@ class sfWebRequest extends sfRequest
     return $pathInfo;
   }
 
-  /**
-   * Loads GET, PATH_INFO and POST data into the parameter list.
-   *
-   */
-  protected function loadParameters()
+  public function getGetParameters()
   {
-    // merge GET parameters
-    if (get_magic_quotes_gpc())
-    {
-      $_GET = sfToolkit::stripslashesDeep($_GET);
-    }
-    $this->getParameterHolder()->addByRef($_GET);
+    return $this->getParameters;
+  }
 
-    $pathInfo = $this->getPathInfo();
-    if ($pathInfo)
-    {
-      // routing map defined?
-      $r = sfContext::getInstance()->getRouting();
-      if ($r->hasRoutes())
-      {
-        $results = $r->parse($pathInfo);
-        if ($results !== null)
-        {
-          $this->getParameterHolder()->addByRef($results);
-        }
-        else
-        {
-          $this->setParameter('module', sfConfig::get('sf_error_404_module'));
-          $this->setParameter('action', sfConfig::get('sf_error_404_action'));
-        }
-      }
-      else
-      {
-        $array = explode('/', trim($pathInfo, '/'));
-        $count = count($array);
+  public function getPostParameters()
+  {
+    return $this->postParameters;
+  }
 
-        for ($i = 0; $i < $count; $i++)
-        {
-          // see if there's a value associated with this parameter,
-          // if not we're done with path data
-          if ($count > ($i + 1))
-          {
-            $this->getParameterHolder()->setByRef($array[$i], $array[++$i]);
-          }
-        }
-      }
-    }
-
-    // merge POST parameters
-    if (get_magic_quotes_gpc())
-    {
-      $_POST = sfToolkit::stripslashesDeep((array) $_POST);
-    }
-    $this->getParameterHolder()->addByRef($_POST);
-
-    // move symfony parameters in a protected namespace (parameters prefixed with _sf_)
-    foreach ($this->getParameterHolder()->getAll() as $key => $value)
-    {
-      if (0 === stripos($key, '_sf_'))
-      {
-        $this->getParameterHolder()->remove($key);
-        $this->setParameter($key, $value, 'symfony/request/sfWebRequest');
-        unset($_GET[$key]);
-      }
-    }
-
-    if (sfConfig::get('sf_logging_enabled'))
-    {
-      $this->context->getLogger()->info(sprintf('{sfRequest} request parameters %s', str_replace("\n", '', var_export($this->getParameterHolder()->getAll(), true))));
-    }
+  public function getRoutingParameters()
+  {
+    return $this->routingParameters;
   }
 
   /**
@@ -818,14 +724,6 @@ class sfWebRequest extends sfRequest
   }
 
   /**
-   * Executes the shutdown procedure.
-   *
-   */
-  public function shutdown()
-  {
-  }
-
-  /**
    * Splits an HTTP header for the current web request.
    *
    * @param string Header to split
@@ -852,5 +750,95 @@ class sfWebRequest extends sfRequest
     arsort($values);
 
     return array_keys($values);
+  }
+
+  /**
+   * Returns the array that contains all request information ($_SERVER or $_ENV).
+   *
+   * This information is stored in the [sf_path_info_array] constant.
+   *
+   * @return  array Path information
+   */
+  protected function getPathInfoArray()
+  {
+    if (!$this->pathInfoArray)
+    {
+      // parse PATH_INFO
+      switch (sfConfig::get('sf_path_info_array', 'SERVER'))
+      {
+        case 'SERVER':
+          $this->pathInfoArray =& $_SERVER;
+          break;
+
+        case 'ENV':
+        default:
+          $this->pathInfoArray =& $_ENV;
+      }
+    }
+
+    return $this->pathInfoArray;
+  }
+
+  protected function parseRoutingParameters()
+  {
+    if (is_null($this->routing))
+    {
+      return;
+    }
+
+    $parameters = $this->routing->parse($this->getPathInfo());
+    if (!is_null($parameters))
+    {
+      if (!isset($parameters['module']))
+      {
+        $parameters['module'] = sfConfig::get('sf_default_module', 'default');
+      }
+
+      if (!isset($parameters['action']))
+      {
+        $parameters['action'] = sfConfig::get('sf_default_action', 'index');
+      }
+    }
+    else
+    {
+      $parameters['module'] = sfConfig::get('sf_error_404_module', 'default');
+      $parameters['action'] = sfConfig::get('sf_error_404_action', 'error404');
+    }
+
+    $this->routingParameters = $parameters;
+  }
+
+  /**
+   * Loads GET, PATH_INFO and POST data into the parameter list.
+   *
+   */
+  protected function loadParameters()
+  {
+    // GET parameters
+    $this->getParameters = get_magic_quotes_gpc() ? sfToolkit::stripslashesDeep($_GET) : $_GET;
+    $this->parameterHolder->add($this->getParameters);
+
+    // routing parameters
+    $this->parseRoutingParameters();
+    $this->parameterHolder->add($this->routingParameters);
+
+    // POST parameters
+    $this->postParameters = get_magic_quotes_gpc() ? sfToolkit::stripslashesDeep($_POST) : $_POST;
+    $this->parameterHolder->add($this->postParameters);
+
+    // move symfony parameters in a protected namespace (parameters prefixed with _sf_)
+    foreach ($this->parameterHolder->getAll() as $key => $value)
+    {
+      if (0 === stripos($key, '_sf_'))
+      {
+        $this->parameterHolder->remove($key);
+        $this->setParameter($key, $value, 'symfony/request/sfWebRequest');
+      }
+    }
+
+    if (!is_null($this->logger))
+    {
+      $this->logger->info(sprintf('{sfRequest} request parameters %s', str_replace("\n", '', var_export($this->getParameterHolder()->getAll(), true))));
+    }
   }
 }

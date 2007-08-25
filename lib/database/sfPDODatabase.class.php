@@ -93,6 +93,9 @@ class sfPDODatabase extends sfDatabase
     {
       $this->connection->setAttribute(PDO::ATTR_AUTOCOMMIT, true);
     }
+
+    $this->resource = $this->connection;
+
   }
 
   /**
@@ -104,9 +107,6 @@ class sfPDODatabase extends sfDatabase
    */
   public function shutdown()
   {
-    if ($this->connection !== null)
-    {
-      $this->connection = null;
-    }
+    $this->connection = null;
   }
 }

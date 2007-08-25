@@ -110,7 +110,7 @@ class sfFactoryConfigHandler extends sfYamlConfigHandler
           $instances[] = sprintf("  \$this->factories['request'] = sfRequest::newInstance(sfConfig::get('sf_factory_request', '%s'));", $class);
 
           // append instance initialization
-          $inits[] = sprintf("  \$this->factories['request']->initialize(\$this, sfConfig::get('sf_factory_request_parameters', %s), sfConfig::get('sf_factory_request_attributes', array()));", var_export($parameters, true));
+          $inits[] = sprintf("  \$this->factories['request']->initialize(\$this->factories['logger'], \$this->factories['routing'], sfConfig::get('sf_factory_request_parameters', %s), sfConfig::get('sf_factory_request_attributes', array()));", var_export($parameters, true));
           break;
 
         case 'response':
@@ -118,7 +118,8 @@ class sfFactoryConfigHandler extends sfYamlConfigHandler
           $instances[] = sprintf("  \$this->factories['response'] = sfResponse::newInstance(sfConfig::get('sf_factory_response', '%s'));", $class);
 
           // append instance initialization
-          $inits[] = sprintf("  \$this->factories['response']->initialize(\$this, sfConfig::get('sf_factory_response_parameters', %s));", var_export($parameters, true));
+          $inits[] = sprintf("  \$this->factories['response']->initialize(\$this->factories['logger'], sfConfig::get('sf_factory_response_parameters', %s));", var_export($parameters, true));
+          $inits[] = sprintf("  if ('HEAD' == \$this->factories['request']->getMethodName())\n  {  \n    \$this->factories['response']->setHeaderOnly(true);\n  }\n");
           break;
 
         case 'storage':
@@ -126,7 +127,13 @@ class sfFactoryConfigHandler extends sfYamlConfigHandler
           $instances[] = sprintf("  \$this->factories['storage'] = sfStorage::newInstance(sfConfig::get('sf_factory_storage', '%s'));", $class);
 
           // append instance initialization
-          $inits[] = sprintf("  \$this->factories['storage']->initialize(\$this, sfConfig::get('sf_factory_storage_parameters', %s));", var_export($parameters, true));
+          $defaultParameters = array();
+          $defaultParameters[] = sprintf("'session_id' => \$this->getRequest()->getParameter('%s'),", $parameters['session_name']);
+          if (is_subclass_of($class, 'sfDatabaseSessionStorage'))
+          {
+            $defaultParameters[] = sprintf("'database' => \$this->getDatabaseManager()->getDatabase('%s'),", isset($parameters['database']) ? $parameters['database'] : 'default');
+          }
+          $inits[] = sprintf("  \$this->factories['storage']->initialize(array_merge(array(\n%s\n), sfConfig::get('sf_factory_storage_parameters', %s)));", implode("\n", $defaultParameters), var_export($parameters, true));
           break;
 
         case 'user':
@@ -178,7 +185,7 @@ class sfFactoryConfigHandler extends sfYamlConfigHandler
           $instances[] = sprintf("  \$this->factories['routing'] = sfRouting::newInstance(sfConfig::get('sf_factory_routing', '%s'));", $class);
 
           // append instance initialization
-          $inits[] = sprintf("  \$this->factories['routing']->initialize(\$this, sfConfig::get('sf_factory_routing_parameters', %s));", var_export($parameters, true));
+          $inits[] = sprintf("  \$this->factories['routing']->initialize(\$this->factories['logger'], array_merge(array('suffix' => sfConfig::get('sf_suffix'), 'default_module' => sfConfig::get('sf_default_module'), 'default_action' => sfConfig::get('sf_default_action')), sfConfig::get('sf_factory_routing_parameters', %s)));", var_export(is_array($parameters) ? $parameters : array(), true));
           break;
 
         case 'logger':

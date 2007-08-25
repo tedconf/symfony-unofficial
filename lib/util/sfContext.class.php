@@ -162,7 +162,7 @@ class sfContext
    */
   public function getDatabaseConnection($name = 'default')
   {
-    if ($this->factories['databaseManager'] != null)
+    if (!is_null($this->factories['databaseManager']))
     {
       return $this->factories['databaseManager']->getDatabase($name)->getConnection();
     }
@@ -214,21 +214,6 @@ class sfContext
     if ($this->factories['actionStack'] && $lastEntry = $this->factories['actionStack']->getLastEntry())
     {
       return $lastEntry->getModuleName();
-    }
-  }
-
-  /**
-   * Retrieve the current view instance for this context.
-   *
-   * @return sfView The currently view instance, if one is set,
-   *                otherwise null.
-   */
-  public function getCurrentViewInstance()
-  {
-    // get the last action stack entry
-    if ($this->factories['actionStack'] && $lastEntry = $this->factories['actionStack']->getLastEntry())
-    {
-      return $lastEntry->getViewInstance();
     }
   }
 
@@ -369,8 +354,6 @@ class sfContext
     // shutdown all factories
     $this->getUser()->shutdown();
     $this->getStorage()->shutdown();
-    $this->getRequest()->shutdown();
-    $this->getResponse()->shutdown();
     $this->getRouting()->shutdown();
 
     if (sfConfig::get('sf_use_database'))

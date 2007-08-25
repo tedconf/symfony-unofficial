@@ -16,34 +16,41 @@
  * This class was initialy based on the Routes class of the Cake framework.
  *
  * @package    symfony
- * @subpackage controller
+ * @subpackage routing
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  * @version    SVN: $Id$
  */
 class sfPatternRouting extends sfRouting
 {
   protected
-    $currentRouteName   = null,
-    $currentInternalUri = null,
-    $routes             = array();
+    $currentRouteName       = null,
+    $currentInternalUri     = null,
+    $currentRouteParameters = null,
+    $defaultSuffix          = '',
+    $routes                 = array();
 
   /**
    * Initialize this Routing.
    *
-   * @param sfContext A sfContext instance.
-   * @param array     An associative array of initialization parameters.
+   * @param sfLogger A sfLogger instance (or null)
+   * @param array An associative array of initialization parameters.
    *
    * @return bool true, if initialization completes successfully, otherwise false.
    *
    * @throws <b>sfInitializationException</b> If an error occurs while initializing this User.
    */
-  public function initialize($context, $parameters = array())
+  public function initialize(sfLogger $logger = null, $parameters = array())
   {
-    parent::initialize($context, $parameters);
+    parent::initialize($logger, $parameters);
 
-    if ($config = sfConfigCache::getInstance()->checkConfig(sfConfig::get('sf_app_config_dir_name').'/routing.yml', true))
+    $this->setDefaultSuffix($this->parameterHolder->get('suffix'));
+
+    if ($this->parameterHolder->get('load_configuration', false))
     {
-      include($config);
+      if ($config = sfConfigCache::getInstance()->checkConfig(sfConfig::get('sf_app_config_dir_name').'/routing.yml', true))
+      {
+        include($config);
+      }
     }
   }
 
@@ -55,7 +62,7 @@ class sfPatternRouting extends sfRouting
    *
    * @return string The current internal URI
    */
-  public function getCurrentInternalUri($with_route_name = false)
+  public function getCurrentInternalUri($withRouteName = false)
   {
     if (is_null($this->currentRouteName))
     {
@@ -64,17 +71,20 @@ class sfPatternRouting extends sfRouting
 
     if (is_null($this->currentInternalUri))
     {
-      list($url, $regexp, $names, $names_hash, $defaults, $requirements, $suffix) = $this->routes[$this->currentRouteName];
+      $parameters = $this->currentRouteParameters;
 
-      $request = $this->context->getRequest();
+      list($url, $regexp, $names, $namesHash, $defaults, $requirements, $suffix) = $this->routes[$this->currentRouteName];
 
-      if ($with_route_name)
+      if ($withRouteName)
       {
-        $internal_uri = '@'.$this->currentRouteName;
+        $internalUri = '@'.$this->currentRouteName;
       }
       else
       {
-        $internal_uri = $request->getParameter('module', isset($defaults['module']) ? $defaults['module'] : '').'/'.$request->getParameter('action', isset($defaults['action']) ? $defaults['action'] : '');
+        $module = isset($parameters['module']) ? $parameters['module'] : $this->parameterHolder->get('default_module');
+        $action = isset($parameters['action']) ? $parameters['action'] : $this->parameterHolder->get('default_action');
+
+        $internalUri = $module.'/'.$action;
       }
 
       $params = array();
@@ -84,13 +94,13 @@ class sfPatternRouting extends sfRouting
       {
         if ($name == 'module' || $name == 'action') continue;
 
-        $params[] = $name.'='.$request->getParameter($name, isset($defaults[$name]) ? $defaults[$name] : '');
+        $params[] = $name.'='.isset($parameters[$name]) ? $parameters[$name] : (isset($defaults[$name]) ? $defaults[$name] : '');
       }
 
       // add * parameters if needed
       if (strpos($url, '*'))
       {
-        foreach ($request->getParameterHolder()->getAll() as $key => $value)
+        foreach ($parameters as $key => $value)
         {
           if ($key == 'module' || $key == 'action' || in_array($key, $names))
           {
@@ -104,10 +114,15 @@ class sfPatternRouting extends sfRouting
       // sort to guaranty unicity
       sort($params);
 
-      $this->currentInternalUri = $internal_uri.($params ? '?'.implode('&', $params) : '');
+      $this->currentInternalUri = $internalUri.($params ? '?'.implode('&', $params) : '');
     }
 
     return $this->currentInternalUri;
+  }
+
+  public function setDefaultSuffix($suffix)
+  {
+    $this->defaultSuffix = '.' == $suffix ? '' : $suffix;
   }
 
   /**
@@ -147,9 +162,9 @@ class sfPatternRouting extends sfRouting
    */
   public function clearRoutes()
   {
-    if (sfConfig::get('sf_logging_enabled'))
+    if (!is_null($this->logger))
     {
-      sfContext::getInstance()->getLogger()->info('{sfRouting} clear all current routes');
+      $this->logger->info('{sfRouting} clear all current routes');
     }
 
     $this->routes = array();
@@ -168,48 +183,6 @@ class sfPatternRouting extends sfRouting
   }
 
   /**
-   * Gets a route by its name.
-   *
-   * @param string The route name
-   *
-   * @return  array A route array
-   */
-  public function getRouteByName($name)
-  {
-    if ($name[0] == '@')
-    {
-      $name = substr($name, 1);
-    }
-
-    if (!isset($this->routes[$name]))
-    {
-      throw new sfConfigurationException(sprintf('The route "%s" does not exist', $name));
-    }
-
-    return $this->routes[$name];
-  }
-
-  /**
-   * Sets the current route name.
-   *
-   * @param string The route name
-   */
-  protected function setCurrentRouteName($name)
-  {
-    $this->currentRouteName = $name;
-  }
-
-  /**
-   * Gets the current route name.
-   *
-   * @return string The route name
-   */
-  public function getCurrentRouteName()
-  {
-    return $this->currentRouteName;
-  }
-
-  /**
    * Adds a new route at the beginning of the current list of routes.
    *
    * @see connect
@@ -220,40 +193,6 @@ class sfPatternRouting extends sfRouting
     $this->routes = array();
     $newroutes = $this->connect($name, $route, $default, $requirements);
     $this->routes = array_merge($newroutes, $routes);
-
-    return $this->routes;
-  }
-
-  /**
-   * Adds a new route before a given one in the current list of routes.
-   *
-   * @see connect
-   */
-  public function insertRouteBefore($referent_route_name, $name, $route, $default = array(), $requirements = array())
-  {
-    // referent route exists?
-    if (!isset($this->routes[$referent_route_name]))
-    {
-      $error = 'The named route to insert before does not exists ("%s").';
-      $error = sprintf($error, $name);
-
-      throw new sfConfigurationException($error);
-    }
-
-    $routes = $this->routes;
-    $this->routes = array();
-    $newroutes = array();
-    $offset = 0;
-    foreach($routes as $key => $value)
-    {
-      if($key == $referent_route_name)
-      {
-        $newroutes = array_merge($newroutes, $this->connect($name, $route, $default, $requirements));
-      }
-      $newroutes[$key] = $value;
-      $offset++;
-    }
-    $this->routes = $newroutes;
 
     return $this->routes;
   }
@@ -295,92 +234,98 @@ class sfPatternRouting extends sfRouting
     // route already exists?
     if (isset($this->routes[$name]))
     {
-      $error = 'This named route already exists ("%s").';
-      $error = sprintf($error, $name);
-
-      throw new sfConfigurationException($error);
+      throw new sfConfigurationException(sprintf('This named route already exists ("%s").', $name));
     }
 
-    $suffix = (($sf_suffix = sfConfig::get('sf_suffix')) == '.') ? '' : $sf_suffix;
+    $parsed = array();
+    $names  = array();
+    $suffix = $this->defaultSuffix;
 
-    // a route must start by a slash. If there is none, add it automatically
-    if(('/' != $route[0]))
-    {
-      $route = '/'.$route;
-    }
+    // used for performance reasons
+    $namesHash = array();
 
-    if ($route == '/')
+    $r = null;
+    if (($route == '') || ($route == '/'))
     {
-      $this->routes[$name] = array($route, '/^[\/]*$/', array(), array(), $default, $requirements, $suffix);
+      $regexp = '/^[\/]*$/';
+      $this->routes[$name] = array($route, $regexp, array(), array(), $default, $requirements, $suffix);
     }
     else
     {
-      preg_match_all('/[:$]([\w\d_]+)/', $route, $matches);
-
-      $tokens    = $matches[0];
-      $variables = $matches[1];
-
-      $patterns = array();
-      foreach($variables as $variable)
+      $elements = array();
+      foreach (explode('/', $route) as $element)
       {
-        // regex is [^\/]+ or the requirement regex
-        if (isset($requirements[$variable]))
+        if (trim($element))
         {
-          $regex = $requirements[$variable];
-          if (0 === strpos($regex, '^'))
+          $elements[] = $element;
+        }
+      }
+
+      if (!isset($elements[0]))
+      {
+        return false;
+      }
+
+      // specific suffix for this route?
+      // or /$ directory
+      if (preg_match('/^(.+)(\.\w*)$/i', $elements[count($elements) - 1], $matches))
+      {
+        $suffix = '.' == $matches[2] ? '' : $matches[2];
+        $elements[count($elements) - 1] = $matches[1];
+        $route = '/'.implode('/', $elements);
+      }
+      else if ($route{strlen($route) - 1} == '/')
+      {
+        $suffix = '/';
+      }
+
+      $regexp_suffix = preg_quote($suffix);
+
+      foreach ($elements as $element)
+      {
+        if (preg_match('/^:(.+)$/', $element, $r))
+        {
+          $element = $r[1];
+
+          // regex is [^\/]+ or the requirement regex
+          if (isset($requirements[$element]))
           {
-            $regex = substr($regex, 1);
+            $regex = $requirements[$element];
+            if (0 === strpos($regex, '^'))
+            {
+              $regex = substr($regex, 1);
+            }
+            if (strlen($regex) - 1 === strpos($regex, '$'))
+            {
+              $regex = substr($regex, 0, -1);
+            }
           }
-          if (strlen($regex) - 1 === strpos($regex, '$'))
+          else
           {
-            $regex = substr($regex, 0, -1);
+            $regex = '[^\/]+';
           }
+
+          $parsed[] = '(?:\/('.$regex.'))?';
+          $names[] = $element;
+          $namesHash[$element] = 1;
+        }
+        elseif (preg_match('/^\*$/', $element, $r))
+        {
+          $parsed[] = '(?:\/(.*))?';
         }
         else
         {
-          $regex = '[^\/]+?';
-        }
-        $patterns[$variable] = $regex;
-      }
-
-      if (preg_match('/(\.[:$]?[\w\d_]*)$/i', $route, $matches) // specific suffix for this route
-           ||
-         ($route[strlen($route) - 1] == '/'))         //route ends by / (directory)
-      {
-        // then ignore the default suffix
-        $suffix = '';
-        if($route[strlen($route) - 1] == '.')
-        {
-          $route = substr($route, 0, strlen($route) -1);
+          $parsed[] = '/'.$element;
         }
       }
+      $regexp = '#^'.join('', $parsed).$regexp_suffix.'$#';
 
-      $regexp = $route;
-
-      // translate unnamed tokens
-      $regexp = str_replace('/*', '(?:\/(.*))?', $regexp);
-      $pattern_details = array();
-
-      foreach($variables as $key => $variable)
-      {
-        $separator = $regexp{strpos($regexp, $tokens[$key])-1};
-        $regexp = str_replace($separator.$tokens[$key], '(?:'.preg_quote($separator, '/').'('.$patterns[$variable].'))?', $regexp);
-        $pattern_details[$variable] = array(
-         'separator' => $separator,
-         'token'     => $tokens[$key],
-         'pattern'   => $patterns[$variable]
-        );
-      }
-
-      $regexp = '#^'.$regexp.preg_quote($suffix).'$#';
-
-      // we keep the patterns array for speed reasons in generate() and parse()
-      $this->routes[$name] = array($route, $regexp, $variables, $pattern_details, $default, $requirements, $suffix);
+      $this->routes[$name] = array($route, $regexp, $names, $namesHash, $default, $requirements, $suffix);
     }
 
-    if (sfConfig::get('sf_logging_enabled'))
+    if (!is_null($this->logger))
     {
-      sfContext::getInstance()->getLogger()->info('{sfRouting} connect "'.$route.'"'.($suffix ? ' ("'.$suffix.'" suffix)' : ''));
+      $this->logger->info(sprintf('{sfRouting} connect "%s"%s', $route, $suffix ? ' ("'.$suffix.'" suffix)' : ''));
     }
 
     return $this->routes;
@@ -397,31 +342,23 @@ class sfPatternRouting extends sfRouting
   */
   public function generate($name, $params, $querydiv = '/', $divider = '/', $equals = '/')
   {
-    $global_defaults = sfConfig::get('sf_routing_defaults', null);
-
     // named route?
     if ($name)
     {
       if (!isset($this->routes[$name]))
       {
-        $error = 'The route "%s" does not exist.';
-        $error = sprintf($error, $name);
-
-        throw new sfConfigurationException($error);
+        throw new sfConfigurationException(sprintf('The route "%s" does not exist.', $name));
       }
 
-      list($url, $regexp, $variables, $patterns, $defaults, $requirements, $suffix) = $this->routes[$name];
-      if ($global_defaults !== null)
-      {
-        $defaults = array_merge($defaults, $global_defaults);
-      }
+      list($url, $regexp, $names, $namesHash, $defaults, $requirements, $suffix) = $this->routes[$name];
+      $defaults = array_merge($defaults, $this->defaultParameters);
 
       // all params must be given
-      foreach ($variables as $variable)
+      foreach ($names as $tmp)
       {
-        if (!isset($params[$variable]) && !isset($defaults[$variable]))
+        if (!isset($params[$tmp]) && !isset($defaults[$tmp]))
         {
-          throw new sfException(sprintf('Route named "%s" have a mandatory "%s" parameter', $name, $variable));
+          throw new sfException(sprintf('Route named "%s" have a mandatory "%s" parameter.', $name, $tmp));
         }
       }
     }
@@ -431,16 +368,13 @@ class sfPatternRouting extends sfRouting
       $found = false;
       foreach ($this->routes as $name => $route)
       {
-        list($url, $regexp, $variables, $patterns, $defaults, $requirements, $suffix) = $route;
-        if ($global_defaults !== null)
-        {
-          $defaults = array_merge($defaults, $global_defaults);
-        }
+        list($url, $regexp, $names, $namesHash, $defaults, $requirements, $suffix) = $route;
+        $defaults = array_merge($defaults, $this->defaultParameters);
 
         $tparams = array_merge($defaults, $params);
 
         // we must match all names (all $names keys must be in $params array)
-        foreach ($variables as $key)
+        foreach ($names as $key)
         {
           if (!isset($tparams[$key])) continue 2;
         }
@@ -448,7 +382,7 @@ class sfPatternRouting extends sfRouting
         // we must match all defaults with value except if present in names
         foreach ($defaults as $key => $value)
         {
-          if (isset($patterns[$key])) continue;
+          if (isset($namesHash[$key])) continue;
 
           if (!isset($tparams[$key]) || $tparams[$key] != $value) continue 2;
         }
@@ -465,7 +399,7 @@ class sfPatternRouting extends sfRouting
         // we must have consumed all $params keys if there is no * in route
         if (!strpos($url, '*'))
         {
-          if (count(array_diff(array_keys($tparams), $variables, array_keys($defaults))))
+          if (count(array_diff(array_keys($tparams), $names, array_keys($defaults))))
           {
             continue;
           }
@@ -478,29 +412,21 @@ class sfPatternRouting extends sfRouting
 
       if (!$found)
       {
-        $error = 'Unable to find a matching routing rule to generate url for params "%s".';
-        $error = sprintf($error, var_export($params));
-
-        throw new sfConfigurationException($error);
+        throw new sfConfigurationException(sprintf('Unable to find a matching routing rule to generate url for params "%s".', var_export($params)));
       }
     }
 
     $params = array_merge($defaults, $params);
 
-    $real_url = $url;
-
-    foreach($variables as $variable)
-    {
-      $real_url = str_replace($patterns[$variable]['token'], $params[$variable], $real_url);
-    }
+    $realUrl = preg_replace('/\:([^\/]+)/e', 'urlencode($params["\\1"])', $url);
 
     // we add all other params if *
-    if (strpos($real_url, '*'))
+    if (strpos($realUrl, '*'))
     {
       $tmp = array();
       foreach ($params as $key => $value)
       {
-        if (isset($patterns[$key]) || isset($defaults[$key])) continue;
+        if (isset($namesHash[$key]) || isset($defaults[$key])) continue;
 
         if (is_array($value))
         {
@@ -519,22 +445,21 @@ class sfPatternRouting extends sfRouting
       {
         $tmp = $querydiv.$tmp;
       }
-      $real_url = str_replace('/*', $tmp, $real_url);
-
-      // strip off last divider character
-      if (strlen($real_url) > 1)
-      {
-        $real_url = rtrim($real_url, $divider);
-      }
-
+      $realUrl = preg_replace('/\/\*(\/|$)/', "$tmp$1", $realUrl);
     }
 
-    if ($real_url != '/')
+    // strip off last divider character
+    if (strlen($realUrl) > 1)
     {
-      $real_url .= $suffix;
+      $realUrl = rtrim($realUrl, $divider);
     }
 
-    return $real_url;
+    if ($realUrl != '/')
+    {
+      $realUrl .= $suffix;
+    }
+
+    return $realUrl;
   }
 
  /**
@@ -562,12 +487,14 @@ class sfPatternRouting extends sfRouting
 
     // we remove multiple /
     $url = preg_replace('#/+#', '/', $url);
-    foreach ($this->routes as $route_name => $route)
+    $out = array();
+    $break = false;
+    foreach ($this->routes as $routeName => $route)
     {
       $out = array();
       $r = null;
 
-      list($route, $regexp, $names, $names_hash, $defaults, $requirements, $suffix) = $route;
+      list($route, $regexp, $names, $namesHash, $defaults, $requirements, $suffix) = $route;
 
       $break = false;
 
@@ -620,7 +547,7 @@ class sfPatternRouting extends sfRouting
             foreach ($pass as $key => $value)
             {
               // we add this parameters if not in conflict with named url element (i.e. ':action')
-              if (!isset($names_hash[$key]))
+              if (!isset($namesHash[$key]))
               {
                 $out[$key] = $value;
               }
@@ -641,12 +568,12 @@ class sfPatternRouting extends sfRouting
         if ($break)
         {
           // we store route name
-          $this->currentRouteName = $route_name;
+          $this->currentRouteName = $routeName;
           $this->currentInternalUri = null;
 
-          if (sfConfig::get('sf_logging_enabled'))
+          if (!is_null($this->logger))
           {
-            sfContext::getInstance()->getLogger()->info('{sfRouting} match route ['.$route_name.'] "'.$route.'"');
+            $this->logger->info(sprintf('{sfRouting} match route [%s] "%s"', $routeName, $route));
           }
 
           break;
@@ -654,18 +581,20 @@ class sfPatternRouting extends sfRouting
       }
     }
 
+    $this->currentRouteParameters = $out;
+
     // no route found
     if (!$break)
     {
-      if (sfConfig::get('sf_logging_enabled'))
+      if (!is_null($this->logger))
       {
-        sfContext::getInstance()->getLogger()->info('{sfRouting} no matching route found');
+        $this->logger->info('{sfRouting} no matching route found');
       }
 
-      return null;
+      $this->currentRouteParameters = null;
     }
 
-    return $out;
+    return $this->currentRouteParameters;
   }
 }
 
