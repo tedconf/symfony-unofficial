@@ -3,7 +3,7 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- * 
+ *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -28,12 +28,28 @@ class sfCommonFilter extends sfFilter
     // execute next filter
     $filterChain->execute();
 
-    // execute this filter only once
     $response = $this->context->getResponse();
+
+    /** don't add common html elements for:
+     * for XHR requests
+     * if content type not html
+     * if 304
+     * if not rendering to the client
+     * if HTTP headers only
+     */
+    if($this->context->getRequest()->isXmlHttpRequest() ||
+       strpos($response->getContentType(), 'html') === false ||
+       $response->getStatusCode() == 304 ||
+       $this->context->getController()->getRenderMode() != sfView::RENDER_CLIENT ||
+       $response->isHeaderOnly()
+    )
+    {
+      return;
+    }
 
     // include javascripts and stylesheets
     $content = $response->getContent();
-    if (false !== ($pos = strpos($content, '</head>')))
+    if(false !== ($pos = strpos($content, '</head>')))
     {
       sfLoader::loadHelpers(array('Tag', 'Asset'));
       $html = '';
