@@ -67,11 +67,11 @@ EOF;
     $this->checkAppExists($application);
 
     $config = sprintf('cache/%s/%s/config/config_core_compile.yml.php', $application, $environment);
+
     if(!is_readable($config))
     {
-      $cacheCreate = new sfCacheCreateTask($this->commandApplication);
+      $cacheCreate = new sfCacheGenerateTask($this->commandApplication);
       $cacheCreate->run(array('application' => $arguments['application'],  'environment' => $arguments['environment']));
-      // throw new sfCommandException('No configuration cache to optimize.');
     }
 
     $optimizer = new sfOptimizer();

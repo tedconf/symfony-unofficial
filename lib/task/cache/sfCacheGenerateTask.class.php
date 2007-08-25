@@ -9,14 +9,15 @@
  */
 
 /**
- * Creates the symfony cache.
+ * Generates the symfony cache by simulating a web browser and requesting a list of URIs.
  *
  * @package    symfony
  * @subpackage command
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
- * @version    SVN: $Id: sfCacheCreateTask.class.php 4855 2007-08-10 07:36:48Z dwhittle $
+ * @author     Dustin Whittle <dustin.whittle@symfony-project.com>
+ * @version    SVN: $Id: sfCacheGenerateTask.class.php 4855 2007-08-10 07:36:48Z dwhittle $
  */
-class sfCacheCreateTask extends sfBaseTask
+class sfCacheGenerateTask extends sfBaseTask
 {
   /**
    * @see sfTask
@@ -30,19 +31,19 @@ class sfCacheCreateTask extends sfBaseTask
       new sfCommandArgument('environment', sfCommandArgument::OPTIONAL, 'The environment name', 'prod'),
     ));
 
-    $this->aliases = array('create-cache');
+    $this->aliases = array('cache-generate', 'prefetch');
     $this->namespace = 'cache';
-    $this->name = 'create';
-    $this->briefDescription = 'Creates the symfony cache for an application and environment';
+    $this->name = 'generate';
+    $this->briefDescription = 'Generates the symfony cache for an application and environment';
 
     $this->detailedDescription = <<<EOF
-The [cache:create|INFO] task creates the symfony cache.
+The [cache:generate|INFO] task generates the symfony cache by simulating a web browser and requesting a list of URIs.
 
-If it's called with an application name and environment.
+It can also be called with an application name and environment.
 
-So, to create the frontend application configuration for production environment:
+So, to generate the frontend application configuration for production environment:
 
-  [./symfony cache:create frontend prod|INFO]
+  [./symfony cache:generate frontend prod|INFO]
 
 EOF;
   }
@@ -69,12 +70,13 @@ EOF;
 
     $application = $arguments['application'];
     $environment = $arguments['environment'];
-    $uris        = array('/');
+
+    $uris        = sfConfig::get('sf_prefetch_uris', array('/'));
 
     $this->checkAppExists($application);
 
-    // simulate a request to populate config cache files
-    // and get the current configuration
+    // simulate a request to populate configuration cache files for the current application and environment
+    // only works for one application / environment per execution
     define('SF_ROOT_DIR',    realpath('./'));
     define('SF_APP',         $application);
     define('SF_ENVIRONMENT', $environment);
@@ -89,6 +91,6 @@ EOF;
       $browser->get($uri);
     }
 
-    $this->log($this->formatSection('cache', sprintf('cache created for application "%s" in environment "%s"', $application, $environment)));
+    $this->log($this->formatSection('cache', sprintf('cache generated for application "%s" in environment "%s"', $application, $environment)));
   }
 }
