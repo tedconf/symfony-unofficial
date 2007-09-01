@@ -246,6 +246,28 @@ class sfWebResponse extends sfResponse
   }
 
   /**
+   * Sets preferred response content type by comparing accepted content types to input values
+   *
+   * @param string Content type
+   *
+   */
+  public function setPreferredContentType($preferredContentTypes)
+  {
+    if(is_array($preferredContentTypes))
+    {
+      $acceptedContentTypes = sfContext::getInstance()->getRequest()->getAcceptableContentTypes();
+      foreach($preferredContentTypes as $contentType)
+      {
+       if(in_array($contentType, $acceptedContentTypes))
+       {
+         $this->setContentType($contentType);
+         break;
+       }
+      }
+    }
+  }
+
+  /**
    * Gets response content type.
    *
    * @return array

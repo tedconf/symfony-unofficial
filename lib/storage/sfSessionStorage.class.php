@@ -67,7 +67,7 @@ class sfSessionStorage extends sfStorage
       session_set_cookie_params($lifetime, $path, $domain, $secure);
     }
 
-    if ($this->getParameter('auto_start', true) && !$context->getController()->inCLI())
+    if ($this->getParameter('auto_start', true))
     {
       // start our session
       session_start();

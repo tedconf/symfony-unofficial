@@ -31,6 +31,8 @@ class sfFillInFormFilter extends sfFilter
     $response = $this->context->getResponse();
     $request  = $this->context->getRequest();
 
+    $content = $response->getContent();
+
     if(strpos($response->getContentType(), 'html') && strpos($content, '<form')) // only run if there is an html document and a form on the page
     {
       $fillInForm = new sfFillInForm();

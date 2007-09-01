@@ -116,8 +116,17 @@ function javascript_include_tag()
     {
       unset($sourceOptions['raw_name']);
     }
+
+    $condition = false;
+    if(isset($sourceOptions['condition']))
+    {
+      $condition = $sourceOptions['condition'];
+      unset($sourceOptions['condition']);
+    }
+
     $options = array_merge(array('type' => 'text/javascript', 'src' => $source), $sourceOptions);
-    $html   .= content_tag('script', '', $options)."\n";
+    $content = content_tag('script', '', $options)."\n";
+    $html .= ($condition) ? conditional($condition, $content) : $content;
   }
 
   return $html;
@@ -197,8 +206,17 @@ function stylesheet_tag()
     {
       unset($sourceOptions['raw_name']);
     }
+
+    $condition = false;
+    if(isset($sourceOptions['condition']))
+    {
+      $condition = $sourceOptions['condition'];
+      unset($sourceOptions['condition']);
+    }
+
     $options = array_merge(array('rel' => 'stylesheet', 'type' => 'text/css', 'media' => 'screen', 'href' => $source), $sourceOptions);
-    $html   .= tag('link', $options)."\n";
+    $content = tag('link', $options)."\n";
+    $html .= ($condition) ? conditional($condition, $content) : $content;
   }
 
   return $html;
@@ -222,6 +240,79 @@ function use_stylesheet($css, $position = '', $options = array())
 function use_javascript($js, $position = '', $options = array())
 {
   sfContext::getInstance()->getResponse()->addJavascript($js, $position, $options);
+}
+
+/**
+ * Returns a <script> include tag relative to a dynamic PJS action.
+ *
+ * <b>Examples:</b>
+ * <code>
+ *  echo pjs_include_tag('foo/bar');
+ *    => <script language="JavaScript" type="text/javascript" src="/js/foo/bar.pjs"></script>
+ *  echo pjs_include_tag('foo/bar?id=12');
+ *    => <script language="JavaScript" type="text/javascript" src="/js/foo/bar/id/12.pjs"></script>
+ *  echo pjs_include_tag('foo/bar', null, array('query_string' => 'id=12'));
+ *    => <script language="JavaScript" type="text/javascript" src="/js/foo/bar.pjs?id=12"></script>
+ *  echo pjs_include_tag('foo/bar', true);
+ *    => <script language="JavaScript" type="text/javascript" src="http://localhost/js/foo/bar.pjs"></script>
+ * </code>
+ *
+ * @param  string Internal URI of the action to call
+ * @param  bool return absolute path ?
+ * @param  array options for the URL generation (to include query string)
+ * @return string <script> include tag to the dynamic JavaScript file
+ */
+function pjs_include_tag($uri, $absolute = false, $options = array())
+{
+  return javascript_include_tag(pjs_path($uri, $absolute, $options), array('raw_name' => true));
+}
+
+/**
+ * Adds a <script> include tag relative to the response content, where it is called
+ *
+ * @see pjs_include_tag
+ *
+ */
+function use_pjs($uri, $absolute = false, $options = array())
+{
+  echo pjs_include_tag($uri, $absolute = false, $options = array());
+}
+
+/**
+ * Returns the path to a dynamic PJS action.
+ *
+ * <b>Examples:</b>
+ * <code>
+ *  echo pjs_path('foo/bar');
+ *    => /js/foo/bar.pjs
+ *  echo pjs_path('foo/bar?id=12');
+ *    => /js/foo/bar/id/12.pjs
+ *  echo pjs_path('foo/bar', null, array('query_string' => 'id=12'));
+ *    => /js/foo/bar.pjs?id=12
+ *  echo pjs_path('foo/bar', true);
+ *    => http://localhost/js/foo/bar.pjs
+ * </code>
+ *
+ * @param  string Internal URI of the action to call
+ * @param  bool return absolute path ?
+ * @param  array options for the URL generation (to include query string)
+ * @return string external URL to the dynamic JavaScript file
+ */
+function pjs_path($uri, $absolute = false, $options = array())
+{
+  $urlArguments = '';
+  if (false !== $pos = strpos($uri, '?'))
+  {
+    $urlArguments = '&'.substr($uri, $pos + 1);
+    $uri = substr($uri, 0, $pos);
+  }
+
+  list($module, $action) = explode('/', $uri);
+
+  $url = sprintf('@default_pjs?format=js&module=%s&action=%s'.$urlArguments, $module, $action);
+  $query_string = isset($options['query_string']) ? '?'.$options['query_string'] : '';
+
+  return url_for($url, $absolute).$query_string;
 }
 
 /**
