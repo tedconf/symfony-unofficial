@@ -39,6 +39,21 @@ class sfUser
     $dispatcher      = null;
 
   /**
+   * Class constructor.
+   *
+   * @see initialize()
+   */
+  public function __construct(sfEventDispatcher $dispatcher, sfStorage $storage, $parameters = array())
+  {
+    $this->initialize($dispatcher, $storage, $parameters);
+
+    if ($this->getParameter('auto_shutdown', true))
+    {
+      register_shutdown_function(array($this, 'shutdown'));
+    }
+  }
+
+  /**
    * Initializes this sfUser.
    *
    * @param sfEventDispatcher A sfEventDispatcher instance.
@@ -74,9 +89,7 @@ class sfUser
     //  - use the culture defined in the user session
     //  - use the default culture set in i18n.yml
     $currentCulture = $storage->read(self::CULTURE_NAMESPACE);
-    $culture = $this->parameterHolder->get('culture', !is_null($currentCulture) ? $currentCulture : $this->parameterHolder->get('default_culture', 'en'));
-
-    $this->setCulture($culture);
+    $this->setCulture($this->parameterHolder->get('culture', !is_null($currentCulture) ? $currentCulture : $this->parameterHolder->get('default_culture', 'en')));
 
     // flag current flash to be removed at shutdown
     if ($this->parameterHolder->get('use_flash', false) && $names = $this->attributeHolder->getNames('symfony/user/sfUser/flash'))
@@ -94,28 +107,7 @@ class sfUser
   }
 
   /**
-   * Retrieve a new sfUser implementation instance.
-   *
-   * @param string A sfUser implementation name
-   *
-   * @return User A sfUser implementation instance.
-   *
-   * @throws <b>sfFactoryException</b> If a user implementation instance cannot
-   */
-  public static function newInstance($class)
-  {
-    $object = new $class();
-
-    if (!$object instanceof sfUser)
-    {
-      throw new sfFactoryException(sprintf('Class "%s" is not of the type sfUser.', $class));
-    }
-
-    return $object;
-  }
-
-  /**
-   * Sets culture.
+   * Sets the user culture.
    *
    * @param  string culture
    */
@@ -241,7 +233,7 @@ class sfUser
   }
 
   /**
-   * Execute the shutdown procedure.
+   * Executes the shutdown procedure.
    *
    * @return void
    */

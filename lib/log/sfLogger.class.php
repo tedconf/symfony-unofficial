@@ -41,29 +41,18 @@ abstract class sfLogger
     $level = self::INFO;
 
   /**
-   * Retrieves a new sfLogger implementation instance.
+   * Class constructor.
    *
-   * @param string A sfLogger implementation name
-   *
-   * @return User A sfLogger implementation instance.
-   *
-   * @throws <b>sfFactoryException</b> If a logger implementation instance cannot
+   * @see initialize()
    */
-  public static function newInstance($class)
+  public function __construct(sfEventDispatcher $dispatcher, $options = array())
   {
-    $object = new $class();
+    $this->initialize($dispatcher, $options);
 
-    if ($object instanceof sfLoggerInterface)
+    if (isset($options['auto_shutdown']) && $options['auto_shutdown'])
     {
-      return new sfLoggerWrapper($object);
+      register_shutdown_function(array($this, 'shutdown'));
     }
-
-    if (!$object instanceof sfLogger)
-    {
-      throw new sfFactoryException(sprintf('Class "%s" is not of the type sfLogger.', $class));
-    }
-
-    return $object;
   }
 
   /**

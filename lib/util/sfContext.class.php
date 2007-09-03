@@ -40,8 +40,7 @@ class sfContext
     if (sfConfig::get('sf_use_database'))
     {
       // setup our database connections
-      $this->factories['databaseManager'] = new sfDatabaseManager();
-      $this->factories['databaseManager']->initialize();
+      $this->factories['databaseManager'] = new sfDatabaseManager(array('auto_shutdown' => false));
     }
 
     // create a new action stack
@@ -372,11 +371,6 @@ class sfContext
     if (sfConfig::get('sf_use_database'))
     {
       $this->getDatabaseManager()->shutdown();
-    }
-
-    if (sfConfig::get('sf_cache'))
-    {
-      $this->getViewCacheManager()->shutdown();
     }
 
     if (sfConfig::get('sf_logging_enabled'))

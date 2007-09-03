@@ -24,6 +24,21 @@ abstract class sfStorage
     $parameterHolder = null;
 
   /**
+   * Class constructor.
+   *
+   * @see initialize()
+   */
+  public function __construct($parameters = array())
+  {
+    $this->initialize($parameters);
+
+    if ($this->getParameter('auto_shutdown', true))
+    {
+      register_shutdown_function(array($this, 'shutdown'));
+    }
+  }
+
+  /**
    * Initializes this Storage instance.
    *
    * @param array   An associative array of initialization parameters
@@ -36,27 +51,6 @@ abstract class sfStorage
   {
     $this->parameterHolder = new sfParameterHolder();
     $this->getParameterHolder()->add($parameters);
-  }
-
-  /**
-   * Retrieves a new sfStorage implementation instance.
-   *
-   * @param string A sfStorage implementation name
-   *
-   * @return sfStorage A sfStorage implementation instance
-   *
-   * @throws <b>sfFactoryException</b> If a storage implementation instance cannot be created
-   */
-  public static function newInstance($class)
-  {
-    $object = new $class();
-
-    if (!$object instanceof sfStorage)
-    {
-      throw new sfFactoryException(sprintf('Class "%s" is not of the type sfStorage.', $class));
-    }
-
-    return $object;
   }
 
   /**

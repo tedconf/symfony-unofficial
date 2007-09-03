@@ -24,24 +24,18 @@ abstract class sfRouting
     $parameterHolder   = null;
 
   /**
-   * Retrieves a new sfRouting implementation instance.
+   * Class constructor.
    *
-   * @param string A sfRouting implementation name
-   *
-   * @return sfRouting A sfRouting implementation instance.
-   *
-   * @throws <b>sfFactoryException</b> If a routing implementation instance cannot be created
+   * @see initialize()
    */
-  public static function newInstance($class)
+  public function __construct(sfEventDispatcher $dispatcher, $parameters = array())
   {
-    $object = new $class();
+    $this->initialize($dispatcher, $parameters);
 
-    if (!$object instanceof sfRouting)
+    if ($this->parameterHolder->get('auto_shutdown', true))
     {
-      throw new sfFactoryException(sprintf('Class "%s" is not of the type sfRouting.', $class));
+      register_shutdown_function(array($this, 'shutdown'));
     }
-
-    return $object;
   }
 
   /**
