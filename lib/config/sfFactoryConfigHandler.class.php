@@ -106,8 +106,7 @@ class sfFactoryConfigHandler extends sfYamlConfigHandler
 
         case 'response':
           $instances[] = sprintf("  \$class = sfConfig::get('sf_factory_response', '%s');\n  \$this->factories['response'] = new \$class(\$this->dispatcher, sfConfig::get('sf_factory_response_parameters', %s));", $class, var_export($parameters, true));
-
-          $instances[] = sprintf("  if ('HEAD' == \$this->factories['request']->getMethodName())\n  {  \n    \$this->factories['response']->setHeaderOnly(true);\n  }\n");
+          $instances[] = sprintf("  if (sfConfig::get('sf_environment') != 'cli' && 'HEAD' == \$this->factories['request']->getMethodName())\n  {  \n    \$this->factories['response']->setHeaderOnly(true);\n  }\n");
           break;
 
         case 'storage':
@@ -192,7 +191,7 @@ class sfFactoryConfigHandler extends sfYamlConfigHandler
               if ($condition)
               {
                 // create logger instance
-                $loggers .= sprintf("\n\$logger = new %s(\$this->dispatcher, array_merge(array('auto_shutdown' => false), %s));\n\$this->factories['logger']->addLogger(\$logger);\n", 
+                $loggers .= sprintf("\n\$logger = new %s(\$this->dispatcher, array_merge(array('auto_shutdown' => false), %s));\n\$this->factories['logger']->addLogger(\$logger);\n",
                               $keys['class'],
                               isset($keys['param']) ? var_export($keys['param'], true) : 'array()'
                             );
