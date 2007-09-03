@@ -4,7 +4,7 @@
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
  * (c) 2004-2006 Sean Kerr.
- * 
+ *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -283,20 +283,20 @@ abstract class sfAction extends sfComponent
    * @param  array Allowed formats. If left empty, all the formats defined in settings.yml are accepted.
    */
   public function renderMultiformat($format_param = 'format', $accepted_formats = array())
-  { 
+  {
     if(!$format = $this->getRequestParameter($format_param))
     {
       throw new sfError404Exception(sprintf('The format parameter "%s" is not defined in the request', $format_param));
     }
-    
+
     $format_is_allowed = in_array($format, $accepted_formats);
-    
+
     if($accepted_formats && !$format_is_allowed)
     {
       // format not in the list of allowed formats
       throw new sfError404Exception(sprintf('The format "%s" is not allowed in this action. If you want to use this format, add it to the list of allowed formats in the second argument of the call to renderMultiformat()', $format));
     }
-    
+
     if(!$accepted_formats || $format_is_allowed)
     {
       // format accepted, or no format restriction, so use default view for this format
@@ -310,7 +310,7 @@ abstract class sfAction extends sfComponent
 
     // else default view class is used
   }
-  
+
   /**
    * Retrieves the default view to be executed when a given request is not served by this action.
    *
@@ -341,7 +341,7 @@ abstract class sfAction extends sfComponent
            | sfRequest::POST
            | sfRequest::PUT
            | sfRequest::DELETE
-           | sfRequest::HEAD 
+           | sfRequest::HEAD
            | sfRequest::NONE;
   }
 
@@ -405,6 +405,105 @@ abstract class sfAction extends sfComponent
     }
 
     return false;
+  }
+
+  /**
+   * Indicates that this action requires ssl.
+   *
+   * @return bool true, if this action requires ssl, otherwise false.
+   */
+  public function sslRequired()
+  {
+    $security = $this->getSecurityConfiguration();
+    $actionName = $this->getActionName();
+
+    if (isset($security[$actionName]['require_ssl']))
+    {
+      return $security[$actionName]['require_ssl'];
+    }
+
+    if (isset($security['all']['require_ssl']))
+    {
+      return $security['all']['require_ssl'];
+    }
+
+    return false;
+  }
+
+  /**
+   * Indicates that this action allows ssl.
+   *
+   * @return bool true, if this action allows ssl, otherwise false.
+   */
+  public function sslAllowed()
+  {
+    $security = $this->getSecurityConfiguration();
+    $actionName = $this->getActionName();
+
+    if ($this->sslRequired()) // If ssl is required, then we can assume they also want to allow it
+    {
+      return true;
+    }
+
+    if (isset($security[$actionName]['allow_ssl']))
+    {
+      return $security[$actionName]['allow_ssl'];
+    }
+
+    if (isset($security['all']['allow_ssl']))
+    {
+      return $security['all']['allow_ssl'];
+    }
+
+    return false;
+  }
+
+  /**
+   * Returns the ssl url to be used for redirect
+   *
+   * @return string url for ssl
+   */
+  public function getSslUrl()
+  {
+    $security = $this->getSecurityConfiguration();
+    $actionName = $this->getActionName();
+
+    if (isset($security[$actionName]['ssl_domain']))
+    {
+      return $security[$actionName]['ssl_domain'].$this->request->getScriptName().$this->request->getPathInfo();
+    }
+    else if (isset($security['all']['ssl_domain']))
+    {
+      return $security['all']['ssl_domain'].$this->request->getScriptName().$this->request->getPathInfo();
+    }
+    else
+    {
+      return substr_replace($this->request->getUri(), 'https', 0, 4);
+    }
+  }
+
+  /**
+   * Returns the non-ssl url to be used for redirect
+   *
+   * @return string url for non-ssl
+   */
+  public function getNonSslUrl()
+  {
+    $security = $this->getSecurityConfiguration();
+    $actionName = $this->getActionName();
+
+    if (isset($security[$actionName]['non_ssl_domain']))
+    {
+      return $security[$actionName]['non_ssl_domain'].$this->request->getScriptName().$this->request->getPathInfo();
+    }
+    else if (isset($security['all']['non_ssl_domain']))
+    {
+      return $security['all']['non_ssl_domain'].$this->request->getScriptName().$this->request->getPathInfo();
+    }
+    else
+    {
+      return substr_replace($this->request->getUri(), 'http', 0, 5);
+    }
   }
 
   /**

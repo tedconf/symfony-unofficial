@@ -1,2 +1,4 @@
 default:
-  is_secure: off
+  is_secure:   off
+  require_ssl: off
+  allow_ssl:   on
