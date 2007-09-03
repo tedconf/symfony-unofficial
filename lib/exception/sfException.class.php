@@ -60,26 +60,25 @@ class sfException extends Exception
       return;
     }
 
-    if (class_exists('sfMixer', false))
+    if (sfContext::hasInstance())
     {
-      foreach (sfMixer::getCallables('sfException:printStackTrace:printStackTrace') as $callable)
+      $dispatcher = sfContext::getInstance()->getEventDispatcher();
+
+      if (sfConfig::get('sf_logging_enabled'))
       {
-        $ret = call_user_func($callable, $this, $exception);
-        if ($ret)
-        {
-          if (!sfConfig::get('sf_test'))
-          {
-            exit(1);
-          }
-
-          return;
-        }
+        $dispatcher->notify(new sfEvent($this, 'application.log', array($exception->getMessage(), 'priority' => sfLogger::ERROR)));
       }
-    }
 
-    if (sfConfig::get('sf_logging_enabled') && sfContext::hasInstance())
-    {
-      sfContext::getInstance()->getLogger()->error(sprintf('{%s} %s', __CLASS__, $exception->getMessage()));
+      $event = $dispatcher->notifyUntil(new sfEvent($this, 'application.throw_exception', array('exception' => $exception)));
+      if ($event->isProcessed())
+      {
+        if (!sfConfig::get('sf_test'))
+        {
+          exit(1);
+        }
+
+        return;
+      }
     }
 
     if (!sfConfig::get('sf_test'))
@@ -272,3 +271,4 @@ class sfException extends Exception
     $this->name = $name;
   }
 }
+
