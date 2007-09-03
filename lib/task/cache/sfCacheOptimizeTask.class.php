@@ -56,9 +56,9 @@ EOF;
       throw new sfCommandException('You must provide an application and an environment.');
     }
 
-    if(!in_array($arguments['environment'], array('prod', 'dev', 'test')))
+    if(!in_array($arguments['environment'], array('prod')))
     {
-      throw new sfCommandException('You must provide a valid environment (prod, dev, test).');
+      throw new sfCommandException('You must provide a valid environment (prod).');
     }
 
     $application = $arguments['application'];
