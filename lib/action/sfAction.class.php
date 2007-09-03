@@ -412,7 +412,7 @@ abstract class sfAction extends sfComponent
    *
    * @return bool true, if this action requires ssl, otherwise false.
    */
-  public function sslRequired()
+  public function isSslRequired()
   {
     $actionName = strtolower($this->getActionName());
 
@@ -434,11 +434,11 @@ abstract class sfAction extends sfComponent
    *
    * @return bool true, if this action allows ssl, otherwise false.
    */
-  public function sslAllowed()
+  public function isSslAllowed()
   {
     $actionName = strtolower($this->getActionName());
 
-    if ($this->sslRequired()) // If ssl is required, then we can assume they also want to allow it
+    if ($this->isSslRequired()) // If ssl is required, then we can assume they also want to allow it
     {
       return true;
     }
@@ -453,12 +453,31 @@ abstract class sfAction extends sfComponent
       return $this->security['all']['allow_ssl'];
     }
 
-    if (isset($this->security['default']['allow_ssl']))
-    {
-      return $this->security['default']['allow_ssl'];
-    }
-
     return false;
+  }
+
+  /**
+   * Returns the non-ssl url to be used for redirect
+   *
+   * @return string url for non-ssl
+   */
+  public function getUrl()
+  {
+    $actionName = strtolower($this->getActionName());
+    $scriptName = (sfConfig::get('sf_no_script_name', false) === true) ? '' : $this->request->getScriptName();
+
+    if (isset($this->security[$actionName]['non_ssl_domain']))
+    {
+      return $this->security[$actionName]['non_ssl_domain'].$scriptName.$this->request->getPathInfo();
+    }
+    else if (isset($this->security['all']['non_ssl_domain']))
+    {
+      return $this->security['all']['non_ssl_domain'].$scriptName.$this->request->getPathInfo();
+    }
+    else
+    {
+      return substr_replace($this->request->getUri(), 'http', 0, 5);
+    }
   }
 
   /**
@@ -470,40 +489,19 @@ abstract class sfAction extends sfComponent
   {
     $actionName = strtolower($this->getActionName());
 
+    $scriptName = (sfConfig::get('sf_no_script_name', false) === true) ? '' : $this->request->getScriptName();
+
     if (isset($this->security[$actionName]['ssl_domain']))
     {
-      return $this->security[$actionName]['ssl_domain'].$this->request->getScriptName().$this->request->getPathInfo();
+      return $this->security[$actionName]['ssl_domain'].$scriptName.$this->request->getPathInfo();
     }
     else if (isset($this->security['all']['ssl_domain']))
     {
-      return $this->security['all']['ssl_domain'].$this->request->getScriptName().$this->request->getPathInfo();
+      return $this->security['all']['ssl_domain'].$scriptName.$this->request->getPathInfo();
     }
     else
     {
       return substr_replace($this->request->getUri(), 'https', 0, 4);
-    }
-  }
-
-  /**
-   * Returns the non-ssl url to be used for redirect
-   *
-   * @return string url for non-ssl
-   */
-  public function getNonSslUrl()
-  {
-    $actionName = strtolower($this->getActionName());
-
-    if (isset($this->security[$actionName]['non_ssl_domain']))
-    {
-      return $this->security[$actionName]['non_ssl_domain'].$this->request->getScriptName().$this->request->getPathInfo();
-    }
-    else if (isset($this->security['all']['non_ssl_domain']))
-    {
-      return $this->security['all']['non_ssl_domain'].$this->request->getScriptName().$this->request->getPathInfo();
-    }
-    else
-    {
-      return substr_replace($this->request->getUri(), 'http', 0, 5);
     }
   }
 

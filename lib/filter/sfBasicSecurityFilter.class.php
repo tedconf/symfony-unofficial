@@ -38,26 +38,21 @@ class sfBasicSecurityFilter extends sfSecurityFilter
     $actionEntry    = $controller->getActionStack()->getLastEntry();
     $actionInstance = $actionEntry->getActionInstance();
 
-    // execute only once
-    if($this->isFirstCall())
+    // only redirect if not posting and we actually have an http(s) request
+    if($request->getMethod() != sfRequest::POST && substr($request->getUri(), 0, 4) == 'http')
     {
-      // only redirect if not posting and we actually have an http(s) request
-      if ($request->getMethod() != sfRequest::POST && substr($request->getUri(), 0, 4) == 'http')
+      // request is SSL secured
+      if($request->isSecure())
       {
-        // request is SSL secured
-        if ($request->isSecure())
+        // but SSL is not allowed
+        if (!$actionInstance->isSslAllowed())
         {
-          // but SSL is not allowed
-          if (!$actionInstance->sslAllowed())
-          {
-            $controller->redirect($actionInstance->getNonSslUrl());
-          }
+          $controller->redirect($actionInstance->getUrl());
         }
-        // request is not SSL secured, but SSL is required
-        elseif ($actionInstance->sslRequired())
-        {
-          $controller->redirect($actionInstance->getSslUrl());
-        }
+      }
+      elseif ($actionInstance->isSslRequired()) // request is not SSL secured, but SSL is required
+      {
+        $controller->redirect($actionInstance->getSslUrl());
       }
     }
 
