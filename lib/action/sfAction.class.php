@@ -414,17 +414,16 @@ abstract class sfAction extends sfComponent
    */
   public function sslRequired()
   {
-    $security = $this->getSecurityConfiguration();
-    $actionName = $this->getActionName();
+    $actionName = strtolower($this->getActionName());
 
-    if (isset($security[$actionName]['require_ssl']))
+    if (isset($this->security[$actionName]['require_ssl']))
     {
-      return $security[$actionName]['require_ssl'];
+      return $this->security[$actionName]['require_ssl'];
     }
 
-    if (isset($security['all']['require_ssl']))
+    if (isset($this->security['all']['require_ssl']))
     {
-      return $security['all']['require_ssl'];
+      return $this->security['all']['require_ssl'];
     }
 
     return false;
@@ -437,22 +436,26 @@ abstract class sfAction extends sfComponent
    */
   public function sslAllowed()
   {
-    $security = $this->getSecurityConfiguration();
-    $actionName = $this->getActionName();
+    $actionName = strtolower($this->getActionName());
 
     if ($this->sslRequired()) // If ssl is required, then we can assume they also want to allow it
     {
       return true;
     }
 
-    if (isset($security[$actionName]['allow_ssl']))
+    if (isset($this->security[$actionName]['allow_ssl']))
     {
-      return $security[$actionName]['allow_ssl'];
+      return $this->security[$actionName]['allow_ssl'];
     }
 
-    if (isset($security['all']['allow_ssl']))
+    if (isset($this->security['all']['allow_ssl']))
     {
-      return $security['all']['allow_ssl'];
+      return $this->security['all']['allow_ssl'];
+    }
+
+    if (isset($this->security['default']['allow_ssl']))
+    {
+      return $this->security['default']['allow_ssl'];
     }
 
     return false;
@@ -465,16 +468,15 @@ abstract class sfAction extends sfComponent
    */
   public function getSslUrl()
   {
-    $security = $this->getSecurityConfiguration();
-    $actionName = $this->getActionName();
+    $actionName = strtolower($this->getActionName());
 
-    if (isset($security[$actionName]['ssl_domain']))
+    if (isset($this->security[$actionName]['ssl_domain']))
     {
-      return $security[$actionName]['ssl_domain'].$this->request->getScriptName().$this->request->getPathInfo();
+      return $this->security[$actionName]['ssl_domain'].$this->request->getScriptName().$this->request->getPathInfo();
     }
-    else if (isset($security['all']['ssl_domain']))
+    else if (isset($this->security['all']['ssl_domain']))
     {
-      return $security['all']['ssl_domain'].$this->request->getScriptName().$this->request->getPathInfo();
+      return $this->security['all']['ssl_domain'].$this->request->getScriptName().$this->request->getPathInfo();
     }
     else
     {
@@ -489,16 +491,15 @@ abstract class sfAction extends sfComponent
    */
   public function getNonSslUrl()
   {
-    $security = $this->getSecurityConfiguration();
-    $actionName = $this->getActionName();
+    $actionName = strtolower($this->getActionName());
 
-    if (isset($security[$actionName]['non_ssl_domain']))
+    if (isset($this->security[$actionName]['non_ssl_domain']))
     {
-      return $security[$actionName]['non_ssl_domain'].$this->request->getScriptName().$this->request->getPathInfo();
+      return $this->security[$actionName]['non_ssl_domain'].$this->request->getScriptName().$this->request->getPathInfo();
     }
-    else if (isset($security['all']['non_ssl_domain']))
+    else if (isset($this->security['all']['non_ssl_domain']))
     {
-      return $security['all']['non_ssl_domain'].$this->request->getScriptName().$this->request->getPathInfo();
+      return $this->security['all']['non_ssl_domain'].$this->request->getScriptName().$this->request->getPathInfo();
     }
     else
     {
