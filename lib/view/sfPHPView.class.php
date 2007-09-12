@@ -19,7 +19,6 @@
  */
 class sfPHPView extends sfView
 {
-
   /**
    * Executes any presentation logic for this view.
    */
@@ -100,8 +99,13 @@ class sfPHPView extends sfView
     require(sfConfigCache::getInstance()->checkConfig(sfConfig::get('sf_app_module_dir_name').'/'.$viewConfigFile));
 
     // decorator configuration
-    $this->updateDecoratorConfiguration();
+    $this->setDecoratorTemplate(sfConfig::get($this->moduleName.'_'.$this->actionName.'_layout'));
 
+    // set template directory
+    if (!$this->directory)
+    {
+      $this->setDirectory(sfLoader::getTemplateDir($this->moduleName, $this->getTemplate()));
+    }
   }
 
   /**
@@ -139,14 +143,12 @@ class sfPHPView extends sfView
       $viewCache = $this->context->getViewCacheManager();
       $uri = $this->context->getRouting()->getCurrentInternalUri();
 
-      list($content, $attributeHolder) = $viewCache->getActionCache($uri);
+      list($content, $attributeHolder, $decoratorTemplate) = $viewCache->getActionCache($uri);
       if (!is_null($content))
       {
         $this->attributeHolder = $attributeHolder;
+        $this->setDecoratorTemplate($decoratorTemplate);
       }
-
-      // FIXME: needed because the response in cache can change the layout
-      $this->updateDecoratorConfiguration();
     }
 
     // render template if no cache
@@ -160,7 +162,7 @@ class sfPHPView extends sfView
 
       if (sfConfig::get('sf_cache'))
       {
-        $content = $viewCache->setActionCache($uri, $content, $this->attributeHolder);
+        $content = $viewCache->setActionCache($uri, $content, $this->attributeHolder, $this->isDecorator() ? $this->getDecoratorDirectory().'/'.$this->getDecoratorTemplate() : false);
       }
     }
 
@@ -171,61 +173,5 @@ class sfPHPView extends sfView
     }
 
     return $content;
-  }
-
-  protected function updateDecoratorConfiguration()
-  {
-    // decorator configuration
-    $layout = $this->context->getResponse()->getParameter($this->moduleName.'_'.$this->actionName.'_layout', null, 'symfony/action/view');
-    if (false === $layout)
-    {
-      $this->setDecorator(false);
-    }
-    else if (!is_null($layout))
-    {
-      $this->setDecoratorTemplate($layout.$this->getExtension());
-    }
-
-    if(isset($this->extensions) && is_array($this->extensions))
-    {
-      $customDecoratorFound = false;
-
-      // Look for special layout like
-      foreach($this->extensions as $extension)
-      {
-        $decoratorTemplate = basename($this->getDecoratorTemplate(), $this->getExtension()).$extension;
-        if(is_readable($this->getDecoratorDirectory().DIRECTORY_SEPARATOR.$decoratorTemplate))
-        {
-          $this->setDecoratorDirectory($this->getDecoratorDirectory());
-          $this->setDecoratorTemplate($decoratorTemplate);
-          $customDecoratorFound = true;
-          break;
-        }
-      }
-
-      if(!$customDecoratorFound && !in_array($this->getContext()->getRequest()->getParameter('format', 'xhtml'), array('xhtml', 'html')))
-      {
-        // if no decorator besides default then ignore layout (assumes default layout is for html)
-        $this->getContext()->getResponse()->setParameter($this->moduleName.'_'.$this->actionName.'_layout', false, 'symfony/action/view');
-      }
-
-      // Look for special templates
-      foreach($this->extensions as $extension)
-      {
-        $template = basename($this->getTemplate(), $this->getExtension()).$extension;
-        if($templateDirectory = sfLoader::getTemplateDir($this->moduleName, $template))
-        {
-          $this->setTemplate($template);
-          $this->setDirectory($templateDirectory);
-          break;
-        }
-      }
-    }
-
-    // set template directory if not set
-    if (!$this->directory)
-    {
-      $this->setDirectory(sfLoader::getTemplateDir($this->moduleName, $this->getTemplate()));
-    }
   }
 }

@@ -357,7 +357,7 @@ class sfViewCacheManager
   protected function ignore()
   {
     // ignore cache parameter? (only available in debug mode)
-    if (sfConfig::get('sf_debug') && $this->context->getRequest()->getParameter('_sf_ignore_cache', false, 'symfony/request/sfWebRequest') == true)
+    if (sfConfig::get('sf_debug') && $this->context->getRequest()->getAttribute('_sf_ignore_cache'))
     {
       if (sfConfig::get('sf_logging_enabled'))
       {
@@ -562,7 +562,7 @@ class sfViewCacheManager
       $content = $this->context->get('sf_web_debug')->decorateContentWithDebug($uri, $content, false);
     }
 
-    return array($content, $cache['attributeHolder']);
+    return array($content, $cache['attributeHolder'], $cache['decoratorTemplate']);
   }
 
   /**
@@ -574,14 +574,14 @@ class sfViewCacheManager
    *
    * @return string The cached content
    */
-  public function setActionCache($uri, $content, $attributeHolder)
+  public function setActionCache($uri, $content, $attributeHolder, $decoratorTemplate)
   {
     if (!$this->isCacheable($uri) || $this->withLayout($uri))
     {
       return $content;
     }
 
-    $saved = $this->set(serialize(array('content' => $content, 'attributeHolder' => $attributeHolder, 'response' => $this->context->getResponse())), $uri);
+    $saved = $this->set(serialize(array('content' => $content, 'attributeHolder' => $attributeHolder, 'decoratorTemplate' => $decoratorTemplate, 'response' => $this->context->getResponse())), $uri);
 
     if ($saved && sfConfig::get('sf_web_debug'))
     {
