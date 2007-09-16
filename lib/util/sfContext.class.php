@@ -123,7 +123,7 @@ class sfContext
   public function getActionName()
   {
     // get the last action stack entry
-    if ($this->factories['actionStack'] && $lastEntry = $this->factories['actionStack']->getLastEntry())
+    if (isset($this->factories['actionStack']) && $lastEntry = $this->factories['actionStack']->getLastEntry())
     {
       return $lastEntry->getActionName();
     }
@@ -137,7 +137,7 @@ class sfContext
    */
   public function getActionStack()
   {
-    return $this->factories['actionStack'];
+    return (isset($this->factories['actionStack']) !== false) ? $this->factories['actionStack'] : null;
   }
 
   /**
@@ -147,7 +147,7 @@ class sfContext
    */
    public function getController()
    {
-     return $this->factories['controller'];
+     return (isset($this->factories['controller']) !== false) ? $this->factories['controller'] : null;
    }
 
    public function getLogger()
@@ -198,7 +198,7 @@ class sfContext
    */
   public function getDatabaseManager()
   {
-    return $this->factories['databaseManager'];
+    return (isset($this->factories['databaseManager']) !== false) ? $this->factories['databaseManager'] : null;
   }
 
   /**
@@ -210,7 +210,7 @@ class sfContext
   public function getModuleDirectory()
   {
     // get the last action stack entry
-    if ($this->factories['actionStack'] && $lastEntry = $this->factories['actionStack']->getLastEntry())
+    if (isset($this->factories['actionStack']) && $lastEntry = $this->factories['actionStack']->getLastEntry())
     {
       return sfConfig::get('sf_app_module_dir').'/'.$lastEntry->getModuleName();
     }
@@ -225,7 +225,7 @@ class sfContext
   public function getModuleName()
   {
     // get the last action stack entry
-    if ($this->factories['actionStack'] && $lastEntry = $this->factories['actionStack']->getLastEntry())
+    if (isset($this->factories['actionStack']) && $lastEntry = $this->factories['actionStack']->getLastEntry())
     {
       return $lastEntry->getModuleName();
     }
@@ -238,7 +238,7 @@ class sfContext
    */
   public function getRequest()
   {
-    return $this->factories['request'];
+    return (isset($this->factories['request']) !== false) ? $this->factories['request'] : null;
   }
 
   /**
@@ -248,7 +248,7 @@ class sfContext
    */
   public function getResponse()
   {
-    return $this->factories['response'];
+    return (isset($this->factories['resåponse']) !== false) ? $this->factories['response'] : null;
   }
 
   /**
@@ -270,7 +270,7 @@ class sfContext
    */
   public function getStorage()
   {
-    return $this->factories['storage'];
+    return (isset($this->factories['storage']) !== false) ? $this->factories['storage'] : null;
   }
 
   /**
@@ -280,7 +280,7 @@ class sfContext
    */
   public function getViewCacheManager()
   {
-    return $this->factories['viewCacheManager'];
+    return (isset($this->factories['viewCacheManager']) !== false) ? $this->factories['viewCacheManager'] : null;
   }
 
   /**
@@ -295,7 +295,7 @@ class sfContext
       throw new sfConfigurationException('You must enabled i18n support in your settings.yml configuration file.');
     }
 
-    return $this->factories['i18n'];
+    return (isset($this->factories['i18n']) !== false) ? $this->factories['i18n'] : null;
   }
 
   /**
@@ -305,7 +305,7 @@ class sfContext
    */
   public function getRouting()
   {
-    return $this->factories['routing'];
+    return (isset($this->factories['routing']) !== false) ? $this->factories['routing'] : null;
   }
 
   /**
@@ -315,7 +315,7 @@ class sfContext
    */
   public function getUser()
   {
-    return $this->factories['user'];
+    return (isset($this->factories['user']) !== false) ? $this->factories['user'] : null;
   }
 
   /**
@@ -369,10 +369,10 @@ class sfContext
   public function filterTemplateParameters(sfEvent $event, $parameters)
   {
     $parameters['sf_context']  = $this;
-    $parameters['sf_request']  = $this->factories['request'];
-    $parameters['sf_params']   = $this->factories['request']->getParameterHolder();
-    $parameters['sf_response'] = $this->factories['response'];
-    $parameters['sf_user']     = $this->factories['user'];
+    $parameters['sf_request']  = $this->getRequest();
+    $parameters['sf_params']   = $this->getRequest()->getParameterHolder();
+    $parameters['sf_response'] = $this->getResponse();
+    $parameters['sf_user']     = $this->getUser();
 
     return $parameters;
   }
