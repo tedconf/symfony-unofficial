@@ -248,7 +248,7 @@ class sfContext
    */
   public function getResponse()
   {
-    return (isset($this->factories['resåponse']) !== false) ? $this->factories['response'] : null;
+    return (isset($this->factories['response']) !== false) ? $this->factories['response'] : null;
   }
 
   /**
