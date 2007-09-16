@@ -49,14 +49,14 @@ class sfPDODatabase extends sfDatabase
 
     try
     {
-      $username = $this->getParameter('username');
-      $password = $this->getParameter('password');
-
+      $pdo_class  = $this->getParameter('class', 'PDO');
+      $username   = $this->getParameter('username');
+      $password   = $this->getParameter('password');
       $persistent = $this->getParameter('persistent');
 
       $options = ($persistent) ? array(PDO::ATTR_PERSISTENT => true) : array(PDO::ATTR_PERSISTENT => false);
 
-      $this->connection = new PDO($dsn, $username, $password, $options);
+      $this->connection = new $pdo_class($dsn, $username, $password, $options);
     }
     catch (PDOException $e)
     {

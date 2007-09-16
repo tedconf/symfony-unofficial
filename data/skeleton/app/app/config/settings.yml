@@ -19,6 +19,7 @@ test:
     no_script_name:         off
     etag:                   off
 
+<<<<<<< .working
 all:
   .actions:
     default_module:         default   # Default module and action to be called when
@@ -43,12 +44,11 @@ all:
     use_flash:              on        # Enable flash parameter feature. Set to off if you never use the set_flash() method in actions.
     i18n:                   off       # Enable interface translation. Set to off if your application should not be translated.
     check_symfony_version:  off       # Enable check of symfony version for every request. Set to on to have symfony clear the cache automatically when the framework is upgraded. Set to off if you always clear the cache after an upgrade.
-    use_process_cache:      on        # Enable symfony optimizations based on PHP accelerators. Set to off for tests or when you have enabled a PHP accelerator in your server but don't want symfony to use it internally.
     compressed:             off       # Enable PHP response compression. Set to on to compress the outgoing HTML via the PHP handler.
     check_lock:             off       # Enable the application lock system triggered by the clear-cache and disable tasks. Set to on to have all requests to disabled applications redirected to the $sf_symfony_data_dir/web/arrors/unavailable.php page.
 
     # Output escaping settings
-    escaping_strategy:      both      # Determines how variables are made available to templates. Accepted values: bc, both, on, off. The value off deactivates escaping completely and gives a slight boost.
+    escaping_strategy:      bc        # Determines how variables are made available to templates. Accepted values: bc, both, on, off. The value off deactivates escaping completely and gives a slight boost.
     escaping_method:   ESC_ENTITIES   # Function or helper used for escaping. Accepted values: ESC_RAW, ESC_ENTITIES, ESC_JS, ESC_JS_NO_ENTITIES.
 
     # Routing settings
@@ -63,11 +63,11 @@ all:
 
     # Cache settings
     cache:                  off       # Enable the template cache
-    etag:                   on        # Enable etag handling
+    etag:                   off       # Enable etag handling
 
     # Logging and debugging settings
-    web_debug:              off       # Enable the web debug toolbar
     error_reporting:        <?php echo E_PARSE | E_COMPILE_ERROR | E_ERROR | E_CORE_ERROR | E_USER_ERROR ?> # Determines which events are logged.
+    web_debug:              off       # Enable the web debug toolbar
     xdebug:                 off       # Enable xdebug stack trace in the logs
 
     # Assets paths
@@ -113,3 +113,6 @@ all:
 
     # Logging
     logging_enabled:        on
+
+    # enable 1.0 compatibility
+    compat_10:              off
