@@ -19,7 +19,6 @@ test:
     no_script_name:         off
     etag:                   off
 
-<<<<<<< .working
 all:
   .actions:
     default_module:         default   # Default module and action to be called when

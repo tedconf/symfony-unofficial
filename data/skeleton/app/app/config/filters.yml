@@ -1,9 +1,9 @@
 rendering: ~
 
-#csrf:
-#  class: sfCSRFFilter
-#  param:
-#    secret: my$ecret # change to something unique
+csrf:
+  class: sfCSRFFilter
+  param:
+    secret: my$ecret # change to something unique
 
 web_debug: ~
 security:  ~
