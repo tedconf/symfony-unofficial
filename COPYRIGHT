@@ -10,24 +10,6 @@ Url:       http://www.symfony-project.com/
 Copyright: Fabien Potencier
 License:   MIT - see LICENSE file
 
-Propel
-------
-
-symfony contains the Propel software
-
-Url:       http://propel.phpdb.org/
-Copyright: Authors
-License:   LGPL - see licenses/LICENSE.Propel file
-
-Creole
-------
-
-symfony contains the Creole software
-
-Url:       http://creole.phpdb.org/
-Copyright: Authors
-License:   LGPL - see licenses/LICENSE.Creole file
-
 International Components for Unicode
 ------------------------------------
 
@@ -81,15 +63,6 @@ Url:       http://www.pradosoft.com/
 Copyright: 2004-2006, The PRADO Group
 License:   BSD - see licenses/LICENSE.prado file
 
-PHPMailer
----------
-
-symfony contains the PHPMailer software
-
-Url:       http://phpmailer.sourceforge.net/
-Copyright: Chris Ryan
-License:   LGPL - see licenses/LICENSE.PHPMailer file
-
 Spyc
 ----
 
@@ -99,15 +72,6 @@ Url:       http://spyc.sourceforge.net/
 Copyright: 2005-2006 Chris Wanstrath
 License:   MIT - http://www.opensource.org/licenses/mit-license.php
 
-pake
-----
-
-symfony uses the pake software
-
-Url:       http://www.symfony-project.com/
-Copyright: Fabien Potencier
-License:   MIT - see licenses/LICENSE.pake file
-
 lime
 ----
 
@@ -116,13 +80,3 @@ symfony uses the lime software
 Url:       http://www.symfony-project.com/
 Copyright: Fabien Potencier
 License:   MIT - see licenses/LICENSE.lime file
-
-Phing
------
-
-symfony contains the Phing software
-
-Url:       http://phing.info/
-Copyright: Authors
-License:   LGPL - see licenses/LICENSE.phing file
-

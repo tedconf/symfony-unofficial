@@ -30,7 +30,8 @@ class sfWebResponse extends sfResponse
     $metas       = array(),
     $httpMetas   = array(),
     $stylesheets = array(),
-    $javascripts = array();
+    $javascripts = array(),
+    $slots       = array();
 
   /**
    * Initializes this sfWebResponse.
@@ -597,7 +598,7 @@ class sfWebResponse extends sfResponse
   /**
    * Retrieves javascript code from the current web response.
    *
-   * @param string Directory delimiter
+   * @param string  Position
    *
    * @return string Javascript code
    */
@@ -615,7 +616,7 @@ class sfWebResponse extends sfResponse
    * Adds javascript code to the current web response.
    *
    * @param string Javascript code
-   * @param string Directory delimiter
+   * @param string Position
    * @param string Javascript options
    */
   public function addJavascript($js, $position = '', $options = array())
@@ -626,6 +627,27 @@ class sfWebResponse extends sfResponse
     }
 
     $this->javascript[$position][$js] = $options;
+  }
+
+  /**
+   * Retrieves slots from the current web response.
+   *
+   * @return string Javascript code
+   */
+  public function getSlots()
+  {
+    return $this->slots;
+  }
+
+  /**
+   * Sets a slot content.
+   *
+   * @param string Slot name
+   * @param string Content
+   */
+  public function setSlot($name, $content)
+  {
+    $this->slots[$name] = $content;
   }
 
   /**
@@ -675,6 +697,7 @@ class sfWebResponse extends sfResponse
     $this->httpMetas       = $response->getHttpMetas();
     $this->stylesheets     = $response->getStylesheets('ALL');
     $this->javascripts     = $response->getJavascripts('ALL');
+    $this->slots           = $response->getSlots();
   }
 
   /**
@@ -684,7 +707,7 @@ class sfWebResponse extends sfResponse
    */
   public function serialize()
   {
-    return serialize(array($this->content, $this->statusCode, $this->statusText, $this->parameterHolder, $this->cookies, $this->headerOnly, $this->headers, $this->metas, $this->httpMetas, $this->stylesheets, $this->javascripts));
+    return serialize(array($this->content, $this->statusCode, $this->statusText, $this->parameterHolder, $this->cookies, $this->headerOnly, $this->headers, $this->metas, $this->httpMetas, $this->stylesheets, $this->javascripts, $this->slots));
   }
 
   /**
@@ -696,7 +719,7 @@ class sfWebResponse extends sfResponse
 
     $this->initialize(sfContext::hasInstance() ? sfContext::getInstance()->getEventDispatcher() : new sfEventDispatcher());
 
-    list($this->content, $this->statusCode, $this->statusText, $this->parameterHolder, $this->cookies, $this->headerOnly, $this->headers, $this->metas, $this->httpMetas, $this->stylesheets, $this->javascripts) = $data;
+    list($this->content, $this->statusCode, $this->statusText, $this->parameterHolder, $this->cookies, $this->headerOnly, $this->headers, $this->metas, $this->httpMetas, $this->stylesheets, $this->javascripts, $this->slots) = $data;
   }
 
   /**

@@ -4,6 +4,8 @@ Upgrade from 1.0 to 1.1
 This document describes the changes made in symfony 1.1 and what need
 to be done to upgrade your symfony 1.0 projects.
 
+WARNING: symfony 1.1 is only compatible with PHP > 5.1.
+
 How to upgrade?
 ---------------
 
@@ -54,5 +56,158 @@ They are accessible from `sfController`:
   [php]
   // action
   $this->getController()->getPresentationFor(...);
+
+The `project:upgrade1.1` task makes all those changes for you.
+
+Singletons
+----------
+
+The sfI18N, sfRouting, and sfLogger objects are now factories and
+not singletons.
+
+If you want to get one of those objects in your code, they are still
+available from `sfContext`:
+
+  [php]
+  sfContext::getInstance()->getI18N()
+  sfContext::getInstance()->getRouting()
+  sfContext::getInstance()->getLogger()
+
+Here is their default configuration in `factories.yml`:
+
+  i18n:
+    class: sfI18N
+    param:
+      cache:
+        class: sfFileCache
+        param:
+          automaticCleaningFactor: 0
+          cacheDir:                %SF_I18N_CACHE_DIR%
+          lifetime:                86400
+
+  routing:
+    class: sfPatternRouting
+    param:
+      load_configuration: true
+
+  logger:
+    class: sfAggregateLogger
+    param:
+      level: debug
+      loggers:
+        sf_web_debug:
+          class: sfWebDebugLogger
+          param:
+            condition: %SF_WEB_DEBUG%
+        sf_file_debug:
+          class: sfFileLogger
+          param:
+            file: %SF_LOG_DIR%/%SF_APP%_%SF_ENVIRONMENT%.log
+
+The `logging.yml` configuration file is not used anymore.
+Instead, you can configure logging in `factories.yml`.
+
+To disable logging in the production environment, you will have to change
+your application `factories.yml`:
+
+  prod:
+    logger:
+      class:   sfNoLogger
+      param:
+        level:   err
+        loggers: ~
+
+There is also a new `logging_enabled` setting in `settings.yml`.
+This can be used to prevent logging in the production environment altogether:
+
+  prod:
+    .settings:
+      logging_enabled: off
+
+The `project:upgrade1.1` task makes all those changes for you.
+
+sfFunctionCache
+---------------
+
+The sfFunctionCache object does not extend sfFileCache anymore.
+You must now pass a cache object to the constructor.
+The first argument to ->call() must now be a PHP callable.
+
+Autoloading
+-----------
+
+The `autoloading_function` setting in `settings.yml` is not used anymore.
+You can register autoloading callables in the application `config.php`.
+Here is the new default `config.php`:
+
+  [php]
+  <?php
+
+  // include project configuration
+  include(SF_ROOT_DIR.DIRECTORY_SEPARATOR.'config'.DIRECTORY_SEPARATOR.'config.php');
+
+  // symfony bootstraping
+  require_once($sf_symfony_lib_dir.'/util/sfCore.class.php');
+  sfCore::bootstrap($sf_symfony_lib_dir, $sf_symfony_data_dir);
+
+  // insert your own autoloading callables here
+
+  if (sfConfig::get('sf_debug'))
+  {
+    spl_autoload_register(array('sfAutoload', 'autoloadAgain'));
+  }
+
+Thanks to the new `sfAutoload::autoloadAgain()` method, you won't need to clear the
+cache when you add or move classes in your project. This method will automatically
+find the changes and flush the autoloading cache.
+
+The `project:upgrade1.1` task makes all those changes for you.
+
+VERSION
+-------
+
+The lib/VERSION file has been removed. If you want to get the current symfony version,
+you can use the `sfCore::VERSION` constant.
+
+Routing
+-------
+
+To inject default route parameters, you can now use the `->setDefaultParameter()` method
+instead of using the `sf_routing_defaults` setting:
+
+  [php]
+  $this->context->getRouting()->setDefaultParameter($key, $value);
+
+I18N
+----
+
+symfony core classes don't return internationalized strings anymore:
+
+  [php]
+  <?php echo __($sf_request->getError('foo')) ?>
+
+This behavior has changed for the following methods and functions:
+
+  [php]
+  sfWebRequest::getError()
+  sfWebResponse::addMeta()
+
+The following helpers (in sfCompat10Plugin) still return internationalized data:
+
+  [php]
+  form_error()
+  include_metas()
+
+The `getGlobalMessageSource()` and `getGlobalMessageFormat()` methods has been removed
+from the sfI18N class. They are now equivalent to `getMessageSource()` 
+and `getMessageFormat()`.
+
+Logger
+------
+
+Logger priorities are now constants:
+
+  [php]
+  sfLogger::INFO
 
 The `project:upgrade1.1` task makes all those changes for you.

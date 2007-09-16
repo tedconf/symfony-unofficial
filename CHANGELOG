@@ -1,8 +1,10 @@
 Version 1.1.0
 -------------
 
-* Added a sfAction::renderMultiformat() method to automate the ability for an action 
+* Added sf[XML|XHMTL|HTML|RSS|RDF|ATOM|JSON|Javascript|]View to ease specific renderings
+* Added a sfAction::renderMultiformat() method to automate the ability for an action
   to render with different view according to a request parameter
+* Added sfAction::renderPartial() method
 * Added new asset helpers to include PJS calls in templates: pjs_include_tag(), use_pjs() and pjs_path()
 * Allowed unnamed wildcard * to be followed by any separator and not only /
 * Fixed a bug in sfRouting::generate() when unnamed wildcard * appears in the middle of a rule
@@ -17,6 +19,8 @@ Version 1.1.0
 * Cleaned up sfRoutingTest
 * Routing rules now accept named tokens separated by ; : + | - and . (in addition to the usual /), like so:
     url: /:module/:action|:foo.:format
+* All bug fixes from 1.0.0 -> 1.0.X
+
 WARNING: sfI18N class is not a singleton anymore. To use the sfI18N object, you must get it from the context:
          sfContext::getInstance()->getI18N()
 
@@ -26,8 +30,7 @@ WARNING: sfI18N class is not a singleton anymore. To use the sfI18N object, you 
          The sfFunctionCache object does not extend sfFileCache anymore. You must now pass a cache object to the constructor.
          The first argument to the call() method must now be a callable (dropped support for "class::method" string).
 
-* r3742: added sfAction::renderPartial() method
-* All bug fixes from 1.0.0 -> 1.0.X
+WARNING: See the UPGRADE file for more information about upgrading your projects from 1.0 to 1.1
 
 Version 1.0.0
 -------------

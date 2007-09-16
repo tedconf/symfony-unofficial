@@ -27,17 +27,8 @@ class sfFlashUpgrade extends sfUpgrade
 
   protected function upgradeActions()
   {
-    $phpFinder = sfFinder::type('file')->prune('model')->name('*.php');
-    $dirs = array_merge(
-      glob(sfConfig::get('sf_root_dir').'/apps/*/modules/*/lib'),
-      glob(sfConfig::get('sf_root_dir').'/apps/*/modules/*/actions'),
-      array(
-        sfConfig::get('sf_root_dir').'/apps/lib',
-        sfConfig::get('sf_root_dir').'/lib',
-      )
-    );
-
-    foreach ($phpFinder->in($dirs) as $file)
+    $phpFinder = $this->getFinder('file')->prune('model')->name('*.php');
+    foreach ($phpFinder->in($dirs = $this->getProjectClassDirectories()) as $file)
     {
       $content = file_get_contents($file);
       $content = str_replace(
@@ -55,13 +46,8 @@ class sfFlashUpgrade extends sfUpgrade
 
   protected function upgradeTemplates()
   {
-    $phpFinder = sfFinder::type('file')->name('*.php');
-    $dirs = array_merge(
-      glob(sfConfig::get('sf_root_dir').'/apps/*/modules/*/templates'),
-      glob(sfConfig::get('sf_root_dir').'/apps/*/templates')
-    );
-
-    foreach ($phpFinder->in($dirs) as $file)
+    $phpFinder = $this->getFinder('file')->name('*.php');
+    foreach ($phpFinder->in($this->getProjectTemplateDirectories()) as $file)
     {
       $content = file_get_contents($file);
       $content = str_replace(
@@ -79,14 +65,8 @@ class sfFlashUpgrade extends sfUpgrade
 
   protected function upgradeFilters()
   {
-    $filtersFinder = sfFinder::type('file')->name('filters.yml');
-    $dirs = array_merge(
-      glob(sfConfig::get('sf_root_dir').'/apps/*/modules/*/config'),
-      glob(sfConfig::get('sf_root_dir').'/apps/*/config'),
-      glob(sfConfig::get('sf_root_dir').'/config')
-    );
-
-    foreach ($filtersFinder->in($dirs) as $file)
+    $filtersFinder = $this->getFinder('file')->name('filters.yml');
+    foreach ($filtersFinder->in($this->getProjectConfigDirectories()) as $file)
     {
       $content = file_get_contents($file);
       $content = preg_replace("#flash\:\s+~\s*\n#s", '', $content, -1, $count);

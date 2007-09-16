@@ -23,10 +23,13 @@ require_once($h->base_dir.'/bootstrap/unit.php');
 
 // unit tests
 $h->register_glob($h->base_dir.'/unit/*/*Test.php');
+$h->register_glob($h->base_dir.'/../lib/plugins/*/test/unit/*Test.php');
+$h->register_glob($h->base_dir.'/../lib/plugins/*/test/unit/*/*Test.php');
 
 // functional tests
 $h->register_glob($h->base_dir.'/functional/*Test.php');
 $h->register_glob($h->base_dir.'/functional/*/*Test.php');
+$h->register_glob($h->base_dir.'/../lib/plugins/*/test/functional/*Test.php');
 
 // other tests
 $h->register_glob($h->base_dir.'/other/*Test.php');

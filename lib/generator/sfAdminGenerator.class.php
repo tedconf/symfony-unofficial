@@ -21,7 +21,7 @@
  * @package    symfony
  * @subpackage generator
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
- * @version    SVN: $Id: sfPropelAdminGenerator.class.php 2625 2006-11-07 10:36:14Z fabien $
+ * @version    SVN: $Id$
  */
 abstract class sfAdminGenerator extends sfCrudGenerator
 {
@@ -222,6 +222,36 @@ abstract class sfAdminGenerator extends sfCrudGenerator
     $phpOptions = preg_replace("/'confirm' => '(.+?)(?<!\\\)'/", '\'confirm\' => __(\'$1\')', $phpOptions);
 
     return '<li>[?php echo link_to(image_tag(\''.$icon.'\', array(\'alt\' => __(\''.$name.'\'), \'title\' => __(\''.$name.'\'))), \''.$this->getModuleName().'/'.$action.$url_params.($options ? ', '.$phpOptions : '').') ?]</li>'."\n";
+  }
+
+  /**
+   * Returns HTML code for an action option in a select tag.
+   *
+   * @param string  The action name
+   * @param array   The parameters
+   *
+   * @return string HTML code
+   */
+  public function getOptionToAction($actionName, $params)
+  {
+    $options = isset($params['params']) ? sfToolkit::stringToArray($params['params']) : array();
+
+    // default values
+    if ($actionName[0] == '_')
+    {
+      $actionName = substr($actionName, 1);
+      if ($actionName == 'deleteSelected')
+      {
+        $params['name'] = 'Delete Selected';
+      }
+    }
+    $name = isset($params['name']) ? $params['name'] : $actionName;
+
+    $options['value'] = $actionName;
+
+    $phpOptions = var_export($options, true);
+
+    return '[?php echo content_tag(\'option\', __(\''.$name.'\')'.($options ? ', '.$phpOptions : '').') ?]';
   }
 
   /**
@@ -692,12 +722,12 @@ EOF;
 }
 
 /**
- * Propel admin generator column.
+ * Admin generator column.
  *
  * @package    symfony
  * @subpackage generator
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
- * @version    SVN: $Id: sfPropelAdminGenerator.class.php 2625 2006-11-07 10:36:14Z fabien $
+ * @version    SVN: $Id$
  */
 class sfAdminColumn
 {
