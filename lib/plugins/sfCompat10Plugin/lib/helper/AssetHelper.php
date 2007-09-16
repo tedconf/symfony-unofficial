@@ -90,7 +90,7 @@ function javascript_path($source, $absolute = false)
  *
  * @param  string asset names
  * @return string XHTML compliant <script> tag(s)
- * @see    javascript_path 
+ * @see    javascript_path
  */
 function javascript_include_tag()
 {
@@ -100,14 +100,14 @@ function javascript_include_tag()
   $html = '';
   foreach ($sources as $source)
   {
-    
+
     $absolute = false;
     if (isset($sourceOptions['absolute']))
     {
       unset($sourceOptions['absolute']);
       $absolute = true;
     }
-  
+
     if(!isset($sourceOptions['raw_name']))
     {
       $source = javascript_path($source, $absolute);
@@ -116,11 +116,20 @@ function javascript_include_tag()
     {
       unset($sourceOptions['raw_name']);
     }
+
+    $condition = false;
+    if(isset($sourceOptions['condition']))
+    {
+      $condition = $sourceOptions['condition'];
+      unset($sourceOptions['condition']);
+    }
+
     $options = array_merge(array('type' => 'text/javascript', 'src' => $source), $sourceOptions);
-    $html   .= content_tag('script', '', $options)."\n";
+    $content = content_tag('script', '', $options)."\n";
+    $html .= ($condition) ? conditional($condition, $content) : $content;
   }
 
-  return $html;  
+  return $html;
 }
 
 /**
@@ -140,7 +149,7 @@ function javascript_include_tag()
  * @param  string asset name
  * @param  bool return absolute path ?
  * @return string file path to the stylesheet file
- * @see    stylesheet_tag  
+ * @see    stylesheet_tag
  */
 function stylesheet_path($source, $absolute = false)
 {
@@ -172,7 +181,7 @@ function stylesheet_path($source, $absolute = false)
  * @param  string asset names
  * @param  array additional HTML compliant <link> tag parameters
  * @return string XHTML compliant <link> tag(s)
- * @see    stylesheet_path 
+ * @see    stylesheet_path
  */
 function stylesheet_tag()
 {
@@ -188,7 +197,7 @@ function stylesheet_tag()
       unset($sourceOptions['absolute']);
       $absolute = true;
     }
-        
+
     if(!isset($sourceOptions['raw_name']))
     {
       $source = stylesheet_path($source, $absolute);
@@ -197,8 +206,17 @@ function stylesheet_tag()
     {
       unset($sourceOptions['raw_name']);
     }
+
+    $condition = false;
+    if(isset($sourceOptions['condition']))
+    {
+      $condition = $sourceOptions['condition'];
+      unset($sourceOptions['condition']);
+    }
+
     $options = array_merge(array('rel' => 'stylesheet', 'type' => 'text/css', 'media' => 'screen', 'href' => $source), $sourceOptions);
-    $html   .= tag('link', $options)."\n";
+    $content = tag('link', $options)."\n";
+    $html .= ($condition) ? conditional($condition, $content) : $content;
   }
 
   return $html;
@@ -222,6 +240,79 @@ function use_stylesheet($css, $position = '', $options = array())
 function use_javascript($js, $position = '', $options = array())
 {
   sfContext::getInstance()->getResponse()->addJavascript($js, $position, $options);
+}
+
+/**
+ * Returns a <script> include tag relative to a dynamic PJS action.
+ *
+ * <b>Examples:</b>
+ * <code>
+ *  echo pjs_include_tag('foo/bar');
+ *    => <script language="JavaScript" type="text/javascript" src="/js/foo/bar.pjs"></script>
+ *  echo pjs_include_tag('foo/bar?id=12');
+ *    => <script language="JavaScript" type="text/javascript" src="/js/foo/bar/id/12.pjs"></script>
+ *  echo pjs_include_tag('foo/bar', null, array('query_string' => 'id=12'));
+ *    => <script language="JavaScript" type="text/javascript" src="/js/foo/bar.pjs?id=12"></script>
+ *  echo pjs_include_tag('foo/bar', true);
+ *    => <script language="JavaScript" type="text/javascript" src="http://localhost/js/foo/bar.pjs"></script>
+ * </code>
+ *
+ * @param  string Internal URI of the action to call
+ * @param  bool return absolute path ?
+ * @param  array options for the URL generation (to include query string)
+ * @return string <script> include tag to the dynamic JavaScript file
+ */
+function pjs_include_tag($uri, $absolute = false, $options = array())
+{
+  return javascript_include_tag(pjs_path($uri, $absolute, $options), array('raw_name' => true));
+}
+
+/**
+ * Adds a <script> include tag relative to the response content, where it is called
+ *
+ * @see pjs_include_tag
+ *
+ */
+function use_pjs($uri, $absolute = false, $options = array())
+{
+  echo pjs_include_tag($uri, $absolute = false, $options = array());
+}
+
+/**
+ * Returns the path to a dynamic PJS action.
+ *
+ * <b>Examples:</b>
+ * <code>
+ *  echo pjs_path('foo/bar');
+ *    => /js/foo/bar.pjs
+ *  echo pjs_path('foo/bar?id=12');
+ *    => /js/foo/bar/id/12.pjs
+ *  echo pjs_path('foo/bar', null, array('query_string' => 'id=12'));
+ *    => /js/foo/bar.pjs?id=12
+ *  echo pjs_path('foo/bar', true);
+ *    => http://localhost/js/foo/bar.pjs
+ * </code>
+ *
+ * @param  string Internal URI of the action to call
+ * @param  bool return absolute path ?
+ * @param  array options for the URL generation (to include query string)
+ * @return string external URL to the dynamic JavaScript file
+ */
+function pjs_path($uri, $absolute = false, $options = array())
+{
+  $urlArguments = '';
+  if (false !== $pos = strpos($uri, '?'))
+  {
+    $urlArguments = '&'.substr($uri, $pos + 1);
+    $uri = substr($uri, 0, $pos);
+  }
+
+  list($module, $action) = explode('/', $uri);
+
+  $url = sprintf('@default_pjs?format=js&module=%s&action=%s'.$urlArguments, $module, $action);
+  $query_string = isset($options['query_string']) ? '?'.$options['query_string'] : '';
+
+  return url_for($url, $absolute).$query_string;
 }
 
 /**
@@ -254,11 +345,11 @@ function decorate_with($layout)
  * - full path, like "/my_images/image.gif"
  * - file name, like "rss.gif", that gets expanded to "/images/rss.gif"
  * - file name without extension, like "logo", that gets expanded to "/images/logo.png"
- * 
+ *
  * @param  string asset name
  * @param  bool return absolute path ?
  * @return string file path to the image file
- * @see    image_tag  
+ * @see    image_tag
  */
 function image_path($source, $absolute = false)
 {
@@ -284,7 +375,7 @@ function image_path($source, $absolute = false)
  * @param  string image asset name
  * @param  array additional HTML compliant <img> tag parameters
  * @return string XHTML compliant <img> tag
- * @see    image_path 
+ * @see    image_path
  */
 function image_tag($source, $options = array())
 {
@@ -342,6 +433,7 @@ function _compute_public_path($source, $dir, $ext, $absolute = false)
   if (0 !== strpos($source, '/'))
   {
     $source = $sf_relative_url_root.'/'.$dir.'/'.$source;
+
   }
 
   $query_string = '';
@@ -386,7 +478,7 @@ function _compute_public_path($source, $dir, $ext, $absolute = false)
  * <b>Note:</b> Modify the view.yml or use sfWebResponse::addMeta() to change, add or remove metas.
  *
  * @return string XHTML compliant <meta> tag(s)
- * @see    include_http_metas 
+ * @see    include_http_metas
  * @see    sfWebResponse::addMeta()
  */
 function include_metas()
@@ -450,7 +542,7 @@ function include_title()
 function get_javascripts()
 {
   $response = sfContext::getInstance()->getResponse();
-  sfConfig::set('symfony.asset.javascripts_included', true);
+  $response->setParameter('javascripts_included', true, 'symfony/view/asset');
 
   $already_seen = array();
   $html = '';
@@ -475,6 +567,7 @@ function get_javascripts()
   }
 
   return $html;
+
 }
 
 /**
@@ -499,7 +592,7 @@ function include_javascripts()
 function get_stylesheets()
 {
   $response = sfContext::getInstance()->getResponse();
-  sfConfig::set('symfony.asset.stylesheets_included', true);
+  $response->setParameter('stylesheets_included', true, 'symfony/view/asset');
 
   $already_seen = array();
   $html = '';
@@ -535,3 +628,4 @@ function include_stylesheets()
 {
   echo get_stylesheets();
 }
+
