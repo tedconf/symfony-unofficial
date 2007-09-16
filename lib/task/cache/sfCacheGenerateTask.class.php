@@ -24,8 +24,6 @@ class sfCacheGenerateTask extends sfBaseTask
    */
   protected function configure()
   {
-    $this->checkProjectExists();
-
     $this->addArguments(array(
       new sfCommandArgument('application', sfCommandArgument::REQUIRED, 'The application name'),
       new sfCommandArgument('environment', sfCommandArgument::OPTIONAL, 'The environment name', 'prod'),
