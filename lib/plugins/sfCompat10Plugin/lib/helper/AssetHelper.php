@@ -542,7 +542,7 @@ function include_title()
 function get_javascripts()
 {
   $response = sfContext::getInstance()->getResponse();
-  $response->setParameter('javascripts_included', true, 'symfony/view/asset');
+  sfConfig::set('symfony.asset.javascripts_included', true);
 
   $already_seen = array();
   $html = '';
@@ -592,7 +592,7 @@ function include_javascripts()
 function get_stylesheets()
 {
   $response = sfContext::getInstance()->getResponse();
-  $response->setParameter('stylesheets_included', true, 'symfony/view/asset');
+  sfConfig::set('symfony.asset.stylesheets_included', true);
 
   $already_seen = array();
   $html = '';
