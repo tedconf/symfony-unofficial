@@ -1,4 +1,0 @@
-propel:
-  some_table:
-    _attributes:    { phpName: SomeTable }
-    somechar:       { type: VARCHAR, size: 255, default: "This & That" }
