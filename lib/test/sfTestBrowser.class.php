@@ -196,28 +196,28 @@ class sfTestBrowser extends sfBrowser
    *
    * @param string The module name
    * @param string The action name
-   * @param mixed  The position in the action stack (default to the last entry)
+   * @param mixed  The position in the controller stack (default to the last entry)
    *
    * @return sfTestBrowser The current sfTestBrowser instance
    */
   public function isForwardedTo($moduleName, $actionName, $position = 'last')
   {
-    $actionStack = $this->context->getActionStack();
+    $controllerStack = $this->context->getController()->getStack();
 
     switch ($position)
     {
       case 'first':
-        $entry = $actionStack->getFirstEntry();
+        $entry = $controllerStack->getFirst();
         break;
       case 'last':
-        $entry = $actionStack->getLastEntry();
+        $entry = $controllerStack->getLast();
         break;
       default:
-        $entry = $actionStack->getEntry($position);
+        $entry = $controllerStack->getAt($position);
     }
 
-    $this->test->is($entry->getModuleName(), $moduleName, sprintf('request is forwarded to the "%s" module (%s)', $moduleName, $position));
-    $this->test->is($entry->getActionName(), $actionName, sprintf('request is forwarded to the "%s" action (%s)', $actionName, $position));
+    $this->test->is($entry->get('module_name'), $moduleName, sprintf('request is forwarded to the "%s" module (%s)', $moduleName, $position));
+    $this->test->is($entry->get('action_name'), $actionName, sprintf('request is forwarded to the "%s" action (%s)', $actionName, $position));
 
     return $this;
   }

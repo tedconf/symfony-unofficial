@@ -25,7 +25,8 @@ abstract class sfController
     $dispatcher        = null,
     $controllerClasses = array(),
     $maxForwards       = 5,
-    $renderMode        = sfView::RENDER_CLIENT;
+    $renderMode        = sfView::RENDER_CLIENT,
+    $stack             = null;
 
   /**
    * Class constructor.
@@ -46,6 +47,7 @@ abstract class sfController
   {
     $this->context    = $context;
     $this->dispatcher = $context->getEventDispatcher();
+    $this->stack      = new sfContollerStack();
 
     if (sfConfig::get('sf_logging_enabled'))
     {
@@ -175,19 +177,25 @@ abstract class sfController
    *
    * @param string  A module name
    * @param string  An action name
+   * @param array   An optional array of parameters passed to the context of the action.
    *
    * @throws <b>sfConfigurationException</b> If an invalid configuration setting has been found
    * @throws <b>sfForwardException</b> If an error occurs while forwarding the request
    * @throws <b>sfInitializationException</b> If the action could not be initialized
    * @throws <b>sfSecurityException</b> If the action requires security but the user implementation is not of type sfSecurityUser
    */
-  public function forward($moduleName, $actionName)
+  public function forward($moduleName, $actionName = null, $parameters = array())
   {
+    if (empty($actionName))
+    {
+        throw new sfForwardException('Parameter $actionName must not be empty in this controller.');
+    }
+
     // replace unwanted characters
     $moduleName = preg_replace('/[^a-z0-9_]+/i', '', $moduleName);
     $actionName = preg_replace('/[^a-z0-9_]+/i', '', $actionName);
 
-    if ($this->getActionStack()->getSize() >= $this->maxForwards)
+    if (count($this->stack) >= $this->maxForwards)
     {
       // let's kill this party before it turns into cpu cycle hell
       throw new sfForwardException(sprintf('Too many forwards have been detected for this request (> %d).', $this->maxForwards));
@@ -222,14 +230,14 @@ abstract class sfController
     // create an instance of the action
     $actionInstance = $this->getAction($moduleName, $actionName);
 
-    // add a new action stack entry
-    $this->getActionStack()->addEntry($moduleName, $actionName, $actionInstance);
+    // add a new controller context entry
+    $this->stack->push(array('module_name' => $moduleName, 'action_name' => $actionName, 'action_instance' => $actionInstance));
 
     // include module configuration
     require(sfConfigCache::getInstance()->checkConfig(sfConfig::get('sf_app_module_dir_name').'/'.$moduleName.'/'.sfConfig::get('sf_app_module_config_dir_name').'/module.yml'));
 
     // check if this module is internal
-    if ($this->getActionStack()->getSize() == 1 && sfConfig::get('mod_'.strtolower($moduleName).'_is_internal') && !sfConfig::get('sf_test'))
+    if (count($this->stack) == 1 && sfConfig::get('mod_'.strtolower($moduleName).'_is_internal') && !sfConfig::get('sf_test'))
     {
       throw new sfConfigurationException(sprintf('Action "%s" from module "%s" cannot be called directly.', $actionName, $moduleName));
     }
@@ -265,7 +273,7 @@ abstract class sfController
         throw new sfConfigurationException(sprintf('Invalid configuration settings: [sf_module_disabled_module] "%s", [sf_module_disabled_action] "%s".', $moduleName, $actionName));
       }
 
-      $this->forward($moduleName, $actionName);
+      $this->forward($moduleName, $actionName, $parameters);
     }
   }
 
@@ -328,13 +336,13 @@ abstract class sfController
   }
 
   /**
-   * Retrieves the action stack.
+   * Retrieves the stack of this controller.
    *
-   * @return sfActionStack An sfActionStack instance, if the action stack is enabled, otherwise null
+   * @return sfControllerStack A sfControllerStack instance
    */
-  public function getActionStack()
+  public function getStack()
   {
-    return $this->context->getActionStack();
+    return $this->stack;
   }
 
   /**
@@ -431,11 +439,8 @@ abstract class sfController
     // set render mode to var
     $this->setRenderMode(sfView::RENDER_VAR);
 
-    // grab the action stack
-    $actionStack = $this->getActionStack();
-
-    // grab this next forward's action stack index
-    $index = $actionStack->getSize();
+    // grab this next forward's context stack index
+    $index = count($this->stack);
 
     // set viewName if needed
     if ($viewName)
@@ -447,26 +452,26 @@ abstract class sfController
     // forward to the mail action
     $this->forward($module, $action);
 
-    // grab the action entry from this forward
-    $actionEntry = $actionStack->getEntry($index);
+    // grab the context of this forward
+    $controllerContext = $this->stack->getAt($index);
 
-    // get raw email content
-    $presentation =& $actionEntry->getPresentation();
+    // get raw content
+    $presentation =& $controllerContext->getByRef('presentation');
 
     // put render mode back
     $this->setRenderMode($renderMode);
 
-    // remove the action entry
-    $nb = $actionStack->getSize() - $index;
+    // remove the controller context
+    $nb = count($this->stack) - $index;
     while ($nb-- > 0)
     {
-      $actionEntry = $actionStack->popEntry();
+      $controllerContext = $this->stack->pop();
 
-      if ($actionEntry->getModuleName() == sfConfig::get('sf_login_module') && $actionEntry->getActionName() == sfConfig::get('sf_login_action'))
+      if ($controllerContext->get('module_name') == sfConfig::get('sf_login_module') && $controllerContext->get('action_name') == sfConfig::get('sf_login_action'))
       {
         throw new sfException('Your mail action is secured but the user is not authenticated.');
       }
-      else if ($actionEntry->getModuleName() == sfConfig::get('sf_secure_module') && $actionEntry->getActionName() == sfConfig::get('sf_secure_action'))
+      else if ($controllerContext->get('module_name') == sfConfig::get('sf_secure_module') && $controllerContext->get('action_name') == sfConfig::get('sf_secure_action'))
       {
         throw new sfException('Your mail action is secured but the user does not have access.');
       }

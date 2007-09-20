@@ -32,7 +32,7 @@ class sfExecutionFilter extends sfFilter
   public function execute($filterChain)
   {
     // get the current action instance
-    $actionInstance = $this->context->getController()->getActionStack()->getLastEntry()->getActionInstance();
+    $actionInstance = $this->context->getController()->getStack()->getLast()->get('action_instance');
 
     // validate and execute the action
     if (sfConfig::get('sf_debug') && sfConfig::get('sf_logging_enabled'))
@@ -242,7 +242,7 @@ class sfExecutionFilter extends sfFilter
 
       case sfView::RENDER_VAR:
         $viewData = $view->render();
-        $controller->getActionStack()->getLastEntry()->setPresentation($viewData);
+        $controller->getStack()->getLast()->setByRef('presentation', $viewData);
         break;
     }
   }

@@ -34,8 +34,7 @@ class sfBasicSecurityFilter extends sfFilter
     $user       = $this->context->getUser();
 
     // get the current action instance
-    $actionEntry    = $controller->getActionStack()->getLastEntry();
-    $actionInstance = $actionEntry->getActionInstance();
+    $actionInstance = $controller->getStack()->getLast()->get('action_instance');
 
     // disable security on [sf_login_module] / [sf_login_action]
     if (

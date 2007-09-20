@@ -234,7 +234,7 @@ function get_partial($templateName, $vars = array())
   }
   else
   {
-    $moduleName = $context->getActionStack()->getLastEntry()->getModuleName();
+    $moduleName = $context->getController()->getStack()->getLast()->get('module_name');
   }
   $actionName = '_'.$templateName;
 

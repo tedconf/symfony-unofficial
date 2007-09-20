@@ -43,9 +43,6 @@ class sfContext
       $this->factories['databaseManager'] = new sfDatabaseManager(array('auto_shutdown' => false));
     }
 
-    // create a new action stack
-    $this->factories['actionStack'] = new sfActionStack();
-
     // include the factories configuration
     require(sfConfigCache::getInstance()->checkConfig(sfConfig::get('sf_app_config_dir_name').'/factories.yml'));
 
@@ -123,21 +120,10 @@ class sfContext
   public function getActionName()
   {
     // get the last action stack entry
-    if ($this->factories['actionStack'] && $lastEntry = $this->factories['actionStack']->getLastEntry())
+    if ($this->factories['controller']->getStack() && $lastEntry = $this->factories['controller']->getStack()->getLast())
     {
-      return $lastEntry->getActionName();
+      return $lastEntry->get('action_name');
     }
-  }
-
-
-  /**
-   * Retrieve the ActionStack.
-   *
-   * @return sfActionStack the sfActionStack instance
-   */
-  public function getActionStack()
-  {
-    return $this->factories['actionStack'];
   }
 
   /**
@@ -210,9 +196,9 @@ class sfContext
   public function getModuleDirectory()
   {
     // get the last action stack entry
-    if ($this->factories['actionStack'] && $lastEntry = $this->factories['actionStack']->getLastEntry())
+    if ($this->factories['controller']->getStack() && $lastEntry = $this->factories['controller']->getStack()->getLast())
     {
-      return sfConfig::get('sf_app_module_dir').'/'.$lastEntry->getModuleName();
+      return sfConfig::get('sf_app_module_dir').'/'.$lastEntry->get('module_name');
     }
   }
 
@@ -225,9 +211,9 @@ class sfContext
   public function getModuleName()
   {
     // get the last action stack entry
-    if ($this->factories['actionStack'] && $lastEntry = $this->factories['actionStack']->getLastEntry())
+    if ($this->factories['controller']->getStack() && $lastEntry = $this->factories['controller']->getStack()->getLast())
     {
-      return $lastEntry->getModuleName();
+      return $lastEntry->get('module_name');
     }
   }
 
