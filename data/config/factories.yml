@@ -1,0 +1,53 @@
+default:
+  controller:
+    class: sfFrontWebController
+
+  request:
+    class: sfWebRequest
+
+  response:
+    class: sfWebResponse
+
+  user:
+    class: myUser
+
+  storage:
+    class: sfSessionStorage
+    param:
+      session_name: symfony
+
+  view_cache:
+    class: sfFileCache
+    param:
+      automaticCleaningFactor: 0
+      cacheDir:                %SF_TEMPLATE_CACHE_DIR%
+      lifetime:                86400
+
+  i18n:
+    class: sfI18N
+    param:
+      cache:
+        class: sfFileCache
+        param:
+          automaticCleaningFactor: 0
+          cacheDir:                %SF_I18N_CACHE_DIR%
+          lifetime:                86400
+
+  routing:
+    class: sfPatternRouting
+    param:
+      load_configuration: true
+
+  logger:
+    class: sfAggregateLogger
+    param:
+      level: debug
+      loggers:
+        sf_web_debug:
+          class: sfWebDebugLogger
+          param:
+            condition: %SF_WEB_DEBUG%
+        sf_file_debug:
+          class: sfFileLogger
+          param:
+            file: %SF_LOG_DIR%/%SF_APP%_%SF_ENVIRONMENT%.log
