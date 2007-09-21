@@ -9,8 +9,9 @@
  */
 
 /**
- * sfControllerStack keeps a list of all requested actions and provides accessor
- * methods for retrieving individual contexts.
+ * sfControllerStack keeps a list of entries providing contextual information
+ * about all requested actions and provides accessor methods for retrieving
+ * individual entries.
  *
  * @package    symfony
  * @subpackage controller
@@ -22,43 +23,44 @@ class sfControllerStack implements Countable
   protected $stack = array();
 
   /**
-   * Adds a context to the controller stack.
+   * Adds an entry to the stack.
    *
-   * @param mixed  Either a sfControllerContext instance or an array of attributes.
-   *               If an array is passed an sfControllerContext instance is automatically created.
-   * @param string Classname to be used to create the context if context is an array.
+   * @param mixed  Either a sfParameterHolder instance or an array of parameters.
+   *               If an array is passed an sfParameterHolder instance is automatically created.
+   * @param string Classname to be used to create the entry if an array was set.
    *
-   * @return sfControllerContext sfControllerContext instance
+   * @return sfParameterHolder sfParameterHolder instance.
    */
-  public function push($context, $className = null)
+  public function push($entryHolder, $className = null)
   {
-    if (is_object($context))
+    if (is_object($entryHolder))
     {
-      if (!$context instanceof sfControllerContext)
+      if (!$entryHolder instanceof sfParameterHolder)
       {
-        throw new sfException('Parameter context must be an instance of sfControllerContext.');
+        throw new sfException('Parameter entryHolder must be an instance of sfParameterHolder.');
       }
 
-      $this->stack[] = $context;
+      $this->stack[] = $entryHolder;
 
-      return $context;
+      return $entryHolder;
     }
 
-    if (is_array($context))
+    if (is_array($entryHolder))
     {
-      $contextClass = $className ? $className : sfConfig::get('sf_controller_context_classname', 'sfControllerContext');
-      $contextInstance = new $contextClass($context);
+      $entryHolderClass = $className ? $className : sfConfig::get('sf_controller_stack_entry_classname', 'sfParameterHolder');
+      $entryHolderInstance = new $entryHolderClass();
+      $entryHolderInstance->add($entryHolder);
 
-      return $this->push($contextInstance);
+      return $this->push($entryHolderInstance);
     }
 
-    throw new sfException('Parameter context is of invalid type. Must be either object or array.');
+    throw new sfException('Parameter entryHolder is of invalid type. Must be either object or array.');
   }
 
   /**
-   * Removes the last context from the stack.
+   * Removes the last entry from the stack.
    *
-   * @return sfControllerContext A controller context implementation.
+   * @return sfParameterHolder A sfParameterHolder instance.
    */
   public function pop()
   {
@@ -66,9 +68,9 @@ class sfControllerStack implements Countable
   }
 
   /**
-   * Retrieves the first context.
+   * Retrieves the first entry.
    *
-   * @return mixed A controller context implementation or null if there is none in the stack.
+   * @return mixed A sfParameterHolder instance or null if there is none in the stack.
    */
   public function getFirst()
   {
@@ -76,9 +78,9 @@ class sfControllerStack implements Countable
   }
 
   /**
-   * Retrieves the last context.
+   * Retrieves the last entry.
    *
-   * @return mixed An action stack context implementation or null if there is no sfAction instance in the stack
+   * @return mixed An sfParameterHolder instance or null if there is none in the stack.
    */
   public function getLast()
   {
@@ -86,11 +88,11 @@ class sfControllerStack implements Countable
   }
 
   /**
-   * Retrieves the context at a specific index.
+   * Retrieves the entry at a specific index.
    *
-   * @param int An context index
+   * @param int An entry index.
    *
-   * @return sfControllerContext A controller context implementation.
+   * @return sfParameterHolder A sfParameterHolder instance.
    */
   public function getAt($index)
   {

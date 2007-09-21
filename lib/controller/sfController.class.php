@@ -47,7 +47,7 @@ abstract class sfController
   {
     $this->context    = $context;
     $this->dispatcher = $context->getEventDispatcher();
-    $this->stack      = new sfContollerStack();
+    $this->stack      = new sfControllerStack();
 
     if (sfConfig::get('sf_logging_enabled'))
     {
@@ -231,7 +231,7 @@ abstract class sfController
     $actionInstance = $this->getAction($moduleName, $actionName);
 
     // add a new controller context entry
-    $this->stack->push(array('module_name' => $moduleName, 'action_name' => $actionName, 'action_instance' => $actionInstance));
+    $this->stack->push(array_merge((array) $parameters, array('module_name' => $moduleName, 'action_name' => $actionName, 'action_instance' => $actionInstance)));
 
     // include module configuration
     require(sfConfigCache::getInstance()->checkConfig(sfConfig::get('sf_app_module_dir_name').'/'.$moduleName.'/'.sfConfig::get('sf_app_module_config_dir_name').'/module.yml'));
@@ -422,12 +422,23 @@ abstract class sfController
    *
    * @param  string A module name
    * @param  string An action name
-   * @param  string A View class name
+   * @param  mixed  Either an array of parameters passed to the controller stack entry
+   *                or a view class name.
    *
    * @return string The generated content
    */
-  public function getPresentationFor($module, $action, $viewName = null)
+  public function getPresentationFor($module, $action, $parameters = array())
   {
+    $viewName = null;
+    if (!empty($parameters['view_name']))
+    {
+      $viewName = $parameters['view_name'];
+    }
+    elseif (is_string($parameters) && !empty($parameters))
+    {
+      $viewName = $parameters;
+    }
+
     if (sfConfig::get('sf_logging_enabled'))
     {
       $this->dispatcher->notify(new sfEvent($this, 'application.log', array(sprintf('Get presentation for action "%s/%s" (view class: "%s")', $module, $action, $viewName))));
@@ -439,7 +450,7 @@ abstract class sfController
     // set render mode to var
     $this->setRenderMode(sfView::RENDER_VAR);
 
-    // grab this next forward's context stack index
+    // grab this next forward's entry index
     $index = count($this->stack);
 
     // set viewName if needed
@@ -449,14 +460,14 @@ abstract class sfController
       sfConfig::set('mod_'.strtolower($moduleName).'_view_class', $viewName);
     }
 
-    // forward to the mail action
-    $this->forward($module, $action);
+    // forward to the action
+    $this->forward($module, $action, $parameters);
 
-    // grab the context of this forward
-    $controllerContext = $this->stack->getAt($index);
+    // grab the entry of this forward
+    $entry = $this->stack->getAt($index);
 
     // get raw content
-    $presentation =& $controllerContext->getByRef('presentation');
+    $presentation =& $entry->get('presentation');
 
     // put render mode back
     $this->setRenderMode($renderMode);
@@ -465,13 +476,13 @@ abstract class sfController
     $nb = count($this->stack) - $index;
     while ($nb-- > 0)
     {
-      $controllerContext = $this->stack->pop();
+      $entry = $this->stack->pop();
 
-      if ($controllerContext->get('module_name') == sfConfig::get('sf_login_module') && $controllerContext->get('action_name') == sfConfig::get('sf_login_action'))
+      if ($entry->get('module_name') == sfConfig::get('sf_login_module') && $entry->get('action_name') == sfConfig::get('sf_login_action'))
       {
         throw new sfException('Your mail action is secured but the user is not authenticated.');
       }
-      else if ($controllerContext->get('module_name') == sfConfig::get('sf_secure_module') && $controllerContext->get('action_name') == sfConfig::get('sf_secure_action'))
+      else if ($entry->get('module_name') == sfConfig::get('sf_secure_module') && $entry->get('action_name') == sfConfig::get('sf_secure_action'))
       {
         throw new sfException('Your mail action is secured but the user does not have access.');
       }
