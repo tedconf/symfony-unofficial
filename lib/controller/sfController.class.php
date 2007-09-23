@@ -381,7 +381,7 @@ abstract class sfController
     {
       // view class (as configured in module.yml or defined in action)
       $viewClassName = sfConfig::get('mod_'.strtolower($moduleName).'_view_class');
-      $class = sfAutoload::getClassPath($viewClassName.'View') ? $viewClassName.'View' : 'sfPHPView';
+      $class = sfAutoload::getInstance()->getClassPath($viewClassName.'View') ? $viewClassName.'View' : 'sfPHPView';
     }
 
     return new $class($this->context, $moduleName, $actionName, $viewName);
@@ -440,8 +440,8 @@ abstract class sfController
     // set viewName if needed
     if ($viewName)
     {
-      $currentViewName = sfConfig::get('mod_'.strtolower($moduleName).'_view_class');
-      sfConfig::set('mod_'.strtolower($moduleName).'_view_class', $viewName);
+      $currentViewName = sfConfig::get('mod_'.strtolower($module).'_view_class');
+      sfConfig::set('mod_'.strtolower($module).'_view_class', $viewName);
     }
 
     // forward to the mail action
@@ -475,7 +475,7 @@ abstract class sfController
     // remove viewName
     if ($viewName)
     {
-      sfConfig::set('mod_'.strtolower($moduleName).'_view_class', $currentViewName);
+      sfConfig::set('mod_'.strtolower($module).'_view_class', $currentViewName);
     }
 
     return $presentation;

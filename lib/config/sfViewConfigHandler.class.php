@@ -153,8 +153,8 @@ class sfViewConfigHandler extends sfYamlConfigHandler
         $component = array(null, null);
       }
 
-      $data .= "  \$this->setComponentSlot('$name', '{$component[0]}', '{$component[1]}');\n";
-      $data .= "  if (sfConfig::get('sf_logging_enabled')) \$this->context->getEventDispatcher()->notify(new sfEvent(\$this, 'application.log', array(sprintf('Set component \"%s\" (%s/%s)', '{$name}', '{$component[0]}', '{$component[1]}'))));\n";
+      $data .= "  \$this->setComponentSlot('{$name}', '{$component[0]}', '{$component[1]}');\n";
+      $data .= "  if (sfConfig::get('sf_logging_enabled')) { \$this->context->getEventDispatcher()->notify(new sfEvent(\$this, 'application.log', array(sprintf('Set component \"%s\" (%s/%s)', '{$name}', '{$component[0]}', '{$component[1]}')))); }\n";
     }
 
     return $data;

@@ -1,5 +1,4 @@
 autoload:
-
   # symfony core
   symfony:
     name:           symfony
