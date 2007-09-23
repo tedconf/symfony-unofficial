@@ -1,0 +1,40 @@
+dwhittle branch is contributed by Dustin Whittle <dustin.whittle@symfony-project.com>.
+
+----------------------
+Differences from trunk
+----------------------
+
+
+ORM:
+
+  * support for PDO based Propel 1.3
+     - removal of Creole
+
+  * additonal configuration options for sfPDODatabase
+
+Routing:
+
+  * based on Francois(routing)/Fabien(trunk)/1.0(bc methods)
+
+Helpers:
+
+  * support for conditionals in js/css
+    - condition: IE in view.yml css/js
+
+  * support for xhtml or html style tags
+    - use_xhtml_tags in settings.yml
+
+Views:
+
+  * support for specific views
+    - XHMTL,HTML,JS,JSON,XML,RSS,
+
+Configuration:
+
+  * changed default settings to be more generic
+
+Optimizer:
+  * integration of sfOptimizerPlugin + refactored task
+
+Control Panel:
+  * integration + refactor of sfControlPanelPlugin
