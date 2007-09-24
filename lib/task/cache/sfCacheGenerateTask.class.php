@@ -89,6 +89,6 @@ EOF;
       $browser->get($uri);
     }
 
-    $this->log($this->formatSection('cache', sprintf('cache generated for application "%s" in environment "%s"', $application, $environment)));
+    $this->dispatcher->notify(new sfEvent($this, 'command.log', array($this->formatter->format(sprintf('cache generated for application "%s" in environment "%s"', $application, $environment), 'COMMENT'))));
   }
 }

@@ -36,5 +36,26 @@ Configuration:
 Optimizer:
   * integration of sfOptimizerPlugin + refactored task
 
-Control Panel:
+Control Panel (wip)
   * integration + refactor of sfControlPanelPlugin
+
+Debug Environment (wip)
+  * added links to validator
+  * cssreboot/jsshell/yslow widget
+  * tweaks to debugger
+  * ajax inline editor for translator mode
+
+Enivronments: (wip)
+  * cli environment for symfony command line + batch scripts
+  * staging environment
+  * dimensions integration
+
+Deployment (wip)
+  * Support for rsync, libssh2 scp transfer, or ftp transfer
+
+YUI (wip)
+  * css/js framework
+  * event system
+  * helpers
+  * panels/dialogs/modals
+  * widgets (datatable)
