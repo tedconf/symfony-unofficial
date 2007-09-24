@@ -44,20 +44,20 @@ class sfAutoload
   {
     ini_set('unserialize_callback_func', 'spl_autoload_call');
 
-    spl_autoload_register(array($this, 'autoload'));
+    spl_autoload_register(array(self::$instance, 'autoload'));
   }
 
   public function unregister()
   {
-    spl_autoload_unregister(array($this, 'autoload'));
+    spl_autoload_unregister(array(self::$instance, 'autoload'));
   }
 
   public function getClassPath($class)
   {
-    return isset($this->classes[$class]) ? $this->classes[$class] : null;
+    return isset(self::$instance->classes[$class]) ? self::$instance->classes[$class] : null;
   }
 
-  public function reloadClasses($force = false)
+  static public function reloadClasses($force = false)
   {
     if ($force)
     {
@@ -66,7 +66,7 @@ class sfAutoload
 
     $file = sfConfigCache::getInstance()->checkConfig(sfConfig::get('sf_app_config_dir_name').'/autoload.yml');
 
-    $this->classes = include($file);
+    self::$instance->classes = include($file);
   }
 
   /**
@@ -76,10 +76,10 @@ class sfAutoload
    *
    * @return boolean Returns true if the class has been loaded
    */
-  public function autoload($class)
+  static public function autoload($class)
   {
     // load the list of autoload classes
-    if (!$this->classes)
+    if (!self::$instance->classes)
     {
       self::reloadClasses();
     }
@@ -92,7 +92,7 @@ class sfAutoload
     return false;
   }
 
-  function autoloadAgain($class)
+  static public function autoloadAgain($class)
   {
     self::reloadClasses(true);
 
@@ -106,7 +106,7 @@ class sfAutoload
    *
    * @return boolean Returns true if the class has been loaded
    */
-  public function loadClass($class)
+  static public function loadClass($class)
   {
     // class already exists
     if (class_exists($class, false) || interface_exists($class, false))
@@ -115,18 +115,18 @@ class sfAutoload
     }
 
     // we have a class path, let's include it
-    if (isset($this->classes[$class]))
+    if (isset(self::$instance->classes[$class]))
     {
-      require($this->classes[$class]);
+      require(self::$instance->classes[$class]);
 
       return true;
     }
 
     // see if the file exists in the current module lib directory
     // must be in a module context
-    if (sfContext::hasInstance() && ($module = sfContext::getInstance()->getModuleName()) && isset($this->classes[$module.'/'.$class]))
+    if (sfContext::hasInstance() && ($module = sfContext::getInstance()->getModuleName()) && isset(self::$instance->classes[$module.'/'.$class]))
     {
-      require($this->classes[$module.'/'.$class]);
+      require(self::$instance->classes[$module.'/'.$class]);
 
       return true;
     }
@@ -134,3 +134,4 @@ class sfAutoload
     return false;
   }
 }
+
