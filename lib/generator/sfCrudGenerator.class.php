@@ -294,92 +294,6 @@ abstract class sfCrudGenerator extends sfGenerator
   }
 
   /**
-   * Returns HTML code for a column in list mode.
-   *
-   * @param string  The column name
-   * @param array   The parameters
-   *
-   * @return string HTML code
-   */
-  public function getColumnListTag($column, $params = array())
-  {
-    $type = $column->getCreoleType();
-    
-    $columnGetter = $this->getColumnGetter($column, true);
-
-    if ($type == CreoleTypes::TIMESTAMP)
-    {
-      return "format_date($columnGetter, 'f')";
-    }
-    elseif ($type == CreoleTypes::DATE)
-    {
-      return "format_date($columnGetter, 'D')";
-    }
-    else
-    {
-      return "$columnGetter";
-    }
-  }
-
-  /**
-   * Returns HTML code for a column in edit mode.
-   *
-   * @param string  The column name
-   * @param array   The parameters
-   *
-   * @return string HTML code
-   */
-  public function getCrudColumnEditTag($column, $params = array())
-  {
-    $type = $column->getCreoleType();
-
-    if ($column->isForeignKey())
-    {
-      if (!$column->isNotNull() && !isset($params['include_blank']))
-      {
-        $params['include_blank'] = true;
-      }
-
-      return $this->getPHPObjectHelper('select_tag', $column, $params, array('related_class' => $this->getRelatedClassName($column)));
-    }
-    else if ($type == CreoleTypes::DATE)
-    {
-      // rich=false not yet implemented
-      return $this->getPHPObjectHelper('input_date_tag', $column, $params, array('rich' => true));
-    }
-    else if ($type == CreoleTypes::TIMESTAMP)
-    {
-      // rich=false not yet implemented
-      return $this->getPHPObjectHelper('input_date_tag', $column, $params, array('rich' => true, 'withtime' => true));
-    }
-    else if ($type == CreoleTypes::BOOLEAN)
-    {
-      return $this->getPHPObjectHelper('checkbox_tag', $column, $params);
-    }
-    else if ($type == CreoleTypes::CHAR || $type == CreoleTypes::VARCHAR)
-    {
-      $size = ($column->getSize() > 20 ? ($column->getSize() < 80 ? $column->getSize() : 80) : 20);
-      return $this->getPHPObjectHelper('input_tag', $column, $params, array('size' => $size));
-    }
-    else if ($type == CreoleTypes::INTEGER || $type == CreoleTypes::TINYINT || $type == CreoleTypes::SMALLINT || $type == CreoleTypes::BIGINT)
-    {
-      return $this->getPHPObjectHelper('input_tag', $column, $params, array('size' => 7));
-    }
-    else if ($type == CreoleTypes::FLOAT || $type == CreoleTypes::DOUBLE || $type == CreoleTypes::DECIMAL || $type == CreoleTypes::NUMERIC || $type == CreoleTypes::REAL)
-    {
-      return $this->getPHPObjectHelper('input_tag', $column, $params, array('size' => 7));
-    }
-    else if ($type == CreoleTypes::TEXT || $type == CreoleTypes::LONGVARCHAR)
-    {
-      return $this->getPHPObjectHelper('textarea_tag', $column, $params, array('size' => '30x3'));
-    }
-    else
-    {
-      return $this->getPHPObjectHelper('input_tag', $column, $params, array('disabled' => true));
-    }
-  }
-
-  /**
    * Loads primary keys.
    *
    * This method is ORM dependant.
@@ -436,4 +350,45 @@ abstract class sfCrudGenerator extends sfGenerator
    * @return string The PHP name of the related class name
    */
   abstract function getRelatedClassName($column);
+
+  /**
+   * Returns HTML code for a column in filter mode.
+   *
+   * @param string  The column name
+   * @param array   The parameters
+   *
+   * @return string HTML code
+   */
+  abstract function getColumnFilterTag($column, $params = array());
+
+  /**
+   * Returns HTML code for a column in edit mode.
+   *
+   * @param string  The column name
+   * @param array   The parameters
+   *
+   * @return string HTML code
+   */
+  abstract function getColumnEditTag($column, $params = array());
+
+  /**
+   * Returns HTML code for a column in list mode.
+   *
+   * @param string  The column name
+   * @param array   The parameters
+   *
+   * @return string HTML code
+   */
+  abstract function getColumnListTag($column, $params = array());
+
+  /**
+   * Returns HTML code for a column in edit mode.
+   *
+   * @param string  The column name
+   * @param array   The parameters
+   *
+   * @return string HTML code
+   */
+  abstract function getCrudColumnEditTag($column, $params = array());
+
 }

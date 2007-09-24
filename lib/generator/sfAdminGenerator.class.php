@@ -255,61 +255,6 @@ abstract class sfAdminGenerator extends sfCrudGenerator
   }
 
   /**
-   * Returns HTML code for a column in edit mode.
-   *
-   * @param string  The column name
-   * @param array   The parameters
-   *
-   * @return string HTML code
-   */
-  public function getColumnEditTag($column, $params = array())
-  {
-    // user defined parameters
-    $user_params = $this->getParameterValue('edit.fields.'.$column->getName().'.params');
-    $user_params = is_array($user_params) ? $user_params : sfToolkit::stringToArray($user_params);
-    $params      = $user_params ? array_merge($params, $user_params) : $params;
-
-    if ($column->isComponent())
-    {
-      return "get_component('".$this->getModuleName()."', '".$column->getName()."', array('type' => 'edit', '{$this->getSingularName()}' => \${$this->getSingularName()}))";
-    }
-    else if ($column->isPartial())
-    {
-      return "get_partial('".$column->getName()."', array('type' => 'edit', '{$this->getSingularName()}' => \${$this->getSingularName()}))";
-    }
-
-    // default control name
-    $params = array_merge(array('control_name' => $this->getSingularName().'['.$column->getName().']'), $params);
-
-    // default parameter values
-    $type = $column->getCreoleType();
-    if ($type == CreoleTypes::DATE)
-    {
-      $params = array_merge(array('rich' => true, 'calendar_button_img' => sfConfig::get('sf_admin_web_dir').'/images/date.png'), $params);
-    }
-    else if ($type == CreoleTypes::TIMESTAMP)
-    {
-      $params = array_merge(array('rich' => true, 'withtime' => true, 'calendar_button_img' => sfConfig::get('sf_admin_web_dir').'/images/date.png'), $params);
-    }
-
-    // user sets a specific tag to use
-    if ($inputType = $this->getParameterValue('edit.fields.'.$column->getName().'.type'))
-    {
-      if ($inputType == 'plain')
-      {
-        return $this->getColumnListTag($column, $params);
-      }
-      else
-      {
-        return $this->getPHPObjectHelper($inputType, $column, $params);
-      }
-    }
-
-    // guess the best tag to use with column type
-    return parent::getCrudColumnEditTag($column, $params);
-  }
-
-  /**
    * Returns all column categories.
    *
    * @param string  The parameter name
@@ -583,132 +528,7 @@ EOF;
     return $value;
   }
 
-  /**
-   * Returns HTML code for a column in list mode.
-   *
-   * @param string  The column name
-   * @param array   The parameters
-   *
-   * @return string HTML code
-   */
-  public function getColumnListTag($column, $params = array())
-  {
-    $user_params = $this->getParameterValue('list.fields.'.$column->getName().'.params');
-    $user_params = is_array($user_params) ? $user_params : sfToolkit::stringToArray($user_params);
-    $params      = $user_params ? array_merge($params, $user_params) : $params;
-
-    $type = $column->getCreoleType();
-    
-    $columnGetter = $this->getColumnGetter($column, true);
-
-    if ($column->isComponent())
-    {
-      return "get_component('".$this->getModuleName()."', '".$column->getName()."', array('type' => 'list', '{$this->getSingularName()}' => \${$this->getSingularName()}))";
-    }
-    else if ($column->isPartial())
-    {
-      return "get_partial('".$column->getName()."', array('type' => 'list', '{$this->getSingularName()}' => \${$this->getSingularName()}))";
-    }
-    else if ($type == CreoleTypes::DATE || $type == CreoleTypes::TIMESTAMP)
-    {
-      $format = isset($params['date_format']) ? $params['date_format'] : ($type == CreoleTypes::DATE ? 'D' : 'f');
-      return "($columnGetter !== null && $columnGetter !== '') ? format_date($columnGetter, \"$format\") : ''";
-    }
-    elseif ($type == CreoleTypes::BOOLEAN)
-    {
-      return "$columnGetter ? image_tag(sfConfig::get('sf_admin_web_dir').'/images/tick.png') : '&nbsp;'";
-    }
-    else
-    {
-      return "$columnGetter";
-    }
-  }
-
-  /**
-   * Returns HTML code for a column in filter mode.
-   *
-   * @param string  The column name
-   * @param array   The parameters
-   *
-   * @return string HTML code
-   */
-  public function getColumnFilterTag($column, $params = array())
-  {
-    $user_params = $this->getParameterValue('list.fields.'.$column->getName().'.params');
-    $user_params = is_array($user_params) ? $user_params : sfToolkit::stringToArray($user_params);
-    $params      = $user_params ? array_merge($params, $user_params) : $params;
-
-    if ($column->isComponent())
-    {
-      return "get_component('".$this->getModuleName()."', '".$column->getName()."', array('type' => 'list'))";
-    }
-    else if ($column->isPartial())
-    {
-      return "get_partial('".$column->getName()."', array('type' => 'filter', 'filters' => \$filters))";
-    }
-
-    $type = $column->getCreoleType();
-
-    $default_value = "isset(\$filters['".$column->getName()."']) ? \$filters['".$column->getName()."'] : null";
-    $unquotedName = 'filters['.$column->getName().']';
-    $name = "'$unquotedName'";
-
-    if ($column->isForeignKey())
-    {
-      $params = $this->getObjectTagParams($params, array('include_blank' => true, 'related_class'=>$this->getRelatedClassName($column), 'text_method'=>'__toString', 'control_name'=>$unquotedName));
-      return "object_select_tag($default_value, null, $params)";
-
-    }
-    else if ($type == CreoleTypes::DATE)
-    {
-      // rich=false not yet implemented
-      $params = $this->getObjectTagParams($params, array('rich' => true, 'calendar_button_img' => sfConfig::get('sf_admin_web_dir').'/images/date.png'));
-      return "input_date_range_tag($name, $default_value, $params)";
-    }
-    else if ($type == CreoleTypes::TIMESTAMP)
-    {
-      // rich=false not yet implemented
-      $params = $this->getObjectTagParams($params, array('rich' => true, 'withtime' => true, 'calendar_button_img' => sfConfig::get('sf_admin_web_dir').'/images/date.png'));
-      return "input_date_range_tag($name, $default_value, $params)";
-    }
-    else if ($type == CreoleTypes::BOOLEAN)
-    {
-      $defaultIncludeCustom = '__("yes or no")';
-
-      $option_params = $this->getObjectTagParams($params, array('include_custom' => $defaultIncludeCustom));
-      $params = $this->getObjectTagParams($params);
-
-      // little hack
-      $option_params = preg_replace("/'".preg_quote($defaultIncludeCustom)."'/", $defaultIncludeCustom, $option_params);
-
-      $options = "options_for_select(array(1 => __('yes'), 0 => __('no')), $default_value, $option_params)";
-
-      return "select_tag($name, $options, $params)";
-    }
-    else if ($type == CreoleTypes::CHAR || $type == CreoleTypes::VARCHAR || $type == CreoleTypes::TEXT || $type == CreoleTypes::LONGVARCHAR)
-    {
-      $size = ($column->getSize() < 15 ? $column->getSize() : 15);
-      $params = $this->getObjectTagParams($params, array('size' => $size));
-      return "input_tag($name, $default_value, $params)";
-    }
-    else if ($type == CreoleTypes::INTEGER || $type == CreoleTypes::TINYINT || $type == CreoleTypes::SMALLINT || $type == CreoleTypes::BIGINT)
-    {
-      $params = $this->getObjectTagParams($params, array('size' => 7));
-      return "input_tag($name, $default_value, $params)";
-    }
-    else if ($type == CreoleTypes::FLOAT || $type == CreoleTypes::DOUBLE || $type == CreoleTypes::DECIMAL || $type == CreoleTypes::NUMERIC || $type == CreoleTypes::REAL)
-    {
-      $params = $this->getObjectTagParams($params, array('size' => 7));
-      return "input_tag($name, $default_value, $params)";
-    }
-    else
-    {
-      $params = $this->getObjectTagParams($params, array('disabled' => true));
-      return "input_tag($name, $default_value, $params)";
-    }
-  }
-
-  /**
+   /**
    * Escapes a string.
    *
    * @param string
@@ -719,6 +539,7 @@ EOF;
   {
     return preg_replace('/\'/', '\\\'', $string);
   }
+
 }
 
 /**

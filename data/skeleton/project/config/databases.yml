@@ -1,5 +1,9 @@
 #all:
 #  propel:
-#    class:          sfPropelDatabase
+#    class:        sfPropelDatabase
 #    param:
-#      dsn:          mysql://root:@localhost/dbname
+#      dsn:        mysql:dbname=mydb;host=localhost
+#      username:   username
+#      password:   password
+#      encoding:   utf8
+#      persistent: true
