@@ -3,7 +3,7 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- * 
+ *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -92,6 +92,6 @@ EOF;
   {
     $this->dispatcher->notify(new sfEvent($this, 'command.log', array($this->formatter->formatSection('plugin', sprintf('installing plugin "%s"', $arguments['name'])))));
 
-    $this->getPuginManager()->installPlugin($arguments['name'], $options);
+    $this->getPluginManager()->installPlugin($arguments['name'], $options);
   }
 }
