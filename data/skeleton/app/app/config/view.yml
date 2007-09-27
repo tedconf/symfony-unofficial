@@ -4,7 +4,7 @@ default:
 
   metas:
     title:        symfony project
-    robots:       index, follow
+    robots:       index, follow, archive
     description:  symfony project
     keywords:     symfony, project
     language:     en

@@ -20,32 +20,32 @@ default:
     use_database:           on        # Enable database manager. Set to off if you don't use a database.
     use_security:           on        # Enable security features (login and credentials). Set to off for public applications.
     use_flash:              on        # Enable flash parameter feature. Set to off if you never use the set_flash() method in actions.
-    i18n:                   off       # Enable interface translation. Set to off if your application should not be translated.
+    i18n:                   on        # Enable interface translation. Set to off if your application should not be translated.
     check_symfony_version:  off       # Enable check of symfony version for every request. Set to on to have symfony clear the cache automatically when the framework is upgraded. Set to off if you always clear the cache after an upgrade.
     compressed:             off       # Enable PHP response compression. Set to on to compress the outgoing HTML via the PHP handler.
     check_lock:             off       # Enable the application lock system triggered by the clear-cache and disable tasks. Set to on to have all requests to disabled applications redirected to the $sf_symfony_data_dir/web/arrors/unavailable.php page.
 
     # Output escaping settings
-    escaping_strategy:      both      # Determines how variables are made available to templates. Accepted values: bc, both, on, off. The value off deactivates escaping completely and gives a slight boost.
+    escaping_strategy:      bc        # Determines how variables are made available to templates. Accepted values: bc, both, on, off. The value off deactivates escaping completely and gives a slight boost.
     escaping_method:   ESC_ENTITIES   # Function or helper used for escaping. Accepted values: ESC_RAW, ESC_ENTITIES, ESC_JS, ESC_JS_NO_ENTITIES.
 
     # Routing settings
     suffix:                 .         # Default suffix for generated URLs. If set to a single dot (.), no suffix is added. Possible values: .html, .php, and so on.
-    no_script_name:         off       # Enable the front controller name in generated URLs
+    no_script_name:         on        # Enable the front controller name in generated URLs
 
     # Validation settings, used for error generation by the Validation helper
-    validation_error_prefix:    ' &darr;&nbsp;'
-    validation_error_suffix:    ' &nbsp;&darr;'
-    validation_error_class:     form_error
-    validation_error_id_prefix: error_for_
+    validation_error_prefix:      ' &darr;&nbsp;'
+    validation_error_suffix:      ' &nbsp;&darr;'
+    validation_error_class:       form_error
+    validation_error_id_prefix:   error_for_
 
     # Cache settings
-    cache:                  off       # Enable the template cache
+    cache:                  on        # Enable the template cache
     etag:                   on        # Enable etag handling
 
     # Logging and debugging settings
+    error_reporting:        <?php echo E_PARSE | E_COMPILE_ERROR | E_ERROR | E_CORE_ERROR | E_USER_ERROR ?> # Determines which events are logged.
     web_debug:              off       # Enable the web debug toolbar
-    error_reporting:        <?php echo (E_PARSE | E_COMPILE_ERROR | E_ERROR | E_CORE_ERROR | E_USER_ERROR)."\n" ?>  # Determines which events are logged.
     xdebug:                 off       # Enable xdebug stack trace in the logs
 
     # Assets paths
@@ -53,12 +53,11 @@ default:
     prototype_web_dir:      /sf/prototype
     admin_web_dir:          /sf/sf_admin
     web_debug_web_dir:      /sf/sf_web_debug
-    calendar_web_dir:       /sf/calendar
 
     # Helpers included in all templates by default
     standard_helpers:       [Partial, Cache, Form]
 
-    use_xhtml_tags:          on       # use open (html style) or closed (xhtml style) tags, on by default
+    use_xhtml_tags:          on       # use open (html style) or closed (xhtml style) tags
 
     # Activated modules from plugins or from the symfony core
     enabled_modules:        [default]
@@ -81,7 +80,7 @@ default:
 
     # Miscellaneous
     strip_comments:         on         # Remove comments in core framework classes as defined in the core_compile.yml
-    timeout:                1800       # Session timeout, in seconds
+    timeout:                9600       # Session timeout, in seconds
     max_forwards:           5
     path_info_array:        SERVER
     path_info_key:          PATH_INFO
@@ -94,4 +93,4 @@ default:
     logging_enabled:        on
 
     # enable 1.0 compatibility
-    compat_10:              off
+    compat_10:              on

@@ -33,12 +33,17 @@ all:
     class: sfWebResponse
 
   user:
-    class: myUser
+    class: sfBasicSecurityUser
 
   storage:
     class: sfSessionStorage
     param:
       session_name: symfony
+      session_cookie_lifetime: 77760000   # 90*24*3600
+      session_cookie_path:     /
+      # session_cookie_domain:   .example.com
+      session_cookie_secure:   false
+      session_cookie_httponly: false
 
   view_cache:
     class: sfFileCache
