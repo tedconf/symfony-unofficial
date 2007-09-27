@@ -1,4 +1,4 @@
-#!/usr/bin/env php -dhtml_errors=off -dopen_basedir= -q
+#!/usr/bin/env php -dopen_basedir= -q
 <?php
 
 /*

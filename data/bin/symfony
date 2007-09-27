@@ -1,4 +1,4 @@
-#!/usr/bin/env php
+#!/usr/bin/env php -dopen_basedir= -q
 <?php
 
 /*
@@ -10,16 +10,17 @@
  */
 
 
-// traverse parent directories to find symfony project root
-$origwd = getcwd();
-while(!is_file('symfony'))
+$original_dir = getcwd();
+while(!is_file('symfony')) // traverse parent directories to find symfony project root
 {
-  $lastwd = getcwd();
+  $last_dir = getcwd();
+
   chdir('..');
-  $cwd = getcwd();
-  if ($cwd == $lastwd || $cwd == '/')
+
+  $current_dir = getcwd();
+  if ($current_dir == $last_dir || $current_dir == '/') // if you get to the top go back to where you started
   {
-    chdir($origwd);
+    chdir($original_dir);
     break;
   }
 }
