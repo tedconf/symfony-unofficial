@@ -9,6 +9,21 @@
  * file that was distributed with this source code.
  */
 
+
+// traverse parent directories to find symfony project root
+$origwd = getcwd();
+while(!is_file('symfony'))
+{
+  $lastwd = getcwd();
+  chdir('..');
+  $cwd = getcwd();
+  if ($cwd == $lastwd || $cwd == '/')
+  {
+    chdir($origwd);
+    break;
+  }
+}
+
 // project exists?
 if (file_exists('config/config.php'))
 {
