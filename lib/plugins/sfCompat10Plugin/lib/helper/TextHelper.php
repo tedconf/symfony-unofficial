@@ -201,5 +201,5 @@ function _auto_link_urls($text, $href_options = array())
  */
 function _auto_link_email_addresses($text)
 {
-  return preg_replace('/([\w\.!#\$%\-+.]+@[A-Za-z0-9\-]+(\.[A-Za-z0-9\-]+)+)/', '<a href="mailto:\\1">\\1</a>', $text);
+  return preg_replace('/([^[>:[:alpha:]]|^)([\w\.!#\$%\-+.]+@[A-Za-z0-9\-]+(\.[A-Za-z0-9\-]+)+)/', '\\1<a href="mailto:\\2">\\2</a>', $text);
 }
