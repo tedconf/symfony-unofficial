@@ -3,7 +3,7 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- * 
+ *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -56,15 +56,6 @@ class sfNoStorage extends sfStorage
   }
 
   /**
-   * Executes the shutdown procedure.
-   *
-   * @throws <b>sfStorageException</b> If an error occurs while shutting down this storage
-   */
-  public function shutdown()
-  {
-  }
-
-  /**
    * Writes data to this storage.
    *
    * The preferred format for a key is directory style so naming conflicts can be avoided.
@@ -75,6 +66,26 @@ class sfNoStorage extends sfStorage
    * @throws <b>sfStorageException</b> If an error occurs while writing to this storage
    */
   public function write($key, $data)
+  {
+  }
+
+  /**
+   * Regenerates id that represents this storage.
+   *
+   * @param boolean Destroy session when regenerating
+   * @return boolean True if session regenerated, false if error
+   *
+   */
+  public function regenerate($destroy = false)
+  {
+  }
+
+  /**
+   * Executes the shutdown procedure.
+   *
+   * @throws <b>sfStorageException</b> If an error occurs while shutting down this storage
+   */
+  public function shutdown()
   {
   }
 }

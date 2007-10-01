@@ -4,7 +4,7 @@
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
  * (c) 2004-2006 Sean Kerr.
- * 
+ *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -65,6 +65,17 @@ abstract class sfStorage
    * @throws <b>sfStorageException</b> If an error occurs while reading data from this storage
    */
   abstract public function read($key);
+
+  /**
+   * Regenerates id that represents this storage.
+   *
+   * @param boolean Destroy session when regenerating?
+   *
+   * @return boolean True if session regenerated, false if error
+   *
+   * @throws <b>sfStorageException</b> If an error occurs while regenerating this storage
+   */
+  abstract public function regenerate($destroy = false);
 
   /**
    * Removes data from this storage.
