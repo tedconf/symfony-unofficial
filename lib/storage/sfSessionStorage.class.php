@@ -39,6 +39,9 @@ class sfSessionStorage extends sfStorage
     // initialize parent
     parent::initialize($parameters);
 
+    // set max life time for session garabage handler
+    ini_set("session.gc_maxlifetime", sfConfig::get('sf_timeout'));
+
     // set session name
     $sessionName = $this->getParameter('session_name', 'symfony');
 
