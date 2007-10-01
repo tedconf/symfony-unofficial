@@ -109,7 +109,7 @@
 
     return tag('input', $html_options);
   }
-  
+
   /**
    * Returns an html button to a remote action defined by 'url' (using the
    * 'url_for()' format) that's called in the background using XMLHttpRequest.
@@ -830,6 +830,11 @@
       if (isset($options['save_text']))
       {
         $js_options['okText'] = "'".$options['save_text']."'";
+      }
+
+      if (isset($options['click_to_edit_text']))
+      {
+        $js_options['clickToEditText'] = "'".$options['click_to_edit_text']."'";
       }
       if (isset($options['cols']))
       {
