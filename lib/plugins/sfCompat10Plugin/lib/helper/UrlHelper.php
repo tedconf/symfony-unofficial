@@ -3,7 +3,7 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- * 
+ *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -27,7 +27,7 @@
  *  echo url_for('my_module/my_action');
  *    => /path/to/my/action
  *  echo url_for('@my_rule');
- *    => /path/to/my/action 
+ *    => /path/to/my/action
  *  echo url_for('@my_rule', true);
  *    => http://myapp.example.com/path/to/my/action
  * </code>
@@ -52,11 +52,11 @@ function url_for($internal_uri, $absolute = false)
  * Creates a <a> link tag of the given name using a routed URL
  * based on the module/action passed as argument and the routing configuration.
  * It's also possible to pass a string instead of a module/action pair to
- * get a link tag that just points without consideration. 
+ * get a link tag that just points without consideration.
  * If null is passed as a name, the link itself will become the name.
  * If an object is passed as a name, the object string representation is used.
- * One of the options serves for for creating javascript confirm alerts where 
- * if you pass 'confirm' => 'Are you sure?', the link will be guarded 
+ * One of the options serves for for creating javascript confirm alerts where
+ * if you pass 'confirm' => 'Are you sure?', the link will be guarded
  * with a JS popup asking that question. If the user accepts, the link is processed,
  * otherwise not.
  *
@@ -64,7 +64,7 @@ function url_for($internal_uri, $absolute = false)
  * - 'absolute' - if set to true, the helper outputs an absolute URL
  * - 'query_string' - to append a query string (starting by ?) to the routed url
  * - 'confirm' - displays a javascript confirmation alert when the link is clicked
- * - 'popup' - if set to true, the link opens a new browser window 
+ * - 'popup' - if set to true, the link opens a new browser window
  * - 'post' - if set to true, the link submits a POST request instead of GET (caution: do not use inside a form)
  *
  * <b>Note:</b> The 'popup' and 'post' options are not compatible with each other.
@@ -142,14 +142,14 @@ function link_to($name = '', $internal_uri = '', $options = array())
  * - 'absolute' - if set to true, the helper outputs an absolute URL
  * - 'query_string' - to append a query string (starting by ?) to the routed url
  * - 'confirm' - displays a javascript confirmation alert when the link is clicked
- * - 'popup' - if set to true, the link opens a new browser window 
+ * - 'popup' - if set to true, the link opens a new browser window
  * - 'post' - if set to true, the link submits a POST request instead of GET (caution: do not use inside a form)
  *
  * <b>Examples:</b>
  * <code>
  *  echo link_to_if($user->isAdministrator(), 'Delete this page', 'my_module/my_action');
  *    => <a href="/path/to/my/action">Delete this page</a>
- *  echo link_to_if(!$user->isAdministrator(), 'Delete this page', 'my_module/my_action'); 
+ *  echo link_to_if(!$user->isAdministrator(), 'Delete this page', 'my_module/my_action');
  *    => <span>Delete this page</span>
  * </code>
  *
@@ -191,14 +191,14 @@ function link_to_if($condition, $name = '', $internal_uri = '', $options = array
  * - 'absolute' - if set to true, the helper outputs an absolute URL
  * - 'query_string' - to append a query string (starting by ?) to the routed url
  * - 'confirm' - displays a javascript confirmation alert when the link is clicked
- * - 'popup' - if set to true, the link opens a new browser window 
+ * - 'popup' - if set to true, the link opens a new browser window
  * - 'post' - if set to true, the link submits a POST request instead of GET (caution: do not use inside a form)
  *
  * <b>Examples:</b>
  * <code>
  *  echo link_to_unless($user->isAdministrator(), 'Delete this page', 'my_module/my_action');
  *    => <span>Delete this page</span>
- *  echo link_to_unless(!$user->isAdministrator(), 'Delete this page', 'my_module/my_action'); 
+ *  echo link_to_unless(!$user->isAdministrator(), 'Delete this page', 'my_module/my_action');
  *    => <a href="/path/to/my/action">Delete this page</a>
  * </code>
  *
@@ -223,7 +223,7 @@ function link_to_unless($condition, $name = '', $url = '', $options = array())
  * - 'absolute' - if set to true, the helper outputs an absolute URL
  * - 'query_string' - to append a query string (starting by ?) to the routed url
  * - 'confirm' - displays a javascript confirmation alert when the button is clicked
- * - 'popup' - if set to true, the button opens a new browser window 
+ * - 'popup' - if set to true, the button opens a new browser window
  * - 'post' - if set to true, the button submits a POST request instead of GET (caution: do not use inside a form)
  *
  * <b>Examples:</b>
@@ -243,6 +243,28 @@ function button_to($name, $internal_uri, $options = array())
   $html_options = _convert_options($options);
   $html_options['value'] = $name;
 
+  $absolute = false;
+  if (isset($html_options['absolute_url']))
+  {
+    $html_options['absolute'] = $html_options['absolute_url'];
+    unset($html_options['absolute_url']);
+  }
+  if (isset($html_options['absolute']))
+  {
+    $absolute = (boolean) $html_options['absolute'];
+    unset($html_options['absolute']);
+  }
+
+  if (isset($html_options['query_string']))
+  {
+    $query_string = '?'.$html_options['query_string'];
+    unset($html_options['query_string']);
+  }
+  else
+  {
+    $query_string = '';
+  }
+
   if (isset($html_options['post']) && $html_options['post'])
   {
     if (isset($html_options['popup']))
@@ -258,14 +280,14 @@ function button_to($name, $internal_uri, $options = array())
   else if (isset($html_options['popup']))
   {
     $html_options['type'] = 'button';
-    $html_options = _convert_options_to_javascript($html_options, $internal_uri);
+    $html_options = _convert_options_to_javascript($html_options, $internal_uri, $absolute);
 
     return tag('input', $html_options);
   }
   else
   {
     $html_options['type']    = 'button';
-    $html_options['onclick'] = "document.location.href='".url_for($internal_uri)."';";
+    $html_options['onclick'] = "document.location.href='".url_for($internal_uri, $absolute).$query_string."';";
     $html_options = _convert_options_to_javascript($html_options);
 
     return tag('input', $html_options);
@@ -332,7 +354,7 @@ function mail_to($email, $name = '', $options = array(), $default_value = array(
   return content_tag('a', $name, $html_options);
 }
 
-function _convert_options_to_javascript($html_options, $internal_uri = '')
+function _convert_options_to_javascript($html_options, $internal_uri = '', $absolute = false)
 {
   // confirm
   $confirm = isset($html_options['confirm']) ? $html_options['confirm'] : '';
@@ -354,7 +376,7 @@ function _convert_options_to_javascript($html_options, $internal_uri = '')
   }
   else if ($confirm && $popup)
   {
-    $html_options['onclick'] = $onclick.'if ('._confirm_javascript_function($confirm).') { '._popup_javascript_function($popup, $internal_uri).' };return false;';
+    $html_options['onclick'] = $onclick.'if ('._confirm_javascript_function($confirm).') { '._popup_javascript_function($popup, $internal_uri, $absolute).' };return false;';
   }
   else if ($confirm && $post)
   {
@@ -377,7 +399,7 @@ function _convert_options_to_javascript($html_options, $internal_uri = '')
   }
   else if ($popup)
   {
-    $html_options['onclick'] = $onclick._popup_javascript_function($popup, $internal_uri).'return false;';
+    $html_options['onclick'] = $onclick._popup_javascript_function($popup, $internal_uri, $absolute).'return false;';
   }
 
   return $html_options;
@@ -388,9 +410,9 @@ function _confirm_javascript_function($confirm)
   return "confirm('".escape_javascript($confirm)."')";
 }
 
-function _popup_javascript_function($popup, $internal_uri = '')
+function _popup_javascript_function($popup, $internal_uri = '', $absolute = false)
 {
-  $url = $internal_uri == '' ? 'this.href' : "'".url_for($internal_uri)."'";
+  $url = $internal_uri == '' ? 'this.href' : "'".url_for($internal_uri, $absolute)."'";
 
   if (is_array($popup))
   {
