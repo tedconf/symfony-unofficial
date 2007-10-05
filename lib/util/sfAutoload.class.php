@@ -55,9 +55,9 @@ class sfAutoload
 
   public function setClassPath($class, $path)
   {
-    $this->overriden[$class] = $path;
+    self::$instance->overriden[$class] = $path;
 
-    $this->classes[$class] = $path;
+    self::$instance->classes[$class] = $path;
   }
 
   public function getClassPath($class)
@@ -76,9 +76,9 @@ class sfAutoload
 
     self::$instance->classes = include($file);
 
-    foreach ($this->overriden as $class => $path)
+    foreach (self::$instance->overriden as $class => $path)
     {
-      $this->classes[$class] = $path;
+      self::$instance->classes[$class] = $path;
     }
   }
 
