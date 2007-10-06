@@ -44,11 +44,6 @@ EOF;
    */
   protected function execute($arguments = array(), $options = array())
   {
-    if(!isset($this->commandApplication))
-    {
-      throw new sfCommandException('You can only launch this task from the command line.');
-    }
-
     if(count($arguments) < 2)
     {
       throw new sfCommandException('You must provide an application and an environment.');
