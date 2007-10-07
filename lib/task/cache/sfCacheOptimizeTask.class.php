@@ -63,13 +63,14 @@ EOF;
 
     if(!is_readable($config))
     {
-      $cacheCreate = new sfCacheGenerateTask($this->commandApplication);
+      $cacheCreate = new sfCacheGenerateTask($this->dispatcher, $this->formatter);
       $cacheCreate->run(array('application' => $arguments['application'],  'environment' => $arguments['environment']));
     }
 
     $optimizer = new sfOptimizer();
     $optimizer->initialize(file_get_contents($config));
     $optimizer->registerStandardOptimizers();
+
     file_put_contents($config, $optimizer->optimize());
 
     $this->dispatcher->notify(new sfEvent($this, 'command.log', array($this->formatter->format(sprintf('optimized cache for application "%s" in environment "%s"', $application, $environment), 'COMMENT'))));
