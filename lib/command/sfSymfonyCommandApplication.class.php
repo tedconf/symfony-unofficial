@@ -119,6 +119,9 @@ class sfSymfonyCommandApplication extends sfCommandApplication
 
   /**
    * Initializes the autoloader object.
+   *
+   * If we are not using the symfony CLI in the context of a specific application,
+   * then the system temp directory will be used for the autoloader cache instead.
    */
   protected function initializeAutoloader()
   {
