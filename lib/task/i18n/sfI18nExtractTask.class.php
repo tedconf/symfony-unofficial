@@ -9,7 +9,7 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- * 
+ *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -63,7 +63,7 @@ To save them in the i18n message catalogue, use the [--auto-save|COMMENT] option
   [./symfony i18n:extract --auto-save frontend fr|INFO]
 
 If you want to display strings that are present in the i18n messages
-catalogue but are not found in the application, use the 
+catalogue but are not found in the application, use the
 [--display-old|COMMENT] option:
 
   [./symfony i18n:extract --display-old frontend fr|INFO]
@@ -85,8 +85,7 @@ EOF;
 
     $this->dispatcher->notify(new sfEvent($this, 'command.log', array($this->formatter->formatSection('i18n', sprintf('extracting i18n strings for the "%s" application', $arguments['application'])))));
 
-    $extract = new sfI18nApplicationExtract();
-    $extract->initialize($arguments['culture']);
+    $extract = new sfI18nApplicationExtract($arguments['culture']);
     $extract->extract();
 
     $this->dispatcher->notify(new sfEvent($this, 'command.log', array($this->formatter->formatSection('i18n', sprintf('found "%d" new i18n strings', count($extract->getNewMessages()))))));
