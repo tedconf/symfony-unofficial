@@ -59,3 +59,5 @@ YUI (wip)
   * helpers
   * panels/dialogs/modals
   * widgets (datatable)
+  * integrated debugger/logging
+  * rich admin (ajax filter updates, sortable, inline edit, etc..)
