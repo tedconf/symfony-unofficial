@@ -7,10 +7,9 @@ Differences from trunk
 
 ORM:
 
+  * additonal configuration options for sfPDODatabase
   * support for PDO based Propel 1.3
      - removal of Creole
-
-  * additonal configuration options for sfPDODatabase
 
 Routing:
 

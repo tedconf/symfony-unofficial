@@ -20,6 +20,16 @@ Version 1.1.0
 * Routing rules now accept named tokens separated by ; : + | - and . (in addition to the usual /), like so:
     url: /:module/:action|:foo.:format
 * All bug fixes from 1.0.0 -> 1.0.X
+* Upgraded Propel from 1.2 to 1.3
+    * Propel now uses PDO (instead of Creole) for database API
+    * Support for DateTime object and correct handling of pre-/post- epoch dates
+    * New nested-set implementation
+    * Propel now stores & maps object instances to ensure that only one object instance represents a given database row.
+    * New 1:1 relationship support
+    * Table and class prefix options
+    * Ability to specify custom method names for FKEY relationships
+    * Ability to use expressions as default values (e.g. CURRENT_TIMESTAMP)
+    * Customizable PHP and SQL type mapping on a per-column basis
 
 WARNING: sfI18N class is not a singleton anymore. To use the sfI18N object, you must get it from the context:
          sfContext::getInstance()->getI18N()
