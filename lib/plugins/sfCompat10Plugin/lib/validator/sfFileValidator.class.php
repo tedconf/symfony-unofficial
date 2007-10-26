@@ -3,7 +3,7 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- * 
+ *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -41,9 +41,9 @@ class sfFileValidator extends sfValidatorBase
   {
     $request = $this->context->getRequest();
 
-    // file too large?
+    // check if file is too large based on validation config or php.ini max_upload_size?
     $max_size = $this->getParameter('max_size');
-    if ($max_size !== null && $max_size < $value['size'])
+    if ($value['error'] === 1 || ($max_size !== null && $max_size < $value['size']))
     {
       $error = $this->getParameter('max_size_error');
 
