@@ -24,6 +24,6 @@ class sfATOMView extends sfXMLView
   {
     parent::configure();
 
-    $this->getContext()->getResponse()->setPreferredContentType(array('application/atom+xml', 'application/xml', 'text/xml'));
+    $this->context->getResponse()->setPreferredContentType(array('application/atom+xml', 'application/xml', 'text/xml'));
   }
 }

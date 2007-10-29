@@ -23,7 +23,6 @@ class sfJavascriptView extends sfPHPView
   {
     parent::configure();
 
-    $response = $this->getContext()->getResponse();
-    $response->setContentType('application/x-javascript');
+    $this->context->getResponse()->setContentType('application/x-javascript');
   }
 }

@@ -24,6 +24,6 @@ class sfRSSView extends sfXMLView
   {
     parent::configure();
 
-    $this->getContext()->getResponse()->setPreferredContentType(array('application/rss+xml', 'application/xml', 'text/xml'));
+    $this->context->getResponse()->setPreferredContentType(array('application/rss+xml', 'application/xml', 'text/xml'));
   }
 }

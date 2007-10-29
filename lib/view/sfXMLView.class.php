@@ -24,7 +24,7 @@ class sfXMLView extends sfPHPView
   {
     parent::configure();
 
-    $this->getContext()->getResponse()->setPreferredContentType(array('application/xml', 'text/xml'));
+    $this->context->getResponse()->setPreferredContentType(array('application/xml', 'text/xml'));
 
     /*
     // http://manalang.wordpress.com/2004/06/17/xslts-for-rss-and-atom-feeds/

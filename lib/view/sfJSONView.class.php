@@ -24,8 +24,7 @@ class sfJSONView extends sfPHPView
   {
     parent::configure();
 
-    $response = $this->getContext()->getResponse();
-    $response->setContentType('application/x-json');
+    $this->context->getResponse()->setContentType('application/x-json');
   }
 
   /**

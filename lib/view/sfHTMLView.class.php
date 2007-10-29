@@ -24,7 +24,7 @@ class sfHTMLView extends sfPHPView
   {
     parent::configure();
 
-    $this->getContext()->getResponse()->setContentType('text/html');
+    $this->context->getResponse()->setContentType('text/html');
 
     sfConfig::set('sf_use_xhtml_tags', false); // merge patch for taghelper and settings option use_xhtml_tags
   }

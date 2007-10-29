@@ -24,7 +24,7 @@ class sfXHTMLView extends sfXMLView
   {
     parent::configure();
 
-    $this->getContext()->getResponse()->setPreferredContentType(array('application/xhtml+xml', 'text/html'));
+    $this->context->getResponse()->setPreferredContentType(array('application/xhtml+xml', 'text/html'));
 
     // merge patch for taghelper and settings option use_xhtml_tags
     sfConfig::set('sf_use_xhtml_tags', true);

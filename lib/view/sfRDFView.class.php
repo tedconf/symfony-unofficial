@@ -24,7 +24,7 @@ class sfRDFView extends sfXMLView
   {
     parent::configure();
 
-    $this->getContext()->getResponse()->setPreferredContentType(array('application/rdf+xml', 'application/xml', 'text/xml'));
+    $this->context->getResponse()->setPreferredContentType(array('application/rdf+xml', 'application/xml', 'text/xml'));
   }
 }
 
