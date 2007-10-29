@@ -609,7 +609,7 @@ class sfWebResponse extends sfResponse
       return $this->javascripts;
     }
 
-    return isset($this->javascript[$position]) ? $this->javascript[$position] : array();
+    return isset($this->javascripts[$position]) ? $this->javascripts[$position] : array();
   }
 
   /**
@@ -621,12 +621,12 @@ class sfWebResponse extends sfResponse
    */
   public function addJavascript($js, $position = '', $options = array())
   {
-    if (!isset($this->javascript[$position]))
+    if (!isset($this->javascripts[$position]))
     {
-      $this->javascript[$position] = array();
+      $this->javascripts[$position] = array();
     }
 
-    $this->javascript[$position][$js] = $options;
+    $this->javascripts[$position][$js] = $options;
   }
 
   /**
