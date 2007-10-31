@@ -121,6 +121,23 @@ class sfCultureInfo
   const SPECIFIC = 2;
 
   /**
+   * Gets the sfCultureInfo that for this culture string.
+   *
+   * @return sfCultureInfo Invariant culture info is "en"
+   */
+  public static function getInstance($culture)
+  {
+    static $instances = array();
+
+    if (!isset($instances[$culture]))
+    {
+      $instances[$culture] = new sfCultureInfo($culture);
+    }
+
+    return $instances[$culture];
+  }
+
+  /**
    * Displays the culture name.
    *
    * @return string the culture name.
