@@ -59,7 +59,7 @@ EOF;
 
     $this->checkAppExists($application);
 
-    $config = sprintf('cache/%s/%s/config/config_core_compile.yml.php', $application, $environment);
+    $config = sprintf('%s/cache/%s/%s/config/config_core_compile.yml.php', sfConfig::get('sf_root_dir'), $application, $environment);
 
     if(!is_readable($config))
     {
