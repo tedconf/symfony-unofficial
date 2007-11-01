@@ -69,9 +69,10 @@ EOF;
     $this->filesystem->mirror(sfConfig::get('sf_symfony_data_dir').'/skeleton/project', sfConfig::get('sf_root_dir'), $finder);
 
     // Update project name and directory
-    $finder = sfFinder::type('file')->name('properties.ini', 'apache.conf', 'propel.ini');
-    $this->filesystem->replaceTokens($finder->in(sfConfig::get('sf_config_dir')), '##', '##', array('PROJECT_NAME' => $arguments['name'],
-                                                                                                    'PROJECT_DIR' => sfConfig::get('sf_root_dir')));
+    $finder = sfFinder::type('file')->name('properties.ini', '*apache*.conf', 'propel.ini');
+    $this->filesystem->replaceTokens($finder->in(sfConfig::get('sf_config_dir')), '##', '##', array('PROJECT_NAME'   => $arguments['name'],
+                                                                                                    'PROJECT_DIR'    => sfConfig::get('sf_root_dir'),
+                                                                                                    'PROJECT_DOMAIN' => php_uname('n')));
 
     // Update config/config.php
     $this->filesystem->replaceTokens(sfConfig::get('sf_config_dir').'/config.php', '##', '##', array(
