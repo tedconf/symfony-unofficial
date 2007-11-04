@@ -905,7 +905,7 @@
     }
     if (isset ($options['with']))
     {
-      $js_options['callback'] = "function(element, value) { return".$options['with']."}";
+      $js_options['callback'] = "function(element, value) { return ".$options['with']."}";
     }
     if (isset($options['indicator']))
     {
