@@ -40,8 +40,8 @@ default:
     validation_error_id_prefix:   error_for_
 
     # Cache settings
-    cache:                  on        # Enable the template cache
-    etag:                   on        # Enable etag handling
+    cache:                  off        # Enable the template cache
+    etag:                   off        # Enable etag handling
 
     # Logging and debugging settings
     error_reporting:        <?php echo E_PARSE | E_COMPILE_ERROR | E_ERROR | E_CORE_ERROR | E_USER_ERROR ?> # Determines which events are logged.
@@ -62,19 +62,6 @@ default:
 
     # Activated modules from plugins or from the symfony core
     enabled_modules:        [default]
-
-    # View classes for multiple output format actions
-    multiformat:
-      html:  sfHTML
-      xhtml: sfXHTML
-      xml:   sfXML
-      rss:   sfRSS
-      atom:  sfATOM
-      rdf:   sfRDF
-      js:    sfJavascript
-      json:  sfJSON
-
-    default_format:        xhtml        # default output format
 
     # Charset used for the response
     charset:                utf-8
