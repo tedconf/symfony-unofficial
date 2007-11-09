@@ -1,15 +1,19 @@
 # symfony prereqs
+#- %SF_SYMFONY_LIB_DIR%/config/sfConfig.class.php
 #- %SF_SYMFONY_LIB_DIR%/config/sfLoader.class.php
 #- %SF_SYMFONY_LIB_DIR%/util/sfContext.class.php
 #- %SF_SYMFONY_LIB_DIR%/util/sfParameterHolder.class.php
 
 # symfony core classes
 - %SF_SYMFONY_LIB_DIR%/action/sfComponent.class.php
+- %SF_SYMFONY_LIB_DIR%/action/sfComponents.class.php
 - %SF_SYMFONY_LIB_DIR%/action/sfAction.class.php
 - %SF_SYMFONY_LIB_DIR%/action/sfActions.class.php
 - %SF_SYMFONY_LIB_DIR%/action/sfActionStack.class.php
 - %SF_SYMFONY_LIB_DIR%/action/sfActionStackEntry.class.php
+- %SF_SYMFONY_LIB_DIR%/cache/sfCache.class.php
 - %SF_SYMFONY_LIB_DIR%/controller/sfController.class.php
+- %SF_SYMFONY_LIB_DIR%/database/sfDatabase.class.php
 - %SF_SYMFONY_LIB_DIR%/database/sfDatabaseManager.class.php
 - %SF_SYMFONY_LIB_DIR%/event/sfEvent.class.php
 - %SF_SYMFONY_LIB_DIR%/event/sfEventDispatcher.class.php
@@ -25,8 +29,8 @@
 - %SF_SYMFONY_LIB_DIR%/view/sfView.class.php
 
 # these classes are optionals but very likely to be used (in web context)
-- %SF_SYMFONY_LIB_DIR%/controller/sfRouting.class.php
-- %SF_SYMFONY_LIB_DIR%/controller/sfPatternRouting.class.php
+- %SF_SYMFONY_LIB_DIR%/routing/sfRouting.class.php
+- %SF_SYMFONY_LIB_DIR%/routing/sfPatternRouting.class.php
 - %SF_SYMFONY_LIB_DIR%/controller/sfWebController.class.php
 - %SF_SYMFONY_LIB_DIR%/controller/sfFrontWebController.class.php
 - %SF_SYMFONY_LIB_DIR%/request/sfWebRequest.class.php
