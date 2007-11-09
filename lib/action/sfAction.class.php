@@ -271,45 +271,6 @@ abstract class sfAction extends sfComponent
   }
 
   /**
-   * Dynamically determines the view class to use to render the action
-   * based on the value of a format request parameter
-   *
-   * Example:
-   * <code>$this->renderMultiformat('format', array('html', 'pjs'));</code>
-   *
-   * @param  string Format parameter name ('format' by default)
-   * @param  array Allowed formats. If left empty, all the formats defined in settings.yml are accepted.
-   */
-  public function renderMultiformat($format_param = 'format', $accepted_formats = array())
-  {
-    if(!$format = $this->getRequestParameter($format_param))
-    {
-      throw new sfError404Exception(sprintf('The format parameter "%s" is not defined in the request', $format_param));
-    }
-
-    $format_is_allowed = in_array($format, $accepted_formats);
-
-    if($accepted_formats && !$format_is_allowed)
-    {
-      // format not in the list of allowed formats
-      throw new sfError404Exception(sprintf('The format "%s" is not allowed in this action. If you want to use this format, add it to the list of allowed formats in the second argument of the call to renderMultiformat()', $format));
-    }
-
-    if(!$accepted_formats || $format_is_allowed)
-    {
-      // format accepted, or no format restriction, so use default view for this format
-      $default_classes = sfConfig::get('sf_multiformat');
-      if(!isset($default_classes[$format]))
-      {
-        throw new sfError404Exception(sprintf('There is no default view for format "%s". You can define one in the settings.yml file, under the multiformat: label.', $format));
-      }
-      $this->setViewClass($default_classes[$format]);
-    }
-
-    // else default view class is used
-  }
-
-  /**
    * Retrieves the default view to be executed when a given request is not served by this action.
    *
    * @return string A string containing the view name associated with this action
