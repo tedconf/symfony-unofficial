@@ -29,6 +29,7 @@ class sfWebResponse extends sfResponse
     $headers     = array(),
     $metas       = array(),
     $httpMetas   = array(),
+    $title       = '',
     $stylesheets = array(),
     $javascripts = array(),
     $slots       = array();
@@ -525,7 +526,7 @@ class sfWebResponse extends sfResponse
    */
   public function getTitle()
   {
-    return isset($this->metas['title']) ? $this->metas['title'] : '';
+    return empty($this->title) ? '' : $this->title;
   }
 
   /**
@@ -536,7 +537,12 @@ class sfWebResponse extends sfResponse
    */
   public function setTitle($title, $escape = true)
   {
-    $this->addMeta('title', $title, true, $escape);
+    if ($escape)
+    {
+      $title = htmlentities($title, ENT_QUOTES, sfConfig::get('sf_charset'));
+    }
+
+    $this->title = $title;
   }
 
   /**
@@ -720,4 +726,3 @@ class sfWebResponse extends sfResponse
     }
   }
 }
-

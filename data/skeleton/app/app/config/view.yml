@@ -2,8 +2,9 @@ default:
   http_metas:
     content-type: text/html
 
+  title:          symfony project
+
   metas:
-    title:        symfony project
     robots:       index, follow, archive
     description:  symfony project
     keywords:     symfony, project
