@@ -57,7 +57,7 @@ class symfony_cmd
   }
 }
 
-$t = new lime_test(33, new lime_output_color());
+$t = new lime_test(37, new lime_output_color());
 $c = new symfony_cmd();
 $c->initialize($t);
 
