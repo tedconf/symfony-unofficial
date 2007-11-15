@@ -57,7 +57,7 @@ class symfony_cmd
   }
 }
 
-$t = new lime_test(37, new lime_output_color());
+$t = new lime_test(33, new lime_output_color());
 $c = new symfony_cmd();
 $c->initialize($t);
 
@@ -74,7 +74,7 @@ $content = $c->execute_command('generate:module frontend foo');
 $t->ok(is_dir($c->tmp_dir.DS.'apps'.DS.'frontend'.DS.'modules'.DS.'foo'), '"generate:module" creates a "foo" directory under "modules" directory');
 
 // sfPakePropel
-copy(dirname(__FILE__).'/fixtures/propel/schema.yml', $c->tmp_dir.DS.'config'.DS.'schema.yml');
+copy(dirname(__FILE__).'/fixtures/propel/schema.xml', $c->tmp_dir.DS.'config'.DS.'schema.xml');
 
 $content = $c->execute_command('propel:build-sql');
 $t->ok(file_exists($c->tmp_dir.DS.'data'.DS.'sql'.DS.'lib.model.schema.sql'), '"propel:build-sql" creates a "schema.sql" file under "data/sql" directory');
