@@ -40,7 +40,7 @@ $b->
   checkResponseElement('body', '/html response/i')
 ;
 $b->test()->is($b->getResponse()->getContentType(), 'text/html; charset=utf-8', 'content-type is html');
-$b->test()->isa_ok($b->getContext()->getCurrentViewInstance(), 'sfPHPView', 'normal requests end up with a PHP View');
+$b->test()->isa_ok($b->getContext()->get('view_instance'), 'sfPHPView', 'normal requests end up with a PHP View');
 $b->
   get('/test/index/foo/bar')->
   isStatusCode(200)->
