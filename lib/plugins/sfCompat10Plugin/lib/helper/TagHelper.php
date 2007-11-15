@@ -35,7 +35,7 @@ function tag($name, $options = array(), $open = false)
     return '';
   }
 
-  return '<'.$name._tag_options($options).(($open || (sfConfig::get('sf_use_xhtml_tags', false) === false)) ? '>' : ' />');
+  return '<'.$name._tag_options($options).(($open || (sfConfig::get('sf_use_xhtml_tags', true) === false)) ? '>' : ' />');
 }
 
 function content_tag($name, $content = '', $options = array())
