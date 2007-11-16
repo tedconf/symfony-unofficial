@@ -86,8 +86,9 @@ class lastTestFilter extends sfFilter
 }
 
 $context = sfContext::getInstance(array(
-  'request'  => 'myRequest',
-  'response' => 'sfWebResponse',
+  'request'    => 'myRequest',
+  'response'   => 'sfWebResponse',
+  'controller' => 'sfFrontWebController',
 ));
 
 $response = $context->response;
