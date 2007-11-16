@@ -79,7 +79,7 @@ class sfXCacheCache extends sfCache
    */
   public function clean($mode = sfCache::ALL)
   {
-    if (!sfCache::ALL)
+    if ($mode != sfCache::ALL)
     {
       return true;
     }
