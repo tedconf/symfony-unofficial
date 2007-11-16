@@ -28,7 +28,7 @@ abstract class sfWebController extends sfController
    *
    * @return string A URL to a symfony resource
    */
-  public function genUrl($parameters = array(), $absolute = false, $encode = true)
+  public function genUrl($parameters = array(), $absolute = false, $escape = true)
   {
     // absolute URL or symfony URL?
     if (!is_array($parameters) && preg_match('#^[a-z]+\://#', $parameters))
@@ -107,7 +107,7 @@ abstract class sfWebController extends sfController
       $url .= '#'.$fragment;
     }
 
-    if($encode === false)
+    if($escape === false)
     {
       $url = html_entity_decode($url);
     }
