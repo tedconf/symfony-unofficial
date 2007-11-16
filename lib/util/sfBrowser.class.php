@@ -423,7 +423,7 @@ class sfBrowser
     else
     {
       $query_string = http_build_query($arguments);
-      $sep = false === strpos($url, '?') ? '?' : '&';
+      $sep = false === strpos($url, '?') ? '?' : '&amp;';
 
       return $this->get($url.($query_string ? $sep.$query_string : ''));
     }
