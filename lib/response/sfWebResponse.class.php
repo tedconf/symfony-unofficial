@@ -678,6 +678,7 @@ class sfWebResponse extends sfResponse
     $this->parameterHolder = clone $response->getParameterHolder();
     $this->headers         = $response->getHttpHeaders();
     $this->metas           = $response->getMetas();
+    $this->title           = $response->getTitle();
     $this->httpMetas       = $response->getHttpMetas();
     $this->stylesheets     = $response->getStylesheets('ALL');
     $this->javascripts     = $response->getJavascripts('ALL');
