@@ -136,14 +136,14 @@ $t->is($parameters['mybutton'], 'mybuttonvalue', '->click() populates button cli
 $t->ok(!isset($parameters['submit']), '->click() do not populate buttons not clicked');
 
 list($method, $uri, $parameters) = $b->click('submit1');
-$t->is($uri, '/myform1?text_default_value=default&submit=submit1', '->click() clicks on form buttons');
+$t->is($uri, '/myform1?text_default_value=default&amp;submit=submit1', '->click() clicks on form buttons');
 $t->is($method, 'get', '->click() gets the form method');
 
 list($method, $uri, $parameters) = $b->click('submit2');
 $t->is($method, 'get', '->click() defaults to get method');
 
 list($method, $uri, $parameters) = $b->click('submit3');
-$t->is($uri, '/myform3?key=value&text_default_value=default&submit=submit3', '->click() concatenates fields values with existing action parameters');
+$t->is($uri, '/myform3?key=value&amp;text_default_value=default&amp;submit=submit3', '->click() concatenates fields values with existing action parameters');
 
 list($method, $uri, $parameters) = $b->click('submit4');
 $t->is($uri, '/myform4?submit=submit4', '->click() can click on submit button anywhere in a form');
