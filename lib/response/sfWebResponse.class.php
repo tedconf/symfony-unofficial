@@ -692,7 +692,7 @@ class sfWebResponse extends sfResponse
    */
   public function serialize()
   {
-    return serialize(array($this->content, $this->statusCode, $this->statusText, $this->parameterHolder, $this->cookies, $this->headerOnly, $this->headers, $this->metas, $this->httpMetas, $this->stylesheets, $this->javascripts, $this->slots));
+    return serialize(array($this->content, $this->statusCode, $this->statusText, $this->parameterHolder, $this->cookies, $this->headerOnly, $this->headers, $this->metas, $this->title, $this->httpMetas, $this->stylesheets, $this->javascripts, $this->slots));
   }
 
   /**
@@ -704,7 +704,7 @@ class sfWebResponse extends sfResponse
 
     $this->initialize(sfContext::hasInstance() ? sfContext::getInstance()->getEventDispatcher() : new sfEventDispatcher());
 
-    list($this->content, $this->statusCode, $this->statusText, $this->parameterHolder, $this->cookies, $this->headerOnly, $this->headers, $this->metas, $this->httpMetas, $this->stylesheets, $this->javascripts, $this->slots) = $data;
+    list($this->content, $this->statusCode, $this->statusText, $this->parameterHolder, $this->cookies, $this->headerOnly, $this->headers, $this->metas, $this->title, $this->httpMetas, $this->stylesheets, $this->javascripts, $this->slots) = $data;
   }
 
   /**
