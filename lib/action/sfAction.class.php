@@ -298,6 +298,11 @@ abstract class sfAction extends sfComponent
    */
   public function getDefaultView()
   {
+    if (!sfConfig::get('sf_compat_10'))
+    {
+      throw new sfConfigurationException('You must set "compat_10" to true if you want to use this method which is deprecated.');
+    }
+
     return sfView::INPUT;
   }
 
@@ -317,6 +322,11 @@ abstract class sfAction extends sfComponent
    */
   public function getRequestMethods()
   {
+    if (!sfConfig::get('sf_compat_10'))
+    {
+      throw new sfConfigurationException('You must set "compat_10" to true if you want to use this method which is deprecated.');
+    }
+
     return sfRequest::GET
            | sfRequest::POST
            | sfRequest::PUT
