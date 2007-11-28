@@ -120,6 +120,18 @@ class sfPearEnvironment
   }
 
   /**
+   * Returns whether configuration name exists.
+   *
+   * @param  string The configuration name
+   *
+   * @return boolean True if configuration name exists
+   */
+  public function hasOption($name)
+  {
+    return isset($this->options[$name]);
+  }
+
+  /**
    * Sets a configuration value.
    *
    * @param string The configuration name
@@ -240,10 +252,9 @@ class sfPearEnvironment
     $this->config->set('doc_dir',  $pluginDir);
     $this->config->set('bin_dir',  $pluginDir);
 
-    $preferred_state = $this->getOption('preferred_state');
-    if(!is_null($preferred_state))
+    if($this->hasOption('preferred_state'))
     {
-      $this->config->set('preferred_state', $preferred_state);
+      $this->config->set('preferred_state', $this->getOption('preferred_state'));
     }
 
     // change the PEAR temp dirs
