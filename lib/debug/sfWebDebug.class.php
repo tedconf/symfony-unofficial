@@ -111,7 +111,7 @@ class sfWebDebug
     }
 
     // escape HTML
-    $logLine = htmlentities($logLine, ENT_QUOTES, sfConfig::get('sf_charset'));
+    $logLine = htmlspecialchars($logLine, ENT_QUOTES, sfConfig::get('sf_charset'));
 
     // replace constants value with constant name
     $logLine = str_replace(array_keys($constants), array_values($constants), $logLine);
@@ -331,26 +331,39 @@ class sfWebDebug
    */
   protected function getCurrentConfigAsHtml()
   {
-    $config = array(
-      'debug'        => sfConfig::get('sf_debug')           ? 'on' : 'off',
-      'xdebug'       => (sfConfig::get('sf_xdebug', true) && extension_loaded('xdebug'))   ? 'on' : 'off',
-      'logging'      => sfConfig::get('sf_logging_enabled') ? 'on' : 'off',
-      'cache'        => sfConfig::get('sf_cache')           ? 'on' : 'off',
-      'compression'  => sfConfig::get('sf_compressed')      ? 'on' : 'off',
-      'syck'         => extension_loaded('syck')            ? 'on' : 'off',
-      'eaccelerator' => extension_loaded('eaccelerator') && ini_get('eaccelerator.enable') ? 'on' : 'off',
-      'apc'          => extension_loaded('apc') && ini_get('apc.enabled')                  ? 'on' : 'off',
-      'xcache'       => extension_loaded('xcache') && ini_get('xcache.cacher')             ? 'on' : 'off',
+    $features = array(
+      // core features
+      'cache'                                     => sfConfig::get('sf_cache')               ? 'on' : 'off',
+      'i18n'                                      => sfConfig::get('sf_i18n')                ? 'on' : 'off',
+      'security'                                  => sfConfig::get('sf_use_security')        ? 'on' : 'off',
+      'escaping'                                  => sfConfig::get('sf_escaping_strategy')   ? 'on' : 'off',
+      'database ('.sfConfig::get('sf_orm').')'    => sfConfig::get('sf_use_database')        ? 'on' : 'off',
+      'compression'                               => sfConfig::get('sf_compressed')          ? 'on' : 'off',
+      'logging'                                   => sfConfig::get('sf_logging_enabled')     ? 'on' : 'off',
+      'debug'                                     => sfConfig::get('sf_debug')               ? 'on' : 'off',
     );
 
-    $result = '<ul id="sfWebDebugConfigSummary">';
-    foreach ($config as $key => $value)
+    $extensions = array(
+      // extensions
+      'xdebug'        => (sfConfig::get('sf_xdebug', true) && extension_loaded('xdebug'))   ? 'on' : 'off',
+      'syck'          => extension_loaded('syck')                                           ? 'on' : 'off',
+      'apc'           => extension_loaded('apc') && ini_get('apc.enabled')                  ? 'on' : 'off',
+      'memcache'      => extension_loaded('memcache')                                       ? 'on' : 'off',
+      'xcache'        => extension_loaded('xcache') && ini_get('xcache.cacher')             ? 'on' : 'off',
+      'eaccelerator'  => extension_loaded('eaccelerator') && ini_get('eaccelerator.enable') ? 'on' : 'off',
+    );
+
+    $result = '<div id="sfWebDebugConfigSummary"><ul>';
+    foreach ($features as $feature => $status)
     {
-      $result .= '<li class="is'.$value.($key == 'xcache' ? ' last' : '').'">'.$key.'</li>';
+      $result .= '<li class="is'.$status.($feature == 'debug' ? ' last' : '').'">'.$feature.'</li>';
     }
-
-
-    $result .= '</ul>';
+    $result .= '</ul><ul>';
+    foreach ($extensions as $feature => $status)
+    {
+      $result .= '<li class="is'.$status.($feature == 'eaccelerator' ? ' last' : '').'">'.$feature.'</li>';
+    }
+    $result .= '</ul></div>';
 
     $context = sfContext::getInstance();
     $result .= $this->formatArrayAsHtml('request',  sfDebug::requestAsArray($context->getRequest()));
@@ -375,7 +388,7 @@ class sfWebDebug
     $id = ucfirst(strtolower($id));
     $content = '
     <h2>'.$id.' <a href="#" onclick="sfWebDebugToggle(\'sfWebDebug'.$id.'\'); return false;">'.image_tag(sfConfig::get('sf_web_debug_web_dir').'/images/toggle.gif').'</a></h2>
-    <div id="sfWebDebug'.$id.'" style="display: none"><pre>'.htmlentities(@sfYaml::Dump($values), ENT_QUOTES, sfConfig::get('sf_charset')).'</pre></div>
+    <div id="sfWebDebug'.$id.'" style="display: none"><pre>'.htmlspecialchars(@sfYaml::Dump($values), ENT_QUOTES, sfConfig::get('sf_charset')).'</pre></div>
     ';
 
     return $content;
