@@ -6,9 +6,8 @@
   <?php include_stylesheets(); ?>
   <?php include_javascripts(); ?>
   <?php include_title(); ?>
-  <link rel="shortcut icon" href="/favicon.ico" />
 </head>
 <body>
-  <?php echo sfConfig::get('escaping_strategy', false) ? $sf_data->getRaw('sf_content') : $sf_content; ?>
+  <?php echo $this->getAttributeHolder()->isEscaped() ? $sf_data->getRaw('sf_content') : $sf_content; ?>
 </body>
 </html>
