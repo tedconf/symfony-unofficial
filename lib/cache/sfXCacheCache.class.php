@@ -38,7 +38,7 @@ class sfXCacheCache extends sfCache
       throw new sfInitializationException('You must have XCache installed and enabled to use sfXCacheCache class.');
     }
 
-    $this->prefix = md5(sfConfig::get('sf_app_dir')).self::SEPARATOR;
+    $this->prefix = md5($this->getParameter('prefix', sfConfig::get('sf_app'))).self::SEPARATOR;
   }
 
  /**

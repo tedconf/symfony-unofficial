@@ -3,7 +3,7 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- * 
+ *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -38,7 +38,7 @@ class sfAPCCache extends sfCache
       throw new sfInitializationException('You must have APC installed and enabled to use sfAPCCache class.');
     }
 
-    $this->prefix = md5(sfConfig::get('sf_app_dir')).self::SEPARATOR;
+    $this->prefix = md5($this->getParameter('prefix', sfConfig::get('sf_app'))).self::SEPARATOR;
   }
 
  /**
