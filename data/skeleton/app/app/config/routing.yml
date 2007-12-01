@@ -3,6 +3,9 @@ homepage:
   url:   /
   param: { module: default, action: index }
 
+sf_cache_partial:
+  url:   /cache/partial/:module/:action/:sf_cache_key.*
+
 default_symfony:
   url:   /symfony/:action/*
   param: { module: default }
