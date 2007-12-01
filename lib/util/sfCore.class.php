@@ -203,10 +203,20 @@ class sfCore
       'sf_log_dir'        => $sf_root_dir.DIRECTORY_SEPARATOR.$sf_log_dir_name,
       'sf_data_dir'       => $sf_root_dir.DIRECTORY_SEPARATOR.$sf_data_dir_name,
       'sf_config_dir'     => $sf_root_dir.DIRECTORY_SEPARATOR.$sf_config_dir_name,
-      'sf_test_dir'       => $sf_root_dir.DIRECTORY_SEPARATOR.$sf_test_dir_name,
+      'sf_test_dir'       => $sf_test_dir = $sf_root_dir.DIRECTORY_SEPARATOR.$sf_test_dir_name,
       'sf_doc_dir'        => $sf_root_dir.DIRECTORY_SEPARATOR.$sf_doc_dir_name,
       'sf_plugins_dir'    => $sf_root_dir.DIRECTORY_SEPARATOR.$sf_plugins_dir_name,
       'sf_cache_dir'      => $sf_cache_dir = $sf_root_dir.DIRECTORY_SEPARATOR.$sf_cache_dir_name,
+
+      // test directory names
+      'sf_test_bootstrap_dir_name'  => $sf_test_bootstrap_dir_name = 'bootstrap',
+      'sf_test_unit_dir_name'       => $sf_test_unit_dir_name = 'unit',
+      'sf_test_functional_dir_name' => $sf_test_functional_dir_name = 'functional',
+
+      // test directory structure
+      'sf_test_bootstrap_dir'   => $sf_test_dir.DIRECTORY_SEPARATOR.$sf_test_bootstrap_dir_name,
+      'sf_test_unit_dir'        => $sf_test_dir.DIRECTORY_SEPARATOR.$sf_test_unit_dir_name,
+      'sf_test_functional_dir'  => $sf_test_dir.DIRECTORY_SEPARATOR.$sf_test_functional_dir_name,
 
       // lib directory names
       'sf_model_dir_name' => $sf_model_dir_name = 'model',
