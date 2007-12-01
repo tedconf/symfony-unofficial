@@ -631,6 +631,12 @@ class sfWebResponse extends sfResponse
    */
   public function setSlot($name, $content)
   {
+    if (is_null($content))
+    {
+      unset($this->slots[$name]);
+
+      return;
+    }
     $this->slots[$name] = $content;
   }
 
