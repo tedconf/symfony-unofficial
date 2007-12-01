@@ -232,14 +232,14 @@ class sfViewConfigHandler extends sfYamlConfigHandler
         continue;
       }
 
-      $data[] = sprintf("  \$response->addMeta('%s', '%s', false, false);", $name, str_replace('\'', '\\\'', preg_replace('/&amp;(?=\w+;)/', '&', htmlentities($content, ENT_QUOTES, sfConfig::get('sf_charset')))));
+      $data[] = sprintf("  \$response->addMeta('%s', '%s', false, false);", $name, str_replace('\'', '\\\'', preg_replace('/&amp;(?=\w+;)/', '&', htmlspecialchars($content, ENT_QUOTES, sfConfig::get('sf_charset')))));
     }
 
     // hack for 1.0 backwards compatability
     $title = isset($title) ? $title : $this->getConfigValue('title', $viewName);
     if(!empty($title))
     {
-      $data[] = sprintf("  \$response->setTitle('%s', false);", str_replace('\'', '\\\'', preg_replace('/&amp;(?=\w+;)/', '&', htmlentities($title, ENT_QUOTES, sfConfig::get('sf_charset')))));
+      $data[] = sprintf("  \$response->setTitle('%s', false);", str_replace('\'', '\\\'', preg_replace('/&amp;(?=\w+;)/', '&', htmlspecialchars($title, ENT_QUOTES, sfConfig::get('sf_charset')))));
     }
 
     return implode("\n", $data)."\n";

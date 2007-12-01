@@ -509,7 +509,7 @@ class sfWebResponse extends sfResponse
     // see include_metas() in AssetHelper
     if ($escape)
     {
-      $value = htmlentities($value, ENT_QUOTES, sfConfig::get('sf_charset'));
+      $value = htmlspecialchars($value, ENT_QUOTES, sfConfig::get('sf_charset'));
     }
 
     $current = isset($this->metas[$key]) ? $this->metas[$key] : null;
@@ -539,7 +539,7 @@ class sfWebResponse extends sfResponse
   {
     if ($escape)
     {
-      $title = htmlentities($title, ENT_QUOTES, sfConfig::get('sf_charset'));
+      $title = htmlspecialchars($title, ENT_QUOTES, sfConfig::get('sf_charset'));
     }
 
     $this->title = $title;
