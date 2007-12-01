@@ -168,3 +168,28 @@ function time_ago_in_words($from_time, $include_seconds = false)
 {
   return distance_of_time_in_words($from_time, time(), $include_seconds);
 }
+
+
+/**
+ * Calculates the hours difference between two times,
+ * optionally rounded to the next highest partial hour
+ *
+ * @param date The starting datetime
+ * @param date An Optional ending datetime
+ * @param float An optional round by factor.
+ */
+function distance_of_time_in_hours($from_time, $to_time = null, $round_by = 0)
+{
+  $to_time = $to_time? $to_time: time();
+  $distance_in_minutes = floor(abs($to_time - $from_time) / 60);
+
+  if ($round_by <> 0)
+  {
+    $minutes_less_than_hour = $distance_in_minutes % 60;
+    $round_factor = 60 * $round_by;
+    $minutes_rounded = ceil($minutes_less_than_hour / $round_factor) * $round_by *60;
+    $distance_in_minutes = floor($distance_in_minutes / 60) + $minutes_rounded;
+  }
+
+  return $distance_in_minutes / 60;
+}

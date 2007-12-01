@@ -3,7 +3,7 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- * 
+ *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -11,7 +11,7 @@
 require_once(dirname(__FILE__).'/../../../../../../test/bootstrap/unit.php');
 require_once($_test_dir.'/unit/sfContextMock.class.php');
 
-$t = new lime_test(493, new lime_output_color());
+$t = new lime_test(499, new lime_output_color());
 
 class sfUser
 {
@@ -59,6 +59,16 @@ $t->is(distance_of_time_in_words($now - 75 * 86400, $now), '3 months', $msg);
 
 $t->is(distance_of_time_in_words($now - 370 * 86400, $now), 'about 1 year', $msg);
 $t->is(distance_of_time_in_words($now - 4 * 365 * 86400, $now), 'over 4 years', $msg);
+
+// distance_of_time_in_hours
+$t->diag('distance_of_time_in_hours');
+$now = time();
+$t->is(distance_of_time_in_hours($now - 3600 ,$now), 1, "calculates 1 hour offset correctly");
+$t->is(distance_of_time_in_hours($now - 24 * 3600, $now), 24, "calculates 24 hour offset correctly");
+$t->is(distance_of_time_in_hours($now - 360 , $now), 0.1, "calculates 0.1 hour offset correctly");
+$t->is(distance_of_time_in_hours($now - 900 , $now), 0.25, "calculates 0.25 hour offset correctly");
+$t->is(distance_of_time_in_hours($now -  1320, $now, 0.25), 0.5, "rounds 22 min to qtr hr up to 0.5 hours offset correctly");
+$t->is(distance_of_time_in_hours($now -  1320, $now, 0.1), 0.4, "rounds 22 min to tenth hr up to 0.4 hours offset correctly");
 
 // format_date()
 $t->diag('format_date()');
