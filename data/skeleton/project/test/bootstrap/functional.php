@@ -14,8 +14,8 @@ if (!isset($app))
   $traces = debug_backtrace();
   $caller = $traces[0];
 
-  $dirPieces = explode(DIRECTORY_SEPARATOR, dirname($caller['file']));
-  $app = array_pop($dirPieces);
+  $path = explode(DIRECTORY_SEPARATOR, dirname($caller['file']));
+  $app = array_pop($path);
 }
 
 // define symfony constant
