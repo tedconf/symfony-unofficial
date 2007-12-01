@@ -3,7 +3,7 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- * 
+ *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -78,17 +78,19 @@ EOF;
   {
     $env = $arguments['server'];
 
-    $ini = sfConfig::get('sf_config_dir').'/properties.ini';
+    $sf_config_dir_name = sfConfig::get('sf_config_dir_name');
+
+    $ini = sfConfig::get('sf_config_dir').DIRECTORY_SEPARATOR.'properties.ini';
     if (!file_exists($ini))
     {
-      throw new sfCommandException('You must create a config/properties.ini file');
+      throw new sfCommandException(sprintf('You must create a config%sproperties.ini file', DIRECTORY_SEPARATOR));
     }
 
     $properties = parse_ini_file($ini, true);
 
     if (!isset($properties[$env]))
     {
-      throw new sfCommandException(sprintf('You must define the configuration for server "%s" in config/properties.ini', $env));
+      throw new sfCommandException(sprintf('You must define the configuration for server "%s" in config%sproperties.ini', $env, DIRECTORY_SEPARATOR));
     }
 
     $properties = $properties[$env];
@@ -127,19 +129,19 @@ EOF;
     else
     {
       $parameters = '-azC --force --delete';
-      if (file_exists('config/rsync_exclude.txt'))
+      if (file_exists($sf_config_dir_name.DIRECTORY_SEPARATOR.'rsync_exclude.txt'))
       {
-        $parameters .= ' --exclude-from=config/rsync_exclude.txt';
+        $parameters .= ' --exclude-from='.$sf_config_dir_name.DIRECTORY_SEPARATOR.'rsync_exclude.txt';
       }
 
-      if (file_exists('config/rsync_include.txt'))
+      if (file_exists($sf_config_dir_name.DIRECTORY_SEPARATOR.'rsync_include.txt'))
       {
-        $parameters .= ' --include-from=config/rsync_include.txt';
+        $parameters .= ' --include-from='.$sf_config_dir_name.DIRECTORY_SEPARATOR.'rsync_include.txt';
       }
 
-      if (file_exists('config/rsync.txt'))
+      if (file_exists($sf_config_dir_name.DIRECTORY_SEPARATOR.'rsync.txt'))
       {
-        $parameters .= ' --files-from=config/rsync.txt';
+        $parameters .= ' --files-from='.$sf_config_dir_name.DIRECTORY_SEPARATOR.'rsync.txt';
       }
     }
 

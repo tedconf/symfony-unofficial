@@ -49,16 +49,16 @@ EOF;
     sfCore::initDirectoryLayout(sfConfig::get('sf_root_dir'), $arguments['application'], $options['env']);
 
     // Look in templates
-    $moduleNames = sfFinder::type('dir')->maxdepth(0)->ignore_version_control()->relative()->in(sfConfig::get('sf_app_dir').'/modules');
+    $moduleNames = sfFinder::type('dir')->maxdepth(0)->ignore_version_control()->relative()->in(sfConfig::get('sf_app_dir').DIRECTORY_SEPARATOR.sfConfig::get('sf_app_module_dir_name', 'modules'));
     $strings = array();
     foreach ($moduleNames as $moduleName)
     {
-      $dir = sfConfig::get('sf_app_dir').'/modules/'.$moduleName.'/templates';
+      $dir = sfConfig::get('sf_app_dir').DIRECTORY_SEPARATOR.sfConfig::get('sf_app_module_dir_name', 'modules').DIRECTORY_SEPARATOR.$moduleName.DIRECTORY_SEPARATOR.sfConfig::get('sf_app_template_dir_name', 'templates');
       $templates = sfFinder::type('file')->name('*.php')->relative()->in($dir);
       foreach ($templates as $template)
       {
         $dom = new DomDocument('1.0', sfConfig::get('sf_charset', 'UTF-8'));
-        @$dom->loadXML('<doc>'.file_get_contents($dir.'/'.$template).'</doc>');
+        @$dom->loadXML('<doc>'.file_get_contents($dir.DIRECTORY_SEPARATOR.$template).'</doc>');
 
         $nodes = array($dom);
         while ($nodes)

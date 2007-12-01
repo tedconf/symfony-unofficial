@@ -3,7 +3,7 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- * 
+ *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -43,7 +43,8 @@ EOF;
     $this->filesystem->chmod(sfConfig::get('sf_root_dir').DIRECTORY_SEPARATOR.sfConfig::get('sf_cache_dir_name'), 0777);
     $this->filesystem->chmod(sfConfig::get('sf_root_dir').DIRECTORY_SEPARATOR.sfConfig::get('sf_log_dir_name'), 0777);
     $this->filesystem->chmod(sfConfig::get('sf_root_dir').DIRECTORY_SEPARATOR.sfConfig::get('sf_web_dir_name').DIRECTORY_SEPARATOR.sfConfig::get('sf_upload_dir_name'), 0777);
-    $this->filesystem->chmod(sfConfig::get('sf_root_dir').DIRECTORY_SEPARATOR.'symfony', 0777);
+    $this->filesystem->chmod(sfConfig::get('sf_root_dir').DIRECTORY_SEPARATOR.sfConfig::get('sf_bin_dir_name'), 0755);
+    $this->filesystem->chmod(sfConfig::get('sf_root_dir').DIRECTORY_SEPARATOR.'symfony', 0755);
 
     $dirs = array(sfConfig::get('sf_cache_dir_name'), sfConfig::get('sf_web_dir_name').DIRECTORY_SEPARATOR.sfConfig::get('sf_upload_dir_name'), sfConfig::get('sf_log_dir_name'));
     $dirFinder = sfFinder::type('dir')->ignore_version_control();

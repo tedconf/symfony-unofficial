@@ -64,7 +64,7 @@ EOF;
     $application = $arguments['application'];
     $environment = $arguments['environment'];
 
-    $uris        = sfConfig::get('sf_prefetch_uris', array('/'));
+    $uris = sfConfig::get('sf_prefetch_uris', array('/', '/not-found'));
 
     $this->checkAppExists($application);
 
@@ -75,7 +75,7 @@ EOF;
     define('SF_ENVIRONMENT', $environment);
     define('SF_DEBUG',       true);
 
-    require_once(SF_ROOT_DIR.DIRECTORY_SEPARATOR.'apps'.DIRECTORY_SEPARATOR.SF_APP.DIRECTORY_SEPARATOR.'config'.DIRECTORY_SEPARATOR.'config.php');
+    require_once(SF_ROOT_DIR.DIRECTORY_SEPARATOR.sfConfig::get('sf_apps_dir_name', 'apps').DIRECTORY_SEPARATOR.SF_APP.DIRECTORY_SEPARATOR.sfConfig::get('sf_config_dir_name', 'config').DIRECTORY_SEPARATOR.'config.php');
 
     $browser = new sfBrowser();
     $browser->initialize(array());

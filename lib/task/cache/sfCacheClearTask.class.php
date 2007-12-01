@@ -3,7 +3,7 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- * 
+ *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -110,13 +110,13 @@ EOF;
 
     foreach ($apps as $app)
     {
-      if (!is_dir($cacheDir.'/'.$app))
+      if (!is_dir($cacheDir.DIRECTORY_SEPARATOR.$app))
       {
         continue;
       }
 
       // remove cache for all environments
-      foreach ($dirFinder->in($cacheDir.'/'.$app) as $env)
+      foreach ($dirFinder->in($cacheDir.DIRECTORY_SEPARATOR.$app) as $env)
       {
         // which types?
         $types = array();
@@ -126,12 +126,12 @@ EOF;
         }
         else
         {
-          $types = $dirFinder->in($cacheDir.'/'.$app.'/'.$env);
+          $types = $dirFinder->in($cacheDir.DIRECTORY_SEPARATOR.$app.DIRECTORY_SEPARATOR.$env);
         }
 
         foreach ($types as $type)
         {
-          $subDir = $cacheDir.'/'.$app.'/'.$env.'/'.$type;
+          $subDir = $cacheDir.DIRECTORY_SEPARATOR.$app.DIRECTORY_SEPARATOR.$env.DIRECTORY_SEPARATOR.$type;
 
           if (!is_dir($subDir))
           {
@@ -145,7 +145,7 @@ EOF;
           }
           else
           {
-            $this->filesystem->remove($finder->in(sfConfig::get('sf_root_dir').'/'.$subDir));
+            $this->filesystem->remove($finder->in(sfConfig::get('sf_root_dir').DIRECTORY_SEPARATOR.$subDir));
           }
         }
       }
@@ -162,15 +162,15 @@ EOF;
   protected function safeCacheRemove($finder, $subDir, $lockName)
   {
     // create a lock file
-    $this->filesystem->touch(sfConfig::get('sf_root_dir').'/'.$lockName.'.lck');
+    $this->filesystem->touch(sfConfig::get('sf_root_dir').DIRECTORY_SEPARATOR.$lockName.'.lck');
 
     // change mode so the web user can remove it if we die
-    $this->filesystem->chmod(sfConfig::get('sf_root_dir').'/'.$lockName.'.lck', 0777);
+    $this->filesystem->chmod(sfConfig::get('sf_root_dir').DIRECTORY_SEPARATOR.$lockName.'.lck', 0777);
 
     // remove cache files
-    $this->filesystem->remove($finder->in(sfConfig::get('sf_root_dir').'/'.$subDir));
+    $this->filesystem->remove($finder->in(sfConfig::get('sf_root_dir').DIRECTORY_SEPARATOR.$subDir));
 
     // release lock
-    $this->filesystem->remove(sfConfig::get('sf_root_dir').'/'.$lockName.'.lck');
+    $this->filesystem->remove(sfConfig::get('sf_root_dir').DIRECTORY_SEPARATOR.$lockName.'.lck');
   }
 }

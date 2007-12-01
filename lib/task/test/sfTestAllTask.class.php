@@ -3,7 +3,7 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- * 
+ *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -44,7 +44,7 @@ EOF;
    */
   protected function execute($arguments = array(), $options = array())
   {
-    require_once(sfConfig::get('sf_symfony_lib_dir').'/vendor/lime/lime.php');
+    require_once(sfConfig::get('sf_symfony_lib_dir').DIRECTORY_SEPARATOR.'vendor'.DIRECTORY_SEPARATOR.'lime'.DIRECTORY_SEPARATOR.'lime.php');
 
     $h = new lime_harness(new lime_output_color());
     $h->base_dir = sfConfig::get('sf_test_dir');

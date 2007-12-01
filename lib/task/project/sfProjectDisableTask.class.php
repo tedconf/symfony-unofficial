@@ -3,7 +3,7 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- * 
+ *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -49,7 +49,7 @@ EOF;
     $env = $arguments['env'];
 
     $lockFile = $app.'_'.$env.'.lck';
-    if (!file_exists(sfConfig::get('sf_root_dir').'/'.$lockFile))
+    if (!file_exists(sfConfig::get('sf_root_dir').DIRECTORY_SEPARATOR.$lockFile))
     {
       $this->filesystem->touch($lockFile);
 

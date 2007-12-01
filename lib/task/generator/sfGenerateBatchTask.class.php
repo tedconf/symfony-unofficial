@@ -64,16 +64,16 @@ EOF;
     $app   = $arguments['application'];
     $batch = $arguments['script'];
 
-    if (is_readable(sfConfig::get('sf_data_dir').'/skeleton/batch/default.php'))
+    if (is_readable(sfConfig::get('sf_data_dir').DIRECTORY_SEPARATOR.'skeleton'.DIRECTORY_SEPARATOR.'batch'.DIRECTORY_SEPARATOR.'default.php'))
     {
-      $skeleton = sfConfig::get('sf_data_dir').'/skeleton/batch/default.php';
+      $skeleton = sfConfig::get('sf_data_dir').DIRECTORY_SEPARATOR.'skeleton'.DIRECTORY_SEPARATOR.'batch'.DIRECTORY_SEPARATOR.'default.php';
     }
     else
     {
-      $skeleton = sfConfig::get('sf_symfony_data_dir').'/skeleton/batch/default.php';
+      $skeleton = sfConfig::get('sf_symfony_data_dir').DIRECTORY_SEPARATOR.'skeleton'.DIRECTORY_SEPARATOR.'batch'.DIRECTORY_SEPARATOR.'default.php';
     }
 
-    $properties = parse_ini_file(sfConfig::get('sf_config_dir').'/properties.ini', true);
+    $properties = parse_ini_file(sfConfig::get('sf_config_dir').DIRECTORY_SEPARATOR.'properties.ini', true);
 
     $constants = array(
       'PROJECT_NAME' => isset($properties['symfony']['name']) ? $properties['symfony']['name'] : 'symfony',
@@ -83,7 +83,7 @@ EOF;
       'DEBUG'        => $options['debug'] ? 'true' : 'false',
     );
 
-    $this->filesystem->copy($skeleton, sfConfig::get('sf_bin_dir').'/'.$batch.'.php');
+    $this->filesystem->copy($skeleton, sfConfig::get('sf_bin_dir').DIRECTORY_SEPARATOR.$batch.'.php');
     $this->filesystem->replaceTokens(sfConfig::get('sf_bin_dir').DIRECTORY_SEPARATOR.$batch.'.php', '##', '##', $constants);
   }
 }

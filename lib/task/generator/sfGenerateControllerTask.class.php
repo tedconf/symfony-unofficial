@@ -3,7 +3,7 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- * 
+ *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -66,7 +66,7 @@ EOF;
 
     $controller = isset($options['filename']) ? $options['filename'] : $app.'_'.$env;
 
-    $properties = parse_ini_file(sfConfig::get('sf_config_dir').'/properties.ini', true);
+    $properties = parse_ini_file(sfConfig::get('sf_config_dir').DIRECTORY_SEPARATOR.'properties.ini', true);
 
     $constants = array(
       'PROJECT_NAME' => isset($properties['symfony']['name']) ? $properties['symfony']['name'] : 'symfony',
@@ -76,7 +76,7 @@ EOF;
       'DEBUG'           => (boolean) $options['debug'],
     );
 
-    $this->filesystem->copy(sfConfig::get('sf_symfony_data_dir').'/skeleton/controller/controller.php', sfConfig::get('sf_web_dir').'/'.$controller.'.php');
+    $this->filesystem->copy(sfConfig::get('sf_symfony_data_dir').DIRECTORY_SEPARATOR.'skeleton'.DIRECTORY_SEPARATOR.'controller'.DIRECTORY_SEPARATOR.'controller.php', sfConfig::get('sf_web_dir').DIRECTORY_SEPARATOR.$controller.'.php');
     $this->filesystem->replaceTokens(sfConfig::get('sf_web_dir').DIRECTORY_SEPARATOR.$controller.'.php', '##', '##', $constants);
   }
 }

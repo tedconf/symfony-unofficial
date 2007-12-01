@@ -3,7 +3,7 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- * 
+ *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -72,7 +72,7 @@ EOF;
    *
    * @param string Application name
    * @param string Enviroment name
-   * @param string Period 
+   * @param string Period
    * @param string History
    * @param boolean Override
    *
@@ -91,13 +91,13 @@ EOF;
     $today = date('Ymd');
 
     // check history folder exists
-    if (!is_dir($logdir.'/history'))
+    if (!is_dir($logdir.DIRECTORY_SEPARATOR.'history'))
     {
-      mkdir($logdir.'/history', 0777);
+      mkdir($logdir.DIRECTORY_SEPARATOR.'history', 0777);
     }
 
     // determine date of last rotation
-    $logs = sfFinder::type('file')->ignore_version_control()->maxdepth(1)->name($logfile.'_*.log')->in($logdir.'/history/');
+    $logs = sfFinder::type('file')->ignore_version_control()->maxdepth(1)->name($logfile.'_*.log')->in($logdir.DIRECTORY_SEPARATOR.'history'.DIRECTORY_SEPARATOR);
     $recentlog = is_array($logs) ? array_pop($logs) : null;
 
     if ($recentlog)
@@ -112,14 +112,14 @@ EOF;
       $rotateOn = null;
     }
 
-    $srcLog = $logdir.'/'.$logfile.'.log';
-    $destLog = $logdir.'/history/'.$logfile.'_'.$today.'.log';
+    $srcLog = $logdir.DIRECTORY_SEPARATOR.$logfile.'.log';
+    $destLog = $logdir.DIRECTORY_SEPARATOR.'history'.DIRECTORY_SEPARATOR.$logfile.'_'.$today.'.log';
 
     // if rotate log on date doesn't exist, or that date is today, then rotate the log
     if (!$rotateOn || ($rotateOn == $today) || $override)
     {
       // create a lock file
-      touch(sfConfig::get('sf_root_dir').'/'.$app.'_'.$env.'.lck');
+      touch(sfConfig::get('sf_root_dir').DIRECTORY_SEPARATOR.$app.'_'.$env.'.lck');
 
       // if log file exists rotate it
       if (file_exists($srcLog))
@@ -142,7 +142,7 @@ EOF;
         unlink($srcLog);
 
         // get all log history files for this application and environment
-        $newLogs = sfFinder::type('file')->ignore_version_control()->maxdepth(1)->name($logfile.'_*.log')->in($logdir.'/history/');
+        $newLogs = sfFinder::type('file')->ignore_version_control()->maxdepth(1)->name($logfile.'_*.log')->in($logdir.DIRECTORY_SEPARATOR.'history'.DIRECTORY_SEPARATOR);
 
         // if the number of logs in history exceeds history then remove the oldest log
         if (count($newLogs) > $history)
