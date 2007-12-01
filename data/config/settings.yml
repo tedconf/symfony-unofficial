@@ -61,12 +61,13 @@ default:
     charset:                utf-8
 
     # Miscellaneous
-    strip_comments:         on         # Remove comments in core framework classes as defined in the core_compile.yml
-    timeout:                9600       # Session timeout, in seconds
-    max_forwards:           5
-    path_info_array:        SERVER
-    path_info_key:          PATH_INFO
-    url_format:             PATH
+    strip_comments:           on         # Remove comments in core framework classes as defined in the core_compile.yml
+    timeout:                  9600       # Session timeout, in seconds
+    max_forwards:             5          # Max forwards before stoping loop
+    path_info_array:          SERVER
+    path_info_key:            PATH_INFO
+    url_format:               PATH
+    cache_namespace_callable:            # callable used to generate sf_cache_key, useful for binding view cache with user
 
     # ORM
     orm:                    propel

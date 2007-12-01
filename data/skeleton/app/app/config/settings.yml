@@ -91,6 +91,7 @@ all:
     path_info_array:        SERVER
     path_info_key:          PATH_INFO
     url_format:             PATH
+    cache_namespace_callable:          # callable used to generate sf_cache_key, useful for binding view cache with user
 
     # ORM
     orm:                    propel
