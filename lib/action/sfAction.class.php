@@ -263,11 +263,11 @@ abstract class sfAction extends sfComponent
    *
    * @return sfView::NONE
    */
-  public function renderPartial($templateName, $vars = array())
+  public function renderPartial($templateName, $parameters = array())
   {
     sfLoader::loadHelpers('Partial');
 
-    return $this->renderText(get_partial($templateName, array_merge($this->varHolder->getAll(), $vars)));
+    return $this->renderText(get_partial($templateName, array_merge($this->varHolder->getAll(), $parameters)));
   }
 
 
@@ -284,11 +284,11 @@ abstract class sfAction extends sfComponent
    *
    * @return sfView::NONE
    */
-  public function renderComponent($moduleName, $componentName, $vars = array())
+  public function renderComponent($moduleName, $componentName, $parameters = array())
   {
     sfLoader::loadHelpers('Partial');
 
-    return $this->renderText(get_component($templateName, $componentName, array_merge($this->varHolder->getAll(), $vars)));
+    return $this->renderText(get_component($templateName, $componentName, array_merge($this->varHolder->getAll(), $parameters)));
   }
 
   /**
