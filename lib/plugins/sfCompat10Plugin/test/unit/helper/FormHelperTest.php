@@ -64,7 +64,7 @@ $t->is(options_for_select(array('group1' => array('item1', 'item2'), 'bar' => 'i
 
 // options
 $t->is(options_for_select(array('item1'), '', array('include_custom' => 'test')), "<option value=\"\">test</option>\n<option value=\"0\">item1</option>\n", 'options_for_select() can take an "include_custom" option');
-$t->is(options_for_select(array('item1'), '', array('include_blank' => true)), "<option value=\"\"></option>\n<option value=\"0\">item1</option>\n", 'options_for_select() can take an "include_blank" option');
+$t->is(options_for_select(array('item1'), '', array('include_blank' => true)), "<option value=\"\">&nbsp;</option>\n<option value=\"0\">item1</option>\n", 'options_for_select() can take an "include_blank" option');
 
 // form_tag()
 $t->diag('form_tag()');

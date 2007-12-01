@@ -70,7 +70,7 @@ function options_for_select($options = array(), $selected = '', $html_options = 
   }
   else if (_get_option($html_options, 'include_blank'))
   {
-    $html .= content_tag('option', '', array('value' => ''))."\n";
+    $html .= content_tag('option', '&nbsp;', array('value' => ''))."\n";
   }
 
   foreach ($options as $key => $value)
@@ -922,7 +922,7 @@ function _convert_include_custom_for_select($options, &$select_options)
 {
   if (_get_option($options, 'include_blank'))
   {
-    $select_options[''] = '';
+    $select_options[''] = '&nbsp;';
   }
   else if ($include_custom = _get_option($options, 'include_custom'))
   {

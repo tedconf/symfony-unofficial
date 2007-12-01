@@ -3,7 +3,7 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- * 
+ *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -49,7 +49,7 @@ $t->like(select_day_tag('day', 31), '/<option value="31" selected="selected">/',
 
 // options
 $t->like(select_day_tag('day', null, array('include_custom' => 'test')), "/<option value=\"\">test<\/option>/", 'select_day_tag() can take an "include_custom" option');
-$t->like(select_day_tag('day', null, array('include_blank' => true)), "/<option value=\"\"><\/option>/", 'select_day_tag() can take an "include_blank" option');
+$t->like(select_day_tag('day', null, array('include_blank' => true)), "/<option value=\"\">&nbsp;<\/option>/", 'select_day_tag() can take an "include_blank" option');
 $t->like(select_day_tag('day', null, array(), array('class' => 'foo')), '<select name="day" id="day" class="foo">', 'select_day_tag() takes an array of attribute options as its fourth argument');
 $t->like(select_day_tag('day', null, array(), array('id' => 'foo')), '<select name="day" id="foo">', 'select_day_tag() takes an array of attribute options as its fourth argument');
 
@@ -67,7 +67,7 @@ $t->like(select_month_tag('month', 2, array('culture' => 'fr')), '/<option value
 $t->like(select_month_tag('month', 2, array('use_short_month' => true, 'culture' => 'fr')), '/<option value="1">janv.<\/option>/i', 'select_month_tag() displays short month names if passed a "use_short_month" options');
 $t->like(select_month_tag('month', 2, array('use_short_month' => true, 'add_month_numbers' => true)), '/<option value="1">1 - Jan<\/option>/i', 'select_month_tag() displays month names and month number if passed a "add_month_numbers" options');
 $t->like(select_month_tag('month', null, array('include_custom' => 'test')), "/<option value=\"\">test<\/option>/", 'select_month_tag() can take an "include_custom" option');
-$t->like(select_month_tag('month', null, array('include_blank' => true)), "/<option value=\"\"><\/option>/", 'select_month_tag() can take an "include_blank" option');
+$t->like(select_month_tag('month', null, array('include_blank' => true)), "/<option value=\"\">&nbsp;<\/option>/", 'select_month_tag() can take an "include_blank" option');
 $t->like(select_month_tag('month', null, array(), array('class' => 'foo')), '<select name="month" id="month" class="foo">', 'select_month_tag() takes an array of attribute options as its fourth argument');
 $t->like(select_month_tag('month', null, array(), array('id' => 'foo')), '<select name="month" id="foo">', 'select_month_tag() takes an array of attribute options as its fourth argument');
 
@@ -80,7 +80,7 @@ $t->like(select_year_tag('year', 2006), '/<option value="2006" selected="selecte
 // options
 $t->is(preg_match_all('/<option /', select_year_tag('year', 2006, array('year_start' => 2005, 'year_end' => 2007)), $matches), 3, 'select_year_tag() takes a "year_start" and a "year_end" options');
 $t->like(select_year_tag('year', null, array('include_custom' => 'test')), "/<option value=\"\">test<\/option>/", 'select_year_tag() can take an "include_custom" option');
-$t->like(select_year_tag('year', null, array('include_blank' => true)), "/<option value=\"\"><\/option>/", 'select_year_tag() can take an "include_blank" option');
+$t->like(select_year_tag('year', null, array('include_blank' => true)), "/<option value=\"\">&nbsp;<\/option>/", 'select_year_tag() can take an "include_blank" option');
 $t->like(select_year_tag('year', null, array(), array('class' => 'foo')), '<select name="year" id="year" class="foo">', 'select_year_tag() takes an array of attribute options as its fourth argument');
 $t->like(select_year_tag('year', null, array(), array('id' => 'foo')), '<select name="year" id="foo">', 'select_year_tag() takes an array of attribute options as its fourth argument');
 
@@ -96,7 +96,7 @@ $t->like(select_second_tag('second', 12), '/<option value="12" selected="selecte
 
 // options
 $t->like(select_second_tag('second', null, array('include_custom' => 'test')), "/<option value=\"\">test<\/option>/", 'select_second_tag() can take an "include_custom" option');
-$t->like(select_second_tag('second', null, array('include_blank' => true)), "/<option value=\"\"><\/option>/", 'select_second_tag() can take an "include_blank" option');
+$t->like(select_second_tag('second', null, array('include_blank' => true)), "/<option value=\"\">&nbsp;<\/option>/", 'select_second_tag() can take an "include_blank" option');
 $t->like(select_second_tag('second', null, array(), array('class' => 'foo')), '<select name="second" id="second" class="foo">', 'select_second_tag() takes an array of attribute options as its fourth argument');
 $t->like(select_second_tag('second', null, array(), array('id' => 'foo')), '<select name="second" id="foo">', 'select_second_tag() takes an array of attribute options as its fourth argument');
 $t->is(preg_match_all("/<option value=\"/", select_second_tag('second', null, array('second_step' => 10)), $matches), 6, 'select_second_tag() can take an "second_step" option');
@@ -109,7 +109,7 @@ $t->like(select_minute_tag('minute', 12), '/<option value="12" selected="selecte
 
 // options
 $t->like(select_minute_tag('minute', null, array('include_custom' => 'test')), "/<option value=\"\">test<\/option>/", 'select_minute_tag() can take an "include_custom" option');
-$t->like(select_minute_tag('minute', null, array('include_blank' => true)), "/<option value=\"\"><\/option>/", 'select_minute_tag() can take an "include_blank" option');
+$t->like(select_minute_tag('minute', null, array('include_blank' => true)), "/<option value=\"\">&nbsp;<\/option>/", 'select_minute_tag() can take an "include_blank" option');
 $t->like(select_minute_tag('minute', null, array(), array('class' => 'foo')), '<select name="minute" id="minute" class="foo">', 'select_minute_tag() takes an array of attribute options as its fourth argument');
 $t->like(select_minute_tag('minute', null, array(), array('id' => 'foo')), '<select name="minute" id="foo">', 'select_minute_tag() takes an array of attribute options as its fourth argument');
 $t->is(preg_match_all("/<option value=\"/", select_minute_tag('minute', null, array('minute_step' => 10)), $matches), 6, 'select_minute_tag() can take an "minute_step" option');
@@ -122,7 +122,7 @@ $t->like(select_hour_tag('hour', 1), '/<option value="1" selected="selected">/',
 
 // options
 $t->like(select_hour_tag('hour', null, array('include_custom' => 'test')), "/<option value=\"\">test<\/option>/", 'select_hour_tag() can take an "include_custom" option');
-$t->like(select_hour_tag('hour', null, array('include_blank' => true)), "/<option value=\"\"><\/option>/", 'select_hour_tag() can take an "include_blank" option');
+$t->like(select_hour_tag('hour', null, array('include_blank' => true)), "/<option value=\"\">&nbsp;<\/option>/", 'select_hour_tag() can take an "include_blank" option');
 $t->like(select_hour_tag('hour', null, array(), array('class' => 'foo')), '<select name="hour" id="hour" class="foo">', 'select_hour_tag() takes an array of attribute options as its fourth argument');
 $t->like(select_hour_tag('hour', null, array(), array('id' => 'foo')), '<select name="hour" id="foo">', 'select_hour_tag() takes an array of attribute options as its fourth argument');
 $t->is(preg_match_all("/<option value=\"/", select_hour_tag('hour'), $matches), 24, 'select_hour_tag() can take an "12hour_time" option');
@@ -136,7 +136,7 @@ $t->like(select_ampm_tag('ampm', 'AM'), '/<option value="AM" selected="selected"
 
 // options
 $t->like(select_ampm_tag('ampm', null, array('include_custom' => 'test')), "/<option value=\"\">test<\/option>/", 'select_ampm_tag() can take an "include_custom" option');
-$t->like(select_ampm_tag('ampm', null, array('include_blank' => true)), "/<option value=\"\"><\/option>/", 'select_ampm_tag() can take an "include_blank" option');
+$t->like(select_ampm_tag('ampm', null, array('include_blank' => true)), "/<option value=\"\">&nbsp;<\/option>/", 'select_ampm_tag() can take an "include_blank" option');
 $t->like(select_ampm_tag('ampm', null, array(), array('class' => 'foo')), '<select name="ampm" id="ampm" class="foo">', 'select_ampm_tag() takes an array of attribute options as its fourth argument');
 $t->like(select_ampm_tag('ampm', null, array(), array('id' => 'foo')), '<select name="ampm" id="foo">', 'select_ampm_tag() takes an array of attribute options as its fourth argument');
 
@@ -158,7 +158,7 @@ $t->like(select_number_tag('number', 3), '/<select name="number" id="number">/',
 
 // options
 $t->like(select_number_tag('number', null, array('include_custom' => 'test')), "/<option value=\"\">test<\/option>/", 'select_number_tag() can take an "include_custom" option');
-$t->like(select_number_tag('number', null, array('include_blank' => true)), "/<option value=\"\"><\/option>/", 'select_number_tag() can take an "include_blank" option');
+$t->like(select_number_tag('number', null, array('include_blank' => true)), "/<option value=\"\">&nbsp;<\/option>/", 'select_number_tag() can take an "include_blank" option');
 $t->like(select_number_tag('number', null, array(), array('class' => 'foo')), '<select name="number" id="number" class="foo">', 'select_number_tag() takes an array of attribute options as its fourth argument');
 $t->like(select_number_tag('number', null, array(), array('id' => 'foo')), '<select name="number" id="foo">', 'select_number_tag() takes an array of attribute options as its fourth argument');
 $t->is(preg_match_all('/<option/', select_number_tag('number', 3, array('increment' => 4)), $matches), 4, 'select_number_tag() can take an "increment" option');
