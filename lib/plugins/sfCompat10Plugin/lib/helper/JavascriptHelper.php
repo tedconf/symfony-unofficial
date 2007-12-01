@@ -295,6 +295,39 @@
   }
 
   /**
+   *  Returns a image submit tag that will submit form using XMLHttpRequest in the background instead of regular
+   *  reloading POST arrangement. The '$options' argument is the same as in 'form_remote_tag()'.
+   */
+  function submit_image_to_remote($name, $source, $options = array(), $options_html = array())
+  {
+    $options = _parse_attributes($options);
+    $options_html = _parse_attributes($options_html);
+
+    if (!isset($options['with']))
+    {
+      $options['with'] = 'Form.serialize(this.form)';
+    }
+
+    $options_html['type'] = 'image';
+    $options_html['onclick'] = remote_function($options).'; return false;';
+    $options_html['name'] = $name;
+    $options_html['src'] = image_path($source);
+
+    if (!isset($options_html['alt']))
+    {
+      $path_pos = strrpos($source, '/');
+      $dot_pos = strrpos($source, '.');
+      $begin = $path_pos ? $path_pos + 1 : 0;
+      $nb_str = ($dot_pos ? $dot_pos : strlen($source)) - $begin;
+      $options_html['alt'] = ucfirst(substr($source, $begin, $nb_str));
+
+     }
+
+    return tag('input', $options_html, false);
+
+  }
+
+  /**
    * Returns a Javascript function (or expression) that will update a DOM element '$element_id'
    * according to the '$options' passed.
    *
@@ -934,6 +967,10 @@
     if (isset($options['after_update_element']))
     {
       $js_options['afterUpdateElement'] = $options['after_update_element'];
+    }
+    if (isset($options['param_name']))
+ 	  {
+ 	    $js_options['paramName'] = "'".$options['param_name']."'";
     }
 
     $javascript .= ', '._options_for_javascript($js_options).');';
