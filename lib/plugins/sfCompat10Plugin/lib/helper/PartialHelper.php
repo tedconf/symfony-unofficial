@@ -20,7 +20,7 @@
 /**
  * Evaluates and echoes a component slot.
  * The component name is deduced from the definition of the view.yml
- * For a variable to be accessible to the component and its partial, 
+ * For a variable to be accessible to the component and its partial,
  * it has to be passed in the second argument.
  *
  * <b>Example:</b>
@@ -70,7 +70,7 @@ function get_component_slot($name, $vars = array())
 
 /**
  * Evaluates and echoes a component.
- * For a variable to be accessible to the component and its partial, 
+ * For a variable to be accessible to the component and its partial,
  * it has to be passed in the third argument.
  *
  * <b>Example:</b>
@@ -169,8 +169,10 @@ function get_component($moduleName, $componentName, $vars = array())
 
   if ($retval != sfView::NONE)
   {
+    $viewClass = sfConfig::get('mod_'.$moduleName.'_partial_view_class', 'sf').'PartialView';
+
     // render
-    $view = new sfPartialView($context, $moduleName, $actionName, '');
+    $view = new $viewClass($context, $moduleName, $actionName, '');
     $view->getAttributeHolder()->add($componentInstance->getVarHolder()->getAll());
 
     $retval = $view->render();
@@ -248,7 +250,8 @@ function get_partial($templateName, $vars = array())
     }
   }
 
-  $view = new sfPartialView($context, $moduleName, $actionName, '');
+  $viewClass = sfConfig::get('mod_'.$moduleName.'_partial_view_class', 'sf').'PartialView';
+  $view = new $viewClass($context, $moduleName, $actionName, '');
   $view->getAttributeHolder()->add($vars);
 
   $retval = $view->render();
@@ -408,4 +411,35 @@ function get_slot($name)
   }
 
   return isset($slots[$name]) ? $slots[$name] : '';
+}
+
+/**
+ * Remove a slot if present.
+ *
+ * <b>Example:</b>
+ * <code>
+ *  echo remove_slot('navigation');
+ * </code>
+ *
+ * @param  string slot name
+ * @return boolean true, if the slot is removed
+ * @see    has_slot, include_slot, get_slot
+ */
+function remove_slot($name)
+{
+  $context = sfContext::getInstance();
+  $slots = $context->getResponse()->getSlots();
+  if (isset($slots[$name]))
+  {
+    $context->getResponse()->setSlot($name, null);
+
+    if (sfConfig::get('sf_logging_enabled'))
+    {
+      $context->getEventDispatcher()->notify(new sfEvent(null, 'application.log', array(sprintf('Removed slot "%s"', $name))));
+    }
+
+    return true;
+  }
+
+  return false;
 }
