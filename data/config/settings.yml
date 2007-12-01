@@ -33,12 +33,6 @@ default:
     suffix:                 .         # Default suffix for generated URLs. If set to a single dot (.), no suffix is added. Possible values: .html, .php, and so on.
     no_script_name:         on        # Enable the front controller name in generated URLs
 
-    # Validation settings, used for error generation by the Validation helper
-    validation_error_prefix:      ' &darr;&nbsp;'
-    validation_error_suffix:      ' &nbsp;&darr;'
-    validation_error_class:       form_error
-    validation_error_id_prefix:   error_for_
-
     # Cache settings
     cache:                  off        # Enable the template cache
     etag:                   off        # Enable etag handling
@@ -82,3 +76,10 @@ default:
 
     # enable 1.0 compatibility
     compat_10:              on
+
+    # Validation settings, used for error generation by the Validation helper
+    validation_error_prefix:      ' &darr;&nbsp;'
+    validation_error_suffix:      ' &nbsp;&darr;'
+    validation_error_tag:         div
+    validation_error_class:       form_error
+    validation_error_id_prefix:   error_for_
