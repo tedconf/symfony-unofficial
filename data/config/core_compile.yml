@@ -1,8 +1,9 @@
-# symfony prereqs
+# symfony prereqs - always manually included in sfCore::bootstrap
 #- %SF_SYMFONY_LIB_DIR%/config/sfConfig.class.php
 #- %SF_SYMFONY_LIB_DIR%/config/sfLoader.class.php
 #- %SF_SYMFONY_LIB_DIR%/util/sfContext.class.php
 #- %SF_SYMFONY_LIB_DIR%/util/sfParameterHolder.class.php
+#- %SF_SYMFONY_LIB_DIR%/cache/sfCache.class.php
 
 # symfony core classes
 - %SF_SYMFONY_LIB_DIR%/action/sfComponent.class.php
@@ -11,7 +12,6 @@
 - %SF_SYMFONY_LIB_DIR%/action/sfActions.class.php
 - %SF_SYMFONY_LIB_DIR%/action/sfActionStack.class.php
 - %SF_SYMFONY_LIB_DIR%/action/sfActionStackEntry.class.php
-- %SF_SYMFONY_LIB_DIR%/cache/sfCache.class.php
 - %SF_SYMFONY_LIB_DIR%/controller/sfController.class.php
 - %SF_SYMFONY_LIB_DIR%/database/sfDatabase.class.php
 - %SF_SYMFONY_LIB_DIR%/database/sfDatabaseManager.class.php
