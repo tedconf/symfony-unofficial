@@ -150,6 +150,19 @@ EOF;
         }
       }
     }
+
+    // clear apc cache
+    $cache = new sfAPCCache(array('prefix' => ''));
+    $cache->clean(sfAPCCache::ALL);
+
+    $this->dispatcher->notify(new sfEvent($this, 'command.log', array($this->formatter->formatSection('apc', 'cache removed'))));
+
+    // clear autoload cache
+    foreach(sfFinder::type('file')->name('sf_autoload*')->maxdepth(0)->in(sfToolkit::getTmpDir()) as $file)
+    {
+      @unlink($file);
+    }
+    $this->dispatcher->notify(new sfEvent($this, 'command.log', array($this->formatter->formatSection('autoload', 'cache removed'))));
   }
 
   /**
