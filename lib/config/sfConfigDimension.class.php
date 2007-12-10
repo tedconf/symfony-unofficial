@@ -1,16 +1,16 @@
 <?php
 
 /*
- * This file is part of the symfony package.
- * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
+* This file is part of the symfony package.
+* (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
 
- * Copyright (c) 2007 Yahoo! Inc.  All rights reserved.
- * The copyrights embodied in the content in this file are licensed
- * under the MIT open source license.
- *
- * For the full copyright and license information, please view the LICENSE.yahoo
- * file that was distributed with this source code.
- */
+* Copyright (c) 2007 Yahoo! Inc.  All rights reserved.
+* The copyrights embodied in the content in this file are licensed
+* under the MIT open source license.
+*
+* For the full copyright and license information, please view the LICENSE.yahoo
+* file that was distributed with this source code.
+*/
 
 /**
  * sfConfigDimension manages configuration dimensions. A dimension can be any parameter that changes configuration selection, template selection, or action execution.
@@ -39,9 +39,11 @@ class sfConfigDimension
 
   protected static $instance = null;
 
+  private $cache    = null;
+
   public $allowed   = array(), // array of allowed dimensions by $name => array $value
-         $default   = array(), // default dimension if not set
-         $dimension = array(); // current dimension
+  $default   = array(), // default dimension if not set
+  $dimension = array(); // current dimension
 
 
   /**
@@ -64,6 +66,8 @@ class sfConfigDimension
    */
   public function initialize()
   {
+    $this->cache = new sfAPCCache(array('prefix' => 'dimension'));
+
     $this->configure();
   }
 
@@ -73,7 +77,6 @@ class sfConfigDimension
    */
   public function configure()
   {
-
     // web or cli? it is hard to tell this early on, so take best guess
     $sf_root_dir = defined('SF_ROOT_DIR') ? SF_ROOT_DIR : getcwd();
 
@@ -195,7 +198,7 @@ class sfConfigDimension
       {
         if(!isset($this->allowed[$name]) || !in_array($dimension[$name], $this->allowed[$name]))
         {
-          return false;
+          throw new sfException(sprintf('The dimension %s is not an allowed dimension.', var_export($dimension, true)));
         }
       }
     }
@@ -204,7 +207,7 @@ class sfConfigDimension
   }
 
   /**
-   * cleans dimensions by normalizing names/values + removing null
+   * cleans dimensions by normalizing names/values + removing dimensions with null values (reduce lookups)
    *
    * @param array the dimension to clean
    *
@@ -220,7 +223,7 @@ class sfConfigDimension
       }
       else
       {
-        $dimension[$name] = strtolower($value);
+        $dimension[strtolower($name)] = strtolower($value);
       }
     }
     return $dimension;
@@ -239,10 +242,12 @@ class sfConfigDimension
     if($this->check($dimension))
     {
       $this->dimension = $dimension;
+
+      return true;
     }
     else
     {
-      throw new sfException(sprintf('The dimension %s is not an allowed dimension.', var_export($dimension, true)));
+      return false;
     }
   }
 
@@ -271,7 +276,6 @@ class sfConfigDimension
 
       // create a cacade of dimensions
       $dimensionsCascade = new CartesianIterator();
-      $last = array();
       foreach($this->dimension as $name => $values)
       {
         $dimensionsCascade->addArray(array($values));
