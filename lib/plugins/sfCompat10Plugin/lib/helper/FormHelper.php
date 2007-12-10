@@ -113,7 +113,7 @@ function options_for_select($options = array(), $selected = '', $html_options = 
  * @param  array optional HTML parameters for the <form> tag
  * @return string opening HTML <form> tag with options
  */
-function form_tag($url_for_options = '', $options = array())
+function form_tag($internal_uri, $options = array())
 {
   $options = _parse_attributes($options);
 
@@ -128,7 +128,13 @@ function form_tag($url_for_options = '', $options = array())
     $html_options['enctype'] = 'multipart/form-data';
   }
 
-  $html_options['action'] = url_for($url_for_options);
+  $html_options['action'] = url_for($internal_uri);
+
+  if (isset($html_options['query_string']))
+  {
+    $html_options['action'] .= '?'.$html_options['query_string'];
+    unset($html_options['query_string']);
+  }
 
   return tag('form', $html_options, true);
 }
@@ -225,6 +231,8 @@ function select_country_tag($name, $selected = null, $options = array())
 
   $option_tags = options_for_select($countries, $selected, $options);
 
+  unset($options['include_blank'], $options['include_custom']);
+
   return select_tag($name, $option_tags, $options);
 }
 
@@ -271,6 +279,8 @@ function select_language_tag($name, $selected = null, $options = array())
   asort($languages);
 
   $option_tags = options_for_select($languages, $selected, $options);
+
+  unset($options['include_blank'], $options['include_custom']);
 
   return select_tag($name, $option_tags, $options);
 }
