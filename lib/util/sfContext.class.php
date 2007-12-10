@@ -199,11 +199,11 @@ class sfContext
     return null;
   }
 
-  public function retrieveObjects($class, $peerMethod)
+  public function retrieveObjects($class, $peerMethod, $criteria = null)
   {
     $retrievingClass = 'sf'.ucfirst(sfConfig::get('sf_orm', 'propel')).'DataRetriever';
 
-    return call_user_func(array($retrievingClass, 'retrieveObjects'), $class, $peerMethod);
+    return call_user_func(array($retrievingClass, 'retrieveObjects'), $class, $peerMethod, $criteria);
   }
 
   /**
