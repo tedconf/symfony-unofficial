@@ -1,0 +1,4 @@
+allowed:
+  culture:    [en, fr, it, de]
+  theme:      [classic, mybrand]
+  host:       [production, development, qa, staging]

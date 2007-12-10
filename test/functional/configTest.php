@@ -3,7 +3,7 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- * 
+ *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -34,17 +34,17 @@ $t->is(get_config_dirs('config/filters.yml'), array(
 $t->is(get_config_dirs('modules/sfConfigPlugin/config/view.yml'), array(
   'SYMFONY/config/view.yml',
   'PROJECT/plugins/sfConfigPlugin/config/view.yml',
+  'PROJECT/plugins/sfConfigPlugin/modules/sfConfigPlugin/config/view.yml',
   'PROJECT/config/view.yml',
   'PROJECT/apps/frontend/config/view.yml',
-  'PROJECT/plugins/sfConfigPlugin/modules/sfConfigPlugin/config/view.yml',
   'PROJECT/apps/frontend/modules/sfConfigPlugin/config/view.yml',
 ), 'sfLoader::getConfigDirs() returns directories for configuration files'
 );
 
 // nested configuration files
 $t->is(get_config_dirs('config/dirmyconfig/myconfig.yml'), array(
-  'PROJECT/config/dirmyconfig/myconfig.yml',
   'PROJECT/plugins/sfConfigPlugin/config/dirmyconfig/myconfig.yml',
+  'PROJECT/config/dirmyconfig/myconfig.yml',
   'PROJECT/apps/frontend/config/dirmyconfig/myconfig.yml',
 ), 'sfLoader::getConfigDirs() returns directories for configuration files'
 );

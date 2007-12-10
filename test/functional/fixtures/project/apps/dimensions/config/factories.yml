@@ -1,0 +1,66 @@
+prod:
+  logger:
+    class:   sfNoLogger
+    param:
+      level:   error
+      loggers: ~
+
+cli:
+  controller:
+    class: sfConsoleController
+  request:
+    class: sfConsoleRequest
+  response:
+    class: sfConsoleResponse
+  storage:
+    param:
+      auto_start:  false
+
+test:
+  storage:
+    class: sfSessionTestStorage
+    param:
+      session_path: %SF_TEST_CACHE_DIR%/sessions
+
+all:
+  controller:
+    class: sfFrontWebController
+
+  request:
+    class: sfWebRequest
+
+  response:
+    class: sfWebResponse
+
+  user:
+    class: sfBasicSecurityUser
+
+  storage:
+    class: sfSessionStorage
+    param:
+      session_name: symfony
+      session_cookie_lifetime: 77760000   # 90*24*3600
+      session_cookie_path:     /
+      # session_cookie_domain:   .example.com
+      session_cookie_secure:   false
+      session_cookie_httponly: false
+
+  view_cache:
+    class: sfFileCache
+    param:
+      automaticCleaningFactor: 0
+      cacheDir:                %SF_TEMPLATE_CACHE_DIR%
+      lifetime:                86400
+
+  i18n:
+    class: sfI18N
+    param:
+      cache:
+        class: sfFileCache
+        param:
+          automaticCleaningFactor: 0
+          cacheDir:                %SF_I18N_CACHE_DIR%
+          lifetime:                86400
+
+  routing:
+    class: sfPatternRouting

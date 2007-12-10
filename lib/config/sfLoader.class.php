@@ -25,10 +25,10 @@ class sfLoader
    */
   static public function getModelDirs()
   {
-    $dirs = array(sfConfig::get('sf_lib_dir').DIRECTORY_SEPARATOR.'model' ? sfConfig::get('sf_lib_dir').DIRECTORY_SEPARATOR.'model' : 'lib'.DIRECTORY_SEPARATOR.'model'); // project
+    $dirs = array(sfConfig::get('sf_lib_dir').DIRECTORY_SEPARATOR.'model' ? sfConfig::get('sf_lib_dir').DIRECTORY_SEPARATOR.'model' : 'lib'.DIRECTORY_SEPARATOR.'model');  // project
     if ($pluginDirs = glob(sfConfig::get('sf_plugins_dir').DIRECTORY_SEPARATOR.'*'.DIRECTORY_SEPARATOR.'lib'.DIRECTORY_SEPARATOR.'model'))
     {
-      $dirs = array_merge($dirs, $pluginDirs);                                                                // plugins
+      $dirs = array_merge($dirs, $pluginDirs);                                                                                                                             // plugins
     }
 
     return $dirs;
@@ -45,20 +45,21 @@ class sfLoader
   {
     $suffix = $moduleName.DIRECTORY_SEPARATOR.sfConfig::get('sf_app_module_action_dir_name');
 
-    $dirs = array();
-    foreach (sfConfig::get('sf_module_dirs', array()) as $key => $value)
+    $sf_app_module_dir = sfConfig::get('sf_app_module_dir');
+
+    foreach(sfConfig::get('sf_dimension_cascade', array()) as $sf_dimension_dir_name)
     {
-      $dirs[$key.DIRECTORY_SEPARATOR.$suffix] = $value;
+      $dirs[$sf_app_module_dir.DIRECTORY_SEPARATOR.$suffix.DIRECTORY_SEPARATOR.$sf_dimension_dir_name] = false;      // application (dimensions)
     }
 
-    $dirs[sfConfig::get('sf_app_module_dir').DIRECTORY_SEPARATOR.$suffix] = false;                                     // application
+    $dirs[$sf_app_module_dir.DIRECTORY_SEPARATOR.$suffix] = false;                                                   // application
 
     if ($pluginDirs = glob(sfConfig::get('sf_plugins_dir').DIRECTORY_SEPARATOR.'*'.DIRECTORY_SEPARATOR.'modules'.DIRECTORY_SEPARATOR.$suffix))
     {
-      $dirs = array_merge($dirs, array_combine($pluginDirs, array_fill(0, count($pluginDirs), true)));                // plugins
+      $dirs = array_merge($dirs, array_combine($pluginDirs, array_fill(0, count($pluginDirs), true)));               // plugins modules
     }
 
-    $dirs[sfConfig::get('sf_symfony_data_dir').DIRECTORY_SEPARATOR.'modules'.DIRECTORY_SEPARATOR.$suffix] = true;                            // core modules
+    $dirs[sfConfig::get('sf_symfony_data_dir').DIRECTORY_SEPARATOR.'modules'.DIRECTORY_SEPARATOR.$suffix] = true;    // core modules
 
     return $dirs;
   }
@@ -74,13 +75,16 @@ class sfLoader
   {
     $suffix = $moduleName.DIRECTORY_SEPARATOR.sfConfig::get('sf_app_module_template_dir_name');
 
+    $sf_app_module_dir = sfConfig::get('sf_app_module_dir');
+
     $dirs = array();
-    foreach (sfConfig::get('sf_module_dirs', array()) as $key => $value)
+
+    foreach(sfConfig::get('sf_dimension_cascade', array()) as $sf_dimension_dir_name)
     {
-      $dirs[] = $key.DIRECTORY_SEPARATOR.$suffix;
+      $dirs[] = $sf_app_module_dir.DIRECTORY_SEPARATOR.$suffix.DIRECTORY_SEPARATOR.$sf_dimension_dir_name;      // application (dimensions)
     }
 
-    $dirs[] = sfConfig::get('sf_app_module_dir').DIRECTORY_SEPARATOR.$suffix;                                   // application
+    $dirs[] = $sf_app_module_dir.DIRECTORY_SEPARATOR.$suffix;                                                   // application
 
     if ($pluginDirs = glob(sfConfig::get('sf_plugins_dir').DIRECTORY_SEPARATOR.'*'.DIRECTORY_SEPARATOR.'modules'.DIRECTORY_SEPARATOR.$suffix))
     {
@@ -219,7 +223,16 @@ class sfLoader
    */
   static public function getGeneratorTemplateDirs($class, $theme)
   {
-    $dirs = array(sfConfig::get('sf_data_dir').DIRECTORY_SEPARATOR.'generator'.DIRECTORY_SEPARATOR.$class.DIRECTORY_SEPARATOR.$theme.DIRECTORY_SEPARATOR.'template');                  // project
+    $dirs = array();
+
+    $sf_generator_template_dir = sfConfig::get('sf_data_dir').DIRECTORY_SEPARATOR.'generator'.DIRECTORY_SEPARATOR.$class.DIRECTORY_SEPARATOR.$theme.DIRECTORY_SEPARATOR.'template';
+
+    foreach(sfConfig::get('sf_dimension_cascade', array()) as $sf_dimension_dir_name)
+    {
+      $dirs[] = $sf_generator_template_dir.DIRECTORY_SEPARATOR.$sf_dimension_dir_name;                        // project (dimensions)
+    }
+
+    $dirs[] = $sf_generator_template_dir;                                                                     // project
 
     if ($pluginDirs = glob(sfConfig::get('sf_plugins_dir').DIRECTORY_SEPARATOR.'*'.DIRECTORY_SEPARATOR.'data'.DIRECTORY_SEPARATOR.'generator'.DIRECTORY_SEPARATOR.$class.DIRECTORY_SEPARATOR.$theme.DIRECTORY_SEPARATOR.'template'))
     {
@@ -244,7 +257,16 @@ class sfLoader
    */
   static public function getGeneratorSkeletonDirs($class, $theme)
   {
-    $dirs = array(sfConfig::get('sf_data_dir').DIRECTORY_SEPARATOR.'generator'.DIRECTORY_SEPARATOR.$class.DIRECTORY_SEPARATOR.$theme.DIRECTORY_SEPARATOR.'skeleton');                  // project
+    $dirs = array();
+
+    $sf_generator_skeleton_dir = sfConfig::get('sf_data_dir').DIRECTORY_SEPARATOR.'generator'.DIRECTORY_SEPARATOR.$class.DIRECTORY_SEPARATOR.$theme.DIRECTORY_SEPARATOR.'skeleton';
+
+    foreach(sfConfig::get('sf_dimension_cascade', array()) as $sf_dimension_dir_name)
+    {
+      $dirs[] = $sf_generator_skeleton_dir.DIRECTORY_SEPARATOR.$sf_dimension_dir_name;                        // project (dimensions)
+    }
+
+    $dirs[] = $sf_generator_skeleton_dir;                                                                     // project
 
     if ($pluginDirs = glob(sfConfig::get('sf_plugins_dir').DIRECTORY_SEPARATOR.'*'.DIRECTORY_SEPARATOR.'data'.DIRECTORY_SEPARATOR.'generator'.DIRECTORY_SEPARATOR.$class.DIRECTORY_SEPARATOR.$theme.DIRECTORY_SEPARATOR.'skeleton'))
     {
@@ -293,36 +315,49 @@ class sfLoader
    */
   static public function getConfigPaths($configPath)
   {
-    $globalConfigPath = basename(dirname($configPath)).DIRECTORY_SEPARATOR.basename($configPath);
+    $sf_symfony_data_dir = sfConfig::get('sf_symfony_data_dir');
+    $sf_root_dir = sfConfig::get('sf_root_dir');
+    $sf_plugins_dir = sfConfig::get('sf_plugins_dir');
+    $sf_app_dir = sfConfig::get('sf_app_dir');
+
+    $configName       = basename($configPath);
+    $configDir        = dirname($configPath);
+    $globalConfigPath = basename($configDir).DIRECTORY_SEPARATOR.$configName;
 
     $files = array(
-      sfConfig::get('sf_symfony_data_dir').DIRECTORY_SEPARATOR.$globalConfigPath,                    // symfony
-      sfConfig::get('sf_symfony_data_dir').DIRECTORY_SEPARATOR.$configPath,                          // core modules
+      $sf_symfony_data_dir.DIRECTORY_SEPARATOR.$globalConfigPath,                    // symfony
+      $sf_symfony_data_dir.DIRECTORY_SEPARATOR.$configPath,                          // core modules
     );
 
     if ($bundledPluginDirs = glob(sfConfig::get('sf_symfony_lib_dir').DIRECTORY_SEPARATOR.'plugins'.DIRECTORY_SEPARATOR.'*'.DIRECTORY_SEPARATOR.$globalConfigPath))
     {
-      $files = array_merge($files, $bundledPluginDirs);                                             // bundled plugins
+      $files = array_merge($files, $bundledPluginDirs);                              // bundled plugins
     }
 
-    if ($pluginDirs = glob(sfConfig::get('sf_plugins_dir').DIRECTORY_SEPARATOR.'*'.DIRECTORY_SEPARATOR.$globalConfigPath))
+    if ($pluginDirs = glob($sf_plugins_dir.DIRECTORY_SEPARATOR.'*'.DIRECTORY_SEPARATOR.$globalConfigPath))
     {
-      $files = array_merge($files, $pluginDirs);                                                    // plugins
+      $files = array_merge($files, $pluginDirs);                                     // plugins
+    }
+
+    if ($pluginDirs = glob($sf_plugins_dir.DIRECTORY_SEPARATOR.'*'.DIRECTORY_SEPARATOR.$configPath))
+    {
+      $files = array_merge($files, $pluginDirs);                                     // plugins
     }
 
     $files = array_merge($files, array(
-      sfConfig::get('sf_root_dir').DIRECTORY_SEPARATOR.$globalConfigPath,                            // project
-      sfConfig::get('sf_root_dir').DIRECTORY_SEPARATOR.$configPath,                                  // project
-      sfConfig::get('sf_app_dir').DIRECTORY_SEPARATOR.$globalConfigPath,                             // application
-      sfConfig::get('sf_app_cache_dir').DIRECTORY_SEPARATOR.$configPath,                             // generated modules
+      $sf_root_dir.DIRECTORY_SEPARATOR.$globalConfigPath,                            // project
+      $sf_root_dir.DIRECTORY_SEPARATOR.$configPath,                                  // project
+      $sf_app_dir.DIRECTORY_SEPARATOR.$globalConfigPath,                             // application
+      sfConfig::get('sf_app_cache_dir').DIRECTORY_SEPARATOR.$configPath,             // generated modules
     ));
 
-    if ($pluginDirs = glob(sfConfig::get('sf_plugins_dir').DIRECTORY_SEPARATOR.'*'.DIRECTORY_SEPARATOR.$configPath))
-    {
-      $files = array_merge($files, $pluginDirs);                                                     // plugins
-    }
+    $files[] = $sf_app_dir.DIRECTORY_SEPARATOR.$configPath;                          // module
 
-    $files[] = sfConfig::get('sf_app_dir').DIRECTORY_SEPARATOR.$configPath;                          // module
+    $sf_dimension_cascade = array_reverse(sfConfig::get('sf_dimension_cascade', array()));
+    foreach($sf_dimension_cascade as $sf_dimension_dir_name)
+    {
+      $files[] = $sf_app_dir.DIRECTORY_SEPARATOR.$configDir.DIRECTORY_SEPARATOR.$sf_dimension_dir_name.DIRECTORY_SEPARATOR.$configName; // application | module (dimensions)
+    }
 
     $configs = array();
     foreach (array_unique($files) as $file)

@@ -19,11 +19,11 @@ class sfCore
 {
   const VERSION = '1.1.0-DEV';
 
-  static public function bootstrap($sf_symfony_lib_dir, $sf_symfony_data_dir)
+  static public function bootstrap($sf_symfony_lib_dir, $sf_symfony_data_dir, $sf_dimension = null)
   {
     try
     {
-      sfCore::initConfiguration($sf_symfony_lib_dir, $sf_symfony_data_dir);
+      sfCore::initConfiguration($sf_symfony_lib_dir, $sf_symfony_data_dir, false, $sf_dimension);
 
       sfCore::initIncludePath();
 
@@ -67,23 +67,23 @@ class sfCore
     $configCache = sfConfigCache::getInstance();
 
     // load base settings
-    include($configCache->checkConfig(sfConfig::get('sf_app_config_dir_name').'/settings.yml'));
-    if ($file = $configCache->checkConfig(sfConfig::get('sf_app_config_dir_name').'/app.yml', true))
+    include($configCache->checkConfig(sfConfig::get('sf_app_config_dir_name').DIRECTORY_SEPARATOR.'settings.yml'));
+    if ($file = $configCache->checkConfig(sfConfig::get('sf_app_config_dir_name').DIRECTORY_SEPARATOR.'app.yml', true))
     {
-      include($configCache->checkConfig(sfConfig::get('sf_app_config_dir_name').'/app.yml'));
+      include($configCache->checkConfig(sfConfig::get('sf_app_config_dir_name').DIRECTORY_SEPARATOR.'app.yml'));
     }
 
     // required core classes for the framework
     if (!sfConfig::get('sf_debug') && !sfConfig::get('sf_test'))
     {
-      $configCache->import(sfConfig::get('sf_app_config_dir_name').'/core_compile.yml', false);
+      $configCache->import(sfConfig::get('sf_app_config_dir_name').DIRECTORY_SEPARATOR.'core_compile.yml', false);
     }
 
     // error settings
     ini_set('display_errors', SF_DEBUG ? 'on' : 'off');
     error_reporting(sfConfig::get('sf_error_reporting'));
 
-    $configCache->import(sfConfig::get('sf_app_config_dir_name').'/php.yml', false);
+    $configCache->import(sfConfig::get('sf_app_config_dir_name').DIRECTORY_SEPARATOR.'php.yml', false);
 
     // include all config.php from plugins
     sfLoader::loadPluginConfig();
@@ -92,38 +92,42 @@ class sfCore
     ob_start(sfConfig::get('sf_compressed') ? 'ob_gzhandler' : '');
   }
 
-  static public function initConfiguration($sf_symfony_lib_dir, $sf_symfony_data_dir, $test = false)
+  static public function initConfiguration($sf_symfony_lib_dir, $sf_symfony_data_dir, $test = false, $sf_dimension = null)
   {
     // YAML support
-    require_once($sf_symfony_lib_dir.'/util/sfYaml.class.php');
+    require_once($sf_symfony_lib_dir.DIRECTORY_SEPARATOR.'util'.DIRECTORY_SEPARATOR.'sfYaml.class.php');
+
+    // APC cache support
+    require_once($sf_symfony_lib_dir.DIRECTORY_SEPARATOR.'cache'.DIRECTORY_SEPARATOR.'sfCache.class.php');
+    require_once($sf_symfony_lib_dir.DIRECTORY_SEPARATOR.'cache'.DIRECTORY_SEPARATOR.'sfAPCCache.class.php');
 
     // config support
-    require_once($sf_symfony_lib_dir.'/config/sfConfig.class.php');
-    require_once($sf_symfony_lib_dir.'/config/sfConfigCache.class.php');
-    require_once($sf_symfony_lib_dir.'/config/sfConfigHandler.class.php');
-    require_once($sf_symfony_lib_dir.'/config/sfYamlConfigHandler.class.php');
-    require_once($sf_symfony_lib_dir.'/config/sfAutoloadConfigHandler.class.php');
-    require_once($sf_symfony_lib_dir.'/config/sfRootConfigHandler.class.php');
-    require_once($sf_symfony_lib_dir.'/config/sfLoader.class.php');
+    require_once($sf_symfony_lib_dir.DIRECTORY_SEPARATOR.'config'.DIRECTORY_SEPARATOR.'sfConfig.class.php');
+    require_once($sf_symfony_lib_dir.DIRECTORY_SEPARATOR.'config'.DIRECTORY_SEPARATOR.'sfConfigCache.class.php');
+    require_once($sf_symfony_lib_dir.DIRECTORY_SEPARATOR.'config'.DIRECTORY_SEPARATOR.'sfConfigHandler.class.php');
+    require_once($sf_symfony_lib_dir.DIRECTORY_SEPARATOR.'config'.DIRECTORY_SEPARATOR.'sfYamlConfigHandler.class.php');
+    require_once($sf_symfony_lib_dir.DIRECTORY_SEPARATOR.'config'.DIRECTORY_SEPARATOR.'sfAutoloadConfigHandler.class.php');
+    require_once($sf_symfony_lib_dir.DIRECTORY_SEPARATOR.'config'.DIRECTORY_SEPARATOR.'sfRootConfigHandler.class.php');
+    require_once($sf_symfony_lib_dir.DIRECTORY_SEPARATOR.'config'.DIRECTORY_SEPARATOR.'sfLoader.class.php');
 
     // exceptions
-    require_once($sf_symfony_lib_dir.'/exception/sfException.class.php');
-    require_once($sf_symfony_lib_dir.'/exception/sfConfigurationException.class.php');
-    require_once($sf_symfony_lib_dir.'/exception/sfCacheException.class.php');
-    require_once($sf_symfony_lib_dir.'/exception/sfParseException.class.php');
+    require_once($sf_symfony_lib_dir.DIRECTORY_SEPARATOR.'exception'.DIRECTORY_SEPARATOR.'sfException.class.php');
+    require_once($sf_symfony_lib_dir.DIRECTORY_SEPARATOR.'exception'.DIRECTORY_SEPARATOR.'sfConfigurationException.class.php');
+    require_once($sf_symfony_lib_dir.DIRECTORY_SEPARATOR.'exception'.DIRECTORY_SEPARATOR.'sfCacheException.class.php');
+    require_once($sf_symfony_lib_dir.DIRECTORY_SEPARATOR.'exception'.DIRECTORY_SEPARATOR.'sfParseException.class.php');
 
     // utils
-    require_once($sf_symfony_lib_dir.'/util/sfParameterHolder.class.php');
-    require_once($sf_symfony_lib_dir.'/util/sfToolkit.class.php');
+    require_once($sf_symfony_lib_dir.DIRECTORY_SEPARATOR.'util'.DIRECTORY_SEPARATOR.'sfParameterHolder.class.php');
+    require_once($sf_symfony_lib_dir.DIRECTORY_SEPARATOR.'util'.DIRECTORY_SEPARATOR.'sfToolkit.class.php');
 
     // autoloading
-    require_once($sf_symfony_lib_dir.'/util/sfAutoload.class.php');
+    require_once($sf_symfony_lib_dir.DIRECTORY_SEPARATOR.'util'.DIRECTORY_SEPARATOR.'sfAutoload.class.php');
 
     // in debug mode, load timer classes and start global timer
     if (SF_DEBUG)
     {
-      require_once($sf_symfony_lib_dir.'/debug/sfTimerManager.class.php');
-      require_once($sf_symfony_lib_dir.'/debug/sfTimer.class.php');
+      require_once($sf_symfony_lib_dir.DIRECTORY_SEPARATOR.'debug'.DIRECTORY_SEPARATOR.'sfTimerManager.class.php');
+      require_once($sf_symfony_lib_dir.DIRECTORY_SEPARATOR.'debug'.DIRECTORY_SEPARATOR.'sfTimer.class.php');
       sfConfig::set('sf_timer_start', microtime(true));
     }
 
@@ -135,10 +139,31 @@ class sfCore
       'sf_test'             => $test,
     ));
 
+    // dimensions config support
+    if(!empty($sf_dimension) && is_array($sf_dimension))
+    {
+      require_once($sf_symfony_lib_dir.DIRECTORY_SEPARATOR.'util'.DIRECTORY_SEPARATOR.'CartesianIterator.class.php');
+      require_once($sf_symfony_lib_dir.DIRECTORY_SEPARATOR.'config'.DIRECTORY_SEPARATOR.'sfConfigDimension.class.php');
+
+      $dimension = sfConfigDimension::getInstance();
+      $dimension->initialize();
+      $dimension->set($sf_dimension);
+
+      // dimension configuration
+      sfConfig::add(array(
+        'sf_dimension'      => $sf_dimension = $dimension->__toString(),
+        'sf_dimension_cascade' => $dimension->getCascade()
+      ));
+    }
+    else
+    {
+      $sf_dimension = null;
+    }
+
     sfAutoload::getInstance()->register();
 
     // directory layout
-    self::initDirectoryLayout(SF_ROOT_DIR, SF_APP, SF_ENVIRONMENT);
+    self::initDirectoryLayout(SF_ROOT_DIR, SF_APP, SF_ENVIRONMENT, $sf_dimension);
   }
 
   static public function initIncludePath()
@@ -158,8 +183,8 @@ class sfCore
     if (sfToolkit::hasLockFile(SF_ROOT_DIR.DIRECTORY_SEPARATOR.SF_APP.'_'.SF_ENVIRONMENT.'.lck', 5))
     {
       // application is not available
-      $file = sfConfig::get('sf_web_dir').'/errors/unavailable.php';
-      include(is_readable($file) ? $file : sfConfig::get('sf_symfony_data_dir').'/web/errors/unavailable.php');
+      $file = sfConfig::get('sf_web_dir').DIRECTORY_SEPARATOR.'errors'.DIRECTORY_SEPARATOR.'unavailable.php';
+      include(is_readable($file) ? $file : sfConfig::get('sf_symfony_data_dir').DIRECTORY_SEPARATOR.'web'.DIRECTORY_SEPARATOR.'errors'.DIRECTORY_SEPARATOR.'unavailable.php');
 
       die(1);
     }
@@ -168,14 +193,14 @@ class sfCore
   static public function checkSymfonyVersion()
   {
     // recent symfony update?
-    if (self::VERSION != @file_get_contents(sfConfig::get('sf_config_cache_dir').'/VERSION'))
+    if (self::VERSION != @file_get_contents(sfConfig::get('sf_config_cache_dir').DIRECTORY_SEPARATOR.'VERSION'))
     {
       // clear cache
       sfToolkit::clearDirectory(sfConfig::get('sf_config_cache_dir'));
     }
   }
 
-  static public function initDirectoryLayout($sf_root_dir, $sf_app = null, $sf_environment = null)
+  static public function initDirectoryLayout($sf_root_dir, $sf_app = null, $sf_environment = null, $sf_dimension = null)
   {
     sfConfig::add(array(
       'sf_root_dir'         => $sf_root_dir,
@@ -206,7 +231,7 @@ class sfCore
       'sf_test_dir'       => $sf_test_dir = $sf_root_dir.DIRECTORY_SEPARATOR.$sf_test_dir_name,
       'sf_doc_dir'        => $sf_root_dir.DIRECTORY_SEPARATOR.$sf_doc_dir_name,
       'sf_plugins_dir'    => $sf_root_dir.DIRECTORY_SEPARATOR.$sf_plugins_dir_name,
-      'sf_cache_dir'      => $sf_cache_dir = $sf_root_dir.DIRECTORY_SEPARATOR.$sf_cache_dir_name,
+      'sf_cache_dir'      => $sf_cache_dir = is_null($sf_dimension) ? $sf_root_dir.DIRECTORY_SEPARATOR.$sf_cache_dir_name : $sf_root_dir.DIRECTORY_SEPARATOR.$sf_cache_dir_name.DIRECTORY_SEPARATOR.$sf_dimension,
 
       // test directory names
       'sf_test_bootstrap_dir_name'  => $sf_test_bootstrap_dir_name = 'bootstrap',
@@ -249,8 +274,8 @@ class sfCore
         'sf_environment'        => $sf_environment,
 
         'sf_app_dir'            => $sf_app_dir = $sf_root_dir.DIRECTORY_SEPARATOR.$sf_apps_dir_name.DIRECTORY_SEPARATOR.$sf_app,
-        'sf_app_base_cache_dir' => $sf_cache_dir.DIRECTORY_SEPARATOR.$sf_app,
-        'sf_app_cache_dir'      => $sf_app_cache_dir = $sf_cache_dir.DIRECTORY_SEPARATOR.$sf_app.DIRECTORY_SEPARATOR.$sf_environment,
+        'sf_app_base_cache_dir' => $sf_app_base_cache_dir = $sf_cache_dir.DIRECTORY_SEPARATOR.$sf_app,
+        'sf_app_cache_dir'      => $sf_app_cache_dir = $sf_app_base_cache_dir.DIRECTORY_SEPARATOR.$sf_environment,
 
         // SF_APP_DIR directory structure
         'sf_app_config_dir'     => $sf_app_dir.DIRECTORY_SEPARATOR.$sf_app_config_dir_name,
