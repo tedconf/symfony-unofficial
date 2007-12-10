@@ -388,11 +388,13 @@ class sfViewCacheManager
     try
     {
       $cache_key = $this->generateCacheKey($internalUri);
+
       if ($this->cache->has($cache_key))
       {
         return false;
       }
- 	    $ret = $this->cache->set($cache_key, $data, $this->getLifeTime($internalUri));
+
+      $this->cache->set($cache_key, $data, $this->getLifeTime($internalUri));
     }
     catch (Exception $e)
     {
