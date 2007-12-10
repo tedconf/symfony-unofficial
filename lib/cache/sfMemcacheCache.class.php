@@ -19,15 +19,12 @@
 class sfMemcacheCache extends sfCache
 {
   protected
-    $prefix   = '',
     $memcache = null;
 
   /**
    * Initializes this sfCache instance.
    *
-   * Available parameters:
-   *
-   * Available parameters:
+   * Available options:
    *
    * * memcache: A memcache object (optional)
    *
@@ -37,37 +34,35 @@ class sfMemcacheCache extends sfCache
    *
    * * servers:    An array of additional servers (keys: host, port, persistent)
    *
-   * * see sfCache for default parameters available for all drivers
+   * * see sfCache for options available for all drivers
    *
    * @see sfCache
    */
-  public function initialize($parameters = array())
+  public function initialize($options = array())
   {
-    parent::initialize($parameters);
+    parent::initialize($options);
 
     if (!class_exists('Memcache'))
     {
       throw new sfInitializationException('You must have memcache installed and enabled to use sfMemcacheCache class.');
     }
 
-    $this->prefix = md5($this->getParameter('prefix', sfConfig::get('sf_app'))).self::SEPARATOR;
-
-    if ($this->getParameter('memcache'))
+    if ($this->getOption('memcache'))
     {
-      $this->memcache = $this->getParameter('memcache');
+      $this->memcache = $this->getOption('memcache');
     }
     else
     {
       $this->memcache = new Memcache();
-      $method = $this->getParameter('persistent', true) ? 'pconnect' : 'connect';
-      if (!$this->memcache->$method($this->getParameter('host', 'localhost'), $this->getParameter('port', 11211), $this->getParameter('timeout', 1)))
+      $method = $this->getOption('persistent', true) ? 'pconnect' : 'connect';
+      if (!$this->memcache->$method($this->getOption('host', 'localhost'), $this->getOption('port', 11211), $this->getOption('timeout', 1)))
       {
-        throw new sfInitializationException(sprintf('Unable to connect to the memcache server (%s:%s).', $this->getParameter('host', 'localhost'), $this->getParameter('port', 11211)));
+        throw new sfInitializationException(sprintf('Unable to connect to the memcache server (%s:%s).', $this->getOption('host', 'localhost'), $this->getOption('port', 11211)));
       }
 
-      if ($this->getParameter('servers'))
+      if ($this->getOption('servers'))
       {
-        foreach ($this->getParameter('servers') as $server)
+        foreach ($this->getOption('servers') as $server)
         {
           $port = isset($server['port']) ? $server['port'] : 11211;
           if (!$this->memcache->addServer($server['host'], $port, isset($server['persistent']) ? $server['persistent'] : true))
@@ -92,7 +87,7 @@ class sfMemcacheCache extends sfCache
   */
   public function get($key, $default = null)
   {
-    $value = $this->memcache->get($this->prefix.$key);
+    $value = $this->memcache->get($this->getOption('prefix').$key);
 
     return false === $value ? $default : $value;
   }
@@ -102,7 +97,7 @@ class sfMemcacheCache extends sfCache
    */
   public function has($key)
   {
-    return false === $this->memcache->get($this->prefix.$key) ? false : true;
+    return !(false === $this->memcache->get($this->getOption('prefix').$key));
   }
 
   /**
@@ -110,18 +105,18 @@ class sfMemcacheCache extends sfCache
    */
   public function set($key, $data, $lifetime = null)
   {
-    $lifetime = is_null($lifetime) ? $this->getParameter('lifetime') : $lifetime;
+    $lifetime = is_null($lifetime) ? $this->getOption('lifetime') : $lifetime;
 
     // save metadata
     $this->setMetadata($key, $lifetime);
 
     // save key for removePattern()
-    if ($this->getParameter('storeCacheInfo', false))
+    if ($this->getOption('storeCacheInfo', false))
     {
       $this->setCacheInfo($key);
     }
 
-    return $this->memcache->set($this->prefix.$key, $data, false, $lifetime);
+    return $this->memcache->set($this->getOption('prefix').$key, $data, false, $lifetime);
   }
 
   /**
@@ -129,9 +124,9 @@ class sfMemcacheCache extends sfCache
    */
   public function remove($key)
   {
-    $this->memcache->delete($this->prefix.'_metadata'.self::SEPARATOR.$key);
+    $this->memcache->delete($this->getOption('prefix').'_metadata'.self::SEPARATOR.$key);
 
-    return $this->memcache->delete($this->prefix.$key);
+    return $this->memcache->delete($this->getOption('prefix').$key);
   }
 
   /**
@@ -176,12 +171,12 @@ class sfMemcacheCache extends sfCache
    */
   public function removePattern($pattern)
   {
-    if (!$this->getParameter('storeCacheInfo', false))
+    if (!$this->getOption('storeCacheInfo', false))
     {
-      throw new sfCacheException('To use the "removePattern" method, you must set the "storeCacheInfo" parameter to "true".');
+      throw new sfCacheException('To use the "removePattern" method, you must set the "storeCacheInfo" option to "true".');
     }
 
-    $regexp = self::patternToRegexp($this->prefix.$pattern);
+    $regexp = self::patternToRegexp($this->getOption('prefix').$pattern);
 
     foreach ($this->getCacheInfo() as $key)
     {
@@ -198,9 +193,9 @@ class sfMemcacheCache extends sfCache
   public function getMany($keys)
   {
     $values = array();
-    foreach ($this->memcache->get(array_map(create_function('$k', 'return "'.$this->prefix.'".$k;'), $keys)) as $key => $value)
+    foreach ($this->memcache->get(array_map(create_function('$k', 'return "'.$this->getOption('prefix').'".$k;'), $keys)) as $key => $value)
     {
-      $values[str_replace($this->prefix, '', $key)] = $value;
+      $values[str_replace($this->getOption('prefix'), '', $key)] = $value;
     }
 
     return $values;
@@ -215,7 +210,7 @@ class sfMemcacheCache extends sfCache
    */
   protected function getMetadata($key)
   {
-    return $this->memcache->get($this->prefix.'_metadata'.self::SEPARATOR.$key);
+    return $this->memcache->get($this->getOption('prefix').'_metadata'.self::SEPARATOR.$key);
   }
 
   /**
@@ -226,7 +221,7 @@ class sfMemcacheCache extends sfCache
    */
   protected function setMetadata($key, $lifetime)
   {
-    $this->memcache->set($this->prefix.'_metadata'.self::SEPARATOR.$key, array('lastModified' => time(), 'timeout' => time() + $lifetime), false, $lifetime);
+    $this->memcache->set($this->getOption('prefix').'_metadata'.self::SEPARATOR.$key, array('lastModified' => time(), 'timeout' => time() + $lifetime), false, $lifetime);
   }
 
   /**
@@ -236,13 +231,13 @@ class sfMemcacheCache extends sfCache
    */
   protected function setCacheInfo($key)
   {
-    $keys = $this->memcache->get($this->prefix.'_metadata');
+    $keys = $this->memcache->get($this->getOption('prefix').'_metadata');
     if (!is_array($keys))
     {
       $keys = array();
     }
-    $keys[] = $this->prefix.$key;
-    $this->memcache->set($this->prefix.'_metadata', $keys, 0);
+    $keys[] = $this->getOption('prefix').$key;
+    $this->memcache->set($this->getOption('prefix').'_metadata', $keys, 0);
   }
 
   /**
@@ -252,7 +247,7 @@ class sfMemcacheCache extends sfCache
    */
   protected function getCacheInfo()
   {
-    $keys = $this->memcache->get($this->prefix.'_metadata');
+    $keys = $this->memcache->get($this->getOption('prefix').'_metadata');
     if (!is_array($keys))
     {
       return array();

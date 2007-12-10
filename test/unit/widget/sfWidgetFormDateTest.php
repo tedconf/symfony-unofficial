@@ -10,7 +10,7 @@
 
 require_once(dirname(__FILE__).'/../../bootstrap/unit.php');
 
-$t = new lime_test(22, new lime_output_color());
+$t = new lime_test(29, new lime_output_color());
 
 $w = new sfWidgetFormDate();
 
@@ -48,20 +48,45 @@ $dom->loadHTML($w->render('foo', '2005-10-15'));
 $css = new sfDomCssSelector($dom);
 
 // number of options in each select
+$t->is(count($css->matchAll('#foo_year option')->getNodes()), 12, '->render() renders a select tag for the 10 years around the current one');
+$t->is(count($css->matchAll('#foo_month option')->getNodes()), 13, '->render() renders a select tag for the 12 months in a year');
+$t->is(count($css->matchAll('#foo_day option')->getNodes()), 32, '->render() renders a select tag for the 31 days in a month');
+
+// can_be_empty option
+$t->diag('can_be_empty option');
+$w->setOption('can_be_empty', false);
+$dom->loadHTML($w->render('foo', '2005-10-15'));
+$css = new sfDomCssSelector($dom);
 $t->is(count($css->matchAll('#foo_year option')->getNodes()), 11, '->render() renders a select tag for the 10 years around the current one');
 $t->is(count($css->matchAll('#foo_month option')->getNodes()), 12, '->render() renders a select tag for the 12 months in a year');
 $t->is(count($css->matchAll('#foo_day option')->getNodes()), 31, '->render() renders a select tag for the 31 days in a month');
+$w->setOption('can_be_empty', true);
 
-// separator option
-$t->diag('separator option');
+// empty_values
+$t->diag('empty_values option');
+$w->setOption('empty_values', array('year' => 'YEAR', 'month' => 'MONTH', 'day' => 'DAY'));
+$dom->loadHTML($w->render('foo', '2005-10-15'));
+$css = new sfDomCssSelector($dom);
+$t->is($css->matchSingle('#foo_year option')->getNode()->nodeValue, 'YEAR', '->configure() can change the empty values');
+$t->is($css->matchSingle('#foo_month option')->getNode()->nodeValue, 'MONTH', '->configure() can change the empty values');
+$t->is($css->matchSingle('#foo_day option')->getNode()->nodeValue, 'DAY', '->configure() can change the empty values');
+$w->setOption('empty_values', array('year' => '', 'month' => '', 'day' => ''));
+
+// format option
+$t->diag('format option');
 $t->is($css->matchSingle('#foo_day')->getNode()->nextSibling->nodeValue, '/', '->render() renders 3 selects with a default / as a separator');
 $t->is($css->matchSingle('#foo_month')->getNode()->nextSibling->nodeValue, '/', '->render() renders 3 selects with a default / as a separator');
 
-$w->setOption('separator', '#');
+$w->setOption('format', '%month%#%day%#%year%');
 $dom->loadHTML($w->render('foo', '2005-10-15'));
 $css = new sfDomCssSelector($dom);
-$t->is($css->matchSingle('#foo_day')->getNode()->nextSibling->nodeValue, '#', '__construct() can change the default separator');
-$t->is($css->matchSingle('#foo_month')->getNode()->nextSibling->nodeValue, '#', '__construct() can change the default separator');
+$t->is($css->matchSingle('#foo_day')->getNode()->nextSibling->nodeValue, '#', '__construct() can change the default date format');
+$t->is($css->matchSingle('#foo_month')->getNode()->nextSibling->nodeValue, '#', '__construct() can change the default date format');
+
+$w->setOption('format', '%day%/%month%/%year%');
+$dom->loadHTML($w->render('foo', '2005-10-15'));
+$css = new sfDomCssSelector($dom);
+$t->is($css->matchSingle('select')->getNode()->getAttribute('name'), 'foo[day]', '__construct() can change the default date format');
 
 // days / months / years options
 $t->diag('days / months / years options');
@@ -70,6 +95,6 @@ $w->setOption('months', array(1 => 1, 2 => 2, 3 => 3));
 $w->setOption('days', array(1 => 1, 2 => 2));
 $dom->loadHTML($w->render('foo', '2005-10-15'));
 $css = new sfDomCssSelector($dom);
-$t->is(count($css->matchAll('#foo_year option')->getNodes()), 4, '__construct() can change the default array used for years');
-$t->is(count($css->matchAll('#foo_month option')->getNodes()), 3, '__construct() can change the default array used for months');
-$t->is(count($css->matchAll('#foo_day option')->getNodes()), 2, '__construct() can change the default array used for days');
+$t->is(count($css->matchAll('#foo_year option')->getNodes()), 5, '__construct() can change the default array used for years');
+$t->is(count($css->matchAll('#foo_month option')->getNodes()), 4, '__construct() can change the default array used for months');
+$t->is(count($css->matchAll('#foo_day option')->getNodes()), 3, '__construct() can change the default array used for days');

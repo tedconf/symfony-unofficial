@@ -18,27 +18,23 @@
  */
 class sfEAcceleratorCache extends sfCache
 {
-  protected $prefix = '';
-
   /**
    * Initializes this sfCache instance.
    *
-   * Available parameters:
+   * Available options:
    *
-   * * see sfCache for default parameters available for all drivers
+   * * see sfCache for options available for all drivers
    *
    * @see sfCache
    */
-  public function initialize($parameters = array())
+  public function initialize($options = array())
   {
-    parent::initialize($parameters);
+    parent::initialize($options);
 
     if (!function_exists('eaccelerator_put') || !ini_get('eaccelerator.enable'))
     {
       throw new sfInitializationException('You must have EAccelerator installed and enabled to use sfEAcceleratorCache class (or perhaps you forgot to add --with-eaccelerator-shared-memory when installing).');
     }
-
-    $this->prefix = md5($this->getParameter('prefix', sfConfig::get('sf_app'))).self::SEPARATOR;
   }
 
  /**
@@ -46,7 +42,7 @@ class sfEAcceleratorCache extends sfCache
   */
   public function get($key, $default = null)
   {
-    $value = eaccelerator_get($this->prefix.$key);
+    $value = eaccelerator_get($this->getOption('prefix').$key);
 
     return is_null($value) ? $default : $value;
   }
@@ -56,7 +52,7 @@ class sfEAcceleratorCache extends sfCache
    */
   public function has($key)
   {
-    return null === eaccelerator_get($this->prefix.$key) ? false : true;
+    return !is_null(eaccelerator_get($this->getOption('prefix').$key));
   }
 
   /**
@@ -64,7 +60,7 @@ class sfEAcceleratorCache extends sfCache
    */
   public function set($key, $data, $lifetime = null)
   {
-    return eaccelerator_put($this->prefix.$key, $data, $this->getLifetime($lifetime));
+    return eaccelerator_put($this->getOption('prefix').$key, $data, $this->getLifetime($lifetime));
   }
 
   /**
@@ -72,7 +68,7 @@ class sfEAcceleratorCache extends sfCache
    */
   public function remove($key)
   {
-    return eaccelerator_rm($this->prefix.$key);
+    return eaccelerator_rm($this->getOption('prefix').$key);
   }
 
   /**
@@ -84,13 +80,13 @@ class sfEAcceleratorCache extends sfCache
 
     if (is_array($infos))
     {
-      $regexp = self::patternToRegexp($this->prefix.$pattern);
+      $regexp = self::patternToRegexp($this->getOption('prefix').$pattern);
 
       foreach ($infos as $info)
       {
         if (preg_match($regexp, $info['name']))
         {
-          eaccelerator_rm($this->prefix.$key);
+          eaccelerator_rm($this->getOption('prefix').$key);
         }
       }
     }
@@ -101,12 +97,29 @@ class sfEAcceleratorCache extends sfCache
    */
   public function clean($mode = sfCache::ALL)
   {
-    if (sfCache::OLD == $mode)
+    if (sfCache::OLD === $mode)
     {
       return eaccelerator_gc();
     }
 
-    eaccelerator_clean();
+    $infos = eaccelerator_list_keys();
+    if (is_array($infos))
+    {
+      foreach ($infos as $info)
+      {
+        if (false !== strpos($info['name'], $this->getOption('prefix')))
+        {
+          // eaccelerator bug (http://eaccelerator.net/ticket/287)
+          $key = 0 === strpos($info['name'], ':') ? substr($info['name'], 1) : $info['name'];
+          if (!eaccelerator_rm($key))
+          {
+            return false;
+          }
+        }
+      }
+    }
+
+    return true;
   }
 
   /**
@@ -143,7 +156,7 @@ class sfEAcceleratorCache extends sfCache
     {
       foreach ($infos as $info)
       {
-        if ($this->prefix.$key == $info['name'])
+        if ($this->getOption('prefix').$key == $info['name'])
         {
           return $info;
         }

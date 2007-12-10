@@ -54,29 +54,29 @@ $dom->loadHTML($w->render('foo', '2005-10-15 12:30:35'));
 $css = new sfDomCssSelector($dom);
 
 // number of options in each select
-$t->is(count($css->matchAll('#foo_year option')->getNodes()), 11, '->render() renders a select tag for the 10 years around the current one');
-$t->is(count($css->matchAll('#foo_month option')->getNodes()), 12, '->render() renders a select tag for the 12 months in a year');
-$t->is(count($css->matchAll('#foo_day option')->getNodes()), 31, '->render() renders a select tag for the 31 days in a month');
-$t->is(count($css->matchAll('#foo_hour option')->getNodes()), 24, '->render() renders a select tag for the 24 hours in a day');
-$t->is(count($css->matchAll('#foo_minute option')->getNodes()), 60, '->render() renders a select tag for the 60 minutes in an hour');
-$t->is(count($css->matchAll('#foo_second option')->getNodes()), 60, '->render() renders a select tag for the 60 seconds in a minute');
+$t->is(count($css->matchAll('#foo_year option')->getNodes()), 12, '->render() renders a select tag for the 10 years around the current one');
+$t->is(count($css->matchAll('#foo_month option')->getNodes()), 13, '->render() renders a select tag for the 12 months in a year');
+$t->is(count($css->matchAll('#foo_day option')->getNodes()), 32, '->render() renders a select tag for the 31 days in a month');
+$t->is(count($css->matchAll('#foo_hour option')->getNodes()), 25, '->render() renders a select tag for the 24 hours in a day');
+$t->is(count($css->matchAll('#foo_minute option')->getNodes()), 61, '->render() renders a select tag for the 60 minutes in an hour');
+$t->is(count($css->matchAll('#foo_second option')->getNodes()), 61, '->render() renders a select tag for the 60 seconds in a minute');
 
-// date and time separator option
-$t->diag('date and time separator option');
-$t->is($css->matchSingle('#foo_day')->getNode()->nextSibling->nodeValue, '/', '->render() renders 3 selects with a default / as a separator');
-$t->is($css->matchSingle('#foo_month')->getNode()->nextSibling->nodeValue, '/', '->render() renders 3 selects with a default / as a separator');
-$t->is($css->matchSingle('#foo_hour')->getNode()->nextSibling->nodeValue, ':', '->render() renders 3 selects with a default : as a separator');
-$t->is($css->matchSingle('#foo_minute')->getNode()->nextSibling->nodeValue, ':', '->render() renders 3 selects with a default : as a separator');
+// date and time format option
+$t->diag('date and time format option');
+$t->is($css->matchSingle('#foo_day')->getNode()->nextSibling->nodeValue, '/', '->render() renders 3 selects with a default / as a format');
+$t->is($css->matchSingle('#foo_month')->getNode()->nextSibling->nodeValue, '/', '->render() renders 3 selects with a default / as a format');
+$t->is($css->matchSingle('#foo_hour')->getNode()->nextSibling->nodeValue, ':', '->render() renders 3 selects with a default : as a format');
+$t->is($css->matchSingle('#foo_minute')->getNode()->nextSibling->nodeValue, ':', '->render() renders 3 selects with a default : as a format');
 
-$t->diag('change date and time separator option');
-$w->setOption('date', array('separator' => '-'));
-$w->setOption('time', array('separator' => '!', 'with_seconds' => true));
+$t->diag('change date and time format option');
+$w->setOption('date', array('format' => '%month%-%day%-%year%'));
+$w->setOption('time', array('format' => '%hour%!%minute%!%second%', 'with_seconds' => true));
 $dom->loadHTML($w->render('foo', '2005-10-15 12:30:35'));
 $css = new sfDomCssSelector($dom);
-$t->is($css->matchSingle('#foo_day')->getNode()->nextSibling->nodeValue, '-', '__construct() can change the default separator');
-$t->is($css->matchSingle('#foo_month')->getNode()->nextSibling->nodeValue, '-', '__construct() can change the default separator');
-$t->is($css->matchSingle('#foo_hour')->getNode()->nextSibling->nodeValue, '!', '__construct() can change the default separator');
-$t->is($css->matchSingle('#foo_minute')->getNode()->nextSibling->nodeValue, '!', '__construct() can change the default separator');
+$t->is($css->matchSingle('#foo_day')->getNode()->nextSibling->nodeValue, '-', '__construct() can change the default format');
+$t->is($css->matchSingle('#foo_month')->getNode()->nextSibling->nodeValue, '-', '__construct() can change the default format');
+$t->is($css->matchSingle('#foo_hour')->getNode()->nextSibling->nodeValue, '!', '__construct() can change the default format');
+$t->is($css->matchSingle('#foo_minute')->getNode()->nextSibling->nodeValue, '!', '__construct() can change the default format');
 
 // with_time option
 $t->diag('with_time option');

@@ -26,8 +26,10 @@ class sfFileLogger extends sfLogger
    *
    * Available options:
    *
-   * - file: The file path or a php wrapper to log messages
-   *         You can use any support php wrapper. To write logs to the Apache error log, use php://stderr
+   * - file:      The file path or a php wrapper to log messages
+   *              You can use any support php wrapper. To write logs to the Apache error log, use php://stderr
+   * - dir_mode:  The mode to use when creating a directory (default to 0777)
+   * - file_mode: The mode to use when creating a file (default to 0666)
    *
    * @param  sfEventDispatcher A sfEventDispatcher instance
    * @param  array        An array of options.
@@ -44,20 +46,18 @@ class sfFileLogger extends sfLogger
     $dir = dirname($options['file']);
     if (!is_dir($dir))
     {
-      mkdir($dir, 0777, true);
+      mkdir($dir, isset($options['dir_mode']) ? $options['dir_mode'] : 0777, true);
     }
 
-    $file_exists = file_exists($options['file']);
-    if (!is_writable($dir) || ($file_exists && !is_writable($options['file'])))
+    if (!is_writable($dir) || ($fileExists = file_exists($options['file']) && !is_writable($options['file'])))
     {
       throw new sfFileException(sprintf('Unable to open the log file "%s" for writing.', $options['file']));
     }
 
     $this->fp = fopen($options['file'], 'a');
-
-    if (!$file_exists)
+    if (!$fileExists)
     {
-      chmod($options['file'], 0666);
+      chmod($options['file'], isset($options['file_mode']) ? $options['file_mode'] : 0666);
     }
 
     return parent::initialize($dispatcher, $options);
