@@ -40,7 +40,17 @@ $t->is(sfConfigDimension::getInstance()->clean(array('culture' => 'en', 'theme' 
 $t->is(sfConfigDimension::getInstance()->clean(array('culture' => 'en', 'theme' => 'CLASSIC', 'host' => 'PRODUCTION')), array('culture' => 'en', 'theme' => 'classic', 'host' => 'production'), 'strtolower all values');
 
 $t->diag('::check()');
-$t->is(sfConfigDimension::getInstance()->check(array('culture' => 'ru', 'theme' => 'v2', 'host' => 'development')), false, 'fails on an invalid dimension');
+
+$t->diag('::set()');
+try
+{
+  sfConfigDimension::getInstance()->check(array('culture' => 'ru', 'theme' => 'v2', 'host' => 'development'));
+  $t->fail('does not throw exception on setting of invalid dimension');
+}
+catch (Exception $e)
+{
+  $t->pass('check throws exception when given an invalid dimension');
+}
 
 $t->diag('::set()');
 try
