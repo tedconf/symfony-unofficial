@@ -31,6 +31,7 @@ use_helper('Form');
  * <b>Options:</b>
  * - include_blank  - Includes a blank <option> tag at the beginning of the string with an empty value.
  * - include_custom - Includes an <option> tag with a custom display title at the beginning of the string with an empty value.
+ * - current_time   - If set to false, and include_blank set to true, the default will be blank, not the current timestamp
  *
  * <b>Examples:</b>
  * <code>
@@ -45,7 +46,8 @@ use_helper('Form');
  */
 function select_day_tag($name, $value = null, $options = array(), $html_options = array())
 {
-  if ($value === null)
+  $_current_time = _get_option($options, 'current_time', true);
+  if ($value === null && $_current_time==true)
   {
     $value = date('j');
   }
@@ -77,6 +79,7 @@ function select_day_tag($name, $value = null, $options = array(), $html_options 
  * <b>Options:</b>
  * - include_blank     - Includes a blank <option> tag at the beginning of the string with an empty value
  * - include_custom    - Includes an <option> tag with a custom display title at the beginning of the string with an empty value
+ * - current_time      - If set to false, and include_blank set to true, the default will be blank, not the current timestamp
  * - use_month_numbers - If set to true, will show the month's numerical value (1 - 12) instead of the months full name.
  * - use_short_month   - If set to true, will show the month's short name (i.e. Jan, Feb, Mar) instead of its full name.
  *
@@ -97,7 +100,8 @@ function select_day_tag($name, $value = null, $options = array(), $html_options 
  */
 function select_month_tag($name, $value = null, $options = array(), $html_options = array())
 {
-  if ($value === null)
+  $_current_time = _get_option($options, 'current_time', true);
+  if ($value === null && $_current_time==true)
   {
     $value = date('n');
   }
@@ -153,6 +157,7 @@ function select_month_tag($name, $value = null, $options = array(), $html_option
  * <b>Options:</b>
  * - include_blank  - Includes a blank <option> tag at the beginning of the string with an empty value
  * - include_custom - Includes an <option> tag with a custom display title at the beginning of the string with an empty value
+ * - current_time   - If set to false, and include_blank set to true, the default will be blank, not the current timestamp
  * - year_start     - If set, the range of years will begin at this four-digit date (i.e. 1979)
  * - year_end       - If set, the range of years will end at this four-digit date (i.e. 2025)
  *
@@ -175,7 +180,8 @@ function select_month_tag($name, $value = null, $options = array(), $html_option
  */
 function select_year_tag($name, $value = null, $options = array(), $html_options = array())
 {
-  if ($value === null)
+  $_current_time = _get_option($options, 'current_time', true);
+  if ($value === null && $_current_time==true)
   {
     $value = date('Y');
   }
@@ -229,6 +235,7 @@ function select_year_tag($name, $value = null, $options = array(), $html_options
  * <b>Options:</b>
  * - include_blank     - Includes a blank <option> tag at the beginning of the string with an empty value.
  * - include_custom    - Includes an <option> tag with a custom display title at the beginning of the string with an empty value.
+ * - current_time      - If set to false, and include_blank set to true, the default will be blank, not the current timestamp
  * - discard_month     - If set to true, will only return select tags for day and year.
  * - discard_day       - If set to true, will only return select tags for month and year.
  * - discard_year      - If set to true, will only return select tags for month and day.
@@ -348,6 +355,7 @@ function select_date_tag($name, $value = null, $options = array(), $html_options
  * <b>Options:</b>
  * - include_blank  - Includes a blank <option> tag at the beginning of the string with an empty value.
  * - include_custom - Includes an <option> tag with a custom display title at the beginning of the string with an empty value.
+ * - current_time   - If set to false, and include_blank set to true, the default will be blank, not the current timestamp
  * - second_step    - If set, the seconds will be incremented in blocks of X, where X = 'second_step'
  *
  * <b>Examples:</b>
@@ -367,7 +375,8 @@ function select_date_tag($name, $value = null, $options = array(), $html_options
  */
 function select_second_tag($name, $value = null, $options = array(), $html_options = array())
 {
-  if ($value === null)
+  $_current_time = _get_option($options, 'current_time', true);
+  if ($value === null && $_current_time==true)
   {
     $value = date('s');
   }
@@ -399,6 +408,7 @@ function select_second_tag($name, $value = null, $options = array(), $html_optio
  * <b>Options:</b>
  * - include_blank  - Includes a blank <option> tag at the beginning of the string with an empty value.
  * - include_custom - Includes an <option> tag with a custom display title at the beginning of the string with an empty value.
+ * - current_time   - If set to false, and include_blank set to true, the default will be blank, not the current timestamp
  * - minute_step    - If set, the minutes will be incremented in blocks of X, where X = 'minute_step'
  *
  * <b>Examples:</b>
@@ -418,7 +428,8 @@ function select_second_tag($name, $value = null, $options = array(), $html_optio
  */
 function select_minute_tag($name, $value = null, $options = array(), $html_options = array())
 {
-  if ($value === null)
+  $_current_time = _get_option($options, 'current_time', true);
+  if ($value === null && $_current_time==true)
   {
     $value = date('i');
   }
@@ -448,6 +459,7 @@ function select_minute_tag($name, $value = null, $options = array(), $html_optio
  * <b>Options:</b>
  * - include_blank  - Includes a blank <option> tag at the beginning of the string with an empty value.
  * - include_custom - Includes an <option> tag with a custom display title at the beginning of the string with an empty value.
+ * - current_time   - If set to false, and include_blank set to true, the default will be blank, not the current timestamp
  * - 12hour_time    - If set to true, will return integers 1 through 12 instead of the default 0 through 23 as well as an AM/PM select box.
  *
  * <b>Examples:</b>
@@ -472,8 +484,10 @@ function select_hour_tag($name, $value = null, $options = array(), $html_options
   _convert_include_custom_for_select($options, $select_options);
 
   $_12hour_time = _get_option($options, '12hour_time');
+  $_current_time = _get_option($options, 'current_time', true);
 
-  if ($value === null)
+
+  if ($value === null && $_current_time==true)
   {
     $value = date($_12hour_time ? 'h' : 'H');
   }
@@ -502,6 +516,7 @@ function select_hour_tag($name, $value = null, $options = array(), $html_options
  * <b>Options:</b>
  * - include_blank  - Includes a blank <option> tag at the beginning of the string with an empty value.
  * - include_custom - Includes an <option> tag with a custom display title at the beginning of the string with an empty value.
+ * - current_time   - If set to false, and include_blank set to true, the default will be blank, not the current timestamp
  *
  * <b>Examples:</b>
  * <code>
@@ -520,7 +535,8 @@ function select_hour_tag($name, $value = null, $options = array(), $html_options
  */
 function select_ampm_tag($name, $value = null, $options = array(), $html_options = array())
 {
-  if ($value === null)
+  $_current_time = _get_option($options, 'current_time', true);
+  if ($value === null && $_current_time==true)
   {
     $value = date('A');
   }
@@ -553,6 +569,7 @@ function select_ampm_tag($name, $value = null, $options = array(), $html_options
  * <b>Options:</b>
  * - include_blank  - Includes a blank <option> tag at the beginning of the string with an empty value.
  * - include_custom - Includes an <option> tag with a custom display title at the beginning of the string with an empty value.
+ * - current_time   - If set to false, and include_blank set to true, the default will be blank, not the current timestamp
  * - include_second - If set to true, includes the "seconds" select tag as part of the result.
  * - second_step    - If set, the seconds will be incremented in blocks of X, where X = 'second_step'
  * - minute_step    - If set, the minutes will be incremented in blocks of X, where X = 'minute_step'
@@ -665,6 +682,7 @@ function select_time_tag($name, $value = null, $options = array(), $html_options
  * <b>Options:</b>
  * - include_blank     - Includes a blank <option> tag at the beginning of the string with an empty value.
  * - include_custom    - Includes an <option> tag with a custom display title at the beginning of the string with an empty value.
+ * - current_time   - If set to false, and include_blank set to true, the default will be blank, not the current timestamp
  * - include_second    - If set to true, includes the "seconds" select tag as part of the result.
  * - discard_month     - If set to true, will only return select tags for day and year.
  * - discard_day       - If set to true, will only return select tags for month and year.
@@ -722,6 +740,7 @@ function select_datetime_tag($name, $value = null, $options = array(), $html_opt
  * <b>Options:</b>
  * - include_blank  - Includes a blank <option> tag at the beginning of the string with an empty value.
  * - include_custom - Includes an <option> tag with a custom display title at the beginning of the string with an empty value.
+ * - current_time   - If set to false, and include_blank set to true, the default will be blank, not the current timestamp
  * - multiple       - If set to true, the select tag will allow multiple numbers to be selected at once.
  * - start          - The first number in the list. If not specified, the default value is 1.
  * - end            - The last number in the list. If not specified, the default value is 10.
