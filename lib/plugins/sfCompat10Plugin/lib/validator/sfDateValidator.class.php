@@ -4,7 +4,7 @@
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
  * (c) 2004-2006 Sean Kerr.
- * 
+ *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -66,7 +66,7 @@ class sfDateValidator extends sfValidatorBase
             break;
           case '==':
             $valid = $value1 == $value2;
-            break;          
+            break;
           case '<=':
             $valid = $value1 <= $value2;
             break;
@@ -92,20 +92,34 @@ class sfDateValidator extends sfValidatorBase
 
   /**
    * Converts the given date into a Unix timestamp.
-   * 
+   *
    * Returns null if the date is invalid
-   * 
+   *
    * @param $value    Date to convert
    * @param $culture  Language culture to use
    */
   protected function getValidDate($value, $culture)
   {
-    // Use the language culture date format
-    $result = $this->context->getI18N()->getDateForCulture($value, $culture);
-    list($d, $m, $y) = $result;
+    if (is_array($value) && !empty($value))
+    {
+      $d = isset($value['day']) ? $value['day'] : 'd';
+      $m = isset($value['month']) ? $value['month'] : 'm';
+      $y = isset($value['year']) ? $value['year'] : 'Y';
+    }
+    else
+    {
+      // Use the language culture date format
+      $result = $this->getContext()->getI18N()->getDateForCulture($value, $culture);
+      if ($result === null)
+      {
+        return null;
+      }
+
+      list($d, $m, $y) = $result;
+    }
 
     // Make sure the date is a valid gregorian calendar date also
-    if ($result === null || !checkdate($m, $d, $y))
+    if (!checkdate($m, $d, $y))
     {
       return null;
     }
