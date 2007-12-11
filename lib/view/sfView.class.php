@@ -400,17 +400,19 @@ abstract class sfView
   }
 
   /**
-   * Sets the module and action to be executed in place of a particular template attribute.
+   * Sets the module and action to be executed for component slot.
    *
-   * @param string A template attribute name
+   * @param  string The component slot name
    * @param string A module name
    * @param string A component name
+   * @param array Parameters to pass to component
    */
-  public function setComponentSlot($attributeName, $moduleName, $componentName)
+  public function setComponentSlot($name, $moduleName, $componentName, $parameters = array())
   {
-    $this->componentSlots[$attributeName]                   = array();
-    $this->componentSlots[$attributeName]['module_name']    = $moduleName;
-    $this->componentSlots[$attributeName]['component_name'] = $componentName;
+    $this->componentSlots[$name]                   = array();
+    $this->componentSlots[$name]['module_name']    = $moduleName;
+    $this->componentSlots[$name]['component_name'] = $componentName;
+    $this->componentSlots[$name]['parameters']     = is_array($parameters) ? $parameters : array();
   }
 
   /**
@@ -434,9 +436,9 @@ abstract class sfView
    */
   public function getComponentSlot($name)
   {
-    if (isset($this->componentSlots[$name]) && $this->componentSlots[$name]['module_name'] && $this->componentSlots[$name]['component_name'])
+    if (isset($this->componentSlots[$name]) && isset($this->componentSlots[$name]['module_name']) && isset($this->componentSlots[$name]['component_name']) && isset($this->componentSlots[$name]['parameters']))
     {
-      return array($this->componentSlots[$name]['module_name'], $this->componentSlots[$name]['component_name']);
+      return array($this->componentSlots[$name]['module_name'], $this->componentSlots[$name]['component_name'],  $this->componentSlots[$name]['parameters']);
     }
 
     return null;

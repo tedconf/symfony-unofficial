@@ -81,7 +81,7 @@ class sfViewConfigHandler extends sfYamlConfigHandler
       $data[] = $this->addComponentSlots($viewName);
       $data[] = $this->addHtmlHead($viewName);
       $data[] = $this->addEscaping($viewName);
-
+      $data[] = $this->addAttributes($viewName);
       $data[] = $this->addHtmlAsset($viewName);
 
       $data[] = "}\n";
@@ -96,7 +96,7 @@ class sfViewConfigHandler extends sfYamlConfigHandler
     $data[] = $this->addComponentSlots();
     $data[] = $this->addHtmlHead();
     $data[] = $this->addEscaping();
-
+    $data[] = $this->addAttributes();
     $data[] = $this->addHtmlAsset();
     $data[] = ($first ? '' : "}")."\n";
 
@@ -146,14 +146,30 @@ class sfViewConfigHandler extends sfYamlConfigHandler
     $data = '';
 
     $components = $this->mergeConfigValue('components', $viewName);
+
     foreach ($components as $name => $component)
     {
-      if (!is_array($component) || count($component) < 1)
+      if(!is_array($component) || count($component) < 1)
       {
-        $component = array(null, null);
+        $component = array(null, null, null); // set component empty
       }
 
-      $data .= "  \$this->setComponentSlot('{$name}', '{$component[0]}', '{$component[1]}');\n";
+      $attributes = isset($component[2]) && is_array($component[2]) ? array_values($component[2]) : array();
+      if(!empty($attributes))
+      {
+        $cnt = count($attributes);
+        for($i = 0; $i < $cnt; $i++) // normalize yaml parsing of nested array
+        {
+         foreach ($attributes[$i] as $key => $value)
+         {
+          $attributes[$key] = $value;
+          unset($attributes[$i]);
+         }
+        }
+      }
+      $attributes = var_export($attributes, true);
+
+      $data .= "  \$this->setComponentSlot('{$name}', '{$component[0]}', '{$component[1]}', {$attributes});\n";
       $data .= "  if (sfConfig::get('sf_logging_enabled')) { \$this->context->getEventDispatcher()->notify(new sfEvent(\$this, 'application.log', array(sprintf('Set component \"%s\" (%s/%s)', '{$name}', '{$component[0]}', '{$component[1]}')))); }\n";
     }
 
@@ -361,6 +377,27 @@ class sfViewConfigHandler extends sfYamlConfigHandler
     if (isset($escaping['method']))
     {
       $data[] = sprintf("  \$this->getAttributeHolder()->setEscapingMethod(%s);", var_export($escaping['method'], true));
+    }
+
+    return implode("\n", $data)."\n";
+  }
+
+  /**
+   * Adds attributes to the view.
+   *
+   * @param array The attributes to set
+   *
+   * @return string The PHP statement
+   */
+  protected function addAttributes($viewName = '')
+  {
+    $data = array();
+
+    $attributes = $this->getConfigValue('attributes', $viewName, array());
+
+    if(is_array($attributes) && !empty($attributes))
+    {
+      $data[] = sprintf("  \$this->getAttributeHolder()->add(%s);", var_export($attributes, true));
     }
 
     return implode("\n", $data)."\n";

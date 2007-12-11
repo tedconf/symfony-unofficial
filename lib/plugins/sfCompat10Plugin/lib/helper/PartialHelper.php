@@ -64,7 +64,12 @@ function get_component_slot($name, $vars = array())
 
   if ($componentSlot = $viewInstance->getComponentSlot($name))
   {
-    return get_component($componentSlot[0], $componentSlot[1], $vars);
+    if (!empty($componentSlot[0])) // ignore component slots that are present, but empty
+    {
+      return get_component($componentSlot[0], $componentSlot[1], array_merge($componentSlot[2], $vars));
+    }
+
+    return null;
   }
 }
 
