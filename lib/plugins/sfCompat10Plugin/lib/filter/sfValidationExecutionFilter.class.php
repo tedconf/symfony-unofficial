@@ -107,6 +107,9 @@ class sfValidationExecutionFilter extends sfFilter
     // set default validated status
     $validated = true;
 
+    // lowercase first letter and enforce convention
+    $actionName[0] = strtolower($actionName[0]);
+
     // get the current action validation configuration
     $validationConfig = $moduleName.'/'.sfConfig::get('sf_app_module_validate_dir_name').'/'.$actionName.'.yml';
 
