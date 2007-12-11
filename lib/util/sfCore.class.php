@@ -146,12 +146,12 @@ class sfCore
       require_once($sf_symfony_lib_dir.DIRECTORY_SEPARATOR.'config'.DIRECTORY_SEPARATOR.'sfConfigDimension.class.php');
 
       $dimension = sfConfigDimension::getInstance();
-      $dimension->initialize();
+
       $dimension->set($sf_dimension);
 
       // dimension configuration
       sfConfig::add(array(
-        'sf_dimension'      => $sf_dimension = $dimension->__toString(),
+        'sf_dimension'         => $sf_dimension = $dimension->__toString(),
         'sf_dimension_cascade' => $dimension->getCascade()
       ));
     }
