@@ -42,9 +42,18 @@ class sfConfigDimension
   private $cache    = null;
 
   public $allowed   = array(), // array of allowed dimensions by $name => array $value
-  $default   = array(), // default dimension if not set
-  $dimension = array(); // current dimension
+         $default   = array(), // default dimension if not set
+         $dimension = array(); // current dimension
 
+  /**
+   * Class constructor.
+   *
+   * @see initialize()
+   */
+  public function __construct()
+  {
+    $this->initialize();
+  }
 
   /**
    * Retrieves the singleton instance of this class.
