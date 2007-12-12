@@ -10,7 +10,7 @@
 
 require_once(dirname(__FILE__).'/../../../../../../test/bootstrap/unit.php');
 
-sfLoader::loadHelpers(array('Escaping'));
+require_once(dirname(__FILE__).'/../../../lib/helper/EscapingHelper.php');
 
 $t = new lime_test(13, new lime_output_color());
 
