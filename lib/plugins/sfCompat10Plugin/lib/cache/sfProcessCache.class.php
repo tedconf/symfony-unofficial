@@ -20,6 +20,12 @@
  */
 class sfProcessCache
 {
+
+  /**
+   * variable to store instance of filesystem cache for fallback
+   */ 
+  protected static $filecache;
+
   /**
    * Gets the cache engine name or false if no PHP accelerator is enabled.
    *
@@ -49,7 +55,8 @@ class sfProcessCache
       }
       else
       {
-        $cacher = false;
+        self::$filecache = new sfFileCache();
+        $cacher = 'file';
       }
     }
 
@@ -92,6 +99,8 @@ class sfProcessCache
         return xcache_set(self::getPrefix().$key, $value, $lifeTime);
       case 'eaccelerator':
         return eaccelerator_put(self::getPrefix().$key, serialize($value), $lifeTime);
+      case 'file':
+        return self::$filecache->set(self::getPrefix().$key, sfConfig::get('sf_root_cache_dir').'/process_cache', serialize(array(time() + $lifeTime, $value)));
     }
 
     return false;
@@ -115,6 +124,18 @@ class sfProcessCache
         return xcache_isset(self::getPrefix().$key) ? xcache_get(self::getPrefix().$key) : null;
       case 'eaccelerator':
         return unserialize(eaccelerator_get(self::getPrefix().$key));
+      case 'file':
+        if (!($data = self::$filecache->get(self::getPrefix().$key, sfConfig::get('sf_root_cache_dir').'/process_cache')))
+        {
+          return null;
+        }
+        $value = unserialize($data);
+        if ($value[0] < time())
+        { 
+          self::$filecache->remove(self::getPrefix().$key, sfConfig::get('sf_root_cache_dir').'/process_cache');
+          return null;
+        }
+        return $value[1];
     }
 
     return null;
@@ -137,6 +158,13 @@ class sfProcessCache
         return xcache_isset(self::getPrefix().$key);
       case 'eaccelerator':
         return null === eaccelerator_get(self::getPrefix().$key) ? false : true;
+      case 'file':
+        if (!($data = self::$filecache->get(self::getPrefix().$key, sfConfig::get('sf_root_cache_dir').'/process_cache')))
+        {
+          return false;
+        }
+        $value = unserialize($data);
+        return $value[0] < time() ? false : true;
     }
 
     return false;
@@ -176,8 +204,9 @@ class sfProcessCache
             }
           }
         }
-
         return true;
+      case 'file':
+        return self::$filecache->clean(sfConfig::get('sf_root_cache_dir').'/process_cache');
     }
 
     return false;
