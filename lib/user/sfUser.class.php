@@ -152,6 +152,7 @@ class sfUser
    * Gets a flash variable.
    *
    * @param  string The name of the flash variable
+   * @param  mixed Default value if not found
    *
    * @return mixed  The value of the flash variable
    */
@@ -167,7 +168,7 @@ class sfUser
 
   /**
    * Returns true if a flash variable of the specified name exists.
-   * 
+   *
    * @param  string  The name of the flash variable
    *
    * @return Boolean true if the variable exists, false otherwise
