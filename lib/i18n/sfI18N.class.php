@@ -45,10 +45,16 @@ class sfI18N
     $this->context = $context;
     $this->cache   = $cache;
 
-    include(sfConfigCache::getInstance()->checkConfig(sfConfig::get('sf_app_config_dir_name').'/i18n.yml'));
-
     $context->getEventDispatcher()->connect('user.change_culture', array($this, 'listenToChangeCultureEvent'));
     $context->getEventDispatcher()->connect('controller.change_action', array($this, 'listenToChangeActionEvent'));
+  }
+
+  /**
+   * Loads i18n configuration.
+   */
+  public function loadConfiguration()
+  {
+    include(sfConfigCache::getInstance()->checkConfig(sfConfig::get('sf_app_config_dir_name').'/i18n.yml'));
   }
 
   /**
@@ -265,7 +271,7 @@ class sfI18N
   public function listenToChangeCultureEvent(sfEvent $event)
   {
     // change the message format object with the new culture
-    $this->setCulture($event->getParameter('culture'));
+    $this->setCulture($event['culture']);
   }
 
   /**
@@ -277,6 +283,6 @@ class sfI18N
   public function listenToChangeActionEvent(sfEvent $event)
   {
     // change message source directory to our module
-    $this->setMessageSource(sfLoader::getI18NDirs($event->getParameter('module')));
+    $this->setMessageSource(sfLoader::getI18NDirs($event['module']));
   }
 }
