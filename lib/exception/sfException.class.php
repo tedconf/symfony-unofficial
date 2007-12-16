@@ -50,6 +50,11 @@ class sfException extends Exception
    */
   public function printStackTrace()
   {
+    $exception = is_null($this->wrappedException) ? $this : $this->wrappedException;
+
+    // log all exceptions in php log
+    error_log($exception->getMessage());
+
     if (!sfConfig::get('sf_test'))
     {
       // clean current output buffer
@@ -60,7 +65,6 @@ class sfException extends Exception
 
     try
     {
-      $exception = is_null($this->wrappedException) ? $this : $this->wrappedException;
       $this->outputStackTrace($exception);
     }
     catch (Exception $e)
@@ -78,9 +82,6 @@ class sfException extends Exception
    */
   static protected function outputStackTrace($exception)
   {
-    // log all exceptions in php log
-    error_log($exception->getMessage());
-
     if (class_exists('sfContext', false) && sfContext::hasInstance())
     {
       $dispatcher = sfContext::getInstance()->getEventDispatcher();

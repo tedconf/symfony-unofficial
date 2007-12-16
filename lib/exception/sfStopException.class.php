@@ -23,5 +23,8 @@ class sfStopException extends sfException
    */
   public function printStackTrace()
   {
+    // log all exceptions in php log
+    $exception = is_null($this->wrappedException) ? $this : $this->wrappedException;
+    error_log($exception->getMessage());
   }
 }
