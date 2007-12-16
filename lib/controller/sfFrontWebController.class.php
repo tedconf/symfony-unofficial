@@ -46,6 +46,8 @@ class sfFrontWebController extends sfWebController
 
       // make the first request
       $this->forward($moduleName, $actionName);
+
+      $this->context->getResponse()->send();
     }
     catch (sfException $e)
     {

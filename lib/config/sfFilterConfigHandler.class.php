@@ -61,7 +61,6 @@ class sfFilterConfigHandler extends sfYamlConfigHandler
     $includes = array();
 
     $execution = false;
-    $rendering = false;
 
     // let's do our fancy work
     foreach ($config as $category => $keys)
@@ -120,21 +119,11 @@ class sfFilterConfigHandler extends sfYamlConfigHandler
           $data[] = $this->addFilter($category, $class, $parameters);
         }
 
-        if ('rendering' == $type)
-        {
-          $rendering = true;
-        }
-
         if ('execution' == $type)
         {
           $execution = true;
         }
       }
-    }
-
-    if (!$rendering)
-    {
-      throw new sfParseException(sprintf('Configuration file "%s" must register a filter of type "rendering".', $configFiles[0]));
     }
 
     if (!$execution)

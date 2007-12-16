@@ -10,7 +10,7 @@
 
 require_once(dirname(__FILE__).'/../../bootstrap/unit.php');
 
-$t = new lime_test(8, new lime_output_color());
+$t = new lime_test(7, new lime_output_color());
 
 $handler = new sfFilterConfigHandler();
 $handler->initialize();
@@ -34,7 +34,7 @@ catch (sfParseException $e)
 }
 
 // no execution/rendering filter
-foreach (array('execution', 'rendering') as $key)
+foreach (array('execution') as $key)
 {
   $files = array(
     $dir.sprintf('no_%s.yml', $key),

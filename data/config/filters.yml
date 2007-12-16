@@ -1,9 +1,3 @@
-# rendering filter must be the first registered filter
-rendering:
-  class: sfRenderingFilter
-  param:
-    type: rendering
-
 # security filter must have a type of security
 security:
   class: sfBasicSecurityFilter
