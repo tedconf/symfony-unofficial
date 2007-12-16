@@ -130,7 +130,6 @@ abstract class sfAction extends sfComponent
     }
 
     $this->getController()->forward($module, $action);
-    $this->getResponse()->send();
 
     throw new sfStopException();
   }
@@ -190,7 +189,6 @@ abstract class sfAction extends sfComponent
   public function redirect($url, $statusCode = 302)
   {
     $this->getController()->redirect($url, 0, $statusCode);
-    $this->getResponse()->send();
 
     throw new sfStopException();
   }

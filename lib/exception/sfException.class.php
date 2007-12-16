@@ -40,47 +40,55 @@ class sfException extends Exception
     return $exception;
   }
 
+  /**
+   * Changes the wrapped exception.
+   *
+   * @param Exception An Exception instance
+   */
   public function setWrappedException($e)
   {
     $this->wrappedException = $e;
   }
 
   /**
-   * Prints the stack trace for this exception.
+   * Returns the exception as a sfWebResponse object.
+   *
+   * @param sfWebResponse A sfWebResponse instance
    */
-  public function printStackTrace()
+  public function asResponse()
   {
     $exception = is_null($this->wrappedException) ? $this : $this->wrappedException;
-
-    // log all exceptions in php log
-    error_log($exception->getMessage());
 
     if (!sfConfig::get('sf_test'))
     {
       // clean current output buffer
       while (@ob_end_clean());
 
-      header('HTTP/1.0 500 Internal Server Error');
+      // log all exceptions in php log
+      error_log($exception->getMessage());
     }
+
+    $response = new sfWebResponse(sfContext::getInstance()->getEventDispatcher());
+    $response->setStatusCode(500);
 
     try
     {
-      $this->outputStackTrace($exception);
+      $content = self::getStackTrace($exception);
     }
     catch (Exception $e)
     {
+      $content = $e->getMessage();
     }
 
-    if (!sfConfig::get('sf_test'))
-    {
-      exit(1);
-    }
+    $response->setContent($content);
+
+    return $response;
   }
 
   /**
    * Gets the stack trace for this exception.
    */
-  static protected function outputStackTrace($exception)
+  static protected function getStackTrace($exception)
   {
     if (class_exists('sfContext', false) && sfContext::hasInstance())
     {
@@ -94,7 +102,7 @@ class sfException extends Exception
       $event = $dispatcher->notifyUntil(new sfEvent($exception, 'application.throw_exception'));
       if ($event->isProcessed())
       {
-        return;
+        return $event->getReturnValue();
       }
     }
 
@@ -103,9 +111,10 @@ class sfException extends Exception
     {
       $file = sfConfig::get('sf_web_dir').'/errors/error500.php';
 
+      ob_start();
       include is_readable($file) ? $file : sfConfig::get('sf_symfony_data_dir').'/web/errors/error500.php';
 
-      return;
+      return ob_get_clean();
     }
 
     $message = null !== $exception->getMessage() ? $exception->getMessage() : 'n/a';
@@ -125,7 +134,10 @@ class sfException extends Exception
       $globalsTable  = self::formatArrayAsHtml(sfDebug::globalsAsArray());
     }
 
+    ob_start();
     include sfConfig::get('sf_symfony_data_dir').'/data/exception.'.($format == 'html' ? 'php' : 'txt');
+
+    return ob_get_clean();
   }
 
   /**

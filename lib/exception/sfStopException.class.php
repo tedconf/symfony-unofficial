@@ -19,12 +19,10 @@
 class sfStopException extends sfException
 {
   /**
-   * Stops the current action.
+   * @see sfException
    */
-  public function printStackTrace()
+  public function asResponse()
   {
-    // log all exceptions in php log
-    $exception = is_null($this->wrappedException) ? $this : $this->wrappedException;
-    error_log($exception->getMessage());
+    return sfContext::getInstance()->getResponse();
   }
 }

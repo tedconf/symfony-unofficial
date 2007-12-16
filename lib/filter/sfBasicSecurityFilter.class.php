@@ -71,7 +71,6 @@ class sfBasicSecurityFilter extends sfFilter
       {
         // the user doesn't have access, exit stage left
         $controller->forward(sfConfig::get('sf_secure_module'), sfConfig::get('sf_secure_action'));
-        $this->context->getResponse()->send();
 
         throw new sfStopException();
       }
@@ -80,7 +79,6 @@ class sfBasicSecurityFilter extends sfFilter
     {
       // the user is not authenticated
       $controller->forward(sfConfig::get('sf_login_module'), sfConfig::get('sf_login_action'));
-      $this->context->getResponse()->send();
 
       throw new sfStopException();
     }
