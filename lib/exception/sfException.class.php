@@ -60,7 +60,8 @@ class sfException extends Exception
 
     try
     {
-      $this->outputStackTrace();
+      $exception = is_null($this->wrappedException) ? $this : $this->wrappedException;
+      $this->outputStackTrace($exception);
     }
     catch (Exception $e)
     {
@@ -75,9 +76,10 @@ class sfException extends Exception
   /**
    * Gets the stack trace for this exception.
    */
-  protected function outputStackTrace()
+  static protected function outputStackTrace($exception)
   {
-    $exception = is_null($this->wrappedException) ? $this : $this->wrappedException;
+    // log all exceptions in php log
+    error_log($exception->getMessage());
 
     if (class_exists('sfContext', false) && sfContext::hasInstance())
     {
@@ -85,10 +87,10 @@ class sfException extends Exception
 
       if (sfConfig::get('sf_logging_enabled'))
       {
-        $dispatcher->notify(new sfEvent($this, 'application.log', array($this->getMessage(), 'priority' => sfLogger::ERR)));
+        $dispatcher->notify(new sfEvent($exception, 'application.log', array($exception->getMessage(), 'priority' => sfLogger::ERR)));
       }
 
-      $event = $dispatcher->notifyUntil(new sfEvent($this, 'application.throw_exception', array('exception' => $exception)));
+      $event = $dispatcher->notifyUntil(new sfEvent($exception, 'application.throw_exception'));
       if ($event->isProcessed())
       {
         return;
@@ -105,8 +107,8 @@ class sfException extends Exception
       return;
     }
 
-    $message = null !== $this->getMessage() ? $this->getMessage() : 'n/a';
-    $name    = get_class($this);
+    $message = null !== $exception->getMessage() ? $exception->getMessage() : 'n/a';
+    $name    = get_class($exception);
     $format  = 0 == strncasecmp(PHP_SAPI, 'cli', 3) ? 'plain' : 'html';
     $traces  = self::getTraces($exception, $format);
 
