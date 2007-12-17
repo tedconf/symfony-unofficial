@@ -45,4 +45,3 @@ $t->is(sfLoader::getControllerDirs('dimensions'), array($path.'/apps/'.$app.'/mo
 
 $t->diag('::getModelDirs()');
 $t->is(sfLoader::getModelDirs(), array($path.'/lib/model'), ' returns valid model directories');
-

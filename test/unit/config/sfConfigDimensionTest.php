@@ -10,24 +10,17 @@
 
 require_once(dirname(__FILE__).DIRECTORY_SEPARATOR.'..'.DIRECTORY_SEPARATOR.'..'.DIRECTORY_SEPARATOR.'bootstrap'.DIRECTORY_SEPARATOR.'unit.php');
 
-$t = new lime_test(22, new lime_output_color());
+$t = new lime_test(18, new lime_output_color());
+
+// use fixtures
+define('SF_ROOT_DIR', $_test_dir.DIRECTORY_SEPARATOR.'functional'.DIRECTORY_SEPARATOR.'fixtures'.DIRECTORY_SEPARATOR.'project');
 
 // ->getInstance()
 $t->diag('->getInstance()');
 $t->isa_ok(sfConfigDimension::getInstance(), 'sfConfigDimension', 'returns a sfConfigDimension instance');
 $t->is(sfConfigDimension::getInstance(), sfConfigDimension::getInstance(), 'is a singleton');
 
-// check state before initialization
-$t->is(sfConfigDimension::getInstance()->get(), array(), 'dimension is empty array if not initialized');
-$t->is(sfConfigDimension::getInstance()->getDefault(), array(), 'default is empty array if not initialized');
-$t->is(sfConfigDimension::getInstance()->getAllowed(), array(), 'allowed is empty array if not initialized');
-$t->is(sfConfigDimension::getInstance()->getCascade(), array(), 'cascade is empty array if not initialized');
-
 $t->diag('->initialize()');
-
-// initialize from fixture config
-define('SF_ROOT_DIR', $_test_dir.DIRECTORY_SEPARATOR.'functional'.DIRECTORY_SEPARATOR.'fixtures'.DIRECTORY_SEPARATOR.'project');
-
 sfConfigDimension::getInstance()->initialize();
 
 $t->is(sfConfigDimension::getInstance()->get(), array('culture' => 'en',  'theme' => 'classic',  'host' => 'production'), 'dimension is valid after initialization');
@@ -71,7 +64,7 @@ $t->is(sfConfigDimension::getInstance()->get(), array('culture' => 'en',  'theme
 $t->is(sfConfigDimension::getInstance()->getCascade(), array(0 => 'en_classic_production', 1 => 'en_classic', 2 => 'production', 3 => 'classic', 4 => 'en'), 'cascade is valid with most specific dimension');
 $t->is(sfConfigDimension::getInstance()->__toString(), 'en_classic_production', 'dimension string is valid');
 
-$t->diag('simple dimension');
+$t->diag('::set() simple dimension');
 sfConfigDimension::getInstance()->set(array('culture' => 'en'));
 $t->is(sfConfigDimension::getInstance()->get(), array('culture' => 'en'), 'can set a simple dimension');
 $t->is(sfConfigDimension::getInstance()->get(), array('culture' => 'en'), 'simple dimension is valid');

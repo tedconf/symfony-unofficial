@@ -87,7 +87,7 @@ $t->ok(file_exists($c->tmp_dir.DS.'lib'.DS.'model'.DS.'Article.php'), '"propel:b
 $c->execute_command('propel:insert-sql');
 $file = dirname(__FILE__).DS.'..'.DS.'..'.DS.'lib'.DS.'plugins'.DS.'sfPropelPlugin'.DS.'lib'.DS.'vendor'.DS.'propel-generator'.DS.'database.sqlite';
 $t->ok(file_exists($file), '"propel:insert-sql" creates tables in the database');
-rename($file, $c->tmp_dir.'/data/database.sqlite');
+copy($file, $c->tmp_dir.'/data/database.sqlite');
 
 $content = $c->execute_command('propel:init-crud frontend articleInitCrud Article');
 $t->ok(file_exists($c->tmp_dir.DS.'apps'.DS.'frontend'.DS.'modules'.DS.'articleInitCrud'.DS.'config'.DS.'generator.yml'), '"propel:init-crud" initializes a CRUD module');
