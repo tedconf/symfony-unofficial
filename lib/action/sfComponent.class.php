@@ -3,7 +3,7 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- * 
+ *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -119,7 +119,7 @@ abstract class sfComponent
    *
    * @param mixed  String or object containing the message to log
    * @param string The priority of the message
-   *               (available priorities: emerg, alert, crit, err, warning, notice, info, debug)
+   *               (available priorities: emergencry, alert, critical, error, warning, notice, info, debug)
    *
    * @see sfLogger
    */
@@ -142,7 +142,7 @@ abstract class sfComponent
   {
     if (sfConfig::get('sf_web_debug') && sfConfig::get('sf_logging_enabled'))
     {
-      sfContext::getInstance()->getEventDispatcher()->notify(new sfEvent(null, 'application.log', array('This feature is deprecated in favor of the log_message helper.', 'priority' => sfLogger::ERR)));
+      sfContext::getInstance()->getEventDispatcher()->notify(new sfEvent(null, 'application.log', array('This feature is deprecated in favor of the log_message helper.', 'priority' => sfLogger::ERROR)));
     }
   }
 
