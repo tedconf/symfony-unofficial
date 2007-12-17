@@ -1,62 +1,68 @@
 dwhittle branch is contributed by Dustin Whittle <dustin.whittle@symfony-project.com>.
 
-----------------------
 Differences from trunk
 ----------------------
+  ORM/Database:
+    * additonal configuration options for sfPDODatabase
+    * support for PDO based Propel 1.3
+      * Propel now uses PDO (instead of Creole) for database API
+      * Support for DateTime object and correct handling of pre-/post- epoch dates
+      * New nested-set implementation
+      * Propel now stores & maps object instances to ensure that only one object instance represents a given database row.
+      * New 1:1 relationship support
+      * Table and class prefix options
+      * Ability to specify custom method names for FKEY relationships
+      * Ability to use expressions as default values (e.g. CURRENT_TIMESTAMP)
+      * Customizable PHP and SQL type mapping on a per-column basis
 
+  Helpers:
+    * support for conditionals in js/css
+      - condition: IE in view.yml css/js
 
-ORM:
+    * support for xhtml or html style tags
+      - use_xhtml_tags in settings.yml
 
-  * additonal configuration options for sfPDODatabase
-  * support for PDO based Propel 1.3
-     - removal of Creole
+  Tasks:
+    * integration of sfOptimizerPlugin + refactored task
+    * prefetch task for pregenerating production cache
 
-Routing:
+  Skeleton Configuration:
 
-  * based on Francois(routing)/Fabien(trunk)/1.0(bc methods)
+    * changed default settings to be more generic
 
-Helpers:
+  Enivronments:
+    * added cli environment for symfony command line + tasks + batch scripts
+    * addition of qa + staging environments
+    * dimensions integration
 
-  * support for conditionals in js/css
-    - condition: IE in view.yml css/js
+  Routing:
+    * based on Francois(routing)/Fabien(trunk)/1.0(bc methods)
 
-  * support for xhtml or html style tags
-    - use_xhtml_tags in settings.yml
+  Debug Environment (wip)
+    * added links to validator
+    * cssreboot/jsshell/yslow widget
+    * tweaks to debugger
 
-Views:
+  I18n:
+    * ajax inline editor for translator mode
 
-  * support for specific views
-    - XHMTL,HTML,JS,JSON,XML,RSS,
+  Response:
+    * title is independent of meta
 
-Configuration:
+  View:
+    * assets are part of cache after view is rendered
 
-  * changed default settings to be more generic
+  Control Panel (wip)
+    * integration + refactor of sfControlPanelPlugin
 
-Optimizer:
-  * integration of sfOptimizerPlugin + refactored task
+  Deployment + Packaging (wip)
+    * Support for rsync, libssh2 scp transfer, or ftp transfer
 
-Control Panel (wip)
-  * integration + refactor of sfControlPanelPlugin
-
-Debug Environment (wip)
-  * added links to validator
-  * cssreboot/jsshell/yslow widget
-  * tweaks to debugger
-  * ajax inline editor for translator mode
-
-Enivronments: (wip)
-  * cli environment for symfony command line + batch scripts
-  * staging environment
-  * dimensions integration
-
-Deployment (wip)
-  * Support for rsync, libssh2 scp transfer, or ftp transfer
-
-YUI (wip)
-  * css/js framework
-  * event system
-  * helpers
-  * panels/dialogs/modals
-  * widgets (datatable)
-  * integrated debugger/logging
-  * rich admin (ajax filter updates, sortable, inline edit, etc..)
+  YUI (wip)
+    * css/js framework
+    * event system
+    * helpers
+    * panels/dialogs/modals
+    * widgets (datatable)
+    * integrated debugger/logging
+    * rich admin (ajax filter updates, sortable, inline edit, etc..)
