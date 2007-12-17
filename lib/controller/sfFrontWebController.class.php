@@ -49,11 +49,13 @@ class sfFrontWebController extends sfWebController
     }
     catch (sfException $e)
     {
-      $e->printStackTrace();
+      $this->context->setResponse($e->asResponse());
     }
     catch (Exception $e)
     {
-      sfException::createFromException($e)->printStackTrace();
+      $this->context->setResponse(sfException::createFromException($e)->asResponse());
     }
+
+    $this->context->getResponse()->send();
   }
 }

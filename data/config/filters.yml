@@ -1,14 +1,3 @@
-# rendering filter must be the first registered filter
-rendering:
-  class: sfRenderingFilter
-  param:
-    type: rendering
-
-web_debug:
-  class: sfWebDebugFilter
-  param:
-    condition: %SF_WEB_DEBUG%
-
 # security filter must have a type of security
 security:
   class: sfBasicSecurityFilter

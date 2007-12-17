@@ -19,9 +19,10 @@
 class sfStopException extends sfException
 {
   /**
-   * Stops the current action.
+   * @see sfException
    */
-  public function printStackTrace()
+  public function asResponse()
   {
+    return sfContext::getInstance()->getResponse();
   }
 }

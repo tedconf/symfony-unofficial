@@ -159,9 +159,6 @@ class sfBrowser
     $request    = $this->context->getRequest();
     $response   = $this->context->getResponse();
 
-    // we register a fake rendering filter
-    sfConfig::set('sf_rendering_filter', array('sfFakeRenderingFilter', null));
-
     $this->currentException = null;
 
     // dispatch our request
@@ -518,18 +515,8 @@ class sfBrowser
     $_SERVER['session_id'] = md5(uniqid(rand(), true));
   }
 
-  public function listenToException($event)
+  public function listenToException(sfEvent $event)
   {
     $this->currentException = $event->getSubject();
-  }
-}
-
-class sfFakeRenderingFilter extends sfFilter
-{
-  public function execute($filterChain)
-  {
-    $filterChain->execute();
-
-    $this->context->getResponse()->sendContent();
   }
 }
