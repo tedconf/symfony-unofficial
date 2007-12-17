@@ -58,7 +58,7 @@ class sfPathInfoRouting extends sfRouting
     $params = array_merge($this->defaultParameters, $params);
     foreach ($params as $key => $value)
     {
-      $url .= '/'.$key.'/'.$value;
+      $url .= '/'.$key.'/'.urlencode($value);
     }
 
     return $url ? $url : '/';
