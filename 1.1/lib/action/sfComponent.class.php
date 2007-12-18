@@ -119,7 +119,7 @@ abstract class sfComponent
    *
    * @param mixed  String or object containing the message to log
    * @param string The priority of the message
-   *               (available priorities: emergencry, alert, critical, error, warning, notice, info, debug)
+   *               (available priorities: emergency, alert, critical, error, warning, notice, info, debug)
    *
    * @see sfLogger
    */

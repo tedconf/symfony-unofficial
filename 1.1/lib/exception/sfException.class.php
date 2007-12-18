@@ -45,7 +45,7 @@ class sfException extends Exception
    *
    * @param Exception An Exception instance
    */
-  public function setWrappedException($e)
+  public function setWrappedException(Exception $e)
   {
     $this->wrappedException = $e;
   }
