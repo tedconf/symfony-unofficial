@@ -5,8 +5,6 @@ security:
     type:      security
     condition: %SF_USE_SECURITY%
 
-# generally, you will want to insert your own filters here
-
 cache:
   class: sfCacheFilter
   param:
