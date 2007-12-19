@@ -172,6 +172,19 @@ class sfForm implements ArrayAccess
   }
 
   /**
+   * Returns a cleaned value
+   *
+   * If the form is not bound, it will return nul
+   *
+   * @param  string  The name of the value required
+   * @return string  The cleaned value
+   */
+  public function getValue($key)
+  {
+    return $this->isBound ? $this->values[$key] : null;
+  }
+
+  /**
    * Gets the error schema associated with the form.
    *
    * @return sfValidatorErrorSchema A sfValidatorErrorSchema instance
