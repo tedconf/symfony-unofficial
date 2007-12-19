@@ -1,7 +1,9 @@
 dwhittle branch is contributed by Dustin Whittle <dustin.whittle@symfony-project.com>.
 
-Differences from trunk
-----------------------
+Differences from 1.1
+----------------------------
+  Requirements: PHP 5.2+ with APC enabled
+
   ORM/Database:
     * additonal configuration options for sfPDODatabase
     * support for PDO based Propel 1.3
@@ -55,8 +57,13 @@ Differences from trunk
   Control Panel (wip)
     * integration + refactor of sfControlPanelPlugin
 
-  Deployment + Packaging (wip)
-    * Support for rsync, libssh2 scp transfer, or ftp transfer
+  Build System = Packaging + Deployment (wip)
+    * Aggregation/Minification of js/css (YUICompressor + cssmin) + view.yml updates
+    * Akamai/S3 url rewriting for static assets
+    * Lint Test Tasks: PHP, JS, YAML
+    * Cache pregeneration / optimization Tasks
+    * Packaging of project as .tar.bz2 and .deb
+    * Support for deployment via rsync, libssh2 scp transfer, or ftp transfer
 
   YUI (wip)
     * css/js framework
