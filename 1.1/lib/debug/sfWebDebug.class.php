@@ -373,7 +373,7 @@ class sfWebDebug
    *
    * @return string The decorated HTML string
    */
-  static public function decorateContentWithDebug($internalUri, $content, $new = false)
+  public function decorateContentWithDebug($internalUri, $content, $new = false)
   {
     $context = sfContext::getInstance();
 
