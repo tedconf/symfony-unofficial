@@ -38,7 +38,7 @@ class sfWebDebugLogger extends sfLogger
     $this->context    = sfContext::getInstance();
     $this->dispatcher = $dispatcher;
 
-    $this->context->set('web_debug', $this->webDebug);
+    $this->context->set('sf_web_debug', $this->webDebug);
 
     $dispatcher->connect('response.filter_content', array($this, 'filterResponseContent'));
 
