@@ -34,13 +34,17 @@ class sfWebDebugLogger extends sfLogger
    */
   public function initialize(sfEventDispatcher $dispatcher, $options = array())
   {
-    $this->webDebug   = new sfWebDebug();
     $this->context    = sfContext::getInstance();
     $this->dispatcher = $dispatcher;
 
-    $this->context->set('sf_web_debug', $this->webDebug);
-
     $dispatcher->connect('response.filter_content', array($this, 'filterResponseContent'));
+
+    if(is_null($this->webDebug))
+    {
+      $this->webDebug = $this->context->has('sf_web_debug') ? $this->context->get('sf_web_debug') : new sfWebDebug();
+    }
+
+    $this->context->set('sf_web_debug', $this->webDebug);
 
     if (isset($options['xdebug_logging']))
     {
