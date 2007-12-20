@@ -3,7 +3,7 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- * 
+ *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -37,6 +37,8 @@ class sfWebDebugLogger extends sfLogger
     $this->webDebug   = new sfWebDebug();
     $this->context    = sfContext::getInstance();
     $this->dispatcher = $dispatcher;
+
+    $this->context->set('web_debug', $this->webDebug);
 
     $dispatcher->connect('response.filter_content', array($this, 'filterResponseContent'));
 
@@ -89,7 +91,7 @@ class sfWebDebugLogger extends sfLogger
     }
 
     // add needed assets for the web debug toolbar
-    $root = $this->context->getRequest()->getRelativeUrlRoot(); 
+    $root = $this->context->getRequest()->getRelativeUrlRoot();
     $assets = sprintf('
       <script type="text/javascript" src="%s"></script>
       <link rel="stylesheet" type="text/css" media="screen" href="%s" />',
