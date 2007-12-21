@@ -21,7 +21,6 @@ test:
     error_reporting:        <?php echo (E_ALL | E_STRICT & ~E_NOTICE)."\n" ?> # Determines which events are logged.
     compressed:             off       # Enable PHP response compression. Set to on to compress the outgoing HTML via the PHP handler.
 
-<<<<<<< .working
 all:
   .actions:
     default_module:         default   # Default module and action to be called when
