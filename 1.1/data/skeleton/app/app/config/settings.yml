@@ -21,6 +21,7 @@ test:
     error_reporting:        <?php echo (E_ALL | E_STRICT & ~E_NOTICE)."\n" ?> # Determines which events are logged.
     compressed:             off       # Enable PHP response compression. Set to on to compress the outgoing HTML via the PHP handler.
 
+<<<<<<< .working
 all:
   .actions:
     default_module:         default   # Default module and action to be called when
@@ -86,7 +87,6 @@ all:
 
     # Miscellaneous
     strip_comments:         on         # Remove comments in core framework classes as defined in the core_compile.yml
-    timeout:                9600       # Session timeout, in seconds
     max_forwards:           5
     path_info_array:        SERVER
     path_info_key:          PATH_INFO
@@ -108,3 +108,4 @@ all:
     validation_error_tag:         div
     validation_error_class:       form_error
     validation_error_id_prefix:   error_for_
+

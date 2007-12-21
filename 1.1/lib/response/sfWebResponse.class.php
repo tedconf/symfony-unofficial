@@ -48,8 +48,6 @@ class sfWebResponse extends sfResponse
   {
     parent::initialize($dispatcher, $parameters);
 
-    $this->dispatcher->connect('controller.change_action', array($this, 'listenToChangeActionEvent'));
-
     $this->statusTexts = array(
       '100' => 'Continue',
       '101' => 'Switching Protocols',
@@ -251,7 +249,7 @@ class sfWebResponse extends sfResponse
     // add charset if needed
     if (false === stripos($value, 'charset'))
     {
-      $value .= '; charset='.sfConfig::get('sf_charset');
+      $value .= '; charset='.$this->getParameter('charset');
     }
 
     $this->headers['Content-Type'] = $value;
@@ -264,7 +262,7 @@ class sfWebResponse extends sfResponse
    */
   public function getContentType()
   {
-    return $this->getHttpHeader('Content-Type', 'text/html; charset='.sfConfig::get('sf_charset'));
+    return $this->getHttpHeader('Content-Type', 'text/html; charset='.$this->getParameter('charset'));
   }
 
   /**
@@ -282,7 +280,7 @@ class sfWebResponse extends sfResponse
     $status = 'HTTP/1.1 '.$this->statusCode.' '.$this->statusText;
     header($status);
 
-    if (sfConfig::get('sf_logging_enabled'))
+    if ($this->getParameter('logging'))
     {
       $this->dispatcher->notify(new sfEvent($this, 'application.log', array(sprintf('Send status "%s"', $status))));
     }
@@ -292,7 +290,7 @@ class sfWebResponse extends sfResponse
     {
       header($name.': '.$value);
 
-      if ($value != '' && sfConfig::get('sf_logging_enabled'))
+      if ($value != '' && $this->getParameter('logging'))
       {
         $this->dispatcher->notify(new sfEvent($this, 'application.log', array(sprintf('Send header "%s": "%s"', $name, $value))));
       }
@@ -310,7 +308,7 @@ class sfWebResponse extends sfResponse
         setrawcookie($cookie['name'], $cookie['value'], $cookie['expire'], $cookie['path'], $cookie['domain'], $cookie['secure']);
       }
 
-      if (sfConfig::get('sf_logging_enabled'))
+      if ($this->getParameter('logging'))
       {
         $this->dispatcher->notify(new sfEvent($this, 'application.log', array(sprintf('Send cookie "%s": "%s"', $cookie['name'], $cookie['value']))));
       }
@@ -466,8 +464,7 @@ class sfWebResponse extends sfResponse
     {
       $value = $this->getContentType();
     }
-
-    if (!$replace)
+    elseif (!$replace)
     {
       $current = isset($this->httpMetas[$key]) ? $this->httpMetas[$key] : '';
       $value = ($current ? $current.', ' : '').$value;
@@ -505,11 +502,9 @@ class sfWebResponse extends sfResponse
       return;
     }
 
-    // FIXME: If you use the i18n layer and escape the data here, it won't work
-    // see include_metas() in AssetHelper
     if ($escape)
     {
-      $value = htmlspecialchars($value, ENT_QUOTES, sfConfig::get('sf_charset'));
+      $value = htmlspecialchars($value, ENT_QUOTES, $this->getParameter('charset'));
     }
 
     $current = isset($this->metas[$key]) ? $this->metas[$key] : null;
@@ -711,25 +706,5 @@ class sfWebResponse extends sfResponse
     $this->initialize(sfContext::hasInstance() ? sfContext::getInstance()->getEventDispatcher() : new sfEventDispatcher());
 
     list($this->content, $this->statusCode, $this->statusText, $this->parameterHolder, $this->cookies, $this->headerOnly, $this->headers, $this->metas, $this->title, $this->httpMetas, $this->stylesheets, $this->javascripts, $this->slots) = $data;
-  }
-
-  /**
-   * Listens to the controller.change_action event.
-   *
-   * @param sfEvent An sfEvent instance
-   *
-   */
-  public function listenToChangeActionEvent(sfEvent $event)
-  {
-    $moduleName = $event['module'];
-    $actionName = $event['action'];
-
-    if ($moduleName == sfConfig::get('sf_error_404_module') && $actionName == sfConfig::get('sf_error_404_action'))
-    {
-      $this->setStatusCode(404);
-      $this->setHttpHeader('Status', '404 Not Found');
-
-      $this->dispatcher->notify(new sfEvent($this, 'controller.page_not_found', array('module' => $moduleName, 'action' => $actionName)));
-    }
   }
 }

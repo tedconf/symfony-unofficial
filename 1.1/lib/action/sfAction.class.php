@@ -35,7 +35,10 @@ abstract class sfAction extends sfComponent
     parent::initialize($context, $moduleName, $actionName);
 
     // include security configuration
-    require(sfConfigCache::getInstance()->checkConfig(sfConfig::get('sf_app_module_dir_name').'/'.$this->getModuleName().'/'.sfConfig::get('sf_app_module_config_dir_name').'/security.yml'));
+    if($file = sfConfigCache::getInstance()->checkConfig(sfConfig::get('sf_app_module_dir_name').'/'.$this->getModuleName().'/'.sfConfig::get('sf_app_module_config_dir_name').'/security.yml', true))
+    {
+      require($file);
+    }
   }
 
   /**
@@ -255,19 +258,27 @@ abstract class sfAction extends sfComponent
    * Appends the result of the given partial execution to the response content
    * and bypasses the built-in view system.
    *
+   * If the vars parameter is omitted, the action's internal variables
+   * will be passed, just as it would to a normal template.
+   *
+   * If the vars parameter is set then only those values are
+   * available in the partial.
+   *
    * This method must be called as with a return:
    *
    * <code>return $this->renderPartial('foo/bar')</code>
    *
    * @param  string partial name
+   * @param  array vars
    *
    * @return sfView::NONE
    */
-  public function renderPartial($templateName, $parameters = array())
+  public function renderPartial($templateName, $vars = null)
   {
     sfLoader::loadHelpers('Partial');
 
-    return $this->renderText(get_partial($templateName, array_merge($this->varHolder->getAll(), $parameters)));
+    $vars = is_array($vars) ? $vars : $this->varHolder->getAll();
+    return $this->renderText(get_partial($templateName, $vars));
   }
 
 
@@ -284,11 +295,12 @@ abstract class sfAction extends sfComponent
    *
    * @return sfView::NONE
    */
-  public function renderComponent($moduleName, $componentName, $parameters = array())
+  public function renderComponent($moduleName, $componentName, $vars = null)
   {
     sfLoader::loadHelpers('Partial');
 
-    return $this->renderText(get_component($templateName, $componentName, array_merge($this->varHolder->getAll(), $parameters)));
+    $vars = is_array($vars) ? $vars : $this->varHolder->getAll();
+    return $this->renderText(get_component($templateName, $componentName, $vars));
   }
 
   /**

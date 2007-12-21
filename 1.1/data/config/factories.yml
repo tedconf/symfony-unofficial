@@ -10,6 +10,8 @@ default:
 
   user:
     class: sfBasicSecurityUser
+    param:
+      timeout:  9600             # Session timeout, in seconds
 
   storage:
     class: sfSessionStorage
