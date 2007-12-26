@@ -57,7 +57,7 @@ class symfony_cmd
   }
 }
 
-$t = new lime_test(35, new lime_output_color());
+$t = new lime_test(37, new lime_output_color());
 $c = new symfony_cmd();
 $c->initialize($t);
 
@@ -87,7 +87,12 @@ $t->ok(file_exists($c->tmp_dir.DS.'lib'.DS.'model'.DS.'Article.php'), '"propel:b
 $c->execute_command('propel:insert-sql');
 $file = dirname(__FILE__).DS.'..'.DS.'..'.DS.'lib'.DS.'plugins'.DS.'sfPropelPlugin'.DS.'lib'.DS.'vendor'.DS.'propel-generator'.DS.'database.sqlite';
 $t->ok(file_exists($file), '"propel:insert-sql" creates tables in the database');
-copy($file, $c->tmp_dir.'/data/database.sqlite');
+
+copy($file, '/tmp/database.sqlite');
+chmod('/tmp/database.sqlite', 0777);
+
+$content = $c->execute_command('propel:build-all-load frontend');
+$t->ok(file_exists('/tmp/database.sqlite'), '"propel:build-all-load frontend" build all models and creates database and then loads stub data');
 
 $content = $c->execute_command('propel:init-crud frontend articleInitCrud Article');
 $t->ok(file_exists($c->tmp_dir.DS.'apps'.DS.'frontend'.DS.'modules'.DS.'articleInitCrud'.DS.'config'.DS.'generator.yml'), '"propel:init-crud" initializes a CRUD module');

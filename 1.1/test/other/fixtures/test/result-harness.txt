@@ -1,9 +1,6 @@
 functional/frontend/articleGenCrudActionsTest........................ok
 functional/frontend/articleInitCrudActionsTest.......................ok
-functional/frontend/fooActionsTest...................................not ok
-    Failed tests: 4
+functional/frontend/fooActionsTest...................................ok
 unit/testTest........................................................ok
-Failed Test                     Stat  Total   Fail  List of Failed
-------------------------------------------------------------------
-tional/frontend/fooActionsTest     0      1      1  4
-Failed 1/4 test scripts, 75.00% okay. 1/13 subtests failed, 92.31% okay.
+ All tests successful.                                                 
+ Files=4, Tests=13                                                     
