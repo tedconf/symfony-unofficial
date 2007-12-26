@@ -51,9 +51,11 @@ default:
         sf_web_debug:
           class: sfWebDebugLogger
           param:
+            level:          debug
             condition:      %SF_WEB_DEBUG%
             xdebug_logging: true
         sf_file_debug:
           class: sfFileLogger
           param:
-            file: %SF_LOG_DIR%/%SF_APP%_%SF_ENVIRONMENT%.log
+            level:          debug
+            file:           %SF_LOG_DIR%/%SF_APP%_%SF_ENVIRONMENT%.log
