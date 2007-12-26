@@ -87,7 +87,7 @@ EOF;
 
     // Change symfony paths in config/config.php
     file_put_contents($sf_config_dir.'/config.php.bak', "$symfony_lib_dir#$symfony_data_dir");
-    $this->changeSymfonyDirs("dirname(__FILE__).DIRECTORY_SEPARATOR.'..'.DIRECTORY_SEPARATOR.'$sf_lib_dir'.DIRECTORY_SEPARATOR.'symfony'", "dirname(__FILE__).DIRECTORY_SEPARATOR.'..'.DIRECTORY_SEPARATOR.'$sf_data_dir'.DIRECTORY_SEPARATOR.'symfony'");
+    $this->changeSymfonyDirs("dirname(__FILE__).DIRECTORY_SEPARATOR.'..'.DIRECTORY_SEPARATOR.'lib'.DIRECTORY_SEPARATOR.'symfony'", "dirname(__FILE__).DIRECTORY_SEPARATOR.'..'.DIRECTORY_SEPARATOR.'data'.DIRECTORY_SEPARATOR.'symfony'");
 
     // Install the command line
     $this->filesystem->copy($symfony_data_dir.DIRECTORY_SEPARATOR.'bin'.DIRECTORY_SEPARATOR.'symfony.php', 'symfony.php');
