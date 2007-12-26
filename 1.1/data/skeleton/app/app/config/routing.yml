@@ -1,10 +1,8 @@
 # default rules
+
 homepage:
   url:   /
   param: { module: default, action: index }
-
-sf_cache_partial:
-  url:   /cache/partial/:module/:action/:sf_cache_key.*
 
 default_symfony:
   url:   /symfony/:action/*
@@ -13,11 +11,6 @@ default_symfony:
 default_index:
   url:   /:module
   param: { action: index }
-
-default_pjs:
-  url:   /:format/:module/:action/*.pjs
-  param: { sf_default_view: sfJavascript }
-  requirements: { format: js }
 
 default:
   url:   /:module/:action/*
