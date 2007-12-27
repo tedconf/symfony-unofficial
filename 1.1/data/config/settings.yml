@@ -74,6 +74,9 @@ default:
     # Logging
     logging_enabled:        on
 
+    # i18n
+    default_culture:        en        # default culture for a user
+
     # enable 1.0 compatibility
     compat_10:              on
 

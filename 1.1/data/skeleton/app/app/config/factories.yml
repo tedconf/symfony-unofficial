@@ -5,6 +5,11 @@ prod:
       level:   error
       loggers: ~
 
+dev:
+  i18n:
+    param:
+      debug:  on
+
 cli:
   controller:
     class: sfConsoleController
@@ -59,6 +64,10 @@ all:
   i18n:
     class: sfI18N
     param:
+      source:               XLIFF
+      debug:                off
+      untranslated_prefix:  "[T]"
+      untranslated_suffix:  "[/T]"
       cache:
         class: sfAPCCache
         param:
