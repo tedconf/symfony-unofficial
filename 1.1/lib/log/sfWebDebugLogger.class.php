@@ -126,7 +126,7 @@ class sfWebDebugLogger extends sfLogger
   {
     // if we have xdebug and dev has not disabled the feature, add some stack information
     $debugStack = array();
-    if (function_exists('xdebug_get_function_stack') && $this->xdebugLogging)
+    if ($this->xdebugLogging && function_exists('xdebug_get_function_stack'))
     {
       foreach (xdebug_get_function_stack() as $i => $stack)
       {
