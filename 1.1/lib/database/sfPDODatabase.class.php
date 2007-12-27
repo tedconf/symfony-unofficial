@@ -36,6 +36,7 @@ class sfPDODatabase extends sfDatabase
     switch ($method)
     {
       case 'dsn':
+      
         $dsn = $this->getParameter('dsn');
 
         if ($dsn == null)
@@ -102,11 +103,21 @@ class sfPDODatabase extends sfDatabase
    * Executes the shutdown procedure.
    *
    * @return void
-   *
-   * @throws <b>sfDatabaseException</b> If an error occurs while shutting down this database
    */
   public function shutdown()
   {
     $this->connection = null;
+  }
+  
+  /**
+   * Magic method for calling PDO directly via sfPDODatabase
+   *
+   * @param string $method
+   * @param array $arguments
+   * @return mixed 
+   */
+  public function __call($method, $arguments)
+  {
+    return $this->getConnection()->$method($arguments);
   }
 }
