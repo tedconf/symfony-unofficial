@@ -65,7 +65,7 @@ class sfPDODatabase extends sfDatabase
 
       $options = ($persistent) ? array(PDO::ATTR_PERSISTENT => true) : array(PDO::ATTR_PERSISTENT => false);
 
-      $this->log(sprintf("Connecting to dsn: %s", $this->getParameter('dsn')));
+      $this->log(sprintf("Connecting to database with dsn: %s", $this->getParameter('dsn')));
 
       $this->connection = new $pdo_class($dsn, $username, $password, $options);
 
