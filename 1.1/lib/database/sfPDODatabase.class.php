@@ -22,6 +22,14 @@
  */
 class sfPDODatabase extends sfDatabase
 {
+
+  /**
+   * Event Dispatcher for logging
+   *
+   * @var log
+   */
+  protected static $dispatcher = null;
+
   /**
    * Connects to the database.
    *
@@ -36,7 +44,7 @@ class sfPDODatabase extends sfDatabase
     switch ($method)
     {
       case 'dsn':
-      
+
         $dsn = $this->getParameter('dsn');
 
         if ($dsn == null)
@@ -57,7 +65,10 @@ class sfPDODatabase extends sfDatabase
 
       $options = ($persistent) ? array(PDO::ATTR_PERSISTENT => true) : array(PDO::ATTR_PERSISTENT => false);
 
+      $this->log(sprintf("Connecting to dsn: %s", $this->getParameter('dsn')));
+
       $this->connection = new $pdo_class($dsn, $username, $password, $options);
+
     }
     catch (PDOException $e)
     {
@@ -100,21 +111,62 @@ class sfPDODatabase extends sfDatabase
   }
 
   /**
-   * Executes the shutdown procedure.
+   * Gets a sfEventDispatcher object.
+   *
+   * @return sfEventDispatcher
+   */
+  public static function getEventDispatcher()
+  {
+    if(!isset(self::$dispatcher))
+    {
+      self::$dispatcher = sfContext::getInstance()->getEventDispatcher();
+    }
+
+    return self::$dispatcher;
+  }
+
+  /**
+   * Logs messages to debug log
+   *
+   * @param string $message Message to log.
+   */
+  public function log($message)
+  {
+    if (sfConfig::get('sf_debug') && sfConfig::get('sf_logging_enabled'))
+    {
+      // message on one line
+      $message = preg_replace("/\r?\n/", ' ', $message);
+      $message = '{sfDatabaseManager} '.$message;
+
+      $this->getEventDispatcher()->notify(new sfEvent($this, 'application.log', array($message)));
+
+      return true;
+    }
+
+    return false;
+  }
+
+  /**
+   * Execute the shutdown procedure.
    *
    * @return void
    */
-  public function shutdown()
+  public function shutdown ()
   {
-    $this->connection = null;
+    $this->log('Disconnected from database.');
+
+    if ($this->connection !== null)
+    {
+      @$this->connection = null;
+    }
   }
-  
+
   /**
-   * Magic method for calling PDO directly via sfPDODatabase
+   * Magic method for calling PropelPDO directly via sfPropelDatabase
    *
    * @param string $method
    * @param array $arguments
-   * @return mixed 
+   * @return mixed
    */
   public function __call($method, $arguments)
   {
