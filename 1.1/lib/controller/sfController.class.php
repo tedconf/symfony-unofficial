@@ -164,7 +164,7 @@ abstract class sfController
         $dir = str_replace(sfConfig::get('sf_root_dir'), '%SF_ROOT_DIR%', $dir);
       }
 
-      throw new sfControllerException(sprintf('{sfController} controller "%s/%s" does not exist in: %s.', $moduleName, $controllerName, implode(', ', $dirs)));
+      throw new sfControllerException(sprintf('Controller "%s/%s" does not exist in: %s.', $moduleName, $controllerName, implode(', ', $dirs)));
     }
 
     return false;
@@ -471,11 +471,11 @@ abstract class sfController
 
       if ($actionEntry->getModuleName() == sfConfig::get('sf_login_module') && $actionEntry->getActionName() == sfConfig::get('sf_login_action'))
       {
-        throw new sfException('Your mail action is secured but the user is not authenticated.');
+        throw new sfException('Your action is secured but the user is not authenticated.');
       }
       else if ($actionEntry->getModuleName() == sfConfig::get('sf_secure_module') && $actionEntry->getActionName() == sfConfig::get('sf_secure_action'))
       {
-        throw new sfException('Your mail action is secured but the user does not have access.');
+        throw new sfException('Your action is secured but the user does not have access.');
       }
     }
 

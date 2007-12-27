@@ -136,7 +136,6 @@ class sfPDODatabase extends sfDatabase
     {
       // message on one line
       $message = preg_replace("/\r?\n/", ' ', $message);
-      $message = '{sfDatabaseManager} '.$message;
 
       $this->getEventDispatcher()->notify(new sfEvent($this, 'application.log', array($message)));
 
