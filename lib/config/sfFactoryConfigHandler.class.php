@@ -105,6 +105,7 @@ class sfFactoryConfigHandler extends sfYamlConfigHandler
           break;
 
         case 'response':
+          $parameters = array_merge(array('charset' => sfConfig::get('sf_charset'), 'logging' => sfConfig::get('sf_logging_enabled')), is_array($parameters) ? $parameters : array());
           $instances[] = sprintf("  \$class = sfConfig::get('sf_factory_response', '%s');\n  \$this->factories['response'] = new \$class(\$this->dispatcher, sfConfig::get('sf_factory_response_parameters', %s));", $class, var_export($parameters, true));
 
           $instances[] = sprintf("  if ('HEAD' == \$this->factories['request']->getMethodName())\n  {  \n    \$this->factories['response']->setHeaderOnly(true);\n  }\n");
@@ -123,7 +124,7 @@ class sfFactoryConfigHandler extends sfYamlConfigHandler
           break;
 
         case 'user':
-          $instances[] = sprintf("  \$class = sfConfig::get('sf_factory_user', '%s');\n  \$this->factories['user'] = new \$class(\$this->dispatcher, \$this->factories['storage'], array_merge(array('auto_shutdown' => false, 'culture' => \$this->factories['request']->getParameter('sf_culture'), 'default_culture' => sfConfig::get('sf_i18n_default_culture'), 'use_flash' => sfConfig::get('sf_use_flash')), sfConfig::get('sf_factory_user_parameters', %s)));", $class, var_export(is_array($parameters) ? $parameters : array(), true));
+          $instances[] = sprintf("  \$class = sfConfig::get('sf_factory_user', '%s');\n  \$this->factories['user'] = new \$class(\$this->dispatcher, \$this->factories['storage'], array_merge(array('auto_shutdown' => false, 'culture' => \$this->factories['request']->getParameter('sf_culture'), 'default_culture' => sfConfig::get('sf_default_culture', 'en'), 'use_flash' => sfConfig::get('sf_use_flash'), 'logging' => sfConfig::get('sf_logging_enabled')), sfConfig::get('sf_factory_user_parameters', %s)));", $class, var_export(is_array($parameters) ? $parameters : array(), true));
           break;
 
         case 'view_cache':
@@ -150,23 +151,17 @@ class sfFactoryConfigHandler extends sfYamlConfigHandler
             $cache = "    \$cache = null;\n";
           }
 
-          $configuration = '';
-          if (isset($parameters['load_configuration']) && $parameters['load_configuration'])
-          {
-            $configuration = "  \$this->factories['i18n']->loadConfiguration();\n";
-          }
           $instances[] = sprintf("\n  if (sfConfig::get('sf_i18n'))\n  {\n".
                      "    \$class = sfConfig::get('sf_factory_i18n', '%s');\n".
                      "%s".
-                     "    \$this->factories['i18n'] = new \$class(\$this, \$cache);\n".
-                     $configuration.
+                     "    \$this->factories['i18n'] = new \$class(\$this->dispatcher, \$cache, %s);\n".
                      "  }\n"
-                     , $class, $cache
+                     , $class, $cache, var_export($parameters, true)
                      );
           break;
 
         case 'routing':
-          $instances[] = sprintf("  \$class = sfConfig::get('sf_factory_routing', '%s');\n  \$this->factories['routing'] = new \$class(\$this->dispatcher, array_merge(array('auto_shutdown' => false, 'suffix' => sfConfig::get('sf_suffix'), 'default_module' => sfConfig::get('sf_default_module'), 'default_action' => sfConfig::get('sf_default_action')), sfConfig::get('sf_factory_routing_parameters', %s)));", $class, var_export(is_array($parameters) ? $parameters : array(), true));
+          $instances[] = sprintf("  \$class = sfConfig::get('sf_factory_routing', '%s');\n  \$this->factories['routing'] = new \$class(\$this->dispatcher, array_merge(array('auto_shutdown' => false, 'suffix' => sfConfig::get('sf_suffix'), 'default_module' => sfConfig::get('sf_default_module'), 'default_action' => sfConfig::get('sf_default_action'), 'logging' => sfConfig::get('sf_logging_enabled')), sfConfig::get('sf_factory_routing_parameters', %s)));", $class, var_export(is_array($parameters) ? $parameters : array(), true));
           if (isset($parameters['load_configuration']) && $parameters['load_configuration'])
           {
             $instances[] = "  \$this->factories['routing']->loadConfiguration();\n";

@@ -4,7 +4,7 @@
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
  * (c) 2004-2006 Sean Kerr.
- * 
+ *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -35,7 +35,10 @@ abstract class sfAction extends sfComponent
     parent::initialize($context, $moduleName, $actionName);
 
     // include security configuration
-    require(sfConfigCache::getInstance()->checkConfig(sfConfig::get('sf_app_module_dir_name').'/'.$this->getModuleName().'/'.sfConfig::get('sf_app_module_config_dir_name').'/security.yml', true));
+    if($file = sfConfigCache::getInstance()->checkConfig(sfConfig::get('sf_app_module_dir_name').'/'.$this->getModuleName().'/'.sfConfig::get('sf_app_module_config_dir_name').'/security.yml', true))
+    {
+      require($file);
+    }
   }
 
   /**
@@ -255,19 +258,28 @@ abstract class sfAction extends sfComponent
    * Appends the result of the given partial execution to the response content
    * and bypasses the built-in view system.
    *
+   * If the vars parameter is omitted, the action's internal variables
+   * will be passed, just as it would to a normal template.
+   *
+   * If the vars parameter is set then only those values are
+   * available in the partial.
+   *
    * This method must be called as with a return:
    *
    * <code>return $this->renderPartial('foo/bar')</code>
    *
    * @param  string partial name
+   * @param  array vars
    *
    * @return sfView::NONE
    */
-  public function renderPartial($templateName)
+  public function renderPartial($templateName, $vars = null)
   {
     sfLoader::loadHelpers('Partial');
 
-    return $this->renderText(get_partial($templateName, $this->varHolder->getAll()));
+    $vars = $vars ? $vars : $this->varHolder->getAll();
+
+    return $this->renderText(get_partial($templateName, $vars));
   }
 
 
@@ -331,7 +343,7 @@ abstract class sfAction extends sfComponent
            | sfRequest::POST
            | sfRequest::PUT
            | sfRequest::DELETE
-           | sfRequest::HEAD 
+           | sfRequest::HEAD
            | sfRequest::NONE;
   }
 

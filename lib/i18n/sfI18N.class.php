@@ -19,9 +19,10 @@
 class sfI18N
 {
   protected
-    $context       = null,
+    $dispatcher    = null,
     $cache         = null,
-    $culture       = null,
+    $options       = array(),
+    $culture       = 'en',
     $messageSource = null,
     $messageFormat = null;
 
@@ -30,37 +31,45 @@ class sfI18N
    *
    * @see initialize()
    */
-  public function __construct($context, sfCache $cache = null)
+  public function __construct(sfEventDispatcher $dispatcher, sfCache $cache = null, $options = array())
   {
-    $this->initialize($context, $cache);
+    $this->initialize($dispatcher, $cache, $options);
   }
 
   /**
    * Initializes this class.
    *
-   * @param sfContext A sfContext implementation instance
+   * @param sfEventDispatcher A sfEventDispatcher implementation instance
+   * @param sfCache           A sfCache instance
+   * @param array             An array of options
    */
-  public function initialize($context, sfCache $cache = null)
+  public function initialize(sfEventDispatcher $dispatcher, sfCache $cache = null, $options = array())
   {
-    $this->context = $context;
-    $this->cache   = $cache;
+    $this->dispatcher = $dispatcher;
+    $this->cache      = $cache;
 
-    $context->getEventDispatcher()->connect('user.change_culture', array($this, 'listenToChangeCultureEvent'));
-    $context->getEventDispatcher()->connect('controller.change_action', array($this, 'listenToChangeActionEvent'));
-  }
+    if (isset($options['culture']))
+    {
+      $this->culture = $options['culture'];
+      unset($options['culture']);
+    }
 
-  /**
-   * Loads i18n configuration.
-   */
-  public function loadConfiguration()
-  {
-    include(sfConfigCache::getInstance()->checkConfig(sfConfig::get('sf_app_config_dir_name').'/i18n.yml'));
+    $this->options = array_merge(array(
+      'source'              => 'XLIFF',
+      'debug'               => false,
+      'database'            => 'default',
+      'untranslated_prefix' => '[T]',
+      'untranslated_suffix' => '[/T]',
+    ), $options);
+
+    $dispatcher->connect('user.change_culture', array($this, 'listenToChangeCultureEvent'));
+    $dispatcher->connect('controller.change_action', array($this, 'listenToChangeActionEvent'));
   }
 
   /**
    * Sets the message source.
    *
-   * @param mixed  An array of i18n directories if message source is XLIFF or gettext, null otherwise
+   * @param mixed  An array of i18n directories if message source is a sfMessageSource_File subclass, null otherwise
    * @param string The culture
    */
   public function setMessageSource($dirs, $culture = null)
@@ -100,14 +109,17 @@ class sfI18N
    */
   public function createMessageSource($dir = null)
   {
-    if (in_array(sfConfig::get('sf_i18n_source'), array('Creole', 'MySQL', 'SQLite')))
-    {
-      return sfMessageSource::factory(sfConfig::get('sf_i18n_source'), sfConfig::get('sf_i18n_database', 'default'));
-    }
-    else
-    {
-      return sfMessageSource::factory(sfConfig::get('sf_i18n_source'), $dir);
-    }
+    return sfMessageSource::factory($this->options['source'], self::isMessageSourceFileBased($this->options['source']) ? $dir : $this->options['database']);
+  }
+
+  /**
+   * Gets the current culture for i18n format objects.
+   *
+   * @return string The culture
+   */
+  public function getCulture()
+  {
+    return $this->culture;
   }
 
   /**
@@ -122,6 +134,7 @@ class sfI18N
     if ($this->messageSource)
     {
       $this->messageSource->setCulture($culture);
+      $this->messageFormat = null;
     }
   }
 
@@ -134,7 +147,7 @@ class sfI18N
   {
     if (!isset($this->messageSource))
     {
-      $this->setMessageSource(sfLoader::getI18NGlobalDirs(), $this->context->getUser()->getCulture());
+      $this->setMessageSource(sfLoader::getI18NGlobalDirs(), $this->culture);
     }
 
     return $this->messageSource;
@@ -151,9 +164,9 @@ class sfI18N
     {
       $this->messageFormat = new sfMessageFormat($this->getMessageSource(), sfConfig::get('sf_charset'));
 
-      if (sfConfig::get('sf_debug') && sfConfig::get('sf_i18n_debug'))
+      if ($this->options['debug'])
       {
-        $this->messageFormat->setUntranslatedPS(array(sfConfig::get('sf_i18n_untranslated_prefix'), sfConfig::get('sf_i18n_untranslated_suffix')));
+        $this->messageFormat->setUntranslatedPS(array($this->options['untranslated_prefix'], $this->options['untranslated_suffix']));
       }
     }
 
@@ -178,13 +191,13 @@ class sfI18N
    * Gets a country name.
    *
    * @param  string The ISO code
-   * @param  string The culture
+   * @param  string The culture for the translation
    *
    * @return string The country name
    */
-  public function getCountry($iso, $culture)
+  public function getCountry($iso, $culture = null)
   {
-    $c = new sfCultureInfo($culture);
+    $c = new sfCultureInfo(is_null($culture) ? $this->culture : $culture);
     $countries = $c->getCountries();
 
     return (array_key_exists($iso, $countries)) ? $countries[$iso] : '';
@@ -212,11 +225,11 @@ class sfI18N
    *
    * @return integer The timestamp
    */
-  public function getTimestampForCulture($date, $culture)
+  public function getTimestampForCulture($date, $culture = null)
   {
-    list($d, $m, $y) = $this->getDateForCulture($date, $culture);
+    list($d, $m, $y) = $this->getDateForCulture($date, is_null($culture) ? $this->culture : $culture);
 
-    return mktime(0, 0, 0, $m, $d, $y);
+    return is_null($d) ? null : mktime(0, 0, 0, $m, $d, $y);
   }
 
   /**
@@ -227,11 +240,14 @@ class sfI18N
    *
    * @return array   An array with the day, month and year
    */
-  public function getDateForCulture($date, $culture)
+  public function getDateForCulture($date, $culture = null)
   {
-    if (!$date) return 0;
+    if (!$date)
+    {
+      return null;
+    }
 
-    $dateFormatInfo = @sfDateTimeFormatInfo::getInstance($culture);
+    $dateFormatInfo = @sfDateTimeFormatInfo::getInstance(is_null($culture) ? $this->culture : $culture);
     $dateFormat = $dateFormatInfo->getShortDatePattern();
 
     // We construct the regexp based on date format
@@ -260,6 +276,20 @@ class sfI18N
     {
       return null;
     }
+  }
+
+  /**
+   * Returns true if messages are stored in a file.
+   *
+   * @param  string  The source name
+   *
+   * @return Boolean true if messages are stored in a file, false otherwise
+   */
+  static public function isMessageSourceFileBased($source)
+  {
+    $class = 'sfMessageSource_'.$source;
+
+    return class_exists($class) && is_subclass_of($class, 'sfMessageSource_File');
   }
 
   /**

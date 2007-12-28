@@ -164,7 +164,7 @@ abstract class sfController
         $dir = str_replace(sfConfig::get('sf_root_dir'), '%SF_ROOT_DIR%', $dir);
       }
 
-      throw new sfControllerException(sprintf('{sfController} controller "%s/%s" does not exist in: %s.', $moduleName, $controllerName, implode(', ', $dirs)));
+      throw new sfControllerException(sprintf('Controller "%s/%s" does not exist in: %s.', $moduleName, $controllerName, implode(', ', $dirs)));
     }
 
     return false;
@@ -201,7 +201,7 @@ abstract class sfController
       // the requested action doesn't exist
       if (sfConfig::get('sf_logging_enabled'))
       {
-        $this->dispatcher->notify(new sfEvent($this, 'application.log', array('Action does not exist')));
+        $this->dispatcher->notify(new sfEvent($this, 'application.log', array(sprintf('Action "%s/%s" does not exist', $moduleName, $actionName))));
       }
 
       // track the requested module so we have access to the data in the error 404 page
@@ -249,6 +249,14 @@ abstract class sfController
       $filterChain->loadConfiguration($actionInstance);
 
       $this->context->getEventDispatcher()->notify(new sfEvent($this, 'controller.change_action', array('module' => $moduleName, 'action' => $actionName)));
+
+      if ($moduleName == sfConfig::get('sf_error_404_module') && $actionName == sfConfig::get('sf_error_404_action'))
+      {
+        $this->context->getResponse()->setStatusCode(404);
+        $this->context->getResponse()->setHttpHeader('Status', '404 Not Found');
+
+        $this->dispatcher->notify(new sfEvent($this, 'controller.page_not_found', array('module' => $moduleName, 'action' => $actionName)));
+      }
 
       // process the filter chain
       $filterChain->execute();
@@ -402,7 +410,7 @@ abstract class sfController
   {
     if (sfConfig::get('sf_logging_enabled'))
     {
-      $this->dispatcher->notify(new sfEvent($this, 'application.log', array('sendEmail method is deprecated', 'priority' => 'err')));
+      $this->dispatcher->notify(new sfEvent($this, 'application.log', array('sendEmail method is deprecated', 'priority' => sfLogger::ERR)));
     }
 
     return $this->getPresentationFor($module, $action, 'sfMail');
@@ -463,11 +471,11 @@ abstract class sfController
 
       if ($actionEntry->getModuleName() == sfConfig::get('sf_login_module') && $actionEntry->getActionName() == sfConfig::get('sf_login_action'))
       {
-        throw new sfException('Your mail action is secured but the user is not authenticated.');
+        throw new sfException('Your action is secured but the user is not authenticated.');
       }
       else if ($actionEntry->getModuleName() == sfConfig::get('sf_secure_module') && $actionEntry->getActionName() == sfConfig::get('sf_secure_action'))
       {
-        throw new sfException('Your mail action is secured but the user does not have access.');
+        throw new sfException('Your action is secured but the user does not have access.');
       }
     }
 

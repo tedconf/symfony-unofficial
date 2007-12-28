@@ -10,7 +10,7 @@
 
 require_once(dirname(__FILE__).'/../../bootstrap/unit.php');
 
-$t = new lime_test(58, new lime_output_color());
+$t = new lime_test(68, new lime_output_color());
 
 class FormTest extends sfForm
 {
@@ -142,7 +142,7 @@ catch (LogicException $e)
   $t->pass('sfForm ArrayAccess implementation throws a LogicException if the form field does not exist');
 }
 
-// ->bind() ->isValid() ->getValues() ->isBound() ->getErrorSchema()
+// ->bind() ->isValid() ->getValues() ->getValue() ->isBound() ->getErrorSchema()
 $t->diag('->bind() ->isValid() ->getValues() ->isBound() ->getErrorSchema()');
 $f = new FormTest();
 $f->setWidgetSchema(new sfWidgetFormSchema(array(
@@ -157,10 +157,13 @@ $t->ok(!$f->isBound(), '->isBound() returns false if the form is not bound');
 $t->is($f->getValues(), array(), '->getValues() returns an empty array if the form is not bound');
 $t->ok(!$f->isValid(), '->isValid() returns false if the form is not bound');
 
+$t->is($f->getValue('first_name'), null, '->getValue() returns null if the form is not bound');
 $f->bind(array('first_name' => 'Fabien', 'last_name' => 'Potencier'));
 $t->ok($f->isBound(), '->isBound() returns true if the form is bound');
 $t->is($f->getValues(), array('first_name' => 'Fabien', 'last_name' => 'Potencier'), '->getValues() returns an array of cleaned values if the form is bound');
 $t->ok($f->isValid(), '->isValid() returns true if the form passes the validation');
+$t->is($f->getValue('first_name'), 'Fabien', '->getValue() returns the cleaned value for a field name if the form is bound');
+$t->is($f->getValue('nonsense'), null, '->getValue() returns null when non-existant param is requested');
 
 $f->bind(array());
 $t->ok(!$f->isValid(), '->isValid() returns false if the form does not pass the validation');
@@ -208,3 +211,166 @@ for ($i = 0; $i < 2; $i++)
   $t->is($v['authors'][$i][sfForm::getCSRFFieldName()], null, '->embedFormForEach() removes the CSRF token for the embedded forms');
   $t->is($w['authors'][$i][sfForm::getCSRFFieldName()], null, '->embedFormForEach() removes the CSRF token for the embedded forms');
 }
+
+// ::convertFileInformation()
+$t->diag('::convertFileInformation()');
+$input = array(
+  'file' => array(
+    'name' => 'test1.txt',
+    'type' => 'text/plain',
+    'tmp_name' => '/tmp/test1.txt',
+    'error' => 0,
+    'size' => 100,
+  ),
+  'file1' => array(
+    'name' => 'test2.txt',
+    'type' => 'text/plain',
+    'tmp_name' => '/tmp/test1.txt',
+    'error' => 0,
+    'size' => 200,
+  ),
+);
+$t->is_deeply(sfForm::convertFileInformation($input), $input, '::convertFileInformation() converts $_FILES to be coherent with $_GET and $_POST naming convention');
+
+$input = array(
+  'article' => array(
+    'name' => array(
+      'file1' => 'test1.txt',
+      'file2' => 'test2.txt',
+    ),
+    'type' => array(
+      'file1' => 'text/plain',
+      'file2' => 'text/plain',
+    ),
+    'tmp_name' => array(
+      'file1' => '/tmp/test1.txt',
+      'file2' => '/tmp/test2.txt',
+    ),
+    'error' => array(
+      'file1' => 0,
+      'file2' => 0,
+    ),
+    'size' => array(
+      'file1' => 100,
+      'file2' => 200,
+    ),
+  ),
+);
+$expected = array(
+  'article' => array(
+    'file1' => array(
+      'name' => 'test1.txt',
+      'type' => 'text/plain',
+      'tmp_name' => '/tmp/test1.txt',
+      'error' => 0,
+      'size' => 100,
+    ),
+    'file2' => array(
+      'name' => 'test2.txt',
+      'type' => 'text/plain',
+      'tmp_name' => '/tmp/test2.txt',
+      'error' => 0,
+      'size' => 200,
+    ),
+  ),
+);
+$t->is_deeply(sfForm::convertFileInformation($input), $expected, '::convertFileInformation() converts $_FILES to be coherent with $_GET and $_POST naming convention');
+$t->is_deeply(sfForm::convertFileInformation($expected), $expected, '::convertFileInformation() converts $_FILES to be coherent with $_GET and $_POST naming convention');
+
+$input = array(
+  'article' => array(
+    'name' => array(
+      'files' => array(
+        'file1' => 'test1.txt',
+        'file2' => 'test2.txt',
+      ),
+    ),
+    'type' => array(
+      'files' => array(
+        'file1' => 'text/plain',
+        'file2' => 'text/plain',
+      ),
+    ),
+    'tmp_name' => array(
+      'files' => array(
+        'file1' => '/tmp/test1.txt',
+        'file2' => '/tmp/test2.txt',
+      ),
+    ),
+    'error' => array(
+      'files' => array(
+        'file1' => 0,
+        'file2' => 0,
+      ),
+    ),
+    'size' => array(
+      'files' => array(
+        'file1' => 100,
+        'file2' => 200,
+      ),
+    ),
+  ),
+);
+$expected = array(
+  'article' => array(
+    'files' => array(
+      'file1' => array(
+        'name' => 'test1.txt',
+        'type' => 'text/plain',
+        'tmp_name' => '/tmp/test1.txt',
+        'error' => 0,
+        'size' => 100,
+      ),
+      'file2' => array(
+        'name' => 'test2.txt',
+        'type' => 'text/plain',
+        'tmp_name' => '/tmp/test2.txt',
+        'error' => 0,
+        'size' => 200,
+      ),
+    )
+  ),
+);
+$t->is_deeply(sfForm::convertFileInformation($input), $expected, '::convertFileInformation() converts $_FILES to be coherent with $_GET and $_POST naming convention');
+$t->is_deeply(sfForm::convertFileInformation($expected), $expected, '::convertFileInformation() converts $_FILES to be coherent with $_GET and $_POST naming convention');
+
+$input = array(
+  'name' => array(
+    'file1' => 'test1.txt',
+    'file2' => 'test2.txt',
+  ),
+  'type' => array(
+    'file1' => 'text/plain',
+    'file2' => 'text/plain',
+  ),
+  'tmp_name' => array(
+    'file1' => '/tmp/test1.txt',
+    'file2' => '/tmp/test2.txt',
+  ),
+  'error' => array(
+    'file1' => 0,
+    'file2' => 0,
+  ),
+  'size' => array(
+    'file1' => 100,
+    'file2' => 200,
+  ),
+);
+$expected = array(
+  'file1' => array(
+    'name' => 'test1.txt',
+    'type' => 'text/plain',
+    'tmp_name' => '/tmp/test1.txt',
+    'error' => 0,
+    'size' => 100,
+  ),
+  'file2' => array(
+    'name' => 'test2.txt',
+    'type' => 'text/plain',
+    'tmp_name' => '/tmp/test2.txt',
+    'error' => 0,
+    'size' => 200,
+  ),
+);
+$t->is_deeply(sfForm::convertFileInformation($input), $expected, '::convertFileInformation() converts $_FILES to be coherent with $_GET and $_POST naming convention');
+$t->is_deeply(sfForm::convertFileInformation($expected), $expected, '::convertFileInformation() converts $_FILES to be coherent with $_GET and $_POST naming convention');
