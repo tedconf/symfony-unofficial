@@ -100,12 +100,6 @@ class sfWebDebug
     // special formatting for SQL lines
     $logLine = preg_replace('/\b(SELECT|FROM|AS|LIMIT|ASC|COUNT|DESC|WHERE|LEFT JOIN|INNER JOIN|RIGHT JOIN|ORDER BY|GROUP BY|IN|LIKE|DISTINCT|DELETE|INSERT|INTO|VALUES)\b/', '<span class="sfWebDebugLogInfo">\\1</span>', $logLine);
 
-    // remove username/password from dsn
-    if (stripos($logLine, 'dsn') !== false)
-    {
-      $logLine = preg_replace("/=&gt;\s+'?[^'\s,]+'?/", "=&gt; '******'", $logLine);
-    }
-
     return $logLine;
   }
 
@@ -170,9 +164,9 @@ class sfWebDebug
         $log = $this->formatLogLine($log);
 
         // sql queries log
-        if (preg_match('/execute(?:Query|Update).+?\:\s+(.+)$/', $log, $match))
+        if (preg_match('/\b(SELECT|INSERT|UPDATE|DELETE)\b/', $log, $match))
         {
-          $sqlLogs[] .= $match[1];
+          $sqlLogs[] .= $log;
         }
 
         ++$line_nb;
