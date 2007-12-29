@@ -11,7 +11,8 @@
  * Cache the translation table into the file system.
  * It can cache each cataloug+variant or just the whole section.
  *
- * @package System.I18N.core
+ * @package    symfony
+ * @subpackage i18n
  * @author $Author: weizhuo $
  * @version $Id: sfMessageCache.class.php 4340 2007-06-23 06:47:05Z fabien $
  */

@@ -12,6 +12,7 @@
  * core symfony class.
  *
  * @package    symfony
+ * @subpackage util
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  * @version    SVN: $Id: sfCore.class.php 4203 2007-06-10 09:24:03Z fabien $
  */
