@@ -75,7 +75,9 @@ default:
     logging_enabled:        on
 
     # i18n
-    default_culture:        en        # default culture for a user
+    default_culture:        en_US                 # default culture for a user
+    default_timezone:       America/Los_Angeles   # default timezone for a user
+    default_locale:         en_US.utf8            # default locale for formatting and error messages
 
     # enable 1.0 compatibility
     compat_10:              on

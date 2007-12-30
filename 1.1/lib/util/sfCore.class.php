@@ -52,6 +52,12 @@ class sfCore
 
   static public function callBootstrap()
   {
+    $configCache = sfConfigCache::getInstance();
+
+    // load base settings
+    require_once($configCache->checkConfig(sfConfig::get('sf_app_config_dir_name').DIRECTORY_SEPARATOR.'settings.yml'));
+    require_once($configCache->checkConfig(sfConfig::get('sf_app_config_dir_name').DIRECTORY_SEPARATOR.'app.yml'));
+
     // force setting default timezone if not set
     if ($default_timezone = sfConfig::get('sf_default_timezone'))
     {
@@ -62,14 +68,8 @@ class sfCore
       date_default_timezone_set(@date_default_timezone_get());
     }
 
-    $configCache = sfConfigCache::getInstance();
-
-    // load base settings
-    include($configCache->checkConfig(sfConfig::get('sf_app_config_dir_name').DIRECTORY_SEPARATOR.'settings.yml'));
-    if ($file = $configCache->checkConfig(sfConfig::get('sf_app_config_dir_name').DIRECTORY_SEPARATOR.'app.yml', true))
-    {
-      include($configCache->checkConfig(sfConfig::get('sf_app_config_dir_name').DIRECTORY_SEPARATOR.'app.yml'));
-    }
+    // set php locale for error messages and i18n formating to default culture
+    setlocale(LC_ALL, sfConfig::get('sf_default_locale', 'en_US.utf8'));
 
     // required core classes for the framework
     if (!sfConfig::get('sf_debug') && !sfConfig::get('sf_test'))
@@ -81,6 +81,7 @@ class sfCore
     ini_set('display_errors', SF_DEBUG ? 'on' : 'off');
     error_reporting(sfConfig::get('sf_error_reporting'));
 
+    // php compat settings
     ini_set('magic_quotes_runtime', 'off');
 
     // include all config.php from plugins
