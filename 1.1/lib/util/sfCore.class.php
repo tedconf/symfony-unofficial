@@ -53,16 +53,13 @@ class sfCore
   static public function callBootstrap()
   {
     // force setting default timezone if not set
-    if (function_exists('date_default_timezone_get'))
+    if ($default_timezone = sfConfig::get('sf_default_timezone'))
     {
-      if ($default_timezone = sfConfig::get('sf_default_timezone'))
-      {
-        date_default_timezone_set($default_timezone);
-      }
-      else if (sfConfig::get('sf_force_default_timezone', true))
-      {
-        date_default_timezone_set(@date_default_timezone_get());
-      }
+      date_default_timezone_set($default_timezone);
+    }
+    else if (sfConfig::get('sf_force_default_timezone', true))
+    {
+      date_default_timezone_set(@date_default_timezone_get());
     }
 
     $configCache = sfConfigCache::getInstance();
@@ -84,7 +81,7 @@ class sfCore
     ini_set('display_errors', SF_DEBUG ? 'on' : 'off');
     error_reporting(sfConfig::get('sf_error_reporting'));
 
-    $configCache->import(sfConfig::get('sf_app_config_dir_name').DIRECTORY_SEPARATOR.'php.yml', false);
+    ini_set('magic_quotes_runtime', 'off');
 
     // include all config.php from plugins
     sfLoader::loadPluginConfig();
