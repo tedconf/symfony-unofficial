@@ -29,22 +29,11 @@ config/filters.yml:
 config/routing.yml:
   class:    sfRoutingConfigHandler
 
-config/i18n.yml:
-  class:    sfDefineEnvironmentConfigHandler
-  param:
-    prefix: sf_i18n_
-
 modules/*/config/generator.yml:
   class:    sfGeneratorConfigHandler
 
 modules/*/config/view.yml:
   class:    sfViewConfigHandler
-
-modules/*/config/mailer.yml:
-  class:    sfDefineEnvironmentConfigHandler
-  param:
-    prefix: sf_mailer_
-    module: yes
 
 modules/*/config/security.yml:
   class:    sfSecurityConfigHandler
