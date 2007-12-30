@@ -1,13 +1,27 @@
 <?php
 
+/*
+ * This file is part of the symfony package.
+ * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 /**
+ *
+ * @package    symfony
+ * @subpackage util
+ * @version    SVN: $Id: sfFinder.class.php 5582 2007-10-18 18:10:32Z dwhittle $
+ *
  * Iterates through the cartesian product of all iterators added.
  * Values returned are an array of the current values of each iterator
  * in the order they were added.  If an iterator you pass in is
  * a keyed iterator (we presume any non-int key is relevant),
- * the items in the 'current' array will be single-valued 
+ * the items in the 'current' array will be single-valued
  * key=>value arrays for each such source iterator.
  *
+ * @example
  *
  * $arr1 = array('a', 'b', 'c');
  * $arr2 = array('y', 'z');
@@ -98,7 +112,7 @@ class CartesianIterator implements Iterator
     {
       $cur[$name] = $iterator->current();
     /*
-      // if we want to allow iterations over key=>value arrays, 
+      // if we want to allow iterations over key=>value arrays,
       // we could do this, but it seems ugly
       $key = $iterator->key();
       if (is_int($key))

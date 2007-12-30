@@ -32,11 +32,29 @@ class sfBrowser
     $defaultServerArray = array(),
     $currentException   = null;
 
+  /**
+   * Class constructor.
+   *
+   * @param string Hostname to browse
+   * @param string Remote address to spook
+   * @param array  Options for sfBrowser
+   *
+   * @return void
+   */
   public function __construct($hostname = null, $remote = null, $options = array())
   {
     $this->initialize($hostname, $remote, $options);
   }
 
+  /**
+   * Initializes sfBrowser - sets up environment
+   *
+   * @param string Hostname to browse
+   * @param string Remote address to spook
+   * @param array  Options for sfBrowser
+   *
+   * @return void
+   */
   public function initialize($hostname = null, $remote = null, $options = array())
   {
     unset($_SERVER['argv']);
@@ -59,6 +77,14 @@ class sfBrowser
     register_shutdown_function(array($this, 'shutdown'));
   }
 
+  /**
+   * Sets variable name
+   *
+   * @param string The variable name
+   * @param mixed  The value
+   *
+   * @return sfBrowser
+   */
   public function setVar($name, $value)
   {
     $this->vars[$name] = $value;
@@ -66,24 +92,58 @@ class sfBrowser
     return $this;
   }
 
-  public function setAuth($login, $password)
+  /**
+   * Sets username and password for simulating http authentication.
+   *
+   * @param string The username
+   * @param string The password
+   *
+   * @return sfBrowser
+   */
+  public function setAuth($username, $password)
   {
-    $this->vars['PHP_AUTH_USER'] = $login;
+    $this->vars['PHP_AUTH_USER'] = $username;
     $this->vars['PHP_AUTH_PW']   = $password;
 
     return $this;
   }
 
+  /**
+   * Gets a uri.
+   *
+   * @param string The URI to fetch
+   * @param array  The Request parameters
+   *
+   * @return sfBrowser
+   */
   public function get($uri, $parameters = array())
   {
     return $this->call($uri, 'get', $parameters);
   }
 
+  /**
+   * Posts a uri.
+   *
+   * @param string The URI to fetch
+   * @param array  The Request parameters
+   *
+   * @return sfBrowser
+   */
   public function post($uri, $parameters = array())
   {
     return $this->call($uri, 'post', $parameters);
   }
 
+  /**
+   * Calls a request to a uri.
+   *
+   * @param string The URI to fetch
+   * @param string The request method
+   * @param array  The Request parameters
+   * @param boolean Change the browser history stack?
+   *
+   * @return sfBrowser
+   */
   public function call($uri, $method = 'get', $parameters = array(), $changeStack = true)
   {
     $uri = $this->fixUri($uri);
@@ -227,6 +287,11 @@ class sfBrowser
     return $this;
   }
 
+  /**
+   * Go back in the browser history stack.
+   *
+   * @return sfBrowser
+   */
   public function back()
   {
     if ($this->stackPosition < 1)
@@ -238,6 +303,11 @@ class sfBrowser
     return $this->call($this->stack[$this->stackPosition]['uri'], $this->stack[$this->stackPosition]['method'], $this->stack[$this->stackPosition]['parameters'], false);
   }
 
+  /**
+   * Go forward in the browser history stack.
+   *
+   * @return sfBrowser
+   */
   public function forward()
   {
     if ($this->stackPosition > count($this->stack) - 2)
@@ -249,6 +319,11 @@ class sfBrowser
     return $this->call($this->stack[$this->stackPosition]['uri'], $this->stack[$this->stackPosition]['method'], $this->stack[$this->stackPosition]['parameters'], false);
   }
 
+  /**
+   * Reload the current browser.
+   *
+   * @return sfBrowser
+   */
   public function reload()
   {
     if (-1 == $this->stackPosition)
@@ -259,6 +334,11 @@ class sfBrowser
     return $this->call($this->stack[$this->stackPosition]['uri'], $this->stack[$this->stackPosition]['method'], $this->stack[$this->stackPosition]['parameters'], false);
   }
 
+  /**
+   * Get response dom css selector.
+   *
+   * @return sfDomCssSelector
+   */
   public function getResponseDomCssSelector()
   {
     if (is_null($this->dom))
@@ -269,6 +349,11 @@ class sfBrowser
     return $this->domCssSelector;
   }
 
+  /**
+   * Get response dom.
+   *
+   * @return sfDomCssSelector
+   */
   public function getResponseDom()
   {
     if (is_null($this->dom))
@@ -279,26 +364,53 @@ class sfBrowser
     return $this->dom;
   }
 
+  /**
+   * Gets context.
+   *
+   * @return sfContext
+   */
   public function getContext()
   {
     return $this->context;
   }
 
+  /**
+   * Gets response.
+   *
+   * @return sfWebResponse
+   */
   public function getResponse()
   {
     return $this->context->getResponse();
   }
 
+  /**
+   * Gets request.
+   *
+   * @return sfWebRequest
+   */
   public function getRequest()
   {
     return $this->context->getRequest();
   }
 
+  /**
+   * Gets current exception
+   *
+   * @return sfException
+   */
   public function getCurrentException()
   {
     return $this->currentException;
   }
 
+  /**
+   * Follow redirects?
+   *
+   * @throws sfException If request was not a redirect
+   *
+   * @return sfBrowser
+   */
   public function followRedirect()
   {
     if (null === $this->context->getResponse()->getHttpHeader('Location'))
@@ -309,6 +421,14 @@ class sfBrowser
     return $this->get($this->context->getResponse()->getHttpHeader('Location'));
   }
 
+  /**
+   * Sets a form field in the browser.
+   *
+   * @param string The field name
+   * @param string The field value
+   *
+   * @return sfBrowser
+   */
   public function setField($name, $value)
   {
     // as we don't know yet the form, just store name/value pairs
@@ -317,7 +437,14 @@ class sfBrowser
     return $this;
   }
 
-  // link or button
+  /**
+   * Simulates a click on a link or button.
+   *
+   * @param string $name The link or button text
+   * @param array $arguments
+   *
+   * @return sfBrowser
+   */
   public function click($name, $arguments = array())
   {
     $dom = $this->getResponseDom();
@@ -463,6 +590,13 @@ class sfBrowser
     }
   }
 
+  /**
+   * Parses arguments as array
+   *
+   * @param string The argument name
+   * @param string The argument value
+   * @param array  $vars
+   */
   protected function parseArgumentAsArray($name, $value, &$vars)
   {
     if (false !== $pos = strpos($name, '['))
@@ -492,6 +626,11 @@ class sfBrowser
     }
   }
 
+  /**
+   * Reset browser to original state
+   *
+   * @return sfBrowser
+   */
   public function restart()
   {
     $this->newSession();
@@ -505,12 +644,23 @@ class sfBrowser
     return $this;
   }
 
+  /**
+   * Shutdown function to clean up and remove sessions
+   *
+   * @return void
+   */
   public function shutdown()
   {
     // we remove all session data
     sfToolkit::clearDirectory(sfConfig::get('sf_test_cache_dir').'/sessions');
   }
 
+  /**
+   * Fixes uri removing # declarations and front controller.
+   *
+   * @param string The URI to fix
+   * @return string The fixed uri
+   */
   protected function fixUri($uri)
   {
     // remove absolute information if needed (to be able to do follow redirects, click on links, ...)
@@ -539,11 +689,23 @@ class sfBrowser
     return $uri;
   }
 
+  /**
+   * Creates a new session in the browser.
+   *
+   * @return void
+   */
   protected function newSession()
   {
     $_SERVER['session_id'] = md5(uniqid(rand(), true));
   }
 
+  /**
+   * Listener for exceptions
+   *
+   * @param sfEvent The event to handle
+   *
+   * @return void
+   */
   public function listenToException(sfEvent $event)
   {
     $this->currentException = $event->getSubject();
