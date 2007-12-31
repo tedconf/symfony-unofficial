@@ -142,22 +142,26 @@ class sfSimpleAutoload
     require_once(dirname(__FILE__).'/sfFinder.class.php');
 
     $finder = sfFinder::type('file')->ignore_version_control()->follow_link()->name('*'.$ext);
-    foreach (glob($dir) as $dir)
-    {
-      if (in_array($dir, $this->dirs))
-      {
-        if ($this->cacheLoaded)
-        {
-          continue;
-        }
-      }
-      else
-      {
-        $this->dirs[] = $dir;
-      }
 
-      $this->cacheChanged = true;
-      $this->addFiles($finder->in($dir), false);
+    if ($dirs = glob($dir))
+    {
+      foreach ($dirs as $dir)
+      {
+        if (in_array($dir, $this->dirs))
+        {
+          if ($this->cacheLoaded)
+          {
+            continue;
+          }
+        }
+        else
+        {
+          $this->dirs[] = $dir;
+        }
+
+        $this->cacheChanged = true;
+        $this->addFiles($finder->in($dir), false);
+      }
     }
   }
 
