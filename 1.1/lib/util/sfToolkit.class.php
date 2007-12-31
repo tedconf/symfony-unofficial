@@ -81,7 +81,7 @@ class sfToolkit
           self::clearDirectory($directory.'/'.$file);
 
           // delete the directory
-          rmdir($directory.'/'.$file);
+          @rmdir($directory.'/'.$file);
         }
         else
         {
