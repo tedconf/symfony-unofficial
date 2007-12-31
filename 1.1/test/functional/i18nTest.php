@@ -3,7 +3,7 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- * 
+ *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -47,13 +47,13 @@ class myTestBrowser extends sfTestBrowser
 
 $b = new myTestBrowser();
 
-// default culture (en)
+// default culture (en_US)
 $b->
   get('/')->
   isStatusCode(200)->
   isRequestParameter('module', 'i18n')->
   isRequestParameter('action', 'index')->
-  isUserCulture('en')->
+  isUserCulture('en_US')->
   checkResponseElement('#action', '/an english sentence/i')->
   checkResponseElement('#template', '/an english sentence/i')
 ;
