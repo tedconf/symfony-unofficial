@@ -8,14 +8,6 @@
  * file that was distributed with this source code.
  */
 
-// setup expected test environment (per check_configuration.php)
-ini_set('magic_quotes_gpc', 'off');
-ini_set('register_globals', 'off');
-ini_set('session.auto_start', 'off');
-ini_set('arg.output_separator', '&amp;');
-
-ini_set('allow_url_fopen', 'on');
-
 require_once(dirname(__FILE__).'/../../lib/vendor/lime/lime.php');
 
 class lime_symfony extends lime_harness
