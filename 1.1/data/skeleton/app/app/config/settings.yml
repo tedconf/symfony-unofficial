@@ -39,7 +39,7 @@ all:
     module_disabled_action: disabled  # A module disabled in the module.yml
 
   .settings:
-    # Optional features. Deactivating unused features boosts performance a bit.
+    # Optional features - Deactivating unused features increases performance
     use_database:           on        # Enable database manager. Set to off if you don't use a database.
     use_security:           on        # Enable security features (login and credentials). Set to off for public applications.
     use_flash:              on        # Enable flash parameter feature. Set to off if you never use the set_flash() method in actions.
@@ -49,11 +49,10 @@ all:
     check_lock:             off       # Enable the application lock system triggered by the clear-cache and disable tasks. Set to on to have all requests to disabled applications redirected to the $sf_symfony_data_dir/web/arrors/unavailable.php page.
 
     # Output escaping settings
-    escaping_strategy:      bc        # Determines how variables are made available to templates. Accepted values: bc, both, on, off. The value off deactivates escaping completely and gives a slight boost.
-    escaping_method:   ESC_ENTITIES   # Function or helper used for escaping. Accepted values: ESC_RAW, ESC_ENTITIES, ESC_JS, ESC_JS_NO_ENTITIES.
+    escaping_strategy:      bc             # Determines how variables are made available to templates. Accepted values: bc, both, on, off. The value off deactivates escaping completely and gives a slight boost.
+    escaping_method:        ESC_ENTITIES   # Function or helper used for escaping. Accepted values: ESC_RAW, ESC_ENTITIES, ESC_JS, ESC_JS_NO_ENTITIES.
 
     # Routing settings
-    relative_url_root:                # Default URL prefix. Use this when your symfony project is installed in a sub directory of the apache document root.
     suffix:                 .         # Default suffix for generated URLs. If set to a single dot (.), no suffix is added. Possible values: .html, .php, and so on.
     no_script_name:         on        # Enable the front controller name in generated URLs
 
@@ -73,40 +72,37 @@ all:
     admin_web_dir:          /sf/sf_admin
     web_debug_web_dir:      /sf/sf_web_debug
 
-    # Helpers included in all templates by default
-    standard_helpers:       [Partial, Cache, Form]
-
-    use_xhtml_tags:          on       # use open (html style) or closed (xhtml style) tags
+    # Helpers
+    standard_helpers:       [Partial, Cache, Form] # helpers included in all templates by default
+    use_xhtml_tags:         on                     # use open (html style) or closed (xhtml style) tags
 
     # Activated modules from plugins or from the symfony core
     enabled_modules:        [default]
 
-    # Charset used for the response
-    charset:                utf-8
-
     # Miscellaneous
-    strip_comments:         on         # Remove comments in core framework classes as defined in the core_compile.yml
-    max_forwards:           5
-    path_info_array:        SERVER
-    path_info_key:          PATH_INFO
-    url_format:             PATH
-    cache_namespace_callable:          # callable used to generate sf_cache_key, useful for binding view cache with user
+    strip_comments:           on         # Remove comments in core framework classes as defined in the core_compile.yml
+    max_forwards:             5          # Max forwards before stoping loop
+    path_info_array:          SERVER
+    path_info_key:            PATH_INFO
+    url_format:               PATH
+    cache_namespace_callable:            # callable used to generate sf_cache_key, useful for binding view cache with user
 
     # ORM
     orm:                    propel
 
     # Logging
     logging_enabled:        on
+    charset:                utf-8
 
-    # i18n
-    default_culture:        en_US                 # default culture for a user
-    default_timezone:       America/Los_Angeles   # default timezone for a user
-    default_locale:         en_US.utf8            # default locale for formatting and error messages
+    # I18n
+    default_culture:        en_US                 # default culture for a user,  http://en.wikipedia.org/wiki/List_of_ISO_639-1_codes
+    default_timezone:       America/Los_Angeles   # default timezone for a user, http://www.php.net/timezones
+    default_locale:         en_US.utf8            # default locale for formatting, collation, and internal error messages
 
-    # enable 1.0 compatibility
+    # 1.0 compatibility
     compat_10:              on
 
-    # Validation settings, used for error generation by the Validation helper
+    # Validation
     validation_error_prefix:      ' &darr;&nbsp;'
     validation_error_suffix:      ' &nbsp;&darr;'
     validation_error_tag:         div

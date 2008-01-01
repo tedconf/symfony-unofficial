@@ -85,7 +85,7 @@ class sfCore
       date_default_timezone_set(@date_default_timezone_get());
     }
 
-    // set php locale for error messages and i18n formating to default culture
+    // set default locale for formatting, collation, and internal error messages
     setlocale(LC_ALL, sfConfig::get('sf_default_locale', 'en_US.utf8'));
 
     // required core classes for the framework

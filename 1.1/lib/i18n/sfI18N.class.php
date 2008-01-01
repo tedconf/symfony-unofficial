@@ -131,6 +131,9 @@ class sfI18N
   {
     $this->culture = $culture;
 
+    // change user locale for formatting, collation, and internal error messages
+    setlocale(LC_ALL, $culture.'.utf8');
+
     if ($this->messageSource)
     {
       $this->messageSource->setCulture($culture);
