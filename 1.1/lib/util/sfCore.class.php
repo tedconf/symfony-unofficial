@@ -73,7 +73,11 @@ class sfCore
 
     // load base settings
     require_once($configCache->checkConfig(sfConfig::get('sf_app_config_dir_name').DIRECTORY_SEPARATOR.'settings.yml'));
-    require_once($configCache->checkConfig(sfConfig::get('sf_app_config_dir_name').DIRECTORY_SEPARATOR.'app.yml'));
+
+    if ($file = $configCache->checkConfig(sfConfig::get('sf_app_config_dir_name').'/app.yml', true))
+    {
+      require_once($file);
+    }
 
     // force setting default timezone if not set
     if ($default_timezone = sfConfig::get('sf_default_timezone'))
