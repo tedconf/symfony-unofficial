@@ -4,8 +4,6 @@ include(dirname(__FILE__).'/../../bootstrap/functional.php');
 
 // create a new test browser
 $browser = new sfTestBrowser();
-$browser->initialize();
-
 $browser->
   get('/##MODULE_NAME##/index')->
   isStatusCode(200)->
