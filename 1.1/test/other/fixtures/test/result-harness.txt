@@ -1,6 +1,5 @@
-functional/frontend/articleGenCrudActionsTest........................ok
 functional/frontend/articleInitCrudActionsTest.......................ok
 functional/frontend/fooActionsTest...................................ok
 unit/testTest........................................................ok
  All tests successful.                                                 
- Files=4, Tests=13                                                     
+ Files=3, Tests=9                                                      

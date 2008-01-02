@@ -1,4 +1,3 @@
- Looks like everything went fine.                                      
 # get /articleInitCrud/index
 ok 1 - status code is 200
 ok 2 - request parameter module is articleInitCrud
