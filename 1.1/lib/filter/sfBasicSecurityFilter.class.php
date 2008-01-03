@@ -39,7 +39,7 @@ class sfBasicSecurityFilter extends sfFilter
     $actionInstance = $actionEntry->getActionInstance();
 
     // only redirect if not posting and we actually have an http(s) request
-    if($request->getMethod() != sfRequest::POST && substr($request->getUri(), 0, 4) == 'http')
+    if(!$request->isMethod('post') && substr($request->getUri(), 0, 4) == 'http')
     {
       // request is SSL secured
       if($request->isSecure())
