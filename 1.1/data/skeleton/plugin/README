@@ -1,0 +1,29 @@
+= myPlugin =
+
+The `myPlugin` description.
+
+== License ==
+
+This plugin is licensed under the MIT License. For the full copyright and license information, please view the LICENSE file that was distributed with this source code.
+
+== Installation ==
+
+  * Install the plugin
+
+    {{{
+      symfony plugin-install http://plugins.symfony-project.org/myPlugin
+    }}}
+
+  * Clear you cache
+
+    {{{
+      symfony cc
+    }}}
+
+== Configuration ==
+
+== Using the plugin ==
+
+== TODO ==
+
+== Changelog ==
