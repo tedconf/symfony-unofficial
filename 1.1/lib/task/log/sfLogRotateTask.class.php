@@ -18,11 +18,6 @@
  */
 class sfLogRotateTask extends sfBaseTask
 {
-  /** the default period to rotate logs in days */
-  const DEF_PERIOD = 7;
-
-  /** the default number of log historys to store, one history is created for every period */
-  const DEF_HISTORY = 10;
 
   /**
    * @see sfTask
@@ -35,8 +30,8 @@ class sfLogRotateTask extends sfBaseTask
     ));
 
     $this->addOptions(array(
-      new sfCommandOption('history', null, sfCommandOption::PARAMETER_REQUIRED, 'The maximum number of old log files to keep', 10),
-      new sfCommandOption('period', null, sfCommandOption::PARAMETER_REQUIRED, 'The period in days', 7),
+      new sfCommandOption('history', null, sfCommandOption::PARAMETER_REQUIRED, 'The maximum number of old log files to keep', sfConfig::get('sf_logging_history', 10)),
+      new sfCommandOption('period', null, sfCommandOption::PARAMETER_REQUIRED, 'The period in days', sfConfig::get('sf_logging_period', 7)),
     ));
 
     $this->aliases = array('log-rotate');
@@ -84,8 +79,8 @@ EOF;
     $logdir = sfConfig::get('sf_log_dir');
 
     // set history and period values if not passed to default values
-    $period = isset($period) ? $period : self::DEF_PERIOD;
-    $history = isset($history) ? $history : self::DEF_HISTORY;
+    $period = isset($period) ? $period : sfConfig::get('sf_logging_period', 7);
+    $history = isset($history) ? $history : sfConfig::get('sf_logging_history', 10);
 
     // get todays date
     $today = date('Ymd');

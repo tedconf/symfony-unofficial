@@ -69,7 +69,9 @@ default:
     orm:                    propel
 
     # Logging
-    logging_enabled:        on
+    logging_enabled:        on  # Enable error logging
+    logging_period:         31  # Days to keep logs before rotating
+    logging_history:        3   # How many log periods to archive
 
     # I18n
     charset:                utf-8                 # default charset
