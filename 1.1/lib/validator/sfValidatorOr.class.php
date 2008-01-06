@@ -9,14 +9,14 @@
  */
 
 /**
- * sfValidatorAll validates an input value if all validators passes.
+ * sfValidatorOr validates an input value if at least one validator passes.
  *
  * @package    symfony
  * @subpackage validator
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  * @version    SVN: $Id$
  */
-class sfValidatorAll extends sfValidator
+class sfValidatorOr extends sfValidator
 {
   protected
     $validators = array();
@@ -51,7 +51,7 @@ class sfValidatorAll extends sfValidator
     }
     else if (!is_null($validators))
     {
-      throw new InvalidArgumentException('sfValidatorAll constructor takes a sfValidator object, or a sfValidator array.');
+      throw new InvalidArgumentException('sfValidatorOr constructor takes a sfValidator object, or a sfValidator array.');
     }
 
     parent::__construct($options, $messages);
@@ -60,7 +60,7 @@ class sfValidatorAll extends sfValidator
   /**
    * @see sfValidator
    */
-  public function configure($options = array(), $messages = array())
+  protected function configure($options = array(), $messages = array())
   {
     $this->setMessage('invalid', null);
   }
@@ -90,13 +90,12 @@ class sfValidatorAll extends sfValidator
    */
   protected function doClean($value)
   {
-    $clean = $value;
     $errors = array();
     foreach ($this->validators as $validator)
     {
       try
       {
-        $clean = $validator->clean($clean);
+        return $validator->clean($value);
       }
       catch (sfValidatorError $e)
       {
@@ -104,17 +103,12 @@ class sfValidatorAll extends sfValidator
       }
     }
 
-    if (count($errors))
+    if ($this->getMessage('invalid'))
     {
-      if ($this->getMessage('invalid'))
-      {
-        throw new sfValidatorError($this, 'invalid', array('value' => $value));
-      }
-
-      throw new sfValidatorErrorSchema($this, $errors);
+      throw new sfValidatorError($this, 'invalid', array('value' => $value));
     }
 
-    return $clean;
+    throw new sfValidatorErrorSchema($this, $errors);
   }
 
   /**
@@ -129,7 +123,7 @@ class sfValidatorAll extends sfValidator
 
       if ($i < $max - 1)
       {
-        $validators .= str_repeat(' ', $indent + 2).'and';
+        $validators .= str_repeat(' ', $indent + 2).'or';
       }
 
       if ($i == $max - 2)
