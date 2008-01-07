@@ -3,7 +3,7 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- * 
+ *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -23,10 +23,20 @@ class sfError404Exception extends sfException
    */
   public function asResponse()
   {
+    $exception = is_null($this->wrappedException) ? $this : $this->wrappedException;
+
     if (sfConfig::get('sf_debug'))
     {
-      $response = parent::asResponse();
+      $response = sfContext::getInstance()->getResponse();
+      if (is_null($response))
+      {
+        $response = new sfWebResponse(sfContext::getInstance()->getEventDispatcher());
+        sfContext::getInstance()->setResponse($response);
+      }
+
       $response->setStatusCode(404);
+
+      return parent::printStackTrace();
     }
     else
     {
@@ -38,6 +48,7 @@ class sfError404Exception extends sfException
 
       $context = sfContext::getInstance();
       $context->getController()->forward(sfConfig::get('sf_error_404_module'), sfConfig::get('sf_error_404_action'));
+
       $response = $context->getResponse();
     }
 
