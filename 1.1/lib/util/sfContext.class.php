@@ -54,7 +54,7 @@ class sfContext
     }
     catch (sfException $e)
     {
-      $e->printStackTrace();
+      $e->asResponse();
     }
     catch (Exception $e)
     {

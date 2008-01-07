@@ -19,24 +19,15 @@
 class sfError404Exception extends sfException
 {
   /**
+   * Forwards to the 404 action.
    * @see sfException
    */
   public function asResponse()
   {
-    $exception = is_null($this->wrappedException) ? $this : $this->wrappedException;
-
     if (sfConfig::get('sf_debug'))
     {
-      $response = sfContext::getInstance()->getResponse();
-      if (is_null($response))
-      {
-        $response = new sfWebResponse(sfContext::getInstance()->getEventDispatcher());
-        sfContext::getInstance()->setResponse($response);
-      }
-
+      $response = parent::asResponse();
       $response->setStatusCode(404);
-
-      return parent::printStackTrace();
     }
     else
     {
@@ -48,7 +39,6 @@ class sfError404Exception extends sfException
 
       $context = sfContext::getInstance();
       $context->getController()->forward(sfConfig::get('sf_error_404_module'), sfConfig::get('sf_error_404_action'));
-
       $response = $context->getResponse();
     }
 
