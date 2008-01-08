@@ -32,7 +32,7 @@ Differences from 1.1
 
     * changed default settings to be more generic
 
-  Enivronments:
+  Environments:
     * added cli environment for symfony command line + tasks + batch scripts
     * addition of qa + staging environments
     * dimensions integration
