@@ -19,7 +19,7 @@ default:
       session_name: symfony
 
   view_cache:
-    class: sfFileCache
+    class: sfAPCCache
     param:
       automatic_cleaning_factor: 0
       cache_dir:                 %SF_TEMPLATE_CACHE_DIR%
