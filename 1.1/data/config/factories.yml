@@ -1,3 +1,4 @@
+# defaults for all environments
 default:
   controller:
     class: sfFrontWebController
@@ -8,57 +9,43 @@ default:
   response:
     class: sfWebResponse
 
+  routing:
+    class: sfPatternRouting     # routing class: sfPatternRouting, sfPathInfoRouting, sfNoRouting
+    param:
+      load_configuration: true  # load routing.yml configuration
+
   user:
     class: sfBasicSecurityUser
     param:
-      timeout:  9600             # Session timeout, in seconds
+      timeout:  9600  # authentication timeout in seconds
 
   storage:
     class: sfSessionStorage
     param:
-      session_name: symfony
-
-  view_cache:
-    class: sfAPCCache
-    param:
-      automatic_cleaning_factor: 0
-      cache_dir:                 %SF_TEMPLATE_CACHE_DIR%
-      lifetime:                  86400
-      prefix:                    %SF_APP_DIR%
+      auto_start:    true     # auto start sessions
+      session_name:  symfony  # name of session cookie
 
   i18n:
     class: sfI18N
     param:
-      source:               XLIFF
-      debug:                off
-      untranslated_prefix:  "[T]"
-      untranslated_suffix:  "[/T]"
+      source:               XLIFF   # i18n source
+      debug:                off     # debug mode enabled?
+      untranslated_prefix:  "[T]"   # prefix for untranslated strings
+      untranslated_suffix:  "[/T]"  # suffix for untranslated strings
       cache:
         class: sfAPCCache
         param:
-          automatic_cleaning_factor: 0
-          cache_dir:                 %SF_I18N_CACHE_DIR%
-          lifetime:                  86400
-          prefix:                    %SF_APP_DIR%
+          lifetime:  86400         # default cache ttl
+          prefix:    %SF_APP_DIR%  # prefix
 
-  routing:
-    class: sfPatternRouting
+  view_cache:
+    class: sfAPCCache
     param:
-      load_configuration: true
+      lifetime:  86400         # default cache ttl
+      prefix:    %SF_APP_DIR%  # prefix
 
   logger:
-    class: sfAggregateLogger
+    class: sfFileLogger
     param:
-      level: debug
-      loggers:
-        sf_web_debug:
-          class: sfWebDebugLogger
-          param:
-            level:          debug
-            condition:      %SF_WEB_DEBUG%
-            xdebug_logging: true
-        sf_file_debug:
-          class: sfFileLogger
-          param:
-            level:          debug
-            file:           %SF_LOG_DIR%/%SF_APP%_%SF_ENVIRONMENT%.log
+      level:  notice                                      # error level for log file
+      file:   %SF_LOG_DIR%/%SF_APP%_%SF_ENVIRONMENT%.log  # path to log file
