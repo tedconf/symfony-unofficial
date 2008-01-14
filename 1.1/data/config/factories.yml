@@ -9,11 +9,6 @@ default:
   response:
     class: sfWebResponse
 
-  routing:
-    class: sfPatternRouting     # routing class: sfPatternRouting, sfPathInfoRouting, sfNoRouting
-    param:
-      load_configuration: true  # load routing.yml configuration
-
   user:
     class: sfBasicSecurityUser
     param:
@@ -24,6 +19,12 @@ default:
     param:
       auto_start:    true     # auto start sessions
       session_name:  symfony  # name of session cookie
+
+  view_cache:
+    class: sfAPCCache
+    param:
+      lifetime:  86400         # default cache ttl
+      prefix:    %SF_APP_DIR%  # prefix
 
   i18n:
     class: sfI18N
@@ -38,14 +39,24 @@ default:
           lifetime:  86400         # default cache ttl
           prefix:    %SF_APP_DIR%  # prefix
 
-  view_cache:
-    class: sfAPCCache
+  routing:
+    class: sfPatternRouting     # routing class: sfPatternRouting, sfPathInfoRouting, sfNoRouting
     param:
-      lifetime:  86400         # default cache ttl
-      prefix:    %SF_APP_DIR%  # prefix
+      load_configuration: true  # load routing.yml configuration
 
   logger:
-    class: sfFileLogger
+    class: sfAggregateLogger
     param:
-      level:  notice                                      # error level for log file
-      file:   %SF_LOG_DIR%/%SF_APP%_%SF_ENVIRONMENT%.log  # path to log file
+      level: debug                          # error level for loggers
+      loggers:                              # error loggers to notify
+        sf_web_debug_logger:
+          class: sfWebDebugLogger           # web debug logger class
+          param:
+            level:          debug           # error level for web debug toolbar
+            condition:      %SF_WEB_DEBUG%  # switch on or off based on setting
+            xdebug_logging: true            # enable xdebug profiling
+        sf_file_logger:
+          class: sfFileLogger
+          param:
+            level:  debug                                       # error level for log file
+            file:   %SF_LOG_DIR%/%SF_APP%_%SF_ENVIRONMENT%.log  # path to log file

@@ -1,31 +1,11 @@
 # production environment
 prod:
   logger:
-    class: sfFileLogger
     param:
-      level:  error                                       # error level for log file
-      file:   %SF_LOG_DIR%/%SF_APP%_%SF_ENVIRONMENT%.log  # path to log file
+      level: error
 
 # development environment
 dev:
-  logger:
-    class: sfAggregateLogger
-    param:
-      level: debug                          # error level for loggers
-      loggers:                              # error loggers to notify
-        sf_web_debug_logger:
-          class: sfWebDebugLogger           # web debug logger class
-          param:
-            level:          debug           # error level for web debug toolbar
-            condition:      %SF_WEB_DEBUG%  # switch on or off based on setting
-            xdebug_logging: true            # enable xdebug profiling
-
-        sf_file_logger:
-          class: sfFileLogger
-          param:
-            level:  debug                                       # error level for log file
-            file:   %SF_LOG_DIR%/%SF_APP%_%SF_ENVIRONMENT%.log  # path to log file
-
   i18n:
     param:
       debug: on  # enable i18n debug mode
@@ -60,11 +40,6 @@ all:
   response:
     class: sfWebResponse
 
-  routing:
-    class: sfPatternRouting     # routing class: sfPatternRouting, sfPathInfoRouting, sfNoRouting
-    param:
-      load_configuration: true  # load routing.yml configuration
-
   user:
     class: sfBasicSecurityUser
     param:
@@ -82,6 +57,12 @@ all:
       session_cookie_secure:    false                 # only send cookie if connection is secure
       session_cookie_http_only: false                 # cookie can only be accessed via http protocol
 
+  view_cache:
+    class: sfAPCCache
+    param:
+      lifetime:  86400         # default cache ttl
+      prefix:    %SF_APP_DIR%  # prefix
+
   i18n:
     class: sfI18N
     param:
@@ -95,14 +76,24 @@ all:
           lifetime:  86400         # default cache ttl
           prefix:    %SF_APP_DIR%  # prefix
 
-  view_cache:
-    class: sfAPCCache
+  routing:
+    class: sfPatternRouting     # routing class: sfPatternRouting, sfPathInfoRouting, sfNoRouting
     param:
-      lifetime:  86400         # default cache ttl
-      prefix:    %SF_APP_DIR%  # prefix
+      load_configuration: true  # load routing.yml configuration
 
   logger:
-    class: sfFileLogger
+    class: sfAggregateLogger
     param:
-      level:  notice                                      # error level for log file
-      file:   %SF_LOG_DIR%/%SF_APP%_%SF_ENVIRONMENT%.log  # path to log file
+      level: debug                          # error level for loggers
+      loggers:                              # error loggers to notify
+        sf_web_debug_logger:
+          class: sfWebDebugLogger           # web debug logger class
+          param:
+            level:          debug           # error level for web debug toolbar
+            condition:      %SF_WEB_DEBUG%  # switch on or off based on setting
+            xdebug_logging: true            # enable xdebug profiling
+        sf_file_logger:
+          class: sfFileLogger
+          param:
+            level:  debug                                       # error level for log file
+            file:   %SF_LOG_DIR%/%SF_APP%_%SF_ENVIRONMENT%.log  # path to log file
