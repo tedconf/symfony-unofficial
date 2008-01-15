@@ -54,11 +54,7 @@ class sfCore
     }
     catch (sfException $e)
     {
-      echo $e->getStackTrace();
-    }
-    catch (Exception $e)
-    {
-      echo sfException::createFromException($e)->getStackTrace();
+      echo $e->getStackTrace($e);
     }
   }
 
