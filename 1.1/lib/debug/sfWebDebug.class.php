@@ -301,7 +301,7 @@ class sfWebDebug
       'i18n'                                      => sfConfig::get('sf_i18n')                ? 'on' : 'off',
       'security'                                  => sfConfig::get('sf_use_security')        ? 'on' : 'off',
       'escaping'                                  => sfConfig::get('sf_escaping_strategy')   ? 'on' : 'off',
-      'database ('.sfConfig::get('sf_orm').')'    => sfConfig::get('sf_use_database')        ? 'on' : 'off',
+      'database'                                  => sfConfig::get('sf_use_database')        ? 'on' : 'off',
       'compression'                               => sfConfig::get('sf_compressed')          ? 'on' : 'off',
       'logging'                                   => sfConfig::get('sf_logging_enabled')     ? 'on' : 'off',
       'debug'                                     => sfConfig::get('sf_debug')               ? 'on' : 'off',
