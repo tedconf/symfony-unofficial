@@ -21,8 +21,6 @@ require_once(realpath(dirname(__FILE__).'/..').'/../lib/vendor/lime/lime.php');
 $path = realpath(dirname(__FILE__).'/..').'/functional/fixtures/project';
 
 $b = new sfTestBrowser();
-$b->initialize();
-
 $b->get('/')->
     isStatusCode(200)->
     isRequestParameter('module', 'dimensions')->

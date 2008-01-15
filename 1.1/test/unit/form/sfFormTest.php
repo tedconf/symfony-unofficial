@@ -10,18 +10,13 @@
 
 require_once(dirname(__FILE__).'/../../bootstrap/unit.php');
 
-$t = new lime_test(76, new lime_output_color());
+$t = new lime_test(83, new lime_output_color());
 
 class FormTest extends sfForm
 {
   public function getCSRFToken($secret)
   {
     return "*$secret*";
-  }
-
-  public function generateNameFormatForEmbedded($name, $nameFormat)
-  {
-    return parent::generateNameFormatForEmbedded($name, $nameFormat);
   }
 }
 
@@ -116,8 +111,8 @@ $f->setValidatorSchema($validatorSchema);
 $t->is_deeply($f->getValidatorSchema(), $validatorSchema, '->setValidatorSchema() sets the current validator schema');
 $f->setValidators($validators);
 $schema = $f->getValidatorSchema();
-$t->is_deeply($schema['first_name'], $validators['first_name'], '->setValidators() sets field validators');
-$t->is_deeply($schema['last_name'], $validators['last_name'], '->setValidators() sets field validators');
+$t->ok($schema['first_name'] == $validators['first_name'], '->setValidators() sets field validators');
+$t->ok($schema['last_name'] == $validators['last_name'], '->setValidators() sets field validators');
 
 // ->setWidgets() ->setWidgetSchema() ->getWidgetSchema()
 $t->diag('->setWidgets() ->setWidgetSchema() ->getWidgetSchema()');
@@ -128,11 +123,11 @@ $widgets = array(
 );
 $widgetSchema = new sfWidgetFormSchema($widgets);
 $f->setWidgetSchema($widgetSchema);
-$t->is_deeply($f->getWidgetSchema(), $widgetSchema, '->setWidgetSchema() sets the current widget schema');
+$t->ok($f->getWidgetSchema() == $widgetSchema, '->setWidgetSchema() sets the current widget schema');
 $f->setWidgets($widgets);
 $schema = $f->getWidgetSchema();
-$t->is_deeply($schema['first_name'], $widgets['first_name'], '->setWidgets() sets field widgets');
-$t->is_deeply($schema['last_name'], $widgets['last_name'], '->setWidgets() sets field widgets');
+$t->ok($schema['first_name'] == $widgets['first_name'], '->setWidgets() sets field widgets');
+$t->ok($schema['last_name'] == $widgets['last_name'], '->setWidgets() sets field widgets');
 
 // ArrayAccess interface
 $t->diag('ArrayAccess interface');
@@ -219,31 +214,37 @@ $f->bind(array(
 );
 $t->is($f->getErrorSchema()->getCode(), '1 [min_length] file [max_size]', '->bind() behaves correctly with files');
 
-// ->generateNameFormatForEmbedded()
-$t->diag('->generateNameFormatForEmbedded()');
-$f = new FormTest();
-$t->is($f->generateNameFormatForEmbedded('article', '%s'), 'article[%s]', '->generateNameFormatForEmbedded() generates a name format for an embed form');
-$t->is($f->generateNameFormatForEmbedded('author', 'article[%s]'), 'article[author][%s]', '->generateNameFormatForEmbedded() generates a name format for an embed form');
-
 // ->embedForm()
 $t->diag('->embedForm()');
+
 $author = new FormTest(array('first_name' => 'Fabien'));
 $author->setWidgetSchema($author_widget_schema = new sfWidgetFormSchema(array('first_name' => new sfWidgetFormInput())));
 $author->setValidatorSchema($author_validator_schema = new sfValidatorSchema(array('first_name' => new sfValidatorString(array('min_length' => 2)))));
+
+$company = new FormTest();
+$company->setWidgetSchema($company_widget_schema = new sfWidgetFormSchema(array('name' => new sfWidgetFormInput())));
+$company->setValidatorSchema($company_validator_schema = new sfValidatorSchema(array('name' => new sfValidatorString(array('min_length' => 2)))));
+
 $article = new FormTest();
 $article->setWidgetSchema($article_widget_schema = new sfWidgetFormSchema(array('title' => new sfWidgetFormInput())));
 $article->setValidatorSchema($article_validator_schema = new sfValidatorSchema(array('title' => new sfValidatorString(array('min_length' => 2)))));
 
+$author->embedForm('company', $company);
 $article->embedForm('author', $author);
 $v = $article->getValidatorSchema();
 $w = $article->getWidgetSchema();
 $d = $article->getDefaults();
 
-$t->is($v['author']['first_name'], $author_validator_schema['first_name'], '->embedForm() embeds the validator schema');
-$t->is($w['author']['first_name'], $author_widget_schema['first_name'], '->embedForm() embeds the widget schema');
+$w->setNameFormat('article[%s]');
+
+$t->ok($v['author']['first_name'] == $author_validator_schema['first_name'], '->embedForm() embeds the validator schema');
+$t->ok($w['author']['first_name'] == $author_widget_schema['first_name'], '->embedForm() embeds the widget schema');
 $t->is($d['author']['first_name'], 'Fabien', '->embedForm() merges default values from the embedded form');
 $t->is($v['author'][sfForm::getCSRFFieldName()], null, '->embedForm() removes the CSRF token for the embedded form');
 $t->is($w['author'][sfForm::getCSRFFieldName()], null, '->embedForm() removes the CSRF token for the embedded form');
+
+$t->is($w['author']->generateName('first_name'), 'article[author][first_name]', '->embedForm() changes the name format to reflect the embedding');
+$t->is($w['author']['company']->generateName('name'), 'article[author][company][name]', '->embedForm() changes the name format to reflect the embedding');
 
 // ->embedFormForEach()
 $t->diag('->embedFormForEach()');
@@ -251,15 +252,18 @@ $article->embedFormForEach('authors', $author, 2);
 $v = $article->getValidatorSchema();
 $w = $article->getWidgetSchema();
 $d = $article->getDefaults();
+$w->setNameFormat('article[%s]');
 
 for ($i = 0; $i < 2; $i++)
 {
-  $t->is($v['authors'][$i]['first_name'], $author_validator_schema['first_name'], '->embedFormForEach() embeds the validator schema');
-  $t->is($w['authors'][$i]['first_name'], $author_widget_schema['first_name'], '->embedFormForEach() embeds the widget schema');
+  $t->ok($v['authors'][$i]['first_name'] == $author_validator_schema['first_name'], '->embedFormForEach() embeds the validator schema');
+  $t->ok($w['authors'][$i]['first_name'] == $author_widget_schema['first_name'], '->embedFormForEach() embeds the widget schema');
   $t->is($d['authors'][$i]['first_name'], 'Fabien', '->embedFormForEach() merges default values from the embedded forms');
   $t->is($v['authors'][$i][sfForm::getCSRFFieldName()], null, '->embedFormForEach() removes the CSRF token for the embedded forms');
   $t->is($w['authors'][$i][sfForm::getCSRFFieldName()], null, '->embedFormForEach() removes the CSRF token for the embedded forms');
 }
+
+$t->is($w['authors'][0]->generateName('first_name'), 'article[authors][0][first_name]', '->embedFormForEach() changes the name format to reflect the embedding');
 
 // ::convertFileInformation()
 $t->diag('::convertFileInformation()');
@@ -423,3 +427,21 @@ $expected = array(
 );
 $t->is_deeply(sfForm::convertFileInformation($input), $expected, '::convertFileInformation() converts $_FILES to be coherent with $_GET and $_POST naming convention');
 $t->is_deeply(sfForm::convertFileInformation($expected), $expected, '::convertFileInformation() converts $_FILES to be coherent with $_GET and $_POST naming convention');
+
+// __clone()
+$t->diag('__clone()');
+$a = new FormTest();
+$a->setValidatorSchema(new sfValidatorSchema(array(
+  'first_name' => new sfValidatorString(array('min_length' => 2)),
+)));
+$a->bind(array('first_name' => 'F'));
+$a1 = clone $a;
+
+$t->ok($a1->getValidatorSchema() !== $a->getValidatorSchema(), '__clone() clones the validator schema');
+$t->ok($a1->getValidatorSchema() == $a->getValidatorSchema(), '__clone() clones the validator schema');
+
+$t->ok($a1->getWidgetSchema() !== $a->getWidgetSchema(), '__clone() clones the widget schema');
+$t->ok($a1->getWidgetSchema() == $a->getWidgetSchema(), '__clone() clones the widget schema');
+
+$t->ok($a1->getErrorSchema() !== $a->getErrorSchema(), '__clone() clones the error schema');
+$t->ok($a1->getErrorSchema()->getMessage() == $a->getErrorSchema()->getMessage(), '__clone() clones the error schema');

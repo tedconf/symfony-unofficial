@@ -3,7 +3,7 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- * 
+ *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -130,7 +130,7 @@ class myTestBrowser extends sfTestBrowser
     ;
 
     // remove all cache
-    sfToolkit::clearDirectory(sfConfig::get('sf_app_cache_dir'));
+    $this->getContext()->getViewCacheManager()->getCache()->clean(sfCache::ALL);
 
     $b->
       getMultiAction()->
@@ -145,7 +145,7 @@ class myTestBrowser extends sfTestBrowser
     ;
 
     // remove all cache
-    sfToolkit::clearDirectory(sfConfig::get('sf_app_cache_dir'));
+    $this->getContext()->getViewCacheManager()->getCache()->clean(sfCache::ALL);
 
     $b->
       getMultiAction('requestParam')->
@@ -204,7 +204,7 @@ class myTestBrowser extends sfTestBrowser
     ;
 
     // remove all cache
-    sfToolkit::clearDirectory(sfConfig::get('sf_app_cache_dir'));
+    $this->getContext()->getViewCacheManager()->getCache()->clean(sfCache::ALL);
 
     // check user supplied cache key for partials and components
     $b->
@@ -230,7 +230,7 @@ class myTestBrowser extends sfTestBrowser
     // check cache content for actions
 
     // remove all cache
-    sfToolkit::clearDirectory(sfConfig::get('sf_app_cache_dir'));
+    $this->getContext()->getViewCacheManager()->getCache()->clean(sfCache::ALL);
 
     $b->
       get('/cache/action')->

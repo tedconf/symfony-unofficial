@@ -207,22 +207,14 @@ class sfForm implements ArrayAccess
    *
    * @param string The field name
    * @param sfForm A sfForm instance
-   * @param string The format to use for widget name
    * @param string A HTML decorator for the embedded form
    */
-  public function embedForm($name, sfForm $form, $nameFormat = null, $decorator = null)
+  public function embedForm($name, sfForm $form, $decorator = null)
   {
-    // change the name format for the embedded widget
-    if (is_null($nameFormat))
-    {
-      $nameFormat = $this->generateNameFormatForEmbedded($name, $this->widgetSchema->getNameFormat());
-    }
-
     $form = clone $form;
     unset($form[self::$CSRFFieldName]);
 
     $widgetSchema = $form->getWidgetSchema();
-    $widgetSchema->setNameFormat($nameFormat);
 
     $this->setDefault($name, $form->getDefaults());
 
@@ -239,21 +231,16 @@ class sfForm implements ArrayAccess
    *
    * @param string  The field name
    * @param sfForm  A sfForm instance
-   * @param integer The number of times to include the form
-   * @param string  The format to use for widget name
+   * @param integer The number of times to embed the form
    * @param string  A HTML decorator for the main form around embedded forms
    * @param string  A HTML decorator for each embedded form
    */
-  public function embedFormForEach($name, sfForm $form, $n, $nameFormat = null, $decorator = null, $innerDecorator = null, $attributes = array(), $options = array(), $labels = array())
+  public function embedFormForEach($name, sfForm $form, $n, $decorator = null, $innerDecorator = null, $attributes = array(), $options = array(), $labels = array())
   {
-    // change the name format for the embedded widget
-    if (is_null($nameFormat))
-    {
-      $nameFormat = $this->generateNameFormatForEmbedded($name, $this->widgetSchema->getNameFormat());
-    }
-
     $form = clone $form;
     unset($form[self::$CSRFFieldName]);
+
+    $widgetSchema = $form->getWidgetSchema();
 
     // generate labels and default values
     $defaults = array();
@@ -261,7 +248,7 @@ class sfForm implements ArrayAccess
     {
       if (!isset($labels[$i]))
       {
-        $labels[$i] = sprintf('%s (%s)', $form->getWidgetSchema()->generateLabelName($name), $i);
+        $labels[$i] = sprintf('%s (%s)', $widgetSchema->generateLabelName($name), $i);
       }
 
       $defaults[$i] = $form->getDefaults();
@@ -269,10 +256,10 @@ class sfForm implements ArrayAccess
 
     $this->setDefault($name, $defaults);
 
-    $decorator = is_null($decorator) ? $form->getWidgetSchema()->getFormFormatter()->getDecoratorFormat() : $decorator;
-    $innerDecorator = is_null($innerDecorator) ? $form->getWidgetSchema()->getFormFormatter()->getDecoratorFormat() : $innerDecorator;
+    $decorator = is_null($decorator) ? $widgetSchema->getFormFormatter()->getDecoratorFormat() : $decorator;
+    $innerDecorator = is_null($innerDecorator) ? $widgetSchema->getFormFormatter()->getDecoratorFormat() : $innerDecorator;
 
-    $this->widgetSchema[$name] = new sfWidgetFormSchemaDecorator(new sfWidgetFormSchemaForEach($nameFormat, new sfWidgetFormSchemaDecorator($form->getWidgetSchema(), $innerDecorator), $n, $attributes, $options, $labels), $decorator);
+    $this->widgetSchema[$name] = new sfWidgetFormSchemaDecorator(new sfWidgetFormSchemaForEach(new sfWidgetFormSchemaDecorator($widgetSchema, $innerDecorator), $n, $attributes, $options, $labels), $decorator);
     $this->validatorSchema[$name] = new sfValidatorSchemaForEach($form->getValidatorSchema(), $n);
 
     $this->resetFormFields();
@@ -572,7 +559,9 @@ class sfForm implements ArrayAccess
 
       $values = $this->isBound ? $this->taintedValues : $this->defaults;
 
-      $this->formFields[$name] = new sfFormField($widget, $this->getFormField(), $name, isset($values[$name]) ? $values[$name] : null, $this->errorSchema[$name]);
+      $class = $widget instanceof sfWidgetFormSchema ? 'sfFormFieldSchema' : 'sfFormField';
+
+      $this->formFields[$name] = new $class($widget, $this->getFormField(), $name, isset($values[$name]) ? $values[$name] : null, $this->errorSchema[$name]);
     }
 
     return $this->formFields[$name];
@@ -608,41 +597,16 @@ class sfForm implements ArrayAccess
   /**
    * Returns a form field for the main widget schema.
    *
-   * @return sfFormField A sfFormField instance
+   * @return sfFormFieldSchema A sfFormFieldSchema instance
    */
   protected function getFormField()
   {
     if (is_null($this->formField))
     {
-      $this->formField = new sfFormField($this->widgetSchema, null, null, $this->isBound ? $this->taintedValues : $this->defaults, $this->errorSchema);
+      $this->formField = new sfFormFieldSchema($this->widgetSchema, null, null, $this->isBound ? $this->taintedValues : $this->defaults, $this->errorSchema);
     }
 
     return $this->formField;
-  }
-
-  /**
-   * Generates a name format for embedded forms.
-   *
-   * @param  string The widget name
-   * @param  string The current name format
-   *
-   * @return string The name format to use for embedding
-   *
-   * @see embedFormForEach()
-   * @see embedForm()
-   */
-  protected function generateNameFormatForEmbedded($name, $nameFormat)
-  {
-    // if current name format is something[%s], change it to something[$name][%s]
-    // else change it to $name[%s]
-    if ('[%s]' === substr($nameFormat, -4))
-    {
-      return sprintf('%s[%s][%%s]', substr($nameFormat, 0, -4), $name);
-    }
-    else
-    {
-      return sprintf('%s[%%s]', $name);
-    }
   }
 
   /**
@@ -731,5 +695,14 @@ class sfForm implements ArrayAccess
     }
 
     return $str;
+  }
+
+  public function __clone()
+  {
+    $this->widgetSchema    = clone $this->widgetSchema;
+    $this->validatorSchema = clone $this->validatorSchema;
+
+    // we rebind the cloned form because Exceptions are not clonable
+    $this->bind($this->taintedValues, $this->taintedFiles);
   }
 }

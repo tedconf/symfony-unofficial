@@ -16,26 +16,25 @@
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  * @version    SVN: $Id$
  */
-class sfFormField implements ArrayAccess
+class sfFormField
 {
   protected
     $widget = null,
     $parent = null,
     $name   = '',
     $value  = null,
-    $error  = null,
-    $fields = array();
+    $error  = null;
 
   /**
    * Constructor.
    *
-   * @param sfWidget         A sfWidget instance
+   * @param sfWidgetForm     A sfWidget instance
    * @param sfFormField      The sfFormField parent instance (null for the root widget)
    * @param string           The field name
    * @param string           The field value
    * @param sfValidatorError A sfValidatorError instance
    */
-  public function __construct(sfWidget $widget, sfFormField $parent = null, $name, $value, sfValidatorError $error = null)
+  public function __construct(sfWidgetForm $widget, sfFormField $parent = null, $name, $value, sfValidatorError $error = null)
   {
     $this->widget = $widget;
     $this->parent = $parent;
@@ -79,14 +78,16 @@ class sfFormField implements ArrayAccess
    */
   public function renderRow($help = '')
   {
-    if ($this->widget instanceof sfWidgetFormSchema)
+    if (is_null($this->parent))
     {
-      throw new LogicException('Unable to format a row on a sfWidgetFormSchema.');
+      throw new LogicException(sprintf('Unable to render the row for "%s".', $this->name));
     }
 
     $field = $this->parent->getWidget()->renderField($this->name, $this->value, $this->error);
 
-    return strtr($this->parent->getWidget()->getFormFormatter()->formatRow($this->renderLabel(), $field, $this->error, $help), array('%hidden_fields%' => ''));
+    $error = $this->error instanceof sfValidatorErrorSchema ? $this->error->getGlobalErrors() : $this->error;
+
+    return strtr($this->parent->getWidget()->getFormFormatter()->formatRow($this->renderLabel(), $field, $error, $help), array('%hidden_fields%' => ''));
   }
 
   /**
@@ -94,18 +95,18 @@ class sfFormField implements ArrayAccess
    *
    * The formatted list will use the parent widget schema formatter.
    *
-   * @param  string The widget name
-   *
    * @return string The formatted error list
    */
   public function renderError()
   {
-    if ($this->widget instanceof sfWidgetFormSchema)
+    if (is_null($this->parent))
     {
-      throw new LogicException('Unable to format an error list on a sfWidgetFormSchema.');
+      throw new LogicException(sprintf('Unable to render the error for "%s".', $this->name));
     }
 
-    return $this->parent->getWidget()->getFormFormatter()->formatErrorsForRow($this->error);
+    $error = $this->error instanceof sfValidatorErrorSchema ? $this->error->getGlobalErrors() : $this->error;
+
+    return $this->parent->getWidget()->getFormFormatter()->formatErrorsForRow($error);
   }
 
   /**
@@ -115,9 +116,9 @@ class sfFormField implements ArrayAccess
    */
   public function renderLabel()
   {
-    if ($this->widget instanceof sfWidgetFormSchema)
+    if (is_null($this->parent))
     {
-      throw new LogicException('Unable to render a label on a sfWidgetFormSchema.');
+      throw new LogicException(sprintf('Unable to render the label for "%s".', $this->name));
     }
 
     return $this->parent->getWidget()->generateLabel($this->name);
@@ -130,9 +131,9 @@ class sfFormField implements ArrayAccess
    */
   public function renderLabelName()
   {
-    if ($this->widget instanceof sfWidgetFormSchema)
+    if (is_null($this->parent))
     {
-      throw new LogicException('Unable to render a label name on a sfWidgetFormSchema.');
+      throw new LogicException(sprintf('Unable to render the label name for "%s".', $this->name));
     }
 
     return $this->parent->getWidget()->generateLabelName($this->name);
@@ -196,69 +197,5 @@ class sfFormField implements ArrayAccess
   public function hasError()
   {
     return !is_null($this->error) && count($this->error);
-  }
-
-  /**
-   * Returns true if the bound field exists (implements the ArrayAccess interface).
-   *
-   * @param  string  The name of the bound field
-   *
-   * @return Boolean true if the widget exists, false otherwise
-   */
-  public function offsetExists($name)
-  {
-    return $this->widget instanceof sfWidgetFormSchema ? isset($this->widget[$name]) : false;
-  }
-
-  /**
-   * Returns the form field associated with the name (implements the ArrayAccess interface).
-   *
-   * @param  string      The offset of the value to get
-   *
-   * @return sfFormField A form field instance
-   */
-  public function offsetGet($name)
-  {
-    if (!isset($this->fields[$name]))
-    {
-      if (!$this->widget instanceof sfWidgetFormSchema)
-      {
-        throw new LogicException(sprintf('Cannot get a form field on a non widget schema (%s given).', get_class($this->widget)));
-      }
-
-      if (is_null($widget = $this->widget[$name]))
-      {
-        throw new InvalidArgumentException(sprintf('Widget "%s" does not exist.', $name));
-      }
-
-      $this->fields[$name] = new sfFormField($widget, $this, $name, isset($this->value[$name]) ? $this->value[$name] : null, isset($this->error[$name]) ? $this->error[$name] : null);
-    }
-
-    return $this->fields[$name];
-  }
-
-  /**
-   * Throws an exception saying that values cannot be set (implements the ArrayAccess interface).
-   *
-   * @param string (ignored)
-   * @param string (ignored)
-   *
-   * @throws <b>LogicException</b>
-   */
-  public function offsetSet($offset, $value)
-  {
-    throw new LogicException('Cannot update form fields (read-only).');
-  }
-
-  /**
-   * Throws an exception saying that values cannot be unset (implements the ArrayAccess interface).
-   *
-   * @param string (ignored)
-   *
-   * @throws LogicException
-   */
-  public function offsetUnset($offset)
-  {
-    throw new LogicException('Cannot remove form fields (read-only).');
   }
 }
