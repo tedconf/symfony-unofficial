@@ -209,7 +209,14 @@ class sfViewConfigHandler extends sfYamlConfigHandler
 
     if ($this->getConfigValue('has_layout', $viewName) && false !== $layout = $this->getConfigValue('layout', $viewName))
     {
-      $data = "  \$this->setDecoratorTemplate('$layout'.\$this->getExtension());\n";
+      if(strpos($layout, '/'))
+      {
+        list($module, $layout) = explode('/', $layout, 2);
+
+        $data .= "  \$this->setDecoratorDirectory(sfLoader::getTemplateDir('$module', '$layout'.\$this->getExtension()));\n";
+      }
+
+      $data .= "  \$this->setDecoratorTemplate('$layout'.\$this->getExtension());\n";
     }
 
     // For XMLHttpRequest, we want no layout by default
