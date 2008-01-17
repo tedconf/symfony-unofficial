@@ -14,3 +14,6 @@ default_index:
 
 default:
   url:   /:module/:action/*
+
+sf_cache_partial:
+  url:   /sf_cache_partial/:module/:action/:sf_cache_key.
