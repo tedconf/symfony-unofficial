@@ -85,10 +85,26 @@ class sfException extends Exception
     return $response;
   }
 
+  public function printStackTrace()
+  {
+    $exception = is_null($this->wrappedException) ? $this : $this->wrappedException;
+
+    try
+    {
+      $content = self::getStackTrace($exception);
+    }
+    catch (Exception $e)
+    {
+      $content = $e->getMessage();
+    }
+
+    echo $content;
+  }
+
   /**
    * Gets the stack trace for this exception.
    */
-  static protected function getStackTrace($exception)
+  static public function getStackTrace($exception)
   {
     if (class_exists('sfContext', false) && sfContext::hasInstance())
     {
@@ -112,12 +128,12 @@ class sfException extends Exception
       $file = sfConfig::get('sf_web_dir').'/errors/error500.php';
 
       ob_start();
-      include is_readable($file) ? $file : sfConfig::get('sf_symfony_data_dir').'/web/errors/error500.php';
+      require(is_readable($file) ? $file : sfConfig::get('sf_symfony_data_dir').'/web/errors/error500.php');
 
       return ob_get_clean();
     }
 
-    $message = null !== $exception->getMessage() ? $exception->getMessage() : 'n/a';
+    $message = (null !== $exception->getMessage()) ? $exception->getMessage() : 'n/a';
     $name    = get_class($exception);
     $format  = 0 == strncasecmp(PHP_SAPI, 'cli', 3) ? 'plain' : 'html';
     $traces  = self::getTraces($exception, $format);
@@ -135,7 +151,7 @@ class sfException extends Exception
     }
 
     ob_start();
-    include sfConfig::get('sf_symfony_data_dir').'/data/exception.'.($format == 'html' ? 'php' : 'txt');
+    require(sfConfig::get('sf_symfony_data_dir').'/data/exception.'.(($format == 'html') ? 'php' : 'txt'));
 
     return ob_get_clean();
   }

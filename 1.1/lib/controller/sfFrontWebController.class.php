@@ -29,6 +29,7 @@ class sfFrontWebController extends sfWebController
    */
   public function dispatch()
   {
+
     try
     {
       if (sfConfig::get('sf_logging_enabled'))
@@ -57,5 +58,6 @@ class sfFrontWebController extends sfWebController
     }
 
     $this->context->getResponse()->send();
+
   }
 }
