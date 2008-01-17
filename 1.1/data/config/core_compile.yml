@@ -6,9 +6,7 @@
 #- %SF_SYMFONY_LIB_DIR%/cache/sfCache.class.php
 
 # symfony core classes
-- %SF_SYMFONY_LIB_DIR%/util/sfToolkit.class.php
 - %SF_SYMFONY_LIB_DIR%/util/sfInflector.class.php
-- %SF_SYMFONY_LIB_DIR%/util/sfFinder.class.php
 - %SF_SYMFONY_LIB_DIR%/action/sfComponent.class.php
 - %SF_SYMFONY_LIB_DIR%/action/sfComponents.class.php
 - %SF_SYMFONY_LIB_DIR%/action/sfAction.class.php
