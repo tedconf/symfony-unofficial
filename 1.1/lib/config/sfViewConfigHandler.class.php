@@ -209,13 +209,6 @@ class sfViewConfigHandler extends sfYamlConfigHandler
 
     if ($this->getConfigValue('has_layout', $viewName) && false !== $layout = $this->getConfigValue('layout', $viewName))
     {
-      if(strpos($layout, '/') == 1)
-      {
-        list($module, $layout) = explode('/', $layout, 2);
-
-        $data .= "  \$this->setDecoratorDirectory(sfLoader::getTemplateDir('$module', '$layout'.\$this->getExtension()));\n";
-      }
-
       $data .= "  \$this->setDecoratorTemplate('$layout'.\$this->getExtension());\n";
     }
 
