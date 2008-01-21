@@ -10,16 +10,16 @@
 
 require_once(dirname(__FILE__).'/../../bootstrap/unit.php');
 
-$t = new lime_test(5, new lime_output_color());
+$t = new lime_test(7, new lime_output_color());
 
-function clean_test($validator, $value)
+function clean_test($validator, $value, $arguments)
 {
   if ($value != 'foo')
   {
     throw new sfValidatorError($validator, 'must_be_foo');
   }
 
-  return "*$value*";
+  return "*$value*".implode('-', $arguments);
 }
 
 // __construct()
@@ -36,23 +36,30 @@ catch (RuntimeException $e)
 
 $v = new sfValidatorCallback(array('callback' => 'clean_test'));
 
+// ->configure()
+$t->diag('->configure()');
+$t->is($v->clean(''), null, '->configure() switch required to false by default');
+
 // ->clean()
 $t->diag('->clean()');
 $t->is($v->clean('foo'), '*foo*', '->clean() calls our validator callback');
 try
 {
   $v->clean('bar');
-  $t->fail('->clean() calls our validator callback');
+  $t->fail('->clean() throws a sfValidatorError');
+  $t->skip('', 1);
 }
 catch (sfValidatorError $e)
 {
-  $t->pass('->clean() calls our validator callback');
+  $t->pass('->clean() throws a sfValidatorError');
+  $t->is($e->getCode(), 'must_be_foo', '->clean() throws a sfValidatorError');
 }
 
-// ->configure()
-$t->diag('->configure()');
-$t->is($v->clean(''), null, '->configure() switch required to false by default');
+$t->diag('callback with arguments');
+$v = new sfValidatorCallback(array('callback' => 'clean_test', 'arguments' => array('fabien', 'symfony')));
+$t->is($v->clean('foo'), '*foo*fabien-symfony', '->configure() can take an arguments option');
 
 // ->asString()
 $t->diag('->asString()');
+$v = new sfValidatorCallback(array('callback' => 'clean_test'));
 $t->is($v->asString(), 'Callback({ callback: clean_test })', '->asString() returns a string representation of the validator');

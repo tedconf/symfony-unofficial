@@ -12,23 +12,23 @@ class Base<?php echo $this->table->getPhpName() ?>Form extends BaseFormPropel
 {
   public function setup()
   {
-    $this->setWidgetSchema(new sfWidgetFormSchema(array(
+    $this->setWidgets(array(
 <?php foreach ($this->table->getColumns() as $column): ?>
       '<?php echo strtolower($column->getColumnName()) ?>'<?php echo str_repeat(' ', $this->getColumnNameMaxLength() - strlen($column->getColumnName())) ?> => new <?php echo $this->getWidgetClassForColumn($column) ?>(<?php echo $this->getWidgetOptionsForColumn($column) ?>),
 <?php endforeach; ?>
 <?php foreach ($this->getManyToManyTables() as $tables): ?>
-      '<?php echo $tables['relatedTable']->getName() ?>_list'<?php echo str_repeat(' ', $this->getColumnNameMaxLength() - strlen($tables['relatedTable']->getName().'_list')) ?> => new sfWidgetFormSelectMany(array('choices' => new sfCallable(array($this, 'get<?php echo $tables['relatedTable']->getPhpName() ?>Choices')))),
+      '<?php echo $tables['relatedTable']->getName() ?>_list'<?php echo str_repeat(' ', $this->getColumnNameMaxLength() - strlen($tables['relatedTable']->getName().'_list')) ?> => new sfWidgetFormSelectMany(array('choices' => new sfCallable(array($this, 'get<?php echo $tables['middleTable']->getPhpName() ?>Choices')))),
 <?php endforeach; ?>
-    )));
+    ));
 
-    $this->setValidatorSchema(new sfValidatorSchema(array(
+    $this->setValidators(array(
 <?php foreach ($this->table->getColumns() as $column): ?>
       '<?php echo strtolower($column->getColumnName()) ?>'<?php echo str_repeat(' ', $this->getColumnNameMaxLength() - strlen($column->getColumnName())) ?> => new <?php echo $this->getValidatorClassForColumn($column) ?>(<?php echo $this->getValidatorOptionsForColumn($column) ?>),
 <?php endforeach; ?>
 <?php foreach ($this->getManyToManyTables() as $tables): ?>
-      '<?php echo $tables['relatedTable']->getName() ?>_list'<?php echo str_repeat(' ', $this->getColumnNameMaxLength() - strlen($tables['relatedTable']->getName().'_list')) ?> => new sfValidatorChoiceMany(array('choices' => new sfCallable(array($this, 'get<?php echo $tables['relatedTable']->getPhpName() ?>IdentifierChoices')))),
+      '<?php echo $tables['relatedTable']->getName() ?>_list'<?php echo str_repeat(' ', $this->getColumnNameMaxLength() - strlen($tables['relatedTable']->getName().'_list')) ?> => new sfValidatorChoiceMany(array('choices' => new sfCallable(array($this, 'get<?php echo $tables['middleTable']->getPhpName() ?>IdentifierChoices')), 'required' => false)),
 <?php endforeach; ?>
-    )));
+    ));
 
     $this->widgetSchema->setNameFormat('<?php echo $this->table->getName() ?>[%s]');
 
@@ -54,7 +54,7 @@ class Base<?php echo $this->table->getPhpName() ?>Form extends BaseFormPropel
   }
 <?php endif; ?>
 
-<?php foreach ($this->getForeignKeyNames() as $name): ?>
+<?php foreach ($this->getForeignKeyNames() as $info): $name = $info[1] ?>
   public function get<?php echo $name ?>IdentifierChoices()
   {
     return array_keys($this->get<?php echo $name ?>Choices());
@@ -64,8 +64,8 @@ class Base<?php echo $this->table->getPhpName() ?>Form extends BaseFormPropel
   {
     if (!isset($this-><?php echo $name ?>Choices))
     {
-      $this-><?php echo $name ?>Choices = array();
-      foreach (<?php echo $name ?>Peer::doSelect(new Criteria(), $this->getConnection()) as $object)
+      $this-><?php echo $name ?>Choices = array(<?php !$info[2] && !$info[3] and print "'' => ''" ?>);
+      foreach (<?php echo $info[0] ?>Peer::doSelect(new Criteria(), $this->getConnection()) as $object)
       {
         $this-><?php echo $name ?>Choices[$object->get<?php echo $this->getPrimaryKey()->getPhpName() ?>()] = $object->__toString();
       }

@@ -12,7 +12,7 @@
  * Base class for all symfony tasks.
  *
  * @package    symfony
- * @subpackage command
+ * @subpackage task
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  * @version    SVN: $Id$
  */
@@ -66,6 +66,11 @@ abstract class sfBaseTask extends sfTask
    */
   public function bootstrapSymfony($app, $env = 'dev', $debug = true)
   {
+    if (defined('SF_ROOT_DIR'))
+    {
+      return;
+    }
+
     define('SF_ROOT_DIR',    sfConfig::get('sf_root_dir'));
     define('SF_APP',         $app);
     define('SF_ENVIRONMENT', $env);

@@ -3,7 +3,7 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- * 
+ *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -35,17 +35,17 @@ $autoload->removeCache();
 // cache autoload files
 require_once($h->base_dir.'/bootstrap/unit.php');
 
-// unit tests
-$h->register_glob($h->base_dir.'/unit/*/*Test.php');
-$h->register_glob($h->base_dir.'/../lib/plugins/*/test/unit/*Test.php');
-$h->register_glob($h->base_dir.'/../lib/plugins/*/test/unit/*/*Test.php');
+$h->register(sfFinder::type('file')->prune('fixtures')->name('*Test.php')->in(array_merge(
+  // unit tests
+  array($h->base_dir.'/unit'),
+  glob($h->base_dir.'/../lib/plugins/*/test/unit'),
 
-// functional tests
-$h->register_glob($h->base_dir.'/functional/*Test.php');
-$h->register_glob($h->base_dir.'/functional/*/*Test.php');
-$h->register_glob($h->base_dir.'/../lib/plugins/*/test/functional/*Test.php');
+  // functional tests
+  array($h->base_dir.'/functional'),
+  glob($h->base_dir.'/../lib/plugins/*/test/functional'),
 
-// other tests
-$h->register_glob($h->base_dir.'/other/*Test.php');
+  // other tests
+  array($h->base_dir.'/other')
+)));
 
 $h->run();

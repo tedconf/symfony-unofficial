@@ -9,16 +9,28 @@
  */
 
 /**
- * core symfony class.
+ * Core symfony class - loads symfony classes and bootstraps the symfony environment.
  *
  * @package    symfony
+ * @subpackage util
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  * @version    SVN: $Id$
  */
 class sfCore
 {
+  /**
+   * The current symfony version.
+   */
   const VERSION = '1.1.0-DEV';
 
+  /**
+   * Bootstraps the symfony environment.
+   *
+   * @param  string The path to the project directory.
+   * @param  mixed  The application name or null.
+   *
+   * @return void
+   */
   static public function bootstrap($sf_symfony_lib_dir, $sf_symfony_data_dir)
   {
     try
@@ -49,19 +61,21 @@ class sfCore
     }
   }
 
+  /**
+   * Loads symfony core classes and configuration.
+   *
+   * @return void
+   */
   static public function callBootstrap()
   {
     // force setting default timezone if not set
-    if (function_exists('date_default_timezone_get'))
+    if ($default_timezone = sfConfig::get('sf_default_timezone'))
     {
-      if ($default_timezone = sfConfig::get('sf_default_timezone'))
-      {
-        date_default_timezone_set($default_timezone);
-      }
-      else if (sfConfig::get('sf_force_default_timezone', true))
-      {
-        date_default_timezone_set(@date_default_timezone_get());
-      }
+      date_default_timezone_set($default_timezone);
+    }
+    else if (sfConfig::get('sf_force_default_timezone', true))
+    {
+      date_default_timezone_set(@date_default_timezone_get());
     }
 
     $configCache = sfConfigCache::getInstance();
@@ -83,7 +97,8 @@ class sfCore
     ini_set('display_errors', SF_DEBUG ? 'on' : 'off');
     error_reporting(sfConfig::get('sf_error_reporting'));
 
-    $configCache->import(sfConfig::get('sf_app_config_dir_name').'/php.yml', false);
+    ini_set('magic_quotes_runtime', 'off');
+    ini_set('register_globals', 'off');
 
     // include all config.php from plugins
     sfLoader::loadPluginConfig();
@@ -92,6 +107,15 @@ class sfCore
     ob_start(sfConfig::get('sf_compressed') ? 'ob_gzhandler' : '');
   }
 
+  /**
+   * Loads symfony core classes + configuration + autoloader.
+   *
+   * @param  string  The path to the project directory.
+   * @param  mixed   The application name or null.
+   * @param  boolean In a test?
+   *
+   * @return void
+   */
   static public function initConfiguration($sf_symfony_lib_dir, $sf_symfony_data_dir, $test = false)
   {
     // YAML support
@@ -141,6 +165,11 @@ class sfCore
     self::initDirectoryLayout(SF_ROOT_DIR, SF_APP, SF_ENVIRONMENT);
   }
 
+  /**
+   * Extends php include path to include symfony path.
+   *
+   * @return void
+   */
   static public function initIncludePath()
   {
     set_include_path(
@@ -152,7 +181,11 @@ class sfCore
     );
   }
 
-  // check to see if we're not in a cache cleaning process
+  /**
+   * Check lock files to see if we're not in a cache cleaning process.
+   *
+   * @return void
+   */
   static public function checkLock()
   {
     if (sfToolkit::hasLockFile(SF_ROOT_DIR.DIRECTORY_SEPARATOR.SF_APP.'_'.SF_ENVIRONMENT.'.lck', 5))
@@ -165,6 +198,11 @@ class sfCore
     }
   }
 
+  /**
+   * Checks symfony version and clears cache if recent update.
+   *
+   * @return void
+   */
   static public function checkSymfonyVersion()
   {
     // recent symfony update?
@@ -175,6 +213,15 @@ class sfCore
     }
   }
 
+  /**
+   * Initializes directory layout for the project.
+   *
+   * @param  string The path to the project directory.
+   * @param  mixed  The application name or null.
+   * @param  mixed  The environment name or null.
+   *
+   * @return void
+   */
   static public function initDirectoryLayout($sf_root_dir, $sf_app = null, $sf_environment = null)
   {
     sfConfig::add(array(

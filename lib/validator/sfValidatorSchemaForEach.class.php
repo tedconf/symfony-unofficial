@@ -9,7 +9,7 @@
  */
 
 /**
- * 
+ * sfValidatorSchemaForEach wraps a validator multiple times in a single validator.
  *
  * @package    symfony
  * @subpackage validator
@@ -33,9 +33,7 @@ class sfValidatorSchemaForEach extends sfValidatorSchema
     $fields = array();
     for ($i = 0; $i < $count; $i++)
     {
-      $clone = clone $validator;
-
-      $fields[$i] = $clone;
+      $fields[$i] = clone $validator;
     }
 
     parent::__construct($fields, $options, $messages);

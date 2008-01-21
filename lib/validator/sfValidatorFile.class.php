@@ -169,7 +169,9 @@ class sfValidatorFile extends sfValidator
   {
     foreach ($this->getOption('mime_type_guessers') as $method)
     {
-      if (!is_null($type = call_user_func($method, $file)))
+      $type = call_user_func($method, $file);
+
+      if (!is_null($type) && $type !== false)
       {
         return $type;
       }
@@ -272,6 +274,14 @@ class sfValidatorFile extends sfValidator
   }
 }
 
+/**
+ * sfValidatedFile represents a validated uploaded file.
+ *
+ * @package    symfony
+ * @subpackage validator
+ * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
+ * @version    SVN: $Id$
+ */
 class sfValidatedFile
 {
   protected

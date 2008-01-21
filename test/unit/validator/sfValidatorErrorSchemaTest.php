@@ -10,7 +10,7 @@
 
 require_once(dirname(__FILE__).'/../../bootstrap/unit.php');
 
-$t = new lime_test(19, new lime_output_color());
+$t = new lime_test(26, new lime_output_color());
 
 $v1 = new sfValidatorString();
 $v2 = new sfValidatorString();
@@ -31,16 +31,47 @@ $t->diag('->addError() ->getErrors()');
 $e = new sfValidatorErrorSchema($v1);
 $e->addError($e1);
 $e->addError($e2, 'e2');
-$e->addError($e1, 2);
-$t->is($e->getErrors(), array($e1, 'e2' => $e2, 2 => $e1), '->addError() adds an error to the error schema');
+$e->addError($e1, '2');
+$t->is($e->getErrors(), array($e1, 'e2' => $e2, '2' => $e1), '->addError() adds an error to the error schema');
+
+$t->diag('embedded errors');
+$es1 = new sfValidatorErrorSchema($v1, array($e1, 'e1' => $e1, 'e2' => $e2));
+$es = new sfValidatorErrorSchema($v1, array($e1, 'e1' => $e1, 'e2' => $es1));
+$es->addError($e2, 'e1');
+$t->is($es->getCode(), 'max_length e1 [max_length min_length] e2 [max_length e1 [max_length] e2 [min_length]]', '->addError() adds an error to the error schema');
+$es->addError($e2);
+$t->is($es->getCode(), 'max_length min_length e1 [max_length min_length] e2 [max_length e1 [max_length] e2 [min_length]]', '->addError() adds an error to the error schema');
+$es->addError($es1, 'e3');
+$t->is($es->getCode(), 'max_length min_length e1 [max_length min_length] e2 [max_length e1 [max_length] e2 [min_length]] e3 [max_length e1 [max_length] e2 [min_length]]', '->addError() adds an error to the error schema');
+$es->addError($es1);
+$t->is($es->getCode(), 'max_length min_length max_length e1 [max_length min_length max_length] e2 [max_length min_length e1 [max_length] e2 [min_length]] e3 [max_length e1 [max_length] e2 [min_length]]', '->addError() adds an error to the error schema');
+
+$es = new sfValidatorErrorSchema($v1, array($e1, 'e1' => $e1, 'e2' => $es1));
+$es2 = new sfValidatorErrorSchema($v1, array($e1, 'e1' => $e1, 'e2' => $es1));
+$es->addError($es2, 'e2');
+$t->is($es->getCode(), 'max_length e1 [max_length] e2 [max_length max_length e1 [max_length max_length] e2 [min_length max_length e1 [max_length] e2 [min_length]]]', '->addError() adds an error to the error schema');
+
+// ->addErrors()
+$t->diag('->addErrors()');
+$es1 = new sfValidatorErrorSchema($v1);
+$es1->addError($e1);
+$es1->addError($e2, '1');
+$es = new sfValidatorErrorSchema($v1);
+$es->addErrors($es1);
+$t->is($es->getGlobalErrors(), array($e1), '->addErrors() adds an array of errors to the current error');
+$t->is($es->getNamedErrors(), array('1' => $e2), '->addErrors() merges a sfValidatorErrorSchema to the current error');
 
 // ->getGlobalErrors()
 $t->diag('->getGlobalErrors()');
+$e = new sfValidatorErrorSchema($v1);
+$e->addError($e1);
+$e->addError($e2, 'e2');
+$e->addError($e1, '2');
 $t->is($e->getGlobalErrors(), array($e1), '->getGlobalErrors() returns all globals/non named errors');
 
 // ->getNamedErrors()
 $t->diag('->getNamedErrors()');
-$t->is($e->getNamedErrors(), array('e2' => $e2, 2 => $e1), '->getNamedErrors() returns all named errors');
+$t->is($e->getNamedErrors(), array('e2' => $e2, '2' => $e1), '->getNamedErrors() returns all named errors');
 
 // ->getValue()
 $t->diag('->getValue()');
@@ -70,20 +101,22 @@ $t->is(count($e), 2, '"sfValidatorError" implements Countable');
 
 // implements Iterator
 $t->diag('implements Iterator');
-$e = new sfValidatorErrorSchema($v1, array('e1' => $e1, 2 => $e2, $e2));
+$e = new sfValidatorErrorSchema($v1, array('e1' => $e1, $e2));
+$e->addError($e2, '2');
 $errors = array();
 foreach ($e as $name => $error)
 {
   $errors[$name] = $error;
 }
-$t->is($errors, array('e1' => $e1, 2 => $e2, $e2), 'sfValidatorErrorSchema implements the Iterator interface');
+$t->is($errors, array('e1' => $e1, 0 => $e2, '2' => $e2), 'sfValidatorErrorSchema implements the Iterator interface');
 
 // implements ArrayAccess
 $t->diag('implements ArrayAccess');
-$e = new sfValidatorErrorSchema($v1, array('e1' => $e1, $e2, 2 => $e2));
+$e = new sfValidatorErrorSchema($v1, array('e1' => $e1, $e2));
+$e->addError($e2, '2');
 $t->is($e['e1'], $e1, 'sfValidatorErrorSchema implements the ArrayAccess interface');
 $t->is($e[0], $e2, 'sfValidatorErrorSchema implements the ArrayAccess interface');
-$t->is($e[2], $e2, 'sfValidatorErrorSchema implements the ArrayAccess interface');
+$t->is($e['2'], $e2, 'sfValidatorErrorSchema implements the ArrayAccess interface');
 $t->is(isset($e['e1']), true, 'sfValidatorErrorSchema implements the ArrayAccess interface');
 $t->is(isset($e['e2']), false, 'sfValidatorErrorSchema implements the ArrayAccess interface');
 try

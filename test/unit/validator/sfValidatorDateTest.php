@@ -10,7 +10,7 @@
 
 require_once(dirname(__FILE__).'/../../bootstrap/unit.php');
 
-$t = new lime_test(18, new lime_output_color());
+$t = new lime_test(33, new lime_output_color());
 
 $v = new sfValidatorDate();
 
@@ -29,10 +29,12 @@ try
 {
   $v->clean('This is not a date');
   $t->fail('->clean() throws a sfValidatorError if the date is a string and is not parsable by strtotime');
+  $t->skip('', 1);
 }
 catch (sfValidatorError $e)
 {
   $t->pass('->clean() throws a sfValidatorError if the date is a string and is not parsable by strtotime');
+  $t->is($e->getCode(), 'invalid', '->clean() throws a sfValidatorError');
 }
 
 // validate timestamp
@@ -42,11 +44,23 @@ $t->is($v->clean(time()), date('Y-m-d', time()), '->clean() accepts timestamps a
 // validate date array
 $t->diag('validate date array');
 $t->is($v->clean(array('year' => 2005, 'month' => 10, 'day' => 15)), '2005-10-15', '->clean() accepts an array as an input');
-
+$t->is($v->clean(array('year' => '2005', 'month' => '10', 'day' => '15')), '2005-10-15', '->clean() accepts an array as an input');
+$t->is($v->clean(array('year' => '', 'month' => '', 'day' => '')), null, '->clean() accepts an array as an input');
+try
+{
+  $v->clean(array('year' => '', 'month' => 1, 'day' => 15));
+  $t->fail('->clean() throws a sfValidatorError if the date is not valid');
+}
+catch (sfValidatorError $e)
+{
+  $t->pass('->clean() throws a sfValidatorError if the date is not valid');
+  $t->skip('', 1);
+}
 try
 {
   $v->clean(array('year' => -2, 'month' => 1, 'day' => 15));
   $t->fail('->clean() throws a sfValidatorError if the date is not valid');
+  $t->is($e->getCode(), 'invalid', '->clean() throws a sfValidatorError');
 }
 catch (sfValidatorError $e)
 {
@@ -68,6 +82,7 @@ catch (sfValidatorError $e)
 {
   $t->pass('->clean() throws a sfValidatorError if the date does not match the regex');
   $t->like($e->getMessage(), '/'.preg_quote($v->getOption('date_format'), '/').'/', '->clean() returns the expected date format in the error message');
+  $t->is($e->getCode(), 'bad_format', '->clean() throws a sfValidatorError');
 }
 
 $v->setOption('date_format_error', 'dd/mm/YYYY');
@@ -87,6 +102,20 @@ $v->setOption('date_format', null);
 $t->diag('option with_time');
 $v->setOption('with_time', true);
 $t->is($v->clean(array('year' => 2005, 'month' => 10, 'day' => 15, 'hour' => 12, 'minute' => 10, 'second' => 15)), '2005-10-15 12:10:15', '->clean() accepts an array as an input');
+$t->is($v->clean(array('year' => '2005', 'month' => '10', 'day' => '15', 'hour' => '12', 'minute' => '10', 'second' => '15')), '2005-10-15 12:10:15', '->clean() accepts an array as an input');
+$t->is($v->clean(array('year' => '', 'month' => '', 'day' => '', 'hour' => '', 'minute' => '', 'second' => '')), null, '->clean() accepts an array as an input');
+$t->is($v->clean(array('year' => 2005, 'month' => 10, 'day' => 15, 'hour' => 12, 'minute' => 10, 'second' => '')), '2005-10-15 12:10:00', '->clean() accepts an array as an input');
+$t->is($v->clean(array('year' => 2005, 'month' => 10, 'day' => 15, 'hour' => 12, 'minute' => 10)), '2005-10-15 12:10:00', '->clean() accepts an array as an input');
+try
+{
+  $v->clean(array('year' => 2005, 'month' => 1, 'day' => 15, 'hour' => 12, 'minute' => '', 'second' => 12));
+  $t->fail('->clean() throws a sfValidatorError if the time is not valid');
+  $t->skip('', 1);
+}
+catch (sfValidatorError $e)
+{
+  $t->pass('->clean() throws a sfValidatorError if the time is not valid');
+}
 $t->is($v->clean('18 october 2005 12:30'), '2005-10-18 12:30:00', '->clean() can accept date time with the with_time option');
 $t->is($v->clean(time()), date('Y-m-d H:i:s', time()), '->clean() can accept date time with the with_time option');
 $v->setOption('date_format', '~(?P<day>\d{2})/(?P<month>\d{2})/(?P<year>\d{4})~');
@@ -103,3 +132,23 @@ $t->is($v->clean(time()), time(), '->clean() output format can be change with th
 $v->setOption('datetime_output', 'U');
 $v->setOption('with_time', true);
 $t->is($v->clean(time()), time(), '->clean() output format can be change with the date_output option');
+
+// required
+$v = new sfValidatorDate();
+foreach (array(
+  array('year' => '', 'month' => '', 'day' => ''),
+  array('year' => null, 'month' => null, 'day' => null),
+  '',
+  null,
+) as $input)
+{
+  try
+  {
+    $v->clean($input);
+    $t->fail('->clean() throws an exception if the date is empty and required is true');
+  }
+  catch (sfValidatorError $e)
+  {
+    $t->pass('->clean() throws an exception if the date is empty and required is true');
+  }
+}
