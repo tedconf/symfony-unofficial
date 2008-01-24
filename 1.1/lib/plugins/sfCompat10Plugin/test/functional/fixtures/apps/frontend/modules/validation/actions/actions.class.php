@@ -27,4 +27,14 @@ class validationActions extends sfActions
   {
     return sfView::SUCCESS;
   }
+
+  public function executeSimple()
+  {
+    $this->getResponse()->setHttpHeader('X-Test', 'HERE');
+  }
+
+  public function handleErrorSimple()
+  {
+    return sfView::SUCCESS;
+  }
 }

@@ -3,7 +3,7 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- * 
+ *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -136,3 +136,23 @@ $b->
   checkResponseElement('body ul[class="errors"] li[class="input3"]', false)->
   checkResponseElement('body ul[class="errors"] li[class="input4"]', 'Required')
 ;
+
+// HEAD == GET
+$b->test()->diag('test HEAD == GET');
+$b->
+  get('/validation/simple', array('first_name' => 'f', 'last_name' => 'p'))->
+  isStatusCode(200)->
+  isRequestParameter('module', 'validation')->
+  isRequestParameter('action', 'simple')
+;
+$headers = $b->getResponse()->getHttpHeaders();
+$b->test()->ok(!isset($headers['X-Test']), 'Validation for GET is also triggered by HEAD requests');
+
+$b->
+  call('/validation/simple', 'HEAD', array('first_name' => 'f', 'last_name' => 'p'))->
+  isStatusCode(200)->
+  isRequestParameter('module', 'validation')->
+  isRequestParameter('action', 'simple')
+;
+$headers = $b->getResponse()->getHttpHeaders();
+$b->test()->ok(!isset($headers['X-Test']), 'Validation for GET is also triggered by HEAD requests');

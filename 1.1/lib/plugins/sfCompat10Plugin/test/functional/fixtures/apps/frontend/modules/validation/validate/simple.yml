@@ -1,0 +1,17 @@
+methods:
+  get:  [first_name, last_name]
+  post: [first_name, last_name]
+
+names:
+  first_name:
+    required:     yes
+    validators:   [nameValidator]
+  last_name:
+    required:     yes
+    validators:   [nameValidator]
+
+nameValidator:
+  class:          sfStringValidator
+  param:
+    min:          5
+    min_error:    nameValidator

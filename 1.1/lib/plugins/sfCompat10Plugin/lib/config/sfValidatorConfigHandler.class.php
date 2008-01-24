@@ -63,8 +63,8 @@ class sfValidatorConfigHandler extends sfYamlConfigHandler
 
       if (!isset($methods[$method]))
       {
-        // make sure that this method is GET or POST
-        if ($method != 'GET' && $method != 'POST')
+        // make sure that this method is valid
+        if (!in_array($method, array('GET', 'POST', 'HEAD', 'PUT', 'DELETE')))
         {
           // unsupported request method
           throw new sfParseException(sprintf('Configuration file "%s" specifies unsupported request method "%s".', $configFiles[0], $method));
@@ -92,28 +92,48 @@ class sfValidatorConfigHandler extends sfYamlConfigHandler
 
     // generate GET file/parameter data
 
-    $data[] = "if (\$_SERVER['REQUEST_METHOD'] == 'GET')";
+    $data[] = "switch (\$this->context->getRequest()->getMethod())";
     $data[] = "{";
+    $data[] = "  case sfRequest::GET:";
+    $data[] = "  case sfRequest::HEAD:";
 
     $ret = $this->generateRegistration('GET', $data, $methods, $names, $validators);
 
     if ($ret)
     {
-      $data[] = sprintf("  \$this->context->getRequest()->setAttribute('symfony.fillin', %s);", $fillin);
+      $data[] = sprintf("    \$this->context->getRequest()->setAttribute('symfony.fillin', %s);", $fillin);
     }
+    $data[] = "    break;";
 
     // generate POST file/parameter data
-
-    $data[] = "}";
-    $data[] = "else if (\$_SERVER['REQUEST_METHOD'] == 'POST')";
-    $data[] = "{";
+    $data[] = "  case sfRequest::POST:";
 
     $ret = $this->generateRegistration('POST', $data, $methods, $names, $validators);
 
     if ($ret)
     {
-      $data[] = sprintf("  \$this->context->getRequest()->setAttribute('symfony.fillin', %s);", $fillin);
+      $data[] = sprintf("    \$this->context->getRequest()->setAttribute('symfony.fillin', %s);", $fillin);
     }
+    $data[] = "    break;";
+
+    $data[] = "  case sfRequest::PUT:";
+    $ret = $this->generateRegistration('PUT', $data, $methods, $names, $validators);
+
+    if ($ret)
+    {
+      $data[] = sprintf("    \$this->context->getRequest()->setAttribute('symfony.fillin', %s);", $fillin);
+    }
+    $data[] = "    break;";
+
+    $data[] = "  case sfRequest::DELETE:";
+    $ret = $this->generateRegistration('DELETE', $data, $methods, $names, $validators);
+
+    if ($ret)
+    {
+      $data[] = sprintf("    \$this->context->getRequest()->setAttribute('symfony.fillin', %s);", $fillin);
+    }
+    $data[] = "    break;";
+
 
     $data[] = "}";
 
