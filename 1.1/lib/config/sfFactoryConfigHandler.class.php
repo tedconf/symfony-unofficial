@@ -208,6 +208,9 @@ class sfFactoryConfigHandler extends sfYamlConfigHandler
                          "  \$class = sfConfig::get('sf_factory_logger', '%s');\n  \$this->factories['logger'] = new \$class(\$this->dispatcher, array_merge(array('auto_shutdown' => false), sfConfig::get('sf_factory_logger_parameters', %s)));\n".
                          "  %s"
                          , $class, var_export(is_array($parameters) ? $parameters : array(), true), $loggers);
+
+          $instances[] = "if (sfConfig::get('sf_logging_enabled')) { \$this->dispatcher->notify(new sfEvent(\$this, 'application.log', array('Initialization'))); }";
+
           break;
       }
     }
