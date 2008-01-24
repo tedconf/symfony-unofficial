@@ -124,7 +124,7 @@ class sfConfigCache
    *
    * The recompilation only occurs in a non debug environment.
    *
-   * If the configuration file path is relative, symfony will look in directories 
+   * If the configuration file path is relative, symfony will look in directories
    * defined in the sfLoader::getConfigPaths() method.
    *
    * @param string A filesystem path to a configuration file
@@ -321,17 +321,34 @@ class sfConfigCache
    */
   protected function writeCacheFile($config, $cache, $data)
   {
+    $current_umask = umask();
+    umask(0000);
+
     if (!is_dir(dirname($cache)))
     {
-      $current_umask = umask(0000);
+      // create directory structure if needed
       @mkdir(dirname($cache), 0777, true);
-      umask($current_umask);
     }
 
-    if (false === @file_put_contents($cache, $data))
+    if (!$fp = fopen($cache, 'wb'))
+    {
+      throw new sfCacheException(sprintf('Unable to write cache file "%s".', $cache));
+    }
+
+    @flock($fp, LOCK_EX);
+
+    if (false === @fwrite($fp, $data))
     {
       throw new sfCacheException(sprintf('Failed to write cache file "%s" generated from configuration file "%s".', $cache, $config));
     }
+
+    @flock($fp, LOCK_UN);
+    @fclose($fp);
+
+    // change file mode
+    chmod($cache, 0666);
+
+    umask($current_umask);
   }
 
   /**
@@ -347,7 +364,7 @@ class sfConfigCache
   }
 
   /**
-   * Merges configuration handlers from the config_handlers.yml  
+   * Merges configuration handlers from the config_handlers.yml
    * and the ones defined with registerConfigHandler()
    *
    */
