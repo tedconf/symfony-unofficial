@@ -7,8 +7,8 @@ require_once($root_dir.'/lib/util/sfFinder.class.php');
 require_once($root_dir.'/lib/util/sfCore.class.php');
 $version = sfCore::VERSION;
 
-printf("symfony LOC (%s)\n", $version);
-printf("==============%s\n\n", str_repeat('=', strlen($version)));
+$o = new lime_output_color();
+$o->comment(sprintf('symfony LOC (%s)', $version));
 
 // symfony core LOC
 $total_loc = 0;
@@ -26,7 +26,6 @@ foreach ($files as $file)
   $total_tests_loc += count(lime_coverage::get_php_lines($file));
 }
 
-printf("core librairies:           %6d\n", $total_loc);
-printf("unit and functional tests: %6d\n", $total_tests_loc);
-echo "---------------------------------\n";
-printf("ratio tests/librairies:    %5d%%\n", $total_tests_loc / $total_loc * 100);
+$o->echoln(sprintf('core libraries:            %7d', $total_loc));
+$o->echoln(sprintf('unit and functional tests: %6d', $total_tests_loc));
+$o->echoln(sprintf('ratio tests/libraries:    %5d%%', $total_tests_loc / $total_loc * 100));
