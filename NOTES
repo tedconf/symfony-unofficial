@@ -16,6 +16,7 @@ Differences from 1.1
       * Ability to specify custom method names for FKEY relationships
       * Ability to use expressions as default values (e.g. CURRENT_TIMESTAMP)
       * Customizable PHP and SQL type mapping on a per-column basis
+      * Master / slave support
 
   Helpers:
     * support for conditionals in js/css
@@ -39,6 +40,8 @@ Differences from 1.1
 
   Routing:
     * based on Francois(routing)/Fabien(trunk)/1.0(bc methods)
+    * ajax only routes
+    * method based routing
 
   Debug Environment (wip)
     * added links to validator
@@ -54,10 +57,10 @@ Differences from 1.1
   View:
     * assets are part of cache after view is rendered
 
-  Control Panel (wip)
+  Control Panel (wip) -> ysfControlPanelPlugin
     * integration + refactor of sfControlPanelPlugin
 
-  Build System = Packaging + Deployment (wip)
+  Build System = Packaging + Deployment (wip) -> ysfBuildPlugin
     * Aggregation/Minification of js/css (YUICompressor + cssmin) + view.yml updates
     * Akamai/S3 url rewriting for static assets
     * Lint Test Tasks: PHP, JS, YAML
@@ -65,7 +68,7 @@ Differences from 1.1
     * Packaging of project as .tar.bz2 and .deb
     * Support for deployment via rsync, libssh2 scp transfer, or ftp transfer
 
-  YUI (wip)
+  YUI (wip) -> ysfYUIPlugin
     * css/js framework
     * event system
     * helpers
