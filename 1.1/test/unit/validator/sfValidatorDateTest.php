@@ -10,7 +10,7 @@
 
 require_once(dirname(__FILE__).'/../../bootstrap/unit.php');
 
-$t = new lime_test(36, new lime_output_color());
+$t = new lime_test(37, new lime_output_color());
 
 $v = new sfValidatorDate();
 
@@ -55,27 +55,27 @@ try
 catch (sfValidatorError $e)
 {
   $t->pass('->clean() throws a sfValidatorError if the date is not valid');
-  $t->skip('', 1);
+  $t->is($e->getCode(), 'invalid', '->clean() throws a sfValidatorError with invalid code');
 }
 try
 {
   $v->clean(array('year' => -2, 'month' => 1, 'day' => 15));
-  $t->fail('->clean() throws a sfValidatorError if the date is not valid');
-  $t->is($e->getCode(), 'invalid', '->clean() throws a sfValidatorError');
+  $t->is($e->getCode(), 'invalid', '->clean() throws a sfValidatorError with invalid code');
 }
 catch (sfValidatorError $e)
 {
   $t->pass('->clean() throws a sfValidatorError if the date is not valid');
+  $t->is($e->getCode(), 'invalid', '->clean() throws a sfValidatorError with invalid code');
 }
 try
 {
   $v->clean(array('year' => 2008, 'month' => 2, 'day' => 30));
   $t->fail('->clean() throws a sfValidatorError if the date is not valid');
-  $t->is($e->getCode(), 'invalid', '->clean() throws a sfValidatorError');
 }
 catch (sfValidatorError $e)
 {
   $t->pass('->clean() throws a sfValidatorError if the date is not valid');
+  $t->is($e->getCode(), 'invalid', '->clean() throws a sfValidatorError with invalid code');
 }
 
 

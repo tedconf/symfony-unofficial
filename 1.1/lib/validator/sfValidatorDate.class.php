@@ -104,8 +104,8 @@ class sfValidatorDate extends sfValidator
     $empties =
       (!isset($value['year']) || !$value['year'] ? 1 : 0) +
       (!isset($value['month']) || !$value['month'] ? 1 : 0) +
-      (!isset($value['day']) || !$value['day'] ? 1 : 0)
-    ;
+      (!isset($value['day']) || !$value['day'] ? 1 : 0);
+
     if ($empties > 0 && $empties < 3)
     {
       throw new sfValidatorError($this, 'invalid', array('value' => $value));
@@ -113,6 +113,12 @@ class sfValidatorDate extends sfValidator
     else if (3 == $empties)
     {
       return $this->getEmptyValue();
+    }
+
+    // does php think our date is valid?
+    if(!checkdate($value['month'], $value['day'], $value['year']))
+    {
+      throw new sfValidatorError($this, 'invalid', array('value' => $value));
     }
 
     if ($this->getOption('with_time'))
