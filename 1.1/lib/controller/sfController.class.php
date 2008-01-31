@@ -357,7 +357,6 @@ abstract class sfController
   {
     // user view exists?
     $file = sfConfig::get('sf_app_module_dir').'/'.$moduleName.'/'.sfConfig::get('sf_app_module_view_dir_name').'/'.$actionName.$viewName.'View.class.php';
-
     if (is_readable($file))
     {
       require_once($file);
@@ -375,8 +374,8 @@ abstract class sfController
     else
     {
       // view class (as configured in module.yml or defined in action)
-      $viewClassName = sfConfig::get('mod_'.strtolower($moduleName).'_view_class');
-      $class = sfAutoload::getInstance()->getClassPath($viewClassName.'View') ? $viewClassName.'View' : 'sfPHPView';
+      $viewClassName = sfConfig::get('mod_'.strtolower($moduleName).'_view_class', $viewName);
+      $class = sfSimpleAutoload::getInstance()->autoload($viewClassName.'View') ? $viewClassName.'View' : 'sfPHPView';
     }
 
     return new $class($this->context, $moduleName, $actionName, $viewName);
