@@ -145,9 +145,6 @@ class sfCore
     // dimensions config support
     if(!empty($sf_dimension) && is_array($sf_dimension))
     {
-      require_once($sf_symfony_lib_dir.DIRECTORY_SEPARATOR.'util'.DIRECTORY_SEPARATOR.'CartesianIterator.class.php');
-      require_once($sf_symfony_lib_dir.DIRECTORY_SEPARATOR.'config'.DIRECTORY_SEPARATOR.'sfConfigDimension.class.php');
-
       $dimension = sfConfigDimension::getInstance();
 
       $dimension->set($sf_dimension);
