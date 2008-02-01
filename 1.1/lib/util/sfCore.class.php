@@ -125,40 +125,12 @@ class sfCore
    */
   static public function initConfiguration($sf_symfony_lib_dir, $sf_symfony_data_dir, $test = false, $sf_dimension = null)
   {
-    // YAML support
-    require_once($sf_symfony_lib_dir.DIRECTORY_SEPARATOR.'util'.DIRECTORY_SEPARATOR.'sfYaml.class.php');
-
-    // APC cache support
-    require_once($sf_symfony_lib_dir.DIRECTORY_SEPARATOR.'cache'.DIRECTORY_SEPARATOR.'sfCache.class.php');
-    require_once($sf_symfony_lib_dir.DIRECTORY_SEPARATOR.'cache'.DIRECTORY_SEPARATOR.'sfAPCCache.class.php');
-
-    // config support
-    require_once($sf_symfony_lib_dir.DIRECTORY_SEPARATOR.'config'.DIRECTORY_SEPARATOR.'sfConfig.class.php');
-    require_once($sf_symfony_lib_dir.DIRECTORY_SEPARATOR.'config'.DIRECTORY_SEPARATOR.'sfConfigCache.class.php');
-    require_once($sf_symfony_lib_dir.DIRECTORY_SEPARATOR.'config'.DIRECTORY_SEPARATOR.'sfConfigHandler.class.php');
-    require_once($sf_symfony_lib_dir.DIRECTORY_SEPARATOR.'config'.DIRECTORY_SEPARATOR.'sfYamlConfigHandler.class.php');
-    require_once($sf_symfony_lib_dir.DIRECTORY_SEPARATOR.'config'.DIRECTORY_SEPARATOR.'sfAutoloadConfigHandler.class.php');
-    require_once($sf_symfony_lib_dir.DIRECTORY_SEPARATOR.'config'.DIRECTORY_SEPARATOR.'sfRootConfigHandler.class.php');
-    require_once($sf_symfony_lib_dir.DIRECTORY_SEPARATOR.'config'.DIRECTORY_SEPARATOR.'sfLoader.class.php');
-
-    // exceptions
-    require_once($sf_symfony_lib_dir.DIRECTORY_SEPARATOR.'exception'.DIRECTORY_SEPARATOR.'sfException.class.php');
-    require_once($sf_symfony_lib_dir.DIRECTORY_SEPARATOR.'exception'.DIRECTORY_SEPARATOR.'sfConfigurationException.class.php');
-    require_once($sf_symfony_lib_dir.DIRECTORY_SEPARATOR.'exception'.DIRECTORY_SEPARATOR.'sfCacheException.class.php');
-    require_once($sf_symfony_lib_dir.DIRECTORY_SEPARATOR.'exception'.DIRECTORY_SEPARATOR.'sfParseException.class.php');
-
-    // utils
-    require_once($sf_symfony_lib_dir.DIRECTORY_SEPARATOR.'util'.DIRECTORY_SEPARATOR.'sfParameterHolder.class.php');
-    require_once($sf_symfony_lib_dir.DIRECTORY_SEPARATOR.'util'.DIRECTORY_SEPARATOR.'sfToolkit.class.php');
-
-    // autoloading
-    require_once($sf_symfony_lib_dir.DIRECTORY_SEPARATOR.'util'.DIRECTORY_SEPARATOR.'sfAutoload.class.php');
+    require_once($sf_symfony_lib_dir.'/autoload/sfCoreAutoload.class.php');
+    sfCoreAutoload::getInstance()->register();
 
     // in debug mode, load timer classes and start global timer
     if (SF_DEBUG)
     {
-      require_once($sf_symfony_lib_dir.DIRECTORY_SEPARATOR.'debug'.DIRECTORY_SEPARATOR.'sfTimerManager.class.php');
-      require_once($sf_symfony_lib_dir.DIRECTORY_SEPARATOR.'debug'.DIRECTORY_SEPARATOR.'sfTimer.class.php');
       sfConfig::set('sf_timer_start', microtime(true));
     }
 
