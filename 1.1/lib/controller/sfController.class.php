@@ -375,7 +375,7 @@ abstract class sfController
     {
       // view class (as configured in module.yml or defined in action)
       $viewClassName = sfConfig::get('mod_'.strtolower($moduleName).'_view_class', $viewName);
-      $class = sfSimpleAutoload::getInstance()->autoload($viewClassName.'View') ? $viewClassName.'View' : 'sfPHPView';
+      $class = (class_exists($viewClassName.'View', true) === true) ? $viewClassName.'View' : 'sfPHPView';
     }
 
     return new $class($this->context, $moduleName, $actionName, $viewName);
