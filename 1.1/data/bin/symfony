@@ -14,7 +14,10 @@ while(!is_file('symfony')) // traverse parent directories to find symfony projec
 {
   $last_dir = getcwd();
 
-  chdir('..');
+  if(@is_readable($last_dir.DIRECTORY_SEPARATOR.'..'))
+  {
+    @chdir('..');
+  }
 
   $current_dir = getcwd();
   if ($current_dir == $last_dir || $current_dir == '/') // if you get to the top go back to where you started
@@ -32,7 +35,7 @@ if (file_exists('config/config.php'))
 
 if (!isset($sf_symfony_lib_dir))
 {
-  if (is_readable(dirname(__FILE__).'/../../lib/util/sfCore.class.php'))
+  if (@is_readable(dirname(__FILE__).'/../../lib/util/sfCore.class.php'))
   {
     // SVN
     $sf_symfony_lib_dir  = realpath(dirname(__FILE__).'/../../lib');
