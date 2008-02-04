@@ -83,7 +83,7 @@ EOF;
 
     // Create basic application structure
     $finder = sfFinder::type('any')->ignore_version_control()->discard('.sf');
-    $this->filesystem->mirror(sfConfig::get('sf_symfony_data_dir').DIRECTORY_SEPARATOR.'skeleton'.DIRECTORY_SEPARATOR.'app'.DIRECTORY_SEPARATOR.'app', $appDir, $finder);
+    $this->filesystem->mirror(dirname(__FILE__).DIRECTORY_SEPARATOR.'skeleton'.DIRECTORY_SEPARATOR.'app'.DIRECTORY_SEPARATOR.'app', $appDir, $finder);
 
     // Create $app.php or index.php if it is our first app
     $indexName = 'index';
@@ -97,8 +97,8 @@ EOF;
     $finder = sfFinder::type('file')->name('settings.yml');
     $this->filesystem->replaceTokens($finder->in($appDir.DIRECTORY_SEPARATOR.sfConfig::get('sf_app_config_dir_name')), '##', '##', array('NO_SCRIPT_NAME' => ($firstApp ? 'on' : 'off')));
 
-    $this->filesystem->copy(sfConfig::get('sf_symfony_data_dir').DIRECTORY_SEPARATOR.'skeleton'.DIRECTORY_SEPARATOR.'app'.DIRECTORY_SEPARATOR.'web'.DIRECTORY_SEPARATOR.'index.php', sfConfig::get('sf_web_dir').DIRECTORY_SEPARATOR.$indexName.'.php');
-    $this->filesystem->copy(sfConfig::get('sf_symfony_data_dir').DIRECTORY_SEPARATOR.'skeleton'.DIRECTORY_SEPARATOR.'app'.DIRECTORY_SEPARATOR.'web'.DIRECTORY_SEPARATOR.'index_dev.php', sfConfig::get('sf_web_dir').DIRECTORY_SEPARATOR.$app.'_dev.php');
+    $this->filesystem->copy(dirname(__FILE__).DIRECTORY_SEPARATOR.'skeleton'.DIRECTORY_SEPARATOR.'app'.DIRECTORY_SEPARATOR.'web'.DIRECTORY_SEPARATOR.'index.php', sfConfig::get('sf_web_dir').DIRECTORY_SEPARATOR.$indexName.'.php');
+    $this->filesystem->copy(dirname(__FILE__).DIRECTORY_SEPARATOR.'skeleton'.DIRECTORY_SEPARATOR.'app'.DIRECTORY_SEPARATOR.'web'.DIRECTORY_SEPARATOR.'index_dev.php', sfConfig::get('sf_web_dir').DIRECTORY_SEPARATOR.$app.'_dev.php');
 
     $finder = sfFinder::type('file')->name($indexName.'.php', $app.'_dev.php');
     $this->filesystem->replaceTokens($finder->in(sfConfig::get('sf_web_dir')), '##', '##', array('APP_NAME' => $app));

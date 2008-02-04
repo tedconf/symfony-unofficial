@@ -128,8 +128,7 @@ class sfException extends Exception
       $file = sfConfig::get('sf_web_dir').'/errors/error500.php';
 
       ob_start();
-      require(is_readable($file) ? $file : sfConfig::get('sf_symfony_data_dir').'/web/errors/error500.php');
-
+      require is_readable($file) ? $file : dirname(__FILE__).'/web/errors/error500.php';
       return ob_get_clean();
     }
 
@@ -151,8 +150,7 @@ class sfException extends Exception
     }
 
     ob_start();
-    require(sfConfig::get('sf_symfony_data_dir').'/data/exception.'.(($format == 'html') ? 'php' : 'txt'));
-
+    require dirname(__FILE__).'/data/exception.'.($format == 'html' ? 'php' : 'txt');
     return ob_get_clean();
   }
 

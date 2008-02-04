@@ -96,7 +96,15 @@ class sfCoreAutoload
     $libDir = realpath(dirname(__FILE__).'/..');
     require_once $libDir.'/util/sfFinder.class.php';
 
-    $files = sfFinder::type('file')->ignore_version_control()->prune('plugins')->prune('vendor')->name('*\.class\.php')->in($libDir);
+    $files = sfFinder::type('file')
+      ->ignore_version_control()
+      ->prune('plugins')
+      ->prune('vendor')
+      ->prune('skeleton')
+      ->prune('default')
+      ->name('*\.class\.php')
+      ->in($libDir)
+    ;
 
     $classes = array();
     foreach ($files as $file)
@@ -288,7 +296,6 @@ class sfCoreAutoload
   'sfGenerateModuleTask' => 'task/generator',
   'sfGenerateProjectTask' => 'task/generator',
   'sfGeneratorBaseTask' => 'task/generator',
-  'sfCommandApplicationTask' => 'task/help',
   'sfHelpTask' => 'task/help',
   'sfListTask' => 'task/help',
   'sfI18nExtractTask' => 'task/i18n',
@@ -321,6 +328,7 @@ class sfCoreAutoload
   'sfUpgrade' => 'task/project/upgrade1.1',
   'sfWebDebugUpgrade' => 'task/project/upgrade1.1',
   'sfBaseTask' => 'task',
+  'sfCommandApplicationTask' => 'task',
   'sfFilesystem' => 'task',
   'sfTask' => 'task',
   'sfTestAllTask' => 'task/test',

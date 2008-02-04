@@ -59,7 +59,7 @@ class sfLoader
       $dirs = array_merge($dirs, array_combine($pluginDirs, array_fill(0, count($pluginDirs), true)));               // plugins modules
     }
 
-    $dirs[sfConfig::get('sf_symfony_data_dir').DIRECTORY_SEPARATOR.'modules'.DIRECTORY_SEPARATOR.$suffix] = true;    // core modules
+    $dirs[sfConfig::get('sf_symfony_lib_dir').DIRECTORY_SEPARATOR.'controller'.DIRECTORY_SEPARATOR.$suffix] = true;    // core modules
 
     return $dirs;
   }
@@ -91,7 +91,8 @@ class sfLoader
       $dirs = array_merge($dirs, $pluginDirs);                                                                  // plugins
     }
 
-    $dirs[] = sfConfig::get('sf_symfony_data_dir').DIRECTORY_SEPARATOR.'modules'.DIRECTORY_SEPARATOR.$suffix;   // core modules
+
+    $dirs[] = sfConfig::get('sf_symfony_lib_dir').DIRECTORY_SEPARATOR.'controller'.DIRECTORY_SEPARATOR.$suffix; // core modules
     $dirs[] = sfConfig::get('sf_module_cache_dir').DIRECTORY_SEPARATOR.'auto'.ucfirst($suffix);                 // generated templates in cache
 
     return $dirs;
@@ -311,8 +312,7 @@ class sfLoader
     $globalConfigPath = basename($configDir).DIRECTORY_SEPARATOR.$configName;
 
     $files = array(
-      $sf_symfony_data_dir.DIRECTORY_SEPARATOR.$globalConfigPath,                    // symfony
-      $sf_symfony_data_dir.DIRECTORY_SEPARATOR.$configPath,                          // core modules
+      sfConfig::get('sf_symfony_lib_dir').DIRECTORY_SEPARATOR.'config'.DIRECTORY_SEPARATOR.$globalConfigPath,              // symfony
     );
 
     if ($bundledPluginDirs = glob(sfConfig::get('sf_symfony_lib_dir').DIRECTORY_SEPARATOR.'plugins'.DIRECTORY_SEPARATOR.'*'.DIRECTORY_SEPARATOR.$globalConfigPath))

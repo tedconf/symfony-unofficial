@@ -27,7 +27,7 @@
   function toggle(id)
   {
     el = document.getElementById(id);
-    el.style.display = el.style.display == 'none' ? 'block' : 'none';
+    el.style.display = (el.style.display == 'none') ? 'block' : 'none';
   }
   </script>
 </head>
@@ -56,5 +56,6 @@
       For help resolving this issue, please visit <a href="http://www.symfony-project.org/">http://www.symfony-project.org/</a>.
     </p>
   </div>
+
 </body>
 </html>

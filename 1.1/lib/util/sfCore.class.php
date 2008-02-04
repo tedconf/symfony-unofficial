@@ -193,7 +193,7 @@ class sfCore
     {
       // application is not available
       $file = sfConfig::get('sf_web_dir').DIRECTORY_SEPARATOR.'errors'.DIRECTORY_SEPARATOR.'unavailable.php';
-      include(is_readable($file) ? $file : sfConfig::get('sf_symfony_data_dir').DIRECTORY_SEPARATOR.'web'.DIRECTORY_SEPARATOR.'errors'.DIRECTORY_SEPARATOR.'unavailable.php');
+      include(is_readable($file) ? $file : sfConfig::get('sf_symfony_lib_dir').DIRECTORY_SEPARATOR.'exception'.DIRECTORY_SEPARATOR.'data'.DIRECTORY_SEPARATOR.'unavailable.php');
 
       die(1);
     }

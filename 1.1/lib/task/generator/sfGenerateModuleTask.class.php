@@ -91,7 +91,7 @@ EOF;
     }
     else
     {
-      $skeletonDir = sfConfig::get('sf_symfony_data_dir').DIRECTORY_SEPARATOR.'skeleton'.DIRECTORY_SEPARATOR.'module';
+      $skeletonDir = dirname(__FILE__).DIRECTORY_SEPARATOR.'skeleton'.DIRECTORY_SEPARATOR.'module';
     }
 
     // create basic application structure

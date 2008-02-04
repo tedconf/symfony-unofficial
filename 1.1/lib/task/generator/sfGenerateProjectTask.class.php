@@ -68,7 +68,8 @@ EOF;
 
     // Create basic project structure
     $finder = sfFinder::type('any')->ignore_version_control()->discard('.sf');
-    $this->filesystem->mirror(sfConfig::get('sf_symfony_data_dir').DIRECTORY_SEPARATOR.'skeleton'.DIRECTORY_SEPARATOR.'project', sfConfig::get('sf_root_dir'), $finder);
+
+    $this->filesystem->mirror(dirname(__FILE__).DIRECTORY_SEPARATOR.'skeleton'.DIRECTORY_SEPARATOR.'project', sfConfig::get('sf_root_dir'), $finder);
 
     // Update project configuration files
     $finder = sfFinder::type('file')->name('config.php', 'properties.ini', '*apache*.conf', 'propel.ini');
