@@ -302,7 +302,6 @@ class sfLoader
    */
   static public function getConfigPaths($configPath)
   {
-    $sf_symfony_data_dir = sfConfig::get('sf_symfony_data_dir');
     $sf_root_dir = sfConfig::get('sf_root_dir');
     $sf_plugins_dir = sfConfig::get('sf_plugins_dir');
     $sf_app_dir = sfConfig::get('sf_app_dir');
