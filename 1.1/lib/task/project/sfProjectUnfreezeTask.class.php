@@ -49,32 +49,29 @@ EOF;
     $sf_web_dir = sfConfig::get('sf_web_dir');
     $sf_config_dir = sfConfig::get('sf_config_dir');
 
-    // Remove lib/symfony and data/symfony directories
+    // remove lib/symfony and data/symfony directories
     if (!is_dir($sf_lib_dir.DIRECTORY_SEPARATOR.'symfony'))
     {
       throw new sfCommandException('You can unfreeze only if you froze the symfony libraries before.');
     }
 
-    $dirs = explode('#', file_get_contents($sf_config_dir.DIRECTORY_SEPARATOR.'config.php.bak'));
-    $this->changeSymfonyDirs('\''.$dirs[0].'\'', '\''.$dirs[1].'\'');
+    $this->changeSymfonyDirs("'".file_get_contents('config/config.php.bak')."'");
 
     $finder = sfFinder::type('any');
     $this->filesystem->remove($finder->in($sf_lib_dir.DIRECTORY_SEPARATOR.'symfony'));
     $this->filesystem->remove($sf_lib_dir.DIRECTORY_SEPARATOR.'symfony');
     $this->filesystem->remove($finder->in($sf_data_dir.DIRECTORY_SEPARATOR.'symfony'));
     $this->filesystem->remove($sf_data_dir.DIRECTORY_SEPARATOR.'symfony');
-    $this->filesystem->remove('symfony.php');
     $this->filesystem->remove($finder->in($sf_web_dir.DIRECTORY_SEPARATOR.'sf'));
     $this->filesystem->remove($sf_web_dir.DIRECTORY_SEPARATOR.'sf');
    }
 
-  protected function changeSymfonyDirs($symfony_lib_dir, $symfony_data_dir)
+  protected function changeSymfonyDirs($symfony_lib_dir)
   {
     $sf_config_dir = sfConfig::get('sf_config_dir');
 
     $content = file_get_contents($sf_config_dir.DIRECTORY_SEPARATOR.'config.php');
     $content = preg_replace("/^(\s*.sf_symfony_lib_dir\s*=\s*).+?;/m", "$1$symfony_lib_dir;", $content);
-    $content = preg_replace("/^(\s*.sf_symfony_data_dir\s*=\s*).+?;/m", "$1$symfony_data_dir;", $content);
     file_put_contents($sf_config_dir.DIRECTORY_SEPARATOR.'config.php', $content);
   }
 }

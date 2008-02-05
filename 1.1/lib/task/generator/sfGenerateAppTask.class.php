@@ -74,8 +74,7 @@ EOF;
   {
     $app = $arguments['application'];
 
-    $appDir = sfConfig::get('sf_root_dir').DIRECTORY_SEPARATOR.sfConfig::get('sf_apps_dir_name').DIRECTORY_SEPARATOR.$app;
-
+    $appDir = sfConfig::get('sf_apps_dir').DIRECTORY_SEPARATOR.$app;
     if (is_dir($appDir))
     {
       throw new sfCommandException(sprintf('The application "%s" already exists.', $appDir));
@@ -107,6 +106,6 @@ EOF;
     $fixPerms->run();
 
     // Create test dir
-    $this->filesystem->mkdirs(sfConfig::get('sf_test_functional_dir').DIRECTORY_SEPARATOR.$app);
+    $this->filesystem->mkdirs(sfConfig::get('sf_test_dir').DIRECTORY_SEPARATOR.'functional'.DIRECTORY_SEPARATOR.$app);
   }
 }

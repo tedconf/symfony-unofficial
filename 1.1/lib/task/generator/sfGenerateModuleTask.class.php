@@ -69,8 +69,7 @@ EOF;
     $app       = $arguments['application'];
     $module    = $arguments['module'];
 
-    $moduleDir = sfConfig::get('sf_root_dir').DIRECTORY_SEPARATOR.sfConfig::get('sf_apps_dir_name').DIRECTORY_SEPARATOR.$app.DIRECTORY_SEPARATOR.sfConfig::get('sf_app_module_dir_name').DIRECTORY_SEPARATOR.$module;
-
+    $moduleDir = sfConfig::get('sf_apps_dir').DIRECTORY_SEPARATOR.$app.DIRECTORY_SEPARATOR.sfConfig::get('sf_app_module_dir_name').DIRECTORY_SEPARATOR.$module;
     if (is_dir($moduleDir))
     {
       throw new sfCommandException(sprintf('The module "%s" already exists in the "%s" application.', $moduleDir, $app));
@@ -99,10 +98,10 @@ EOF;
     $this->filesystem->mirror($skeletonDir.DIRECTORY_SEPARATOR.'module', $moduleDir, $finder);
 
     // create basic test
-    $this->filesystem->copy($skeletonDir.DIRECTORY_SEPARATOR.'test'.DIRECTORY_SEPARATOR.'actionsTest.php', sfConfig::get('sf_test_functional_dir').DIRECTORY_SEPARATOR.$app.DIRECTORY_SEPARATOR.$module.'ActionsTest.php');
+    $this->filesystem->copy($skeletonDir.DIRECTORY_SEPARATOR.'test'.DIRECTORY_SEPARATOR.'actionsTest.php', sfConfig::get('sf_test_dir').DIRECTORY_SEPARATOR.'functional'.DIRECTORY_SEPARATOR.$app.DIRECTORY_SEPARATOR.$module.'ActionsTest.php');
 
     // customize test file
-    $this->filesystem->replaceTokens(sfConfig::get('sf_test_functional_dir').DIRECTORY_SEPARATOR.$app.DIRECTORY_SEPARATOR.$module.'ActionsTest.php', '##', '##', $constants);
+    $this->filesystem->replaceTokens(sfConfig::get('sf_test_dir').DIRECTORY_SEPARATOR.'functional'.DIRECTORY_SEPARATOR.$app.DIRECTORY_SEPARATOR.$module.'ActionsTest.php', '##', '##', $constants);
 
     // customize php and yml files
     $finder = sfFinder::type('file')->name('*.php', '*.yml');

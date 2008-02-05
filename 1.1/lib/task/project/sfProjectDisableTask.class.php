@@ -49,7 +49,7 @@ EOF;
     $env = $arguments['env'];
 
     $lockFile = $app.'_'.$env.'.lck';
-    if (!file_exists(sfConfig::get('sf_root_dir').DIRECTORY_SEPARATOR.$lockFile))
+    if (!file_exists(sfConfig::get('sf_cache_dir').DIRECTORY_SEPARATOR.$lockFile))
     {
       $this->filesystem->touch($lockFile);
 

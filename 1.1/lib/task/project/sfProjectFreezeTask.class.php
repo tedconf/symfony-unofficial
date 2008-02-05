@@ -23,6 +23,10 @@ class sfProjectFreezeTask extends sfBaseTask
    */
   protected function configure()
   {
+    $this->addArguments(array(
+      new sfCommandArgument('symfony_data_dir', sfCommandArgument::REQUIRED, 'The symfony data directory'),
+    ));
+
     $this->aliases = array('freeze');
     $this->namespace = 'project';
     $this->name = 'freeze';
@@ -71,7 +75,7 @@ EOF;
     }
 
     $symfony_lib_dir  = sfConfig::get('sf_symfony_lib_dir');
-    $symfony_data_dir = sfConfig::get('sf_symfony_data_dir');
+    $symfony_data_dir = $arguments['symfony_data_dir'];
 
     $this->dispatcher->notify(new sfEvent($this, 'command.log', array($this->formatter->formatSection('freeze', 'freezing lib found in "'.$symfony_lib_dir.'"'))));
     $this->dispatcher->notify(new sfEvent($this, 'command.log', array($this->formatter->formatSection('freeze', 'freezing data found in "'.$symfony_data_dir.'"'))));
@@ -85,21 +89,17 @@ EOF;
 
     $this->filesystem->rename($sf_data_dir.DIRECTORY_SEPARATOR.'symfony'.DIRECTORY_SEPARATOR.'web'.DIRECTORY_SEPARATOR.'sf', $sf_web_dir.DIRECTORY_SEPARATOR.'sf');
 
-    // Change symfony paths in config/config.php
-    file_put_contents($sf_config_dir.'/config.php.bak', "$symfony_lib_dir#$symfony_data_dir");
-    $this->changeSymfonyDirs("dirname(__FILE__).DIRECTORY_SEPARATOR.'..'.DIRECTORY_SEPARATOR.'lib'.DIRECTORY_SEPARATOR.'symfony'", "dirname(__FILE__).DIRECTORY_SEPARATOR.'..'.DIRECTORY_SEPARATOR.'data'.DIRECTORY_SEPARATOR.'symfony'");
-
-    // Install the command line
-    $this->filesystem->copy($symfony_data_dir.DIRECTORY_SEPARATOR.'bin'.DIRECTORY_SEPARATOR.'symfony.php', 'symfony.php');
+    // change symfony paths in config/config.php
+    file_put_contents('config/config.php.bak', $symfony_lib_dir);
+    $this->changeSymfonyDirs("dirname(__FILE__).'/../lib/symfony'");
   }
 
-  protected function changeSymfonyDirs($symfony_lib_dir, $symfony_data_dir)
+  protected function changeSymfonyDirs($symfony_lib_dir)
   {
     $sf_config_dir = sfConfig::get('sf_config_dir');
 
     $content = file_get_contents($sf_config_dir.DIRECTORY_SEPARATOR.'config.php');
     $content = preg_replace("/^(\s*.sf_symfony_lib_dir\s*=\s*).+?;/m", "$1$symfony_lib_dir;", $content);
-    $content = preg_replace("/^(\s*.sf_symfony_data_dir\s*=\s*).+?;/m", "$1$symfony_data_dir;", $content);
     file_put_contents($sf_config_dir.DIRECTORY_SEPARATOR.'config.php', $content);
   }
 }

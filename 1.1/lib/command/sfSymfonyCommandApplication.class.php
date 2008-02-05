@@ -22,18 +22,12 @@ class sfSymfonyCommandApplication extends sfCommandApplication
    * Configures the current symfony command application.
    *
    * @param string The symfony lib directory
-   * @param string The symfony data directory
    */
   public function configure()
   {
     if (!isset($this->options['symfony_lib_dir']))
     {
       throw new sfInitializationException('You must pass a "symfony_lib_dir" option.');
-    }
-
-    if (!isset($this->options['symfony_data_dir']))
-    {
-      throw new sfInitializationException('You must pass a "symfony_data_dir" option.');
     }
 
     // initialize symfony core autoloading
@@ -44,7 +38,7 @@ class sfSymfonyCommandApplication extends sfCommandApplication
     $this->setName('symfony');
     $this->setVersion(sfCore::VERSION);
 
-    $this->initializeEnvironment($this->options['symfony_lib_dir'], $this->options['symfony_data_dir']);
+    $this->initializeEnvironment($this->options['symfony_lib_dir']);
     $this->initializeAutoloader();
     $this->initializeTasks();
   }
@@ -83,14 +77,10 @@ class sfSymfonyCommandApplication extends sfCommandApplication
    * Initializes the environment variables and include path.
    *
    * @param string The symfony lib directory
-   * @param string The symfony data directory
    */
-  protected function initializeEnvironment($symfonyLibDir, $symfonyDataDir)
+  protected function initializeEnvironment($symfonyLibDir)
   {
-    sfConfig::add(array(
-      'sf_symfony_lib_dir'  => $symfonyLibDir,
-      'sf_symfony_data_dir' => $symfonyDataDir,
-    ));
+    sfConfig::set('sf_symfony_lib_dir', $symfonyLibDir);
 
     // directory layout
     sfCore::initDirectoryLayout(getcwd());
@@ -123,7 +113,7 @@ class sfSymfonyCommandApplication extends sfCommandApplication
 
     $this->autoloader = sfSimpleAutoload::getInstance($cache);
     $this->autoloader->register();
-    $this->autoloader->addDirectory(sfConfig::get('sf_root_dir').'/plugins');
+    $this->autoloader->addDirectory(sfConfig::get('sf_plugins_dir'));
   }
 
   /**
@@ -136,7 +126,7 @@ class sfSymfonyCommandApplication extends sfCommandApplication
     $dirs = array(
       sfConfig::get('sf_symfony_lib_dir').'/task',                // symfony tasks
       sfConfig::get('sf_symfony_lib_dir').'/plugins/*/lib/task',  // bundled plugin tasks
-      sfConfig::get('sf_root_dir').'/plugins/*/lib/task',         // plugin tasks
+      sfConfig::get('sf_plugins_dir').'/*/lib/task',              // plugin tasks
       sfConfig::get('sf_lib_dir').'/task',                        // project tasks
     );
     $finder = sfFinder::type('file')->name('*Task.class.php');

@@ -77,7 +77,6 @@ EOF;
                                                                                                     'PROJECT_DIR'    => sfConfig::get('sf_root_dir'),
                                                                                                     'PROJECT_DOMAIN' => php_uname('n'),
                                                                                                     'SYMFONY_LIB_DIR'  => sfConfig::get('sf_symfony_lib_dir'),
-                                                                                                    'SYMFONY_DATA_DIR' => sfConfig::get('sf_symfony_data_dir'),
                                                                                                     ));
 
     $fixPerms = new sfProjectPermissionsTask($this->dispatcher, $this->formatter);

@@ -67,8 +67,8 @@ class sfConfigCache
       $this->mergeUserConfigHandlers();
     }
 
-    // handler to call for this configuration file
-    $handlerToCall = null;
+    // handler key to call for this configuration file
+    $handlerKey = null;
 
     $handler = str_replace(DIRECTORY_SEPARATOR, '/', $handler);
 
@@ -77,45 +77,59 @@ class sfConfigCache
     if (isset($this->handlers[$handler]))
     {
       // we have a handler associated with the full configuration path
-      $handlerToCall = $this->handlers[$handler];
+      $handlerKey = $handler;
     }
     else if (isset($this->handlers[$basename]))
     {
       // we have a handler associated with the configuration base name
-      $handlerToCall = $this->handlers[$basename];
+      $handlerKey = $basename;
     }
     else
     {
-      // let's see if we have any wildcard handlers registered that match
-      // this basename
-      foreach ($this->handlers as $key => $handlerInstance)
+      // let's see if we have any wildcard handlers registered that match this basename
+      foreach (array_keys($this->handlers) as $key)
       {
         // replace wildcard chars in the configuration
         $pattern = strtr($key, array('.' => '\.', '*' => '.*?'));
 
         // create pattern from config
-        if (preg_match('#'.$pattern.'#', $handler))
+        if (preg_match('#'.$pattern.'$#', $handler))
         {
-          // we found a match!
-          $handlerToCall = $this->handlers[$key];
+          $handlerKey = $key;
 
           break;
         }
       }
     }
 
-    if ($handlerToCall)
-    {
-      // call the handler and retrieve the cache data
-      $data = $handlerToCall->execute($configs);
-
-      $this->writeCacheFile($handler, $cache, $data);
-    }
-    else
+    if (!$handlerKey)
     {
       // we do not have a registered handler for this file
       throw new sfConfigurationException(sprintf('Configuration file "%s" does not have a registered handler.', implode(', ', $configs)));
     }
+
+    // call the handler and retrieve the cache data
+    $data = $this->getHandler($handlerKey)->execute($configs);
+
+    $this->writeCacheFile($handler, $cache, $data);
+  }
+
+  /**
+   * Returns the config handler configured for the given name
+   *
+   * @param  string The config handler name
+   *
+   * @return sfConfigHandler A sfConfigHandler instance
+   */
+  protected function getHandler($name)
+  {
+    if (is_array($this->handlers[$name]))
+    {
+      $class = $this->handlers[$name][0];
+      $this->handlers[$name] = new $class($this->handlers[$name][1]);
+    }
+
+    return $this->handlers[$name];
   }
 
   /**
@@ -268,46 +282,45 @@ class sfConfigCache
 
     // module level configuration handlers
 
-    // make sure our modules directory exists
-    if (is_readable($sf_app_module_dir = sfConfig::get('sf_app_module_dir')))
+    // checks modules directory exists
+    if (!is_readable($sf_app_modules_dir = sfConfig::get('sf_app_modules_dir')))
     {
-      // ignore names
-      $ignore = array('.', '..', 'CVS', '.svn');
+      return;
+    }
 
-      // create a file pointer to the module dir
-      $fp = opendir($sf_app_module_dir);
+    // ignore names
+    $ignore = array('.', '..', 'CVS', '.svn');
 
-      // loop through the directory and grab the modules
-      while (($directory = readdir($fp)) !== false)
+    // create a file pointer to the module dir
+    $fp = opendir($sf_app_modules_dir);
+
+    // loop through the directory and grab the modules
+    while (($directory = readdir($fp)) !== false)
+    {
+      if (in_array($directory, $ignore))
       {
-        if (!in_array($directory, $ignore))
-        {
-          $configPath = $sf_app_module_dir.'/'.$directory.'/'.sfConfig::get('sf_app_module_config_dir_name').'/config_handlers.yml';
-
-          if (is_readable($configPath))
-          {
-            // initialize the root configuration handler with this module name
-            $params = array('module_level' => true, 'module_name' => $directory);
-
-            $this->handlers['config_handlers.yml']->initialize($params);
-
-            // replace module dir path with a special keyword that
-            // checkConfig knows how to use
-            $configPath = sfConfig::get('sf_app_module_dir_name').'/'.$directory.'/'.sfConfig::get('sf_app_module_config_dir_name').'/config_handlers.yml';
-
-            require_once($this->checkConfig($configPath));
-          }
-        }
+        continue;
       }
 
-      // close file pointer
-      fclose($fp);
+      $configPath = $sf_app_modules_dir.'/'.$directory.'/'.sfConfig::get('sf_app_module_config_dir_name').'/config_handlers.yml';
+
+      if (is_readable($configPath))
+      {
+        // initialize the root configuration handler with this module name
+        $params = array('module_level' => true, 'module_name' => $directory);
+
+        $this->handlers['config_handlers.yml']->initialize($params);
+
+        // replace module dir path with a special keyword that
+        // checkConfig knows how to use
+        $configPath = sfConfig::get('sf_app_modules_dir_name').'/'.$directory.'/'.sfConfig::get('sf_app_module_config_dir_name').'/config_handlers.yml';
+
+        require_once($this->checkConfig($configPath));
+      }
     }
-    else
-    {
-      // module directory doesn't exist or isn't readable
-      throw new sfConfigurationException(sprintf('Module directory "%s" does not exist or is not readable.', sfConfig::get('sf_app_module_dir')));
-    }
+
+    // close file pointer
+    fclose($fp);
   }
 
   /**

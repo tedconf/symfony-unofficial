@@ -27,16 +27,15 @@ class sfCore
    * Bootstraps the symfony environment.
    *
    * @param  string The path to the project directory.
-   * @param  mixed  The application name or null.
    * @param  mixed  The dimension name or null.
    *
    * @return void
    */
-  static public function bootstrap($sf_symfony_lib_dir, $sf_symfony_data_dir, $sf_dimension = null)
+  static public function bootstrap($sf_symfony_lib_dir, $sf_dimension = null)
   {
     try
     {
-      sfCore::initConfiguration($sf_symfony_lib_dir, $sf_symfony_data_dir, false, $sf_dimension);
+      sfCore::initConfiguration($sf_symfony_lib_dir, false, $sf_dimension);
 
       sfCore::initIncludePath();
 
@@ -123,7 +122,7 @@ class sfCore
    *
    * @return void
    */
-  static public function initConfiguration($sf_symfony_lib_dir, $sf_symfony_data_dir, $test = false, $sf_dimension = null)
+  static public function initConfiguration($sf_symfony_lib_dir, $test = false, $sf_dimension = null)
   {
     require_once($sf_symfony_lib_dir.'/autoload/sfCoreAutoload.class.php');
     sfCoreAutoload::getInstance()->register();
@@ -138,7 +137,6 @@ class sfCore
     sfConfig::add(array(
       'sf_debug'            => SF_DEBUG,
       'sf_symfony_lib_dir'  => $sf_symfony_lib_dir,
-      'sf_symfony_data_dir' => $sf_symfony_data_dir,
       'sf_test'             => $test,
     ));
 
@@ -189,7 +187,7 @@ class sfCore
    */
   static public function checkLock()
   {
-    if (sfToolkit::hasLockFile(SF_ROOT_DIR.DIRECTORY_SEPARATOR.SF_APP.'_'.SF_ENVIRONMENT.'.lck', 5))
+    if (sfToolkit::hasLockFile(sfConfig::get('sf_cache_dir').DIRECTORY_SEPARATOR.SF_APP.'_'.SF_ENVIRONMENT.'.lck', 5))
     {
       // application is not available
       $file = sfConfig::get('sf_web_dir').DIRECTORY_SEPARATOR.'errors'.DIRECTORY_SEPARATOR.'unavailable.php';
