@@ -235,7 +235,7 @@ class sfConfigCache
     $config  = str_replace(array('\\', '/', ' '), '_', $config);
     $config .= '.php';
 
-    return sfConfig::get('sf_config_cache_dir').'/'.$config;
+    return sfConfig::get('sf_config_cache_dir', sfToolkit::getTmpDir()).'/'.$config;
   }
 
   /**
