@@ -4,13 +4,14 @@
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
  * (c) 2004-2006 Sean Kerr.
- * 
+ *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
 
 /**
- * sfParameterHolder provides a base class for managing parameters.
+ * sfNamespacedParameterHolder provides a class for managing parameters
+ * with support for namespaces.
  *
  * Parameters, in this case, are used to extend classes with additional data
  * that requires no additional logic to manage.
@@ -21,18 +22,18 @@
  * @author     Sean Kerr <skerr@mojavi.org>
  * @version    SVN: $Id$
  */
-class sfNamespacedParameterHolder implements Serializable
+class sfNamespacedParameterHolder extends sfParameterHolder
 {
   protected $default_namespace = null;
   protected $parameters = array();
 
   /**
-   * The constructor for sfParameterHolder.
-   * 
+   * The constructor for sfNamespacedParameterHolder.
+   *
    * The default namespace may be overridden at initialization as follows:
    * <code>
    * <?php
-   * $mySpecialPH = new sfParameterHolder('symfony/special');
+   * $mySpecialPH = new sfNamespacedParameterHolder('symfony/special');
    * ?>
    * </code>
    */
@@ -151,7 +152,7 @@ class sfNamespacedParameterHolder implements Serializable
    * Retrieve an array of parameters, within a namespace.
    *
    * This method is limited to a namespace.  Without any argument,
-   * it returns the parameters of the default namespace.  If a 
+   * it returns the parameters of the default namespace.  If a
    * namespace is passed as an argument, only the parameters of the
    * specified namespace are returned.
    *
@@ -401,7 +402,7 @@ class sfNamespacedParameterHolder implements Serializable
   }
 
   /**
-   * Unserializes a sfParameterHolder instance.
+   * Unserializes a sfNamespacedParameterHolder instance.
    */
   public function unserialize($serialized)
   {
