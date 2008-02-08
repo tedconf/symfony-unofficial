@@ -68,18 +68,18 @@ EOF;
 
     // Create basic project structure
     $finder = sfFinder::type('any')->ignore_version_control()->discard('.sf');
-
-    $this->filesystem->mirror(dirname(__FILE__).DIRECTORY_SEPARATOR.'skeleton'.DIRECTORY_SEPARATOR.'project', sfConfig::get('sf_root_dir'), $finder);
+    $this->getFilesystem()->mirror(dirname(__FILE__).DIRECTORY_SEPARATOR.'skeleton'.DIRECTORY_SEPARATOR.'project', sfConfig::get('sf_root_dir'), $finder);
 
     // Update project configuration files
     $finder = sfFinder::type('file')->name('config.php', 'properties.ini', '*apache*.conf', 'propel.ini');
-    $this->filesystem->replaceTokens($finder->in(sfConfig::get('sf_config_dir')), '##', '##', array('PROJECT_NAME'   => $arguments['name'],
+    $this->getFilesystem()->replaceTokens($finder->in(sfConfig::get('sf_config_dir')), '##', '##', array('PROJECT_NAME'   => $arguments['name'],
                                                                                                     'PROJECT_DIR'    => sfConfig::get('sf_root_dir'),
                                                                                                     'PROJECT_DOMAIN' => php_uname('n'),
                                                                                                     'SYMFONY_LIB_DIR'  => sfConfig::get('sf_symfony_lib_dir'),
                                                                                                     ));
 
     $fixPerms = new sfProjectPermissionsTask($this->dispatcher, $this->formatter);
+    $fixPerms->setCommandApplication($this->commandApplication);
     $fixPerms->run();
   }
 }

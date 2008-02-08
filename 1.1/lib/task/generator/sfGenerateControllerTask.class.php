@@ -78,8 +78,7 @@ EOF;
       'DEBUG'           => (boolean) $options['debug'],
     );
 
-    $this->filesystem->copy(dirname(__FILE__).DIRECTORY_SEPARATOR.'skeleton'.DIRECTORY_SEPARATOR.'controller'.DIRECTORY_SEPARATOR.'controller.php', sfConfig::get('sf_web_dir').DIRECTORY_SEPARATOR.$controller.'.php');
-
-    $this->filesystem->replaceTokens(sfConfig::get('sf_web_dir').DIRECTORY_SEPARATOR.$controller.'.php', '##', '##', $constants);
+    $this->getFilesystem()->copy(dirname(__FILE__).DIRECTORY_SEPARATOR.'skeleton'.DIRECTORY_SEPARATOR.'controller'.DIRECTORY_SEPARATOR.'controller.php', sfConfig::get('sf_web_dir').DIRECTORY_SEPARATOR.$controller.'.php');
+    $this->getFilesystem()->replaceTokens(sfConfig::get('sf_web_dir').DIRECTORY_SEPARATOR.$controller.'.php', '##', '##', $constants);
   }
 }

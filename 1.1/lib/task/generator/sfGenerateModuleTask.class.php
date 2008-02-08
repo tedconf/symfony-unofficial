@@ -95,16 +95,16 @@ EOF;
 
     // create basic application structure
     $finder = sfFinder::type('any')->ignore_version_control()->discard('.sf');
-    $this->filesystem->mirror($skeletonDir.DIRECTORY_SEPARATOR.'module', $moduleDir, $finder);
+    $this->getFilesystem()->mirror($skeletonDir.DIRECTORY_SEPARATOR.'module', $moduleDir, $finder);
 
     // create basic test
-    $this->filesystem->copy($skeletonDir.DIRECTORY_SEPARATOR.'test'.DIRECTORY_SEPARATOR.'actionsTest.php', sfConfig::get('sf_test_dir').DIRECTORY_SEPARATOR.'functional'.DIRECTORY_SEPARATOR.$app.DIRECTORY_SEPARATOR.$module.'ActionsTest.php');
+    $this->getFilesystem()->copy($skeletonDir.DIRECTORY_SEPARATOR.'test'.DIRECTORY_SEPARATOR.'actionsTest.php', sfConfig::get('sf_test_dir').DIRECTORY_SEPARATOR.'functional'.DIRECTORY_SEPARATOR.$app.DIRECTORY_SEPARATOR.$module.'ActionsTest.php');
 
     // customize test file
-    $this->filesystem->replaceTokens(sfConfig::get('sf_test_dir').DIRECTORY_SEPARATOR.'functional'.DIRECTORY_SEPARATOR.$app.DIRECTORY_SEPARATOR.$module.'ActionsTest.php', '##', '##', $constants);
+    $this->getFilesystem()->replaceTokens(sfConfig::get('sf_test_dir').DIRECTORY_SEPARATOR.'functional'.DIRECTORY_SEPARATOR.$app.DIRECTORY_SEPARATOR.$module.'ActionsTest.php', '##', '##', $constants);
 
     // customize php and yml files
     $finder = sfFinder::type('file')->name('*.php', '*.yml');
-    $this->filesystem->replaceTokens($finder->in($moduleDir), '##', '##', $constants);
+    $this->getFilesystem()->replaceTokens($finder->in($moduleDir), '##', '##', $constants);
   }
 }
