@@ -115,8 +115,7 @@ class sfValidatorDate extends sfValidator
       return $this->getEmptyValue();
     }
 
-    // does php think our date is valid?
-    if(!checkdate($value['month'], $value['day'], $value['year']))
+    if (!checkdate(intval($value['month']), intval($value['day']), intval($value['year'])))
     {
       throw new sfValidatorError($this, 'invalid', array('value' => $value));
     }

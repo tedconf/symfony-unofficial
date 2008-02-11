@@ -266,7 +266,8 @@ VERSION
 -------
 
 The lib/VERSION file have been removed. If you want to get the current symfony
-version, you can use the `sfCore::VERSION` constant.
+version, you can use the `SYMFONY_VERSION` constant. This constant is defined
+in `autoload/sfCoreAutoload.class.php`
 
 
 Routing
