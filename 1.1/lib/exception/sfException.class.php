@@ -128,7 +128,7 @@ class sfException extends Exception
       $file = sfConfig::get('sf_web_dir').'/errors/error500.php';
 
       ob_start();
-      require is_readable($file) ? $file : dirname(__FILE__).'/web/errors/error500.php';
+      require is_readable($file) ? $file : dirname(__FILE__).'/data/error500.php';
       return ob_get_clean();
     }
 
