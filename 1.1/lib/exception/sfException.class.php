@@ -66,6 +66,10 @@ class sfException extends Exception
 
       // log all exceptions in php log
       error_log($exception->getMessage());
+
+      ob_start(sfConfig::get('sf_compressed') ? 'ob_gzhandler' : '');
+
+      header('HTTP/1.1 500 Internal Server Error');
     }
 
     $response = new sfWebResponse(sfContext::getInstance()->getEventDispatcher());
