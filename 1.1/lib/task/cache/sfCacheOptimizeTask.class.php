@@ -73,6 +73,6 @@ EOF;
 
     file_put_contents($config, $optimizer->optimize());
 
-    $this->dispatcher->notify(new sfEvent($this, 'command.log', array($this->formatter->format(sprintf('optimized cache for application "%s" in environment "%s"', $application, $environment), 'COMMENT'))));
+    $this->logSection('cache', sprintf('optimized cache for application "%s" in environment "%s"', $application, $environment));
   }
 }

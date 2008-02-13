@@ -77,13 +77,21 @@ EOF;
 
     require_once(SF_ROOT_DIR.DIRECTORY_SEPARATOR.sfConfig::get('sf_apps_dir_name', 'apps').DIRECTORY_SEPARATOR.SF_APP.DIRECTORY_SEPARATOR.sfConfig::get('sf_config_dir_name', 'config').DIRECTORY_SEPARATOR.'config.php');
 
+    // hide any warnings - like sessions for prod environment
+    $error_reporting = error_reporting(0);
+
+    // generate configuration + view cache
     $browser = new sfBrowser();
-    $browser->initialize(array());
     foreach($uris as $uri)
     {
       $browser->get($uri);
     }
 
-    $this->dispatcher->notify(new sfEvent($this, 'command.log', array($this->formatter->format(sprintf('cache generated for application "%s" in environment "%s"', $application, $environment), 'COMMENT'))));
+    // generate core_compile
+    sfConfigCache::getInstance()->checkConfig('config/core_compile.yml');
+
+    error_reporting($error_reporting);
+
+    $this->logSection('cache', sprintf('generated cache for application "%s" in environment "%s"', $application, $environment));
   }
 }
