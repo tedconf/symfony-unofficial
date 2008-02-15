@@ -53,7 +53,7 @@ class sfPatternRouting extends sfRouting
   {
     if ($config = sfConfigCache::getInstance()->checkConfig(sfConfig::get('sf_app_config_dir_name').'/routing.yml', true))
     {
-      include($config);
+      require($config);
     }
 
     parent::loadConfiguration();
@@ -531,7 +531,7 @@ class sfPatternRouting extends sfRouting
           }
           else
           {
-            $out[$value] = true;
+            $out[$value] = null;
           }
         }
 
@@ -606,10 +606,15 @@ class sfPatternRouting extends sfRouting
     {
       if ($this->options['logging'])
       {
-        $this->dispatcher->notify(new sfEvent($this, 'application.log', array('No matching route found')));
+        $this->dispatcher->notify(new sfEvent($this, 'application.log', array(sprintf('No matching route found for "%s"', $url))));
       }
 
       $this->currentRouteParameters = null;
+
+      /*
+         $out['module'] = $this->options['default_module'];
+         $out['action'] = $this->options['default_action'];
+       */
 
       throw new sfError404Exception(sprintf('No matching route found for "%s"', $url));
     }

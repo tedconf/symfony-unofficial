@@ -10,7 +10,7 @@
 
 require_once(dirname(__FILE__).'/../../bootstrap/unit.php');
 
-$t = new lime_test(70, new lime_output_color());
+$t = new lime_test(71, new lime_output_color());
 
 class sfPatternRoutingTest extends sfPatternRouting
 {
@@ -74,8 +74,8 @@ $r->connect('test4', '/nodefault/:module/:action');
 
 $params = array('module' => 'default', 'action' => 'index1');
 $url = '/default/index1';
-$t->is($r->parse($url), $params, 'parse /:module/:action route');
-$t->is($r->generate('', $params), $url, 'generate /:module/:action url');
+$t->is($r->parse($url), $params, '->parse() handles /:module/:action route');
+$t->is($r->generate('', $params), $url, '->generate() handles /:module/:action url');
 
 // suffix
 $r->clearRoutes();
@@ -167,7 +167,6 @@ $url = '/default/index/15/foo/32/bar/foo/bar';
 $t->is($r->parse($url), $params, '->parse() routes can have numeric parameters');
 $t->is($r->generate('', $params), $url, '->generate() routes can have numeric parameters');
 
-
 $r->clearRoutes();
 $r->connect('test', '/:module/:action/:test/:id', array('module' => 'default', 'action' => 'index', 'test' => 'foo', 'id' => 'bar'));
 $params = array('module' => 'default', 'action' => 'index', 'test' => 'foo', 'id' => 'bar');
@@ -253,7 +252,21 @@ $r->clearRoutes();
 $r->connect('test', '/test/:foo', array('module' => 'default', 'action' => 'index', 'foo' => ''));
 $params = array('module' => 'default', 'action' => 'index', 'foo' => '');
 $url = '/test';
-$t->is($r->parse($url), $params, '->parse() routes can take empty string as default parameters');
+$t->is($r->parse($url), $params, '->parse() routes can take empty string as default parameter');
+
+$msg = '->parse() routes that do not match throw sfError404Exception';
+try
+{
+  $r->clearRoutes();
+  $r->connect('test', '/test/:foo', array('module' => 'default', 'action' => 'index'));
+  $r->parse('/test');
+
+  $t->fail($msg);
+}
+catch (sfError404Exception $e)
+{
+  $t->pass($msg);
+}
 
 // ->appendRoute()
 $t->diag('->appendRoute()');
