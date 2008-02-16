@@ -14,7 +14,7 @@ function double_list_move(src, dest)
 
 function double_list_submit()
 {
-  var form = $('sf_admin_edit_form');
+  var form = document.getElementById('sf_admin_edit_form');
   var element;
 
   // find multiple selects with name beginning 'associated_' and select all their options
