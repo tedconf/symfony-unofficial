@@ -310,7 +310,7 @@ class sfWebResponse extends sfResponse
 
       if ($this->getParameter('logging'))
       {
-        $this->dispatcher->notify(new sfEvent($this, 'application.log', array(sprintf('Send cookie "%s": "%s"', $cookie['name'], $cookie['value']))));
+        $this->dispatcher->notify(new sfEvent($this, 'application.log', array(sprintf('Send cookie "%s"', $cookie['name']))));
       }
     }
   }
