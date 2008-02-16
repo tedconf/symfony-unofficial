@@ -2,4 +2,4 @@ all:
   propel:
     class:      sfPropelDatabase
     param:
-      dsn:      sqlite:/tmp/database.sqlite
+      dsn:      sqlite:%SF_DATA_DIR%/database.sqlite
