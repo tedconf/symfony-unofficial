@@ -438,7 +438,7 @@ abstract class sfController
       sfConfig::set('mod_'.strtolower($module).'_view_class', $viewName);
     }
 
-    // forward to the mail action
+    // forward to the action
     $this->forward($module, $action);
 
     // grab the action entry from this forward
