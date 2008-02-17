@@ -23,6 +23,7 @@
 class sfPatternRouting extends sfRouting
 {
   protected
+    $cache                  = null,
     $currentRouteName       = null,
     $currentInternalUri     = array(),
     $currentRouteParameters = null,
@@ -35,6 +36,11 @@ class sfPatternRouting extends sfRouting
   public function initialize(sfEventDispatcher $dispatcher, $options = array())
   {
     parent::initialize($dispatcher, $options);
+
+    if(isset($options['cache']) && ($options['cache'] instanceof sfCache))
+    {
+      $this->cache = $options['cache'];
+    }
 
     $this->setDefaultSuffix(isset($options['suffix']) ? $options['suffix'] : '');
   }

@@ -58,7 +58,7 @@ all:
       session_cookie_http_only: false                 # cookie can only be accessed via http protocol
 
   cache:
-    class: sfAPCCache
+    class: sfAPCCache          # cache classes: sfAPCCache, sfXCacheCache, sfMemcacheCache, sfEAccelleratorCache
     param:
       lifetime:  86400         # default cache ttl
       prefix:    %SF_APP_DIR%  # prefix
@@ -76,19 +76,14 @@ all:
       debug:                off     # debug mode enabled?
       untranslated_prefix:  "[T]"   # prefix for untranslated strings
       untranslated_suffix:  "[/T]"  # suffix for untranslated strings
-      cache:
-        class: sfAPCCache
-        param:
-          lifetime:  86400         # default cache ttl
-          prefix:    %SF_APP_DIR%  # prefix
 
   routing:
-    class: sfPatternRouting     # routing class: sfPatternRouting, sfPathInfoRouting, sfNoRouting
+    class: sfPatternRouting          # routing classes: sfPatternRouting, sfPathInfoRouting, sfNoRouting
     param:
-      load_configuration: true     # load routing.yml configuration
-      suffix:             .        # Default suffix for generated URLs. If set to a single dot (.), no suffix is added. Possible values: .html, .php, and so on.
-      default_module:     default
-      default_action:     index
+      load_configuration:   true     # load routing.yml configuration
+      suffix:               .        # Default suffix for generated URLs. If set to a single dot (.), no suffix is added. Possible values: .html, .php, and so on.
+      default_module:       default
+      default_action:       index
 
   logger:
     class: sfAggregateLogger

@@ -31,9 +31,9 @@ class sfI18N
    *
    * @see initialize()
    */
-  public function __construct(sfEventDispatcher $dispatcher, sfCache $cache = null, $options = array())
+  public function __construct(sfEventDispatcher $dispatcher, $options = array())
   {
-    $this->initialize($dispatcher, $cache, $options);
+    $this->initialize($dispatcher, $options);
   }
 
   /**
@@ -43,10 +43,14 @@ class sfI18N
    * @param sfCache           A sfCache instance
    * @param array             An array of options
    */
-  public function initialize(sfEventDispatcher $dispatcher, sfCache $cache = null, $options = array())
+  public function initialize(sfEventDispatcher $dispatcher, $options = array())
   {
     $this->dispatcher = $dispatcher;
-    $this->cache      = $cache;
+
+    if(isset($options['cache']) && ($options['cache'] instanceof sfCache))
+    {
+      $this->cache = $options['cache'];
+    }
 
     if (isset($options['culture']))
     {
