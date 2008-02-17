@@ -79,7 +79,10 @@ all:
   routing:
     class: sfPatternRouting     # routing class: sfPatternRouting, sfPathInfoRouting, sfNoRouting
     param:
-      load_configuration: true  # load routing.yml configuration
+      load_configuration: true     # load routing.yml configuration
+      suffix:             .        # Default suffix for generated URLs. If set to a single dot (.), no suffix is added. Possible values: .html, .php, and so on.
+      default_module:     default
+      default_action:     index
 
   logger:
     class: sfAggregateLogger

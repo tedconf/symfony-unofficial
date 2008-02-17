@@ -21,6 +21,8 @@ abstract class sfRouting
   protected
     $dispatcher        = null,
     $defaultParameters = array(),
+    $defaultModule     = 'default',
+    $defaultAction     = 'index',
     $options           = array();
 
   /**
@@ -42,24 +44,20 @@ abstract class sfRouting
    * Initializes this sfRouting instance.
    *
    * @param  sfEventDispatcher A sfEventDispatcher instance
-   * @param  array        An associative array of initialization options.
-   *
-   * @return Boolean     true, if initialization completes successfully, otherwise false.
-   *
-   * @throws <b>sfInitializationException</b> If an error occurs while initializing this sfRouting.
+   * @param  array             An associative array of initialization options.
    */
   public function initialize(sfEventDispatcher $dispatcher, $options = array())
   {
     $this->dispatcher = $dispatcher;
 
-    if (!isset($options['default_module']))
+    if (isset($options['default_module']))
     {
-      $options['default_module'] = 'default';
+      $this->defaultModule = $options['default_module'];
     }
 
-    if (!isset($options['default_action']))
+    if (isset($options['default_action']))
     {
-      $options['default_action'] = 'index';
+      $this->defaultAction = $options['default_action'];
     }
 
     if (!isset($options['logging']))
@@ -146,7 +144,7 @@ abstract class sfRouting
   abstract public function parse($url);
 
   /**
-   * Sets a default parameter for URL generation.
+   * Sets a default parameter.
    *
    * @param string The key
    * @param string The value
@@ -164,6 +162,21 @@ abstract class sfRouting
   public function setDefaultParameters($parameters)
   {
     $this->defaultParameters = $parameters;
+  }
+
+  protected function fixDefaults($arr)
+  {
+    if (empty($arr['module']))
+    {
+      $arr['module'] = $this->defaultModule;
+    }
+
+    if (empty($arr['action']))
+    {
+      $arr['action'] = $this->defaultAction;
+    }
+
+    return $arr;
   }
 
   /**

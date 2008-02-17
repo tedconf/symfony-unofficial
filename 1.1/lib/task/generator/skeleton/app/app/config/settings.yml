@@ -23,9 +23,6 @@ test:
 
 all:
   .actions:
-    default_module:         default   # Default module and action to be called when
-    default_action:         index     # A routing rule doesn't set it
-
     error_404_module:       default   # To be called when a 404 error is raised
     error_404_action:       error404  # Or when the requested URL doesn't match any route
 
@@ -54,7 +51,6 @@ all:
 
     # Routing settings
     relative_url_root:                # Default URL prefix. Use this when your symfony project is installed in a sub directory of the apache document root.
-    suffix:                 .         # Default suffix for generated URLs. If set to a single dot (.), no suffix is added. Possible values: .html, .php, and so on.
     no_script_name:         on        # Enable the front controller name in generated URLs
 
     # Cache settings
@@ -111,4 +107,3 @@ all:
     validation_error_tag:         div
     validation_error_class:       form_error
     validation_error_id_prefix:   error_for_
-
