@@ -20,6 +20,12 @@ default:
       auto_start:    true     # auto start sessions
       session_name:  symfony  # name of session cookie
 
+  cache:
+    class: sfAPCCache
+    param:
+      lifetime:  86400         # default cache ttl
+      prefix:    %SF_APP_DIR%  # prefix
+
   view_cache:
     class: sfAPCCache
     param:

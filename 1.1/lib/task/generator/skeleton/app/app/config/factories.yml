@@ -57,6 +57,12 @@ all:
       session_cookie_secure:    false                 # only send cookie if connection is secure
       session_cookie_http_only: false                 # cookie can only be accessed via http protocol
 
+  cache:
+    class: sfAPCCache
+    param:
+      lifetime:  86400         # default cache ttl
+      prefix:    %SF_APP_DIR%  # prefix
+
   view_cache:
     class: sfAPCCache
     param:
