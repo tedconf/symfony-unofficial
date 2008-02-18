@@ -40,5 +40,5 @@ $t->is($routing->parse('?module=foo&action=bar&foo=bar'), array(), '->parse() pa
 $t->diag('->generate()');
 $t->is($routing->generate(null, array()), '/', '->generate() generates a URL from an array of parameters');
 $t->is($routing->generate(null, array('foo' => 'bar')), '/?foo=bar', '->generate() generates a URL from an array of parameters');
-$t->is($routing->generate(null, array('module' => 'foo', 'action' => 'bar')), '/?module=foo&amp;action=bar', '->generate() generates a URL from an array of parameters');
-$t->is($routing->generate(null, array('module' => 'foo', 'action' => 'bar', 'foo' => 'bar')), '/?module=foo&amp;action=bar&amp;foo=bar', '->generate() generates a URL from an array of parameters');
+$t->is($routing->generate(null, array('module' => 'foo', 'action' => 'bar')), '/?module=foo&action=bar', '->generate() generates a URL from an array of parameters');
+$t->is($routing->generate(null, array('module' => 'foo', 'action' => 'bar', 'foo' => 'bar')), '/?module=foo&action=bar&foo=bar', '->generate() generates a URL from an array of parameters');
