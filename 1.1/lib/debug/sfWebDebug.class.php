@@ -88,7 +88,7 @@ class sfWebDebug
     }
 
     // escape HTML
-    $logLine = htmlspecialchars($logLine, ENT_QUOTES, sfConfig::get('sf_charset'));
+    $logLine = htmlentities($logLine, ENT_QUOTES, sfConfig::get('sf_charset'));
 
     // replace constants value with constant name
     $logLine = str_replace(array_keys($constants), array_values($constants), $logLine);
@@ -297,14 +297,14 @@ class sfWebDebug
   {
     $features = array(
       // core features
-      'cache'                                     => sfConfig::get('sf_cache')               ? 'on' : 'off',
-      'i18n'                                      => sfConfig::get('sf_i18n')                ? 'on' : 'off',
-      'security'                                  => sfConfig::get('sf_use_security')        ? 'on' : 'off',
-      'escaping'                                  => sfConfig::get('sf_escaping_strategy')   ? 'on' : 'off',
-      'database'                                  => sfConfig::get('sf_use_database')        ? 'on' : 'off',
-      'compression'                               => sfConfig::get('sf_compressed')          ? 'on' : 'off',
-      'logging'                                   => sfConfig::get('sf_logging_enabled')     ? 'on' : 'off',
-      'debug'                                     => sfConfig::get('sf_debug')               ? 'on' : 'off',
+      'cache'         => sfConfig::get('sf_cache')               ? 'on' : 'off',
+      'i18n'          => sfConfig::get('sf_i18n')                ? 'on' : 'off',
+      'security'      => sfConfig::get('sf_use_security')        ? 'on' : 'off',
+      'escaping'      => sfConfig::get('sf_escaping_strategy')   ? 'on' : 'off',
+      'database'      => sfConfig::get('sf_use_database')        ? 'on' : 'off',
+      'compression'   => sfConfig::get('sf_compressed')          ? 'on' : 'off',
+      'logging'       => sfConfig::get('sf_logging_enabled')     ? 'on' : 'off',
+      'debug'         => sfConfig::get('sf_debug')               ? 'on' : 'off',
     );
 
     $extensions = array(
@@ -352,7 +352,7 @@ class sfWebDebug
     $id = ucfirst(strtolower($id));
     $content = '
     <h2>'.$id.' <a href="#" onclick="sfWebDebugToggle(\'sfWebDebug'.$id.'\'); return false;">'.image_tag(sfConfig::get('sf_web_debug_web_dir').'/images/toggle.gif').'</a></h2>
-    <div id="sfWebDebug'.$id.'" style="display: none"><pre>'.htmlspecialchars(@sfYaml::dump($values), ENT_QUOTES, sfConfig::get('sf_charset')).'</pre></div>
+    <div id="sfWebDebug'.$id.'" style="display: none"><pre>'.htmlentities(@sfYaml::dump($values), ENT_QUOTES, sfConfig::get('sf_charset')).'</pre></div>
     ';
 
     return $content;
@@ -389,7 +389,7 @@ class sfWebDebug
       <div id="sub_main_'.$id.'" class="sfWebDebugCache" style="background-color: '.$bgColor.'; border-right: 1px solid #f00; border-bottom: 1px solid #f00;">
       <div style="height: 16px; padding: 2px"><a href="#" onclick="sfWebDebugToggle(\''.$id.'\'); return false;"><strong>cache information</strong></a>&nbsp;<a href="#" onclick="sfWebDebugToggle(\'sub_main_'.$id.'\'); document.getElementById(\'main_'.$id.'\').style.border = \'none\'; return false;">'.image_tag(sfConfig::get('sf_web_debug_web_dir').'/images/close.png').'</a>&nbsp;</div>
         <div style="padding: 2px; display: none" id="'.$id.'">
-        [uri]&nbsp;'.htmlspecialchars($internalUri, ENT_QUOTES, sfConfig::get('sf_charset')).'<br />
+        [uri]&nbsp;'.htmlentities($internalUri, ENT_QUOTES, sfConfig::get('sf_charset')).'<br />
         [life&nbsp;time]&nbsp;'.$cache->getLifeTime($internalUri).'&nbsp;seconds<br />
         [last&nbsp;modified]&nbsp;'.(time() - $lastModified).'&nbsp;seconds<br />
         &nbsp;<br />&nbsp;
