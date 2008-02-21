@@ -53,11 +53,11 @@ class sfContext
     }
     catch (sfException $e)
     {
-      $e->asResponse();
+      $e->asResponse()->send();
     }
     catch (Exception $e)
     {
-      sfException::createFromException($e)->printStackTrace();
+      sfException::createFromException($e)->asResponse()->send();
     }
 
     $this->dispatcher->connect('template.filter_parameters', array($this, 'filterTemplateParameters'));
