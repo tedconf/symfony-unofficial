@@ -200,7 +200,7 @@ class sfCore
   static public function checkSymfonyVersion()
   {
     // recent symfony update?
-    if (SYMFONY_VERSION != @file_get_contents(sfConfig::get('sf_config_cache_dir').DIRECTORY_SEPARATOR.'VERSION'))
+    if (!sfConfig::get('sf_debug') && !sfConfig::get('sf_test') && (SYMFONY_VERSION != @file_get_contents(sfConfig::get('sf_config_cache_dir').DIRECTORY_SEPARATOR.'VERSION')))
     {
       // clear cache
       sfToolkit::clearDirectory(sfConfig::get('sf_config_cache_dir'));
