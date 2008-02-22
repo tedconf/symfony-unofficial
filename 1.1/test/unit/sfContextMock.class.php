@@ -3,7 +3,7 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- * 
+ *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -19,7 +19,8 @@ class sfContext
     $controller = null,
     $routing    = null,
     $user       = null,
-    $storage    = null;
+    $storage    = null,
+    $i18n    = null;
 
   protected
     $sessionPath = '';
@@ -94,6 +95,11 @@ class sfContext
     return $this->user;
   }
 
+  public function getI18n()
+  {
+    return $this->i18n;
+  }
+
   public function getController()
   {
     return $this->controller;
@@ -109,6 +115,12 @@ class sfContext
         break;
       case 'request':
         $object = new $class($this->dispatcher, $this->routing, $parameters);
+        break;
+      case 'user':
+        $object = new $class($this->dispatcher, $this->storage, $parameters);
+        break;
+      case 'i18n':
+        $object = new $class($this->dispatcher, $parameters);
         break;
       default:
         $object = new $class($this, $parameters);
