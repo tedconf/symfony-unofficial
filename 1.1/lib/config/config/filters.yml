@@ -2,8 +2,7 @@
 security:
   class: sfBasicSecurityFilter
   param:
-    type:      security
-    condition: %SF_USE_SECURITY%
+    type: security
 
 cache:
   class: sfCacheFilter

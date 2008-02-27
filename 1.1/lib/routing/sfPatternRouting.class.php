@@ -65,11 +65,6 @@ class sfPatternRouting extends sfRouting
 
     parent::initialize($dispatcher, $cache, $options);
 
-    if(isset($options['cache']) && ($options['cache'] instanceof sfCache))
-    {
-      $this->cache = $options['cache'];
-    }
-
     $this->setDefaultSuffix(isset($options['suffix']) ? $options['suffix'] : '');
 
     if (!is_null($this->cache) && $cacheData = $this->cache->get('data'))
@@ -243,6 +238,33 @@ class sfPatternRouting extends sfRouting
   public function appendRoute($name, $route, $default = array(), $requirements = array())
   {
     return $this->connect($name, $route, $default, $requirements);
+  }
+
+  /**
+   * Adds a new route before a given one in the current list of routes.
+   *
+   * @see connect
+   */
+  public function insertRouteBefore($pivot, $name, $route, $default = array(), $requirements = array())
+  {
+    if (!isset($this->routes[$pivot]))
+    {
+      throw new sfConfigurationException(sprintf('Unable to insert route "%s" before inexistent route "%s".', $name, $pivot));
+    }
+
+    $routes = $this->routes;
+    $this->routes = array();
+    $newroutes = array();
+    foreach ($routes as $key => $value)
+    {
+      if ($key == $pivot)
+      {
+        $newroutes = array_merge($newroutes, $this->connect($name, $route, $default, $requirements));
+      }
+      $newroutes[$key] = $value;
+    }
+
+    return $this->routes = $newroutes;
   }
 
   /**

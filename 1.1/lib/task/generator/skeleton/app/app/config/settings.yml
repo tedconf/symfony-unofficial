@@ -1,6 +1,6 @@
 prod:
   .settings:
-    error_reporting:        <?php echo E_PARSE | E_COMPILE_ERROR | E_ERROR | E_CORE_ERROR | E_USER_ERROR ?> # Determines which events are logged.
+    error_reporting:        <?php echo (E_PARSE | E_COMPILE_ERROR | E_ERROR | E_CORE_ERROR | E_USER_ERROR)."\n" ?> # Determines which events are logged.
     logging_enabled:        on        # Enable logging
     no_script_name:         ##NO_SCRIPT_NAME##      # Enable the front controller name in generated URLs
     cache:                  on       # Enable the template cache
@@ -18,7 +18,7 @@ dev:
 
 test:
   .settings:
-    error_reporting:        <?php echo (E_ALL | E_STRICT & ~E_NOTICE)."\n" ?> # Determines which events are logged.
+    error_reporting:        <?php echo (E_ALL | E_STRICT)."\n" ?> # Determines which events are logged.
     compressed:             off       # Enable PHP response compression. Set to on to compress the outgoing HTML via the PHP handler.
 
 all:
@@ -38,10 +38,8 @@ all:
   .settings:
     # Optional features - Deactivating unused features increases performance
     use_database:           on        # Enable database manager. Set to off if you don't use a database.
-    use_security:           on        # Enable security features (login and credentials). Set to off for public applications.
-    use_flash:              on        # Enable flash parameter feature. Set to off if you never use the set_flash() method in actions.
     i18n:                   on        # Enable interface translation. Set to off if your application should not be translated.
-    check_symfony_version:  on        # Enable check of symfony version for every request. Set to on to have symfony clear the cache automatically when the framework is upgraded. Set to off if you always clear the cache after an upgrade.
+    check_symfony_version:  off       # Enable check of symfony version for every request. Set to on to have symfony clear the cache automatically when the framework is upgraded. Set to off if you always clear the cache after an upgrade.
     compressed:             off       # Enable PHP response compression. Set to on to compress the outgoing HTML via the PHP handler.
     check_lock:             on        # Enable the application lock system triggered by the clear-cache and disable tasks. Set to on to have all requests to disabled applications redirected to the $sf_symfony_data_dir/web/arrors/unavailable.php page.
 
@@ -50,7 +48,7 @@ all:
     escaping_method:        ESC_ENTITIES   # Function or helper used for escaping. Accepted values: ESC_RAW, ESC_ENTITIES, ESC_JS, ESC_JS_NO_ENTITIES.
 
     # Routing settings
-    relative_url_root:                # Default URL prefix. Use this when your symfony project is installed in a sub directory of the apache document root.
+    relative_url_root:      ~         # Default URL prefix. Use this when your symfony project is installed in a sub directory of the apache document root.
     no_script_name:         on        # Enable the front controller name in generated URLs
 
     # Cache settings
@@ -58,7 +56,7 @@ all:
     etag:                   off        # Enable etag handling
 
     # Logging and debugging settings
-    error_reporting:        <?php echo E_PARSE | E_COMPILE_ERROR | E_ERROR | E_CORE_ERROR | E_USER_ERROR ?> # Determines which events are logged.
+    error_reporting:        <?php echo (E_PARSE | E_COMPILE_ERROR | E_ERROR | E_CORE_ERROR | E_USER_ERROR)."\n" ?> # Determines which events are logged.
     web_debug:              off       # Enable the web debug toolbar
     xdebug:                 off       # Enable xdebug stack trace in the logs
 
@@ -77,19 +75,18 @@ all:
     enabled_modules:        [default]
 
     # Miscellaneous
-    strip_comments:           on         # Remove comments in core framework classes as defined in the core_compile.yml
-    max_forwards:             5          # Max forwards before stoping loop
-    path_info_array:          SERVER
-    path_info_key:            PATH_INFO
-    url_format:               PATH
-    cache_namespace_callable: false      # callable used to generate sf_cache_key
+    strip_comments:         on         # Remove comments in core framework classes as defined in the core_compile.yml
+    max_forwards:           5          # Max forwards before stoping loop
+    path_info_array:        SERVER
+    path_info_key:          PATH_INFO
+    url_format:             PATH
 
     # ORM
     orm:                    propel
 
     # Logging
     logging_enabled:        on  # Enable error logging
-    logging_period:         31  # Days to keep logs before rotating
+    logging_period:         30  # Days to keep logs before rotating
     logging_history:        3   # How many log periods to archive
 
     # I18n
