@@ -107,7 +107,7 @@ class sfFactoryConfigHandler extends sfYamlConfigHandler
 
         case 'response':
           $instances[] = sprintf("  \$class = sfConfig::get('sf_factory_response', '%s');\n  \$this->factories['response'] = new \$class(\$this->dispatcher, sfConfig::get('sf_factory_response_parameters', %s));", $class, var_export($parameters, true));
-          $instances[] = sprintf("  if ('HEAD' == \$this->factories['request']->getMethodName())\n  {  \n    \$this->factories['response']->setHeaderOnly(true);\n  }\n");
+          $instances[] = sprintf("  if ((sfConfig::get('sf_environment') != 'cli') && ('HEAD' == \$this->factories['request']->getMethodName()))\n  {  \n    \$this->factories['response']->setHeaderOnly(true);\n  }\n");
           break;
 
         case 'storage':
