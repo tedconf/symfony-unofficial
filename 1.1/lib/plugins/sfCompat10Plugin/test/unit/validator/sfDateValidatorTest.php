@@ -18,7 +18,6 @@ $context = sfContext::getInstance(array('user' => 'sfUser', 'i18n' => 'sfI18N', 
 $context->getUser()->setCulture('en_US');
 
 $v = new sfDateValidator($context);
-$v->initialize($context);
 
 // ->execute()
 $t->diag('->execute()');

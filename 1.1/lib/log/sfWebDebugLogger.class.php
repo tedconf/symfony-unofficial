@@ -49,6 +49,7 @@ class sfWebDebugLogger extends sfLogger
     if (isset($options['xdebug_logging']))
     {
       $this->xdebugLogging = $options['xdebug_logging'];
+      ini_set('memory_limit', '256M'); // xdebug can consume a lot of memory
     }
 
     return parent::initialize($dispatcher, $options);
@@ -94,7 +95,7 @@ class sfWebDebugLogger extends sfLogger
       return $content;
     }
 
-    // add needed assets for the web debug toolbar
+    // add web debug information to response content
     $root = $this->context->getRequest()->getRelativeUrlRoot();
     $assets = sprintf('
       <script type="text/javascript" src="%s"></script>
@@ -102,16 +103,8 @@ class sfWebDebugLogger extends sfLogger
       $root.sfConfig::get('sf_web_debug_web_dir').'/js/main.js',
       $root.sfConfig::get('sf_web_debug_web_dir').'/css/main.css'
     );
-    $content = str_ireplace('</head>', $assets.'</head>', $content);
 
-    // add web debug information to response content
-    $webDebugContent = $this->webDebug->getResults();
-    $count = 0;
-    $content = str_ireplace('</body>', $webDebugContent.'</body>', $content, $count);
-    if (!$count)
-    {
-      $content .= $webDebugContent;
-    }
+    $content = str_ireplace('</body>', $this->webDebug->getResults().'</body>', str_ireplace('</head>', $assets.'</head>', $content));
 
     return $content;
   }
@@ -131,7 +124,7 @@ class sfWebDebugLogger extends sfLogger
       foreach (xdebug_get_function_stack() as $i => $stack)
       {
         if (
-          (isset($stack['function']) && !in_array($stack['function'], array('emerg', 'alert', 'crit', 'err', 'warning', 'notice', 'info', 'debug', 'log')))
+          (isset($stack['function']) && !in_array($stack['function'], array('emergency', 'alert', 'critical', 'error', 'warning', 'notice', 'info', 'debug', 'log')))
           || !isset($stack['function'])
         )
         {

@@ -46,8 +46,6 @@ EOF;
   {
     $this->logSection('i18n', sprintf('find non "i18n ready" strings in the "%s" application', $arguments['application']));
 
-    sfCore::initDirectoryLayout(sfConfig::get('sf_root_dir'), $arguments['application'], $options['env']);
-
     // Look in templates
     $moduleNames = sfFinder::type('dir')->maxdepth(0)->ignore_version_control()->relative()->in(sfConfig::get('sf_app_dir').DIRECTORY_SEPARATOR.sfConfig::get('sf_app_module_dir_name', 'modules'));
     $strings = array();

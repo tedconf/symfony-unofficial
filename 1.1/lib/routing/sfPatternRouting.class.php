@@ -76,7 +76,7 @@ class sfPatternRouting extends sfRouting
    */
   public function loadConfiguration()
   {
-    if ($config = sfConfigCache::getInstance()->checkConfig(sfConfig::get('sf_app_config_dir_name').'/routing.yml', true))
+    if ($config = sfContext::getInstance()->getConfigCache()->checkConfig('config/routing.yml', true))
     {
       require($config);
     }
@@ -427,7 +427,7 @@ class sfPatternRouting extends sfRouting
       $tparams = $this->mergeArrays($defaults, $params);
 
       // all params must be given
-      if ($diff = array_diff_key($variables, array_filter($tparams)))
+      if ($diff = array_diff_key($variables, array_filter($tparams, create_function('$v', 'return !is_null($v);'))))
       {
         throw new InvalidArgumentException(sprintf('The "%s" route has some missing mandatory parameters (%s).', $name, implode(', ', $diff)));
       }

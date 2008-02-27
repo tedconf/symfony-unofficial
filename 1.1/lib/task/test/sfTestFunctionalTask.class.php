@@ -62,7 +62,7 @@ EOF;
     {
       foreach ($arguments['controller'] as $controller)
       {
-        $files = sfFinder::type('file')->ignore_version_control()->follow_link()->name(basename($controller).'Test.php')->in(sfConfig::get('sf_test_functional_dir').DIRECTORY_SEPARATOR.$app.DIRECTORY_SEPARATOR.dirname($controller));
+        $files = sfFinder::type('file')->ignore_version_control()->follow_link()->name(basename($controller).'Test.php')->in(sfConfig::get('sf_test_dir').DIRECTORY_SEPARATOR.'functional'.DIRECTORY_SEPARATOR.$app.DIRECTORY_SEPARATOR.dirname($controller));
         foreach ($files as $file)
         {
           include($file);
@@ -74,7 +74,7 @@ EOF;
       require_once(sfConfig::get('sf_symfony_lib_dir').DIRECTORY_SEPARATOR.'vendor'.DIRECTORY_SEPARATOR.'lime'.DIRECTORY_SEPARATOR.'lime.php');
 
       $h = new lime_harness(new lime_output_color());
-      $h->base_dir = sfConfig::get('sf_test_functional_dir').DIRECTORY_SEPARATOR.$app;
+      $h->base_dir = sfConfig::get('sf_test_dir').DIRECTORY_SEPARATOR.'functional'.DIRECTORY_SEPARATOR.$app;
 
       // register functional tests
       $finder = sfFinder::type('file')->ignore_version_control()->follow_link()->name('*Test.php');

@@ -68,19 +68,7 @@ EOF;
 
     $this->checkAppExists($application);
 
-    // simulate a request to populate configuration cache files for the current application and environment
-    // only works for one application / environment per execution
-    define('SF_ROOT_DIR',    realpath('./'));
-    define('SF_APP',         $application);
-    define('SF_ENVIRONMENT', $environment);
-    define('SF_DEBUG',       true);
-
-    require_once(SF_ROOT_DIR.DIRECTORY_SEPARATOR.sfConfig::get('sf_apps_dir_name', 'apps').DIRECTORY_SEPARATOR.SF_APP.DIRECTORY_SEPARATOR.sfConfig::get('sf_config_dir_name', 'config').DIRECTORY_SEPARATOR.'config.php');
-
-    // hide any warnings - like sessions for prod environment
-    $error_reporting = error_reporting(0);
-
-    // generate configuration + view cache
+    // simulate http requests to prime configuration/i18n/view cache
     $browser = new sfBrowser();
     foreach($uris as $uri)
     {
@@ -88,9 +76,8 @@ EOF;
     }
 
     // generate core_compile
-    sfConfigCache::getInstance()->checkConfig('config/core_compile.yml');
-
-    error_reporting($error_reporting);
+    $configuration = sfApplicationConfiguration::getForApplication($application, $environment, true, realpath('./'));
+    $configuration->getConfigCache()->checkConfig('config/core_compile.yml');
 
     $this->logSection('cache', sprintf('generated cache for application "%s" in environment "%s"', $application, $environment));
   }

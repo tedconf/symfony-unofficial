@@ -55,7 +55,15 @@ EOF;
       throw new sfCommandException('You can unfreeze only if you froze the symfony libraries before.');
     }
 
-    $this->changeSymfonyDirs("'".file_get_contents('config/config.php.bak')."'");
+    // change symfony path in ProjectConfiguration.class.php
+    $config = sfConfig::get('sf_lib_dir').'/ProjectConfiguration.class.php';
+    $content = file_get_contents($config);
+    if (preg_match('/^# FROZEN_SF_LIB_DIR\: (.+?)$/m', $content, $match))
+    {
+      $content = str_replace("# FROZEN_SF_LIB_DIR: {$match[1]}\n\n", '', $content);
+      $content = preg_replace('#^require_once.+?$#m', "require_once '{$match[1]}/autoload/sfCoreAutoload.class.php';", $content, 1);
+      file_put_contents($config, $content);
+    }
 
     $finder = sfFinder::type('any');
     $this->getFilesystem()->remove($finder->in($sf_lib_dir.DIRECTORY_SEPARATOR.'symfony'));
@@ -64,14 +72,5 @@ EOF;
     $this->getFilesystem()->remove($sf_data_dir.DIRECTORY_SEPARATOR.'symfony');
     $this->getFilesystem()->remove($finder->in($sf_web_dir.DIRECTORY_SEPARATOR.'sf'));
     $this->getFilesystem()->remove($sf_web_dir.DIRECTORY_SEPARATOR.'sf');
-   }
-
-  protected function changeSymfonyDirs($symfony_lib_dir)
-  {
-    $sf_config_dir = sfConfig::get('sf_config_dir');
-
-    $content = file_get_contents($sf_config_dir.DIRECTORY_SEPARATOR.'config.php');
-    $content = preg_replace("/^(\s*.sf_symfony_lib_dir\s*=\s*).+?;/m", "$1$symfony_lib_dir;", $content);
-    file_put_contents($sf_config_dir.DIRECTORY_SEPARATOR.'config.php', $content);
   }
 }

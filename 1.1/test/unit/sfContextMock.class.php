@@ -8,19 +8,32 @@
  * file that was distributed with this source code.
  */
 
+require_once(sfConfig::get('sf_symfony_lib_dir').'/config/sfProjectConfiguration.class.php');
+class ProjectConfiguration extends sfProjectConfiguration
+{
+
+}
+
+class ApplicationConfiguration extends ProjectConfiguration
+{
+
+}
+
 class sfContext
 {
   protected static
     $instance = null;
 
   public
+    $configuration = null,
     $request    = null,
     $response   = null,
     $controller = null,
     $routing    = null,
     $user       = null,
     $storage    = null,
-    $i18n    = null;
+    $i18n       = null,
+    $cache      = null;
 
   protected
     $sessionPath = '';
@@ -34,7 +47,9 @@ class sfContext
       self::$instance->sessionPath = sfToolkit::getTmpDir().'/sessions_'.rand(11111, 99999);
       self::$instance->storage = new sfSessionTestStorage(array('session_path' => self::$instance->sessionPath));
 
-      self::$instance->dispatcher = new sfEventDispatcher();
+      self::$instance->cache = new sfNoCache();
+      self::$instance->configuration = new ApplicationConfiguration();
+      self::$instance->dispatcher = self::$instance->configuration->getEventDispatcher();
 
       foreach ($factories as $type => $class)
       {
@@ -105,6 +120,21 @@ class sfContext
     return $this->controller;
   }
 
+  public function getCache()
+  {
+    return $this->cache;
+  }
+
+  public function getConfiguration()
+  {
+    return $this->configuration;
+  }
+
+  public function getConfigCache()
+  {
+    return $this->configuration->getConfigCache();
+  }
+
   public function inject($type, $class, $parameters = array())
   {
     switch ($type)
@@ -120,7 +150,7 @@ class sfContext
         $object = new $class($this->dispatcher, $this->storage, $parameters);
         break;
       case 'i18n':
-        $object = new $class($this->dispatcher, $parameters);
+        $object = new $class($this->configuration, $this->cache, $parameters);
         break;
       default:
         $object = new $class($this, $parameters);
