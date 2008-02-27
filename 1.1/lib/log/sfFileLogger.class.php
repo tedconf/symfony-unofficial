@@ -66,7 +66,7 @@ class sfFileLogger extends sfLogger
     $dir = dirname($options['file']);
     if (!is_dir($dir))
     {
-      mkdir($dir, isset($options['dir_mode']) ? $options['dir_mode'] : 0777, true);
+      @mkdir($dir, isset($options['dir_mode']) ? $options['dir_mode'] : 0777, true);
     }
 
     if (!is_writable($dir) || ($fileExists = file_exists($options['file']) && !is_writable($options['file'])))
@@ -77,7 +77,7 @@ class sfFileLogger extends sfLogger
     $this->fp = fopen($options['file'], 'a');
     if (!$fileExists)
     {
-      chmod($options['file'], isset($options['file_mode']) ? $options['file_mode'] : 0666);
+      @chmod($options['file'], isset($options['file_mode']) ? $options['file_mode'] : 0666);
     }
 
     return parent::initialize($dispatcher, $options);
