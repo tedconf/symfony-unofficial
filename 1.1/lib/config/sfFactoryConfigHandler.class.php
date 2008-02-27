@@ -156,9 +156,7 @@ class sfFactoryConfigHandler extends sfYamlConfigHandler
           }
 
           $instances[] = sprintf("\n  if (sfConfig::get('sf_i18n'))\n  {\n".
-                     "    \$class = sfConfig::get('sf_factory_i18n', '%s');\n".
-                     "%s".
-                     "    \$this->factories['i18n'] = new \$class(\$this->configuration, \$cache, %s);\n".
+                     "    \$class = sfConfig::get('sf_factory_i18n', '%s');\n  %s\$this->factories['i18n'] = new \$class(\$this->configuration, \$cache, %s);\n".
                      "  }\n"
                      , $class, $cache, var_export($parameters, true)
                      );
@@ -168,15 +166,16 @@ class sfFactoryConfigHandler extends sfYamlConfigHandler
 
           if (isset($parameters['cache']))
           {
-            $instances[] = sprintf("    \$cache = new %s(%s);\n", $parameters['cache']['class'], var_export($parameters['cache']['param'], true));
+            $cache = sprintf("    \$cache = new %s(%s);\n", $parameters['cache']['class'], var_export($parameters['cache']['param'], true));
             unset($parameters['cache']);
           }
           else
           {
-            $instances[] = "    \$cache = \$this->factories['cache'];\n";
+            $cache = "    \$cache = \$this->factories['cache'];\n";
           }
 
-          $instances[] = sprintf("  \$class = sfConfig::get('sf_factory_routing', '%s');\n  \$this->factories['routing'] = new \$class(\$this->dispatcher, array_merge(array('auto_shutdown' => false, 'logging' => sfConfig::get('sf_logging_enabled'), 'cache' => \$cache), sfConfig::get('sf_factory_routing_parameters', %s)));", $class, var_export(is_array($parameters) ? $parameters : array(), true));
+          $instances[] = sprintf("  \$class = sfConfig::get('sf_factory_routing', '%s');\n  %s\n\$this->factories['routing'] = new \$class(\$this->dispatcher, \$cache, array_merge(array('auto_shutdown' => false, 'logging' => sfConfig::get('sf_logging_enabled')), sfConfig::get('sf_factory_routing_parameters', %s)));", $class, $cache, var_export(is_array($parameters) ? $parameters : array(), true));
+
           if (isset($parameters['load_configuration']) && $parameters['load_configuration'])
           {
             $instances[] = "  \$this->factories['routing']->loadConfiguration();\n";

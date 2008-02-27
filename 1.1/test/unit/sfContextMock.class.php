@@ -140,6 +140,8 @@ class sfContext
     switch ($type)
     {
       case 'routing':
+        $object = new $class($this->dispatcher, null, $parameters);
+        break;
       case 'response':
         $object = new $class($this->dispatcher, $parameters);
         break;
