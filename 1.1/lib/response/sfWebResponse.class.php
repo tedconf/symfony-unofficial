@@ -282,7 +282,7 @@ class sfWebResponse extends sfResponse
 
     if ($this->getParameter('logging'))
     {
-      $this->dispatcher->notify(new sfEvent($this, 'application.log', array(sprintf('Send status "%s"', $status))));
+      $this->dispatcher->notify(new sfEvent($this, 'application.log', array(sprintf('Sent status "%s"', $status))));
     }
 
     // headers
@@ -292,7 +292,7 @@ class sfWebResponse extends sfResponse
 
       if ($value != '' && $this->getParameter('logging'))
       {
-        $this->dispatcher->notify(new sfEvent($this, 'application.log', array(sprintf('Send header "%s": "%s"', $name, $value))));
+        $this->dispatcher->notify(new sfEvent($this, 'application.log', array(sprintf('Sent header "%s": "%s"', $name, $value))));
       }
     }
 
@@ -310,7 +310,7 @@ class sfWebResponse extends sfResponse
 
       if ($this->getParameter('logging'))
       {
-        $this->dispatcher->notify(new sfEvent($this, 'application.log', array(sprintf('Send cookie "%s"', $cookie['name']))));
+        $this->dispatcher->notify(new sfEvent($this, 'application.log', array(sprintf('Sent cookie "%s"', $cookie['name']))));
       }
     }
   }
