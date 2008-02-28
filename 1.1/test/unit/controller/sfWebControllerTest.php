@@ -3,7 +3,7 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- * 
+ *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -154,10 +154,8 @@ catch (sfParseException $e)
 $t->diag('->redirect()');
 sfConfig::set('sf_test', true);
 sfConfig::set('sf_charset', 'utf-8');
-ob_start();
 $controller->redirect('module/action?id=1#photos');
-$content = ob_get_clean();
-$t->like($content, '~http\://localhost/index.php/\?action=action&amp;module=module&amp;id=1#photos~', '->redirect() adds a refresh meta in the content');
+$t->like($context->getResponse()->getContent(), '~http\://localhost/index.php/\?action=action&amp;module=module&amp;id=1#photos~', '->redirect() adds a refresh meta in the content');
 $t->like($context->getResponse()->getHttpHeader('Location'), '~http\://localhost/index.php/\?action=action&module=module&id=1#photos~', '->redirect() adds a Location HTTP header');
 
 // ->genUrl()
