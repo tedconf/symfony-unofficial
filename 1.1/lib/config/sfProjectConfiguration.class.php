@@ -9,7 +9,7 @@
  */
 
 /**
- * sfConfiguration represents a configuration for a symfony project.
+ * sfProjectConfiguration represents a configuration for a symfony project.
  *
  * @package    symfony
  * @subpackage config
@@ -209,7 +209,7 @@ class sfProjectConfiguration
    */
   public function getGeneratorTemplate($class, $theme, $path)
   {
-    $dirs = self::getGeneratorTemplateDirs($class, $theme);
+    $dirs = $this->getGeneratorTemplateDirs($class, $theme);
     foreach ($dirs as $dir)
     {
       if (is_readable($dir.'/'.$path))

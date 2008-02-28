@@ -124,8 +124,17 @@ class sfPluginManager
     $isPackage = true;
     if (0 === strpos($plugin, 'http://') || file_exists($plugin))
     {
+      if (0 === strpos($plugin, 'http://plugins.symfony-project.'))
+      {
+        throw new sfPluginException("You try to install a symfony 1.0 plugin.\nPlease read the help message of this task to know how to install a plugin for the current version of symfony.");
+      }
+
       $download  = $plugin;
       $isPackage = false;
+    }
+    else if (false !== strpos($plugin, '/'))
+    {
+      list($channel, $plugin) = explode('/', $plugin);
     }
 
     $this->dispatcher->notify(new sfEvent($this, 'plugin.pre_install', array('channel' => $channel, 'plugin' => $plugin, 'is_package' => $isPackage)));
@@ -139,7 +148,7 @@ class sfPluginManager
         throw new sfPluginException(sprintf('Plugin name "%s" is not a valid package name', $plugin));
       }
 
-      if (is_null($version))
+      if (!$version)
       {
         $version = $this->getPluginVersion($plugin, $stability);
       }
@@ -255,6 +264,11 @@ class sfPluginManager
    */
   public function uninstallPlugin($plugin, $channel = null)
   {
+    if (false !== strpos($plugin, '/'))
+    {
+      list($channel, $plugin) = explode('/', $plugin);
+    }
+
     $channel = is_null($channel) ? $this->environment->getConfig()->get('default_channel') : $channel;
 
     $existing = $this->environment->getRegistry()->packageInfo($plugin, 'version', $channel);
