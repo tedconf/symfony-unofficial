@@ -94,7 +94,7 @@ EOF;
 
     // Set no_script_name value in settings.yml for production environment
     $finder = sfFinder::type('file')->name('settings.yml');
-    $this->getFilesystem()->replaceTokens($finder->in($appDir.DIRECTORY_SEPARATOR.sfConfig::get('sf_app_config_dir_name')), '##', '##', array('NO_SCRIPT_NAME' => ($firstApp ? 'on' : 'off')));
+    $this->getFilesystem()->replaceTokens($finder->in($appDir.'/config'), '##', '##', array('NO_SCRIPT_NAME' => ($firstApp ? 'on' : 'off')));
 
     $this->getFilesystem()->copy(dirname(__FILE__).DIRECTORY_SEPARATOR.'skeleton'.DIRECTORY_SEPARATOR.'app'.DIRECTORY_SEPARATOR.'web'.DIRECTORY_SEPARATOR.'index.php', sfConfig::get('sf_web_dir').DIRECTORY_SEPARATOR.$indexName.'.php');
     $this->getFilesystem()->copy(dirname(__FILE__).DIRECTORY_SEPARATOR.'skeleton'.DIRECTORY_SEPARATOR.'app'.DIRECTORY_SEPARATOR.'web'.DIRECTORY_SEPARATOR.'index.php', sfConfig::get('sf_web_dir').DIRECTORY_SEPARATOR.$app.'_dev.php');

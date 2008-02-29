@@ -31,21 +31,20 @@ class sfLoader
 
     if ($moduleName)
     {
-      $dirs[] = sfConfig::get('sf_app_module_dir').DIRECTORY_SEPARATOR.$moduleName.DIRECTORY_SEPARATOR.sfConfig::get('sf_app_module_lib_dir_name').DIRECTORY_SEPARATOR.'helper'; // module
+      $dirs[] = sfConfig::get('sf_app_module_dir').'/'.$moduleName.'/lib/helper'; // module
 
       if ($pluginDirs = glob(sfConfig::get('sf_plugins_dir').DIRECTORY_SEPARATOR.'*'.DIRECTORY_SEPARATOR.'modules'.DIRECTORY_SEPARATOR.$moduleName.DIRECTORY_SEPARATOR.'lib'.DIRECTORY_SEPARATOR.'helper'))
       {
-        $dirs = array_merge($dirs, $pluginDirs);                                                                              // module plugins
+        $dirs = array_merge($dirs, $pluginDirs);                                  // module plugins
       }
     }
 
-    $dirs[] = sfConfig::get('sf_app_lib_dir').DIRECTORY_SEPARATOR.'helper';                                                                      // application
-
-    $dirs[] = sfConfig::get('sf_lib_dir').DIRECTORY_SEPARATOR.'helper';                                                                          // project
+    $dirs[] = sfConfig::get('sf_app_lib_dir').'/helper';                          // application
+    $dirs[] = sfConfig::get('sf_lib_dir').'/helper';                              // project
 
     if ($pluginDirs = glob(sfConfig::get('sf_plugins_dir').DIRECTORY_SEPARATOR.'*'.DIRECTORY_SEPARATOR.'lib'.DIRECTORY_SEPARATOR.'helper'))
     {
-      $dirs = array_merge($dirs, $pluginDirs);                                                                                // plugins
+      $dirs = array_merge($dirs, $pluginDirs);                                    // plugins
     }
 
     if ($bundledPluginDirs = glob(sfConfig::get('sf_symfony_lib_dir').DIRECTORY_SEPARATOR.'plugins'.DIRECTORY_SEPARATOR.'*'.DIRECTORY_SEPARATOR.'lib'.DIRECTORY_SEPARATOR.'helper'))

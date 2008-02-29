@@ -68,8 +68,10 @@ EOF;
     $finder = sfFinder::type('any');
     $this->getFilesystem()->remove($finder->in($sf_lib_dir.DIRECTORY_SEPARATOR.'symfony'));
     $this->getFilesystem()->remove($sf_lib_dir.DIRECTORY_SEPARATOR.'symfony');
+
     $this->getFilesystem()->remove($finder->in($sf_data_dir.DIRECTORY_SEPARATOR.'symfony'));
     $this->getFilesystem()->remove($sf_data_dir.DIRECTORY_SEPARATOR.'symfony');
+
     $this->getFilesystem()->remove($finder->in($sf_web_dir.DIRECTORY_SEPARATOR.'sf'));
     $this->getFilesystem()->remove($sf_web_dir.DIRECTORY_SEPARATOR.'sf');
   }

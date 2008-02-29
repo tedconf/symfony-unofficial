@@ -37,8 +37,8 @@ default:
     class: sfAPCCache
     param:
       automatic_cleaning_factor: 0
-      lifetime:  86400         # default cache ttl
-      prefix:    %SF_APP_DIR%  # prefix
+      lifetime:   86400
+      prefix:     %SF_APP_DIR%/template
 
   i18n:
     class: sfI18N
@@ -52,7 +52,7 @@ default:
         param:
           automatic_cleaning_factor: 0
           lifetime:                  31556926
-          prefix:                    %SF_APP_DIR%
+          prefix:                    %SF_APP_DIR%/i18n
 
   routing:
     class: sfPatternRouting         # routing class: sfPatternRouting, sfPathInfoRouting, sfNoRouting
@@ -68,7 +68,7 @@ default:
         param:
           automatic_cleaning_factor: 0
           lifetime:                  31556926
-          prefix:                    %SF_APP_DIR%
+          prefix:                    %SF_APP_DIR%/routing
 
   logger:
     class: sfAggregateLogger

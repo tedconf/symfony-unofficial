@@ -48,6 +48,8 @@ class sf_test_project
 
   public function execute_command($cmd)
   {
+    $symfony = file_exists('symfony') ? 'symfony' : dirname(__FILE__).'/../../data/bin/symfony';
+
     ob_start();
     passthru(sprintf('%s "%s" %s 2>&1', $this->php_cli, dirname(__FILE__).'/../../data/bin/symfony', $cmd), $return);
     $content = ob_get_clean();

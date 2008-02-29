@@ -66,10 +66,10 @@ EOF;
    */
   protected function execute($arguments = array(), $options = array())
   {
-    $app       = $arguments['application'];
-    $module    = $arguments['module'];
+    $app    = $arguments['application'];
+    $module = $arguments['module'];
 
-    $moduleDir = sfConfig::get('sf_apps_dir').DIRECTORY_SEPARATOR.$app.DIRECTORY_SEPARATOR.sfConfig::get('sf_app_module_dir_name').DIRECTORY_SEPARATOR.$module;
+    $moduleDir = sfConfig::get('sf_app_module_dir').'/'.$module;
     if (is_dir($moduleDir))
     {
       throw new sfCommandException(sprintf('The module "%s" already exists in the "%s" application.', $moduleDir, $app));
