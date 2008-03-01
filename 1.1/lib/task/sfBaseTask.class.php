@@ -36,7 +36,11 @@ abstract class sfBaseTask extends sfCommandApplicationTask
       $this->checkAppExists($application);
       $class = $application.'Configuration';
       require_once sfConfig::get('sf_lib_dir').'/'.$class.'.class.php';
-      $this->configuration = new $class('cli', true);
+
+      $environment = $commandManager->getArgumentSet()->hasArgument('environment') ? $commandManager->getArgumentValue('environment') : 'cli';
+      $debug = ($environment == 'dev' || $environment == 'test' || $environment == 'cli') ? true : false;
+
+      $this->configuration = new $class($environment, $debug);
     }
     else
     {
