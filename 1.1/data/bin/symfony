@@ -28,11 +28,6 @@ while(!is_file('symfony')) // traverse parent directories to find symfony projec
 }
 
 // project exists?
-if (@file_exists('config/config.php'))
-{
-  include('config/config.php');
-}
-
 if (!isset($sf_symfony_lib_dir))
 {
   if (@is_readable(dirname(__FILE__).'/../../lib/autoload/sfCoreAutoload.class.php'))
