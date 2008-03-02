@@ -118,8 +118,7 @@ function get_component($moduleName, $componentName, $vars = array())
   if ($cacheManager = $context->getViewCacheManager())
   {
     $cacheManager->registerConfiguration($moduleName);
-    $uri = '@sf_cache_partial?module='.$moduleName.'&action='.$actionName.'&sf_cache_key='.(isset($vars['sf_cache_key']) ? $vars['sf_cache_key'] : md5(serialize($vars)));
-    if ($retval = _get_cache($cacheManager, $uri))
+    if ($retval = $cacheManager->getPartialCache($moduleName, $actionName, $vars))
     {
       return $retval;
     }
@@ -184,7 +183,7 @@ function get_component($moduleName, $componentName, $vars = array())
 
     if ($cacheManager)
     {
-      $retval = _set_cache($cacheManager, $uri, $retval);
+      $retval = $cacheManager->setPartialCache($moduleName, $actionName, $vars, $retval);
     }
 
     return $retval;
@@ -249,7 +248,7 @@ function get_partial($templateName, $vars = array())
   {
     $cacheManager->registerConfiguration($moduleName);
     $uri = '@sf_cache_partial?module='.$moduleName.'&action='.$actionName.'&sf_cache_key='.(isset($vars['sf_cache_key']) ? $vars['sf_cache_key'] : md5(serialize($vars)));
-    if ($retval = _get_cache($cacheManager, $uri))
+    if ($retval = $cacheManager->getPartialCache($moduleName, $actionName, $vars))
     {
       return $retval;
     }
@@ -263,31 +262,7 @@ function get_partial($templateName, $vars = array())
 
   if ($cacheManager)
   {
-    $retval = _set_cache($cacheManager, $uri, $retval);
-  }
-
-  return $retval;
-}
-
-function _get_cache($cacheManager, $uri)
-{
-  $retval = $cacheManager->get($uri);
-
-  if (sfConfig::get('sf_web_debug'))
-  {
-    $retval = sfContext::getInstance()->get('sf_web_debug')->decorateContentWithDebug($uri, $retval, false);
-  }
-
-  return $retval;
-}
-
-function _set_cache($cacheManager, $uri, $retval)
-{
-  $saved = $cacheManager->set($retval, $uri);
-
-  if ($saved && sfConfig::get('sf_web_debug'))
-  {
-    $retval = sfContext::getInstance()->get('sf_web_debug')->decorateContentWithDebug($uri, $retval, true);
+    $retval = $cacheManager->setPartialCache($moduleName, $actionName, $vars, $retval);
   }
 
   return $retval;

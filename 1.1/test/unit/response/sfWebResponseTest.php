@@ -10,7 +10,7 @@
 
 require_once(dirname(__FILE__).'/../../bootstrap/unit.php');
 
-$t = new lime_test(66, new lime_output_color());
+$t = new lime_test(68, new lime_output_color());
 
 class myWebResponse extends sfWebResponse
 {
@@ -97,15 +97,13 @@ foreach (array(
 // ->getContentType() ->setContentType()
 $t->diag('->getContentType() ->setContentType()');
 
-$response->setParameter('charset', 'UTF-8');
-
-$t->is($response->getContentType(), 'text/html; charset=UTF-8', '->getContentType() returns a sensible default value');
+$t->is($response->getContentType(), 'text/html; charset=utf-8', '->getContentType() returns a sensible default value');
 
 $response->setContentType('text/xml');
-$t->is($response->getContentType(), 'text/xml; charset=UTF-8', '->setContentType() adds a charset if none is given');
+$t->is($response->getContentType(), 'text/xml; charset=utf-8', '->setContentType() adds a charset if none is given');
 
 $response->setContentType('application/vnd.mozilla.xul+xml');
-$t->is($response->getContentType(), 'application/vnd.mozilla.xul+xml; charset=UTF-8', '->setContentType() adds a charset if none is given');
+$t->is($response->getContentType(), 'application/vnd.mozilla.xul+xml; charset=utf-8', '->setContentType() adds a charset if none is given');
 
 $response->setContentType('image/jpg');
 $t->is($response->getContentType(), 'image/jpg', '->setContentType() does not add a charset if the content-type is not text/*');
@@ -193,6 +191,16 @@ $response->addStylesheet('bar', '', array('media' => 'print'));
 $stylesheets = $response->getStylesheets();
 $t->is($stylesheets['bar'], array('media' => 'print'), '->addStylesheet() takes an array of parameters as its third argument');
 
+try
+{
+  $response->addStylesheet('last', 'none');
+  $t->fail('->addStylesheet() throws an InvalidArgumentException if the position is not first, the empty string, or last');
+}
+catch (InvalidArgumentException $e)
+{
+  $t->pass('->addStylesheet() throws an InvalidArgumentException if the position is not first, the empty string, or last');
+}
+
 // ->getStylesheets()
 $t->diag('->getStylesheets()');
 $t->is($response->getStylesheets(), array('test' => array(), 'foo' => array(), 'bar' => array('media' => 'print')), '->getStylesheets() returns all current registered stylesheets');
@@ -210,6 +218,16 @@ $response->addJavascript('first_js', 'first');
 $t->ok(array_key_exists('first_js', $response->getJavascripts('first')), '->addJavascript() takes a position as its second argument');
 $response->addJavascript('last_js', 'last');
 $t->ok(array_key_exists('last_js', $response->getJavascripts('last')), '->addJavascript() takes a position as its second argument');
+
+try
+{
+  $response->addJavascript('last_js', 'none');
+  $t->fail('->addJavascript() throws an InvalidArgumentException if the position is not first, the empty string, or last');
+}
+catch (InvalidArgumentException $e)
+{
+  $t->pass('->addJavascript() throws an InvalidArgumentException if the position is not first, the empty string, or last');
+}
 
 // ->getJavascripts()
 $t->diag('->getJavascripts()');
