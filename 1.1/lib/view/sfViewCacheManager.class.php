@@ -526,38 +526,56 @@ class sfViewCacheManager
     return $data;
   }
 
-  public function computeCacheKey($parameters)
+  /**
+   * Computes the cache key based on the passed parameters.
+   *
+   * @param array An array of parameters
+   */
+  public function computeCacheKey(array $parameters)
   {
     return isset($parameters['sf_cache_key']) ? $parameters['sf_cache_key'] : md5(serialize($parameters));
   }
 
-  public function getPartialUri($module, $action, $parameters)
+  /**
+   * Computes a partial internal URI.
+   *
+   * @param  string The module name
+   * @param  string The action name
+   * @param  string The cache key
+   *
+   * @return string The internal URI
+   */
+  public function getPartialUri($module, $action, $cacheKey)
   {
-    return sprintf('@sf_cache_partial?module=%s&action=%s&sf_cache_key=%s', $module, $action, $this->computeCacheKey($parameters));
+    return sprintf('@sf_cache_partial?module=%s&action=%s&sf_cache_key=%s', $module, $action, $cacheKey);
   }
 
   /**
    * Returns whether a partial template is in the cache.
    *
-   * @param  string  The internal URI
+   * @param  string The module name
+   * @param  string The action name
+   * @param  string The cache key
    *
    * @return Boolean true if a partial is in the cache, false otherwise
    */
-  public function hasPartialCache($module, $action, $parameters)
+  public function hasPartialCache($module, $action, $cacheKey)
   {
-    return $this->has($this->getPartialUri($module, $action, $parameters));
+    return $this->has($this->getPartialUri($module, $action, $cacheKey));
   }
 
   /**
    * Gets a partial template from the cache.
    *
-   * @param  string The internal URI
+   * @param  string The module name
+   * @param  string The action name
+   * @param  string The cache key
    *
    * @return string The cache content
    */
-  public function getPartialCache($module, $action, $parameters)
+  public function getPartialCache($module, $action, $cacheKey)
   {
-    $uri = $this->getPartialUri($module, $action, $parameters);
+    $uri = $this->getPartialUri($module, $action, $cacheKey);
 
     if (!$this->isCacheable($uri))
     {
@@ -565,12 +583,16 @@ class sfViewCacheManager
     }
 
     // retrieve content from cache
-    $content = $this->get($uri);
+    $cache = $this->get($uri);
 
-    if (is_null($content))
+    if (is_null($cache))
     {
       return null;
     }
+
+    $cache = unserialize($cache);
+    $content = $cache['content'];
+    $this->context->getResponse()->merge($cache['response']);
 
     if (sfConfig::get('sf_web_debug'))
     {
@@ -583,21 +605,22 @@ class sfViewCacheManager
   /**
    * Sets an action template in the cache.
    *
-   * @param  string The internal URI
+   * @param  string The module name
+   * @param  string The action name
+   * @param  string The cache key
    * @param  string The content to cache
-   * @param  string The view attribute holder to cache
    *
    * @return string The cached content
    */
-  public function setPartialCache($module, $action, $parameters, $content)
+  public function setPartialCache($module, $action, $cacheKey, $content)
   {
-    $uri = $this->getPartialUri($module, $action, $parameters);
+    $uri = $this->getPartialUri($module, $action, $cacheKey);
     if (!$this->isCacheable($uri))
     {
       return $content;
     }
 
-    $saved = $this->set($content, $uri);
+    $saved = $this->set(serialize(array('content' => $content, 'response' => $this->context->getResponse())), $uri);
 
     if (sfConfig::get('sf_web_debug'))
     {
@@ -643,7 +666,8 @@ class sfViewCacheManager
 
     $cache = unserialize($cache);
     $content = $cache['content'];
-    $this->context->getResponse()->mergeProperties($cache['response']);
+    $cache['response']->setEventDispatcher($this->dispatcher);
+    $this->context->getResponse()->copyProperties($cache['response']);
 
     if (sfConfig::get('sf_web_debug'))
     {
@@ -718,6 +742,7 @@ class sfViewCacheManager
     }
 
     $cachedResponse = unserialize($retval);
+    $cachedResponse->setEventDispatcher($this->dispatcher);
 
     if (sfView::RENDER_VAR == $this->controller->getRenderMode())
     {

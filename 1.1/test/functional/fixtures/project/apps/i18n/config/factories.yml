@@ -2,7 +2,7 @@ prod:
   logger:
     class:   sfNoLogger
     param:
-      level:   err
+      level:   error
       loggers: ~
 cli:
   controller:
@@ -24,7 +24,7 @@ all:
 #    class: sfWebRequest
 #
 #  user:
-#    class: myUser
+#    class: sfUser
 #
 #  storage:
 #    class: sfSessionStorage

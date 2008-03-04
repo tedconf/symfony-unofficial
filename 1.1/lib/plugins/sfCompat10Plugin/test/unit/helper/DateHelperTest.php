@@ -23,10 +23,13 @@ class sfUser
   }
 }
 
+
 sfConfig::set('sf_charset', 'utf-8');
 
 $context = sfContext::getInstance(array('user' => 'sfUser'));
+$context->inject('i18n', 'sfI18N', array('source' => 'XLIFF'));
 
+require_once(dirname(__FILE__).'/../../../lib/helper/HelperHelper.php');
 require_once(dirname(__FILE__).'/../../../lib/helper/UrlHelper.php');
 require_once(dirname(__FILE__).'/../../../lib/helper/TagHelper.php');
 require_once(dirname(__FILE__).'/../../../lib/helper/DateHelper.php');

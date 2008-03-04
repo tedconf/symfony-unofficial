@@ -114,79 +114,18 @@ function get_component($moduleName, $componentName, $vars = array())
   $context = sfContext::getInstance();
   $actionName = '_'.$componentName;
 
-  // check cache
-  if ($cacheManager = $context->getViewCacheManager())
-  {
-    $cacheManager->registerConfiguration($moduleName);
-    if ($retval = $cacheManager->getPartialCache($moduleName, $actionName, $vars))
-    {
-      return $retval;
-    }
-  }
+  $allVars = _call_component($moduleName, $componentName, $vars);
 
-  $controller = $context->getController();
-
-  if (!$controller->componentExists($moduleName, $componentName))
-  {
-    // cannot find component
-    throw new sfConfigurationException(sprintf('The component does not exist: "%s", "%s".', $moduleName, $componentName));
-  }
-
-  // create an instance of the action
-  $componentInstance = $controller->getComponent($moduleName, $componentName);
-
-  // load component's module config file
-  require(sfContext::getInstance()->getConfigCache()->checkConfig('modules/'.$moduleName.'/config/module.yml'));
-
-  $componentInstance->getVarHolder()->add($vars);
-
-  // dispatch component
-  $componentToRun = 'execute'.ucfirst($componentName);
-  if (!method_exists($componentInstance, $componentToRun))
-  {
-    if (!method_exists($componentInstance, 'execute'))
-    {
-      // component not found
-      throw new sfInitializationException(sprintf('sfComponent initialization failed for module "%s", component "%s".', $moduleName, $componentName));
-    }
-
-    $componentToRun = 'execute';
-  }
-
-  if (sfConfig::get('sf_logging_enabled'))
-  {
-    $context->getEventDispatcher()->notify(new sfEvent(null, 'application.log', array(sprintf('Call "%s->%s()'.'"', $moduleName, $componentToRun))));
-  }
-
-  // run component
-  if (sfConfig::get('sf_debug') && sfConfig::get('sf_logging_enabled'))
-  {
-    $timer = sfTimerManager::getTimer(sprintf('Component "%s/%s"', $moduleName, $componentName));
-  }
-
-  $retval = $componentInstance->$componentToRun($context->getRequest());
-
-  if (sfConfig::get('sf_debug') && sfConfig::get('sf_logging_enabled'))
-  {
-    $timer->addTime();
-  }
-
-  if ($retval != sfView::NONE)
+  if (!is_null($allVars))
   {
     $viewClass = sfConfig::get('mod_'.$moduleName.'_partial_view_class', 'sf').'PartialView';
 
     // render
     $view = new $viewClass($context, $moduleName, $actionName, '');
-    $view->getAttributeHolder()->add($componentInstance->getVarHolder()->getAll());
+    $view->setPartialVars($vars);
+    $view->getAttributeHolder()->add($allVars);
 
-    $retval = $view->render();
-
-    if ($cacheManager)
-    {
-      $retval = $cacheManager->setPartialCache($moduleName, $actionName, $vars, $retval);
-    }
-
-    return $retval;
+    return $view->render();
   }
 }
 
@@ -244,28 +183,11 @@ function get_partial($templateName, $vars = array())
   }
   $actionName = '_'.$templateName;
 
-  if ($cacheManager = $context->getViewCacheManager())
-  {
-    $cacheManager->registerConfiguration($moduleName);
-    $uri = '@sf_cache_partial?module='.$moduleName.'&action='.$actionName.'&sf_cache_key='.(isset($vars['sf_cache_key']) ? $vars['sf_cache_key'] : md5(serialize($vars)));
-    if ($retval = $cacheManager->getPartialCache($moduleName, $actionName, $vars))
-    {
-      return $retval;
-    }
-  }
-
   $viewClass = sfConfig::get('mod_'.$moduleName.'_partial_view_class', 'sf').'PartialView';
   $view = new $viewClass($context, $moduleName, $actionName, '');
-  $view->getAttributeHolder()->add($vars);
+  $view->setPartialVars($vars);
 
-  $retval = $view->render();
-
-  if ($cacheManager)
-  {
-    $retval = $cacheManager->setPartialCache($moduleName, $actionName, $vars, $retval);
-  }
-
-  return $retval;
+  return $view->render();
 }
 
 /**
@@ -422,4 +344,58 @@ function remove_slot($name)
   }
 
   return false;
+}
+
+function _call_component($moduleName, $componentName, $vars)
+{
+  $context = sfContext::getInstance();
+
+  $controller = $context->getController();
+
+  if (!$controller->componentExists($moduleName, $componentName))
+  {
+    // cannot find component
+    throw new sfConfigurationException(sprintf('The component does not exist: "%s", "%s".', $moduleName, $componentName));
+  }
+
+  // create an instance of the action
+  $componentInstance = $controller->getComponent($moduleName, $componentName);
+
+  // load component's module config file
+  require($context->getConfigCache()->checkConfig('modules/'.$moduleName.'/config/module.yml'));
+
+  $componentInstance->getVarHolder()->add($vars);
+
+  // dispatch component
+  $componentToRun = 'execute'.ucfirst($componentName);
+  if (!method_exists($componentInstance, $componentToRun))
+  {
+    if (!method_exists($componentInstance, 'execute'))
+    {
+      // component not found
+      throw new sfInitializationException(sprintf('sfComponent initialization failed for module "%s", component "%s".', $moduleName, $componentName));
+    }
+
+    $componentToRun = 'execute';
+  }
+
+  if (sfConfig::get('sf_logging_enabled'))
+  {
+    $context->getEventDispatcher()->notify(new sfEvent(null, 'application.log', array(sprintf('Call "%s->%s()'.'"', $moduleName, $componentToRun))));
+  }
+
+  // run component
+  if (sfConfig::get('sf_debug') && sfConfig::get('sf_logging_enabled'))
+  {
+    $timer = sfTimerManager::getTimer(sprintf('Component "%s/%s"', $moduleName, $componentName));
+  }
+
+  $retval = $componentInstance->$componentToRun($context->getRequest());
+
+  if (sfConfig::get('sf_debug') && sfConfig::get('sf_logging_enabled'))
+  {
+    $timer->addTime();
+  }
+
+  return sfView::NONE == $retval ? null : $componentInstance->getVarHolder()->getAll();
 }

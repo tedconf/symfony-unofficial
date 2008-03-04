@@ -302,6 +302,104 @@ $b->
 ;
 sfConfig::set('sf_web_debug', false);
 
+// check stylesheets, javascripts inclusions
+sfToolkit::clearDirectory(sfConfig::get('sf_app_cache_dir'));
+$b->
+  get('/cache/multiBis')->
+  isStatusCode(200)->
+  isRequestParameter('module', 'cache')->
+  isRequestParameter('action', 'multiBis')->
+
+  // the first time (no cache)
+  checkResponseElement('link[href*="/main_css"]')->
+  checkResponseElement('script[src*="/main_js"]')->
+  checkResponseElement('link[href*="/partial_css"]')->
+  checkResponseElement('script[src*="/partial_js"]')->
+  checkResponseElement('link[href*="/another_partial_css"]')->
+  checkResponseElement('script[src*="/another_partial_js"]')->
+  checkResponseElement('link[href*="/component_css"]')->
+  checkResponseElement('script[src*="/component_js"]')->
+
+  checkResponseElement('#partial_slot_content', 'Partial')->
+  checkResponseElement('#another_partial_slot_content', 'Another Partial')->
+  checkResponseElement('#component_slot_content', 'Component')->
+
+  get('/cache/multiBis')->
+
+  // when in cache
+  checkResponseElement('link[href*="/main_css"]')->
+  checkResponseElement('script[src*="/main_js"]')->
+  checkResponseElement('link[href*="/partial_css"]')->
+  checkResponseElement('script[src*="/partial_js"]')->
+  checkResponseElement('link[href*="/another_partial_css"]')->
+  checkResponseElement('script[src*="/another_partial_js"]')->
+  checkResponseElement('link[href*="/component_css"]')->
+  checkResponseElement('script[src*="/component_js"]')->
+
+  checkResponseElement('#partial_slot_content', 'Partial')->
+  checkResponseElement('#another_partial_slot_content', 'Another Partial')->
+  checkResponseElement('#component_slot_content', 'Component')
+;
+
+$b->
+  get('/cache/partial')->
+  isStatusCode(200)->
+  isRequestParameter('module', 'cache')->
+  isRequestParameter('action', 'partial')->
+
+  // only partial specific css and js are included
+  checkResponseElement('link[href*="/main_css"]', false)->
+  checkResponseElement('script[src*="/main_js"]', false)->
+  checkResponseElement('link[href*="/partial_css"]')->
+  checkResponseElement('script[src*="/partial_js"]')->
+  checkResponseElement('link[href*="/another_partial_css"]')->
+  checkResponseElement('script[src*="/another_partial_js"]')->
+  checkResponseElement('link[href*="/component_css"]', false)->
+  checkResponseElement('script[src*="/component_js"]', false)->
+
+  checkResponseElement('#partial_slot_content', 'Partial')->
+  checkResponseElement('#another_partial_slot_content', 'Another Partial')->
+  checkResponseElement('#component_slot_content', '')->
+
+  get('/cache/anotherPartial')->
+  isStatusCode(200)->
+  isRequestParameter('module', 'cache')->
+  isRequestParameter('action', 'anotherPartial')->
+
+  // only partial specific css and js are included
+  checkResponseElement('link[href*="/main_css"]', false)->
+  checkResponseElement('script[src*="/main_js"]', false)->
+  checkResponseElement('link[href*="/partial_css"]', false)->
+  checkResponseElement('script[src*="/partial_js"]', false)->
+  checkResponseElement('link[href*="/another_partial_css"]')->
+  checkResponseElement('script[src*="/another_partial_js"]')->
+  checkResponseElement('link[href*="/component_css"]', false)->
+  checkResponseElement('script[src*="/component_js"]', false)->
+
+  checkResponseElement('#partial_slot_content', '')->
+  checkResponseElement('#another_partial_slot_content', 'Another Partial')->
+  checkResponseElement('#component_slot_content', '')->
+
+  get('/cache/component')->
+  isStatusCode(200)->
+  isRequestParameter('module', 'cache')->
+  isRequestParameter('action', 'component')->
+
+  // only partial specific css and js are included
+  checkResponseElement('link[href*="/main_css"]', false)->
+  checkResponseElement('script[src*="/main_js"]', false)->
+  checkResponseElement('link[href*="/partial_css"]', false)->
+  checkResponseElement('script[src*="/partial_js"]', false)->
+  checkResponseElement('link[href*="/another_partial_css"]', false)->
+  checkResponseElement('script[src*="/another_partial_js"]', false)->
+  checkResponseElement('link[href*="/component_css"]')->
+  checkResponseElement('script[src*="/component_js"]')->
+
+  checkResponseElement('#partial_slot_content', '')->
+  checkResponseElement('#another_partial_slot_content', '')->
+  checkResponseElement('#component_slot_content', 'Component')
+;
+
 // test with sfFileCache class (default)
 $b->launch();
 

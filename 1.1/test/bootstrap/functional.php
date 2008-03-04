@@ -22,7 +22,7 @@ if (!isset($root_dir))
 
 $class = $app.'Configuration';
 require $root_dir.'/lib/'.$class.'.class.php';
-$configuration = new $class('test', isset($debug) ? $debug : true);
+$configuration = new $class('test', isset($debug) ? $debug : true, $root_dir);
 sfContext::createInstance($configuration);
 
 // remove all cache

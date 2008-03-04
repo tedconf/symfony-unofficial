@@ -14,7 +14,7 @@ class ProjectConfiguration extends sfProjectConfiguration
 
 }
 
-class ApplicationConfiguration extends ProjectConfiguration
+class ApplicationConfiguration extends sfApplicationConfiguration
 {
 
 }
@@ -48,7 +48,7 @@ class sfContext
       self::$instance->storage = new sfSessionTestStorage(array('session_path' => self::$instance->sessionPath));
 
       self::$instance->cache = new sfNoCache();
-      self::$instance->configuration = new ApplicationConfiguration();
+      self::$instance->configuration = new ApplicationConfiguration('test', true, sfToolkit::getTmpDir().'/sf_test_project');
       self::$instance->dispatcher = self::$instance->configuration->getEventDispatcher();
 
       foreach ($factories as $type => $class)
@@ -140,7 +140,7 @@ class sfContext
     switch ($type)
     {
       case 'routing':
-        $object = new $class($this->dispatcher, null, $parameters);
+        $object = new $class($this->dispatcher, $this->cache, $parameters);
         break;
       case 'response':
         $object = new $class($this->dispatcher, $parameters);

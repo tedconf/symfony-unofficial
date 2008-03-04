@@ -155,8 +155,8 @@ $t->diag('->redirect()');
 sfConfig::set('sf_test', true);
 sfConfig::set('sf_charset', 'utf-8');
 $controller->redirect('module/action?id=1#photos');
-$t->like($context->getResponse()->getContent(), '~http\://localhost/index.php/\?action=action&amp;module=module&amp;id=1#photos~', '->redirect() adds a refresh meta in the content');
-$t->like($context->getResponse()->getHttpHeader('Location'), '~http\://localhost/index.php/\?action=action&module=module&id=1#photos~', '->redirect() adds a Location HTTP header');
+$t->like($context->getResponse()->getContent(), '~http\://localhost/\?action=action&amp;module=module&amp;id=1#photos~', '->redirect() adds a refresh meta in the content');
+$t->like($context->getResponse()->getHttpHeader('Location'), '~http\://localhost/\?action=action&module=module&id=1#photos~', '->redirect() adds a Location HTTP header');
 
 // ->genUrl()
 $t->diag('->genUrl()');
