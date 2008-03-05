@@ -55,6 +55,12 @@ abstract class sfBaseTask extends sfCommandApplicationTask
       }
     }
 
+    $autoloader = sfSimpleAutoload::getInstance();
+    foreach ($this->configuration->getModelDirs() as $dir)
+    {
+      $autoloader->addDirectory($dir);
+    }
+
     return $this->execute($commandManager->getArgumentValues(), $commandManager->getOptionValues());
   }
 
