@@ -72,7 +72,7 @@ class sfException extends Exception
       header('HTTP/1.1 500 Internal Server Error');
     }
 
-    $response = new sfWebResponse(sfContext::getInstance()->getEventDispatcher());
+    $response = new sfWebResponse(sfContext::hasInstance() ? sfContext::getInstance()->getEventDispatcher() : new sfEventDispatcher());
     $response->setStatusCode(500);
 
     try
