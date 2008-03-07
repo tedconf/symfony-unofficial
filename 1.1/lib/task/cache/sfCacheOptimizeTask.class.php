@@ -54,25 +54,17 @@ EOF;
       throw new sfCommandException('You must provide a valid environment (prod).');
     }
 
-    $application = $arguments['application'];
-    $environment = $arguments['environment'];
-
-    $this->checkAppExists($application);
-
-    $config = sprintf('%s'.DIRECTORY_SEPARATOR.sfConfig::get('sf_cache_dir_name', 'cache').DIRECTORY_SEPARATOR.'%s'.DIRECTORY_SEPARATOR.'%s'.DIRECTORY_SEPARATOR.sfConfig::get('sf_config_dir_name', 'config').DIRECTORY_SEPARATOR.'config_core_compile.yml.php', sfConfig::get('sf_root_dir'), $application, $environment);
-
+    $config = sfConfig::get('sf_app_cache_dir').'/config/config_core_compile.yml.php';
     if(!is_readable($config))
     {
       $cacheCreate = new sfCacheGenerateTask($this->dispatcher, $this->formatter);
-      $cacheCreate->run(array('application' => $arguments['application'],  'environment' => $arguments['environment']));
+      $cacheCreate->run(array('application' => $arguments['application'], 'environment' => $arguments['environment']));
     }
 
-    $optimizer = new sfOptimizer();
-    $optimizer->initialize(file_get_contents($config));
+    $optimizer = new sfOptimizer(file_get_contents($config));
     $optimizer->registerStandardOptimizers();
-
     file_put_contents($config, $optimizer->optimize());
 
-    $this->logSection('cache', sprintf('optimized cache for application "%s" in environment "%s"', $application, $environment));
+    $this->logSection('cache', sprintf('optimized cache for application "%s" in environment "%s"', $arguments['application'], $arguments['environment']));
   }
 }

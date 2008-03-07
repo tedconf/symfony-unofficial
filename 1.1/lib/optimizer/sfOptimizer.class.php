@@ -6,6 +6,11 @@ class sfOptimizer
     $source = '',
     $optimizers = array();
 
+  public function __construct($source)
+  {
+    $this->initialize($source);
+  }
+
   public function initialize($source)
   {
     $this->source = $source;

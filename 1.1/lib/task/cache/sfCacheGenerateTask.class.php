@@ -61,12 +61,11 @@ EOF;
       throw new sfCommandException('You must provide a valid environment (prod, dev, test).');
     }
 
-    $application = $arguments['application'];
-    $environment = $arguments['environment'];
-
     $uris = sfConfig::get('sf_prefetch_uris', array('/', '/not-found'));
 
     $this->checkAppExists($application);
+
+    sfContext::createInstance($this->configuration);
 
     // simulate http requests to prime configuration/i18n/view cache
     $browser = new sfBrowser();
@@ -76,9 +75,8 @@ EOF;
     }
 
     // generate core_compile
-    $configuration = sfApplicationConfiguration::getForApplication($application, $environment, true, realpath('./'));
-    $configuration->getConfigCache()->checkConfig('config/core_compile.yml');
+    $this->configuration->getConfigCache()->checkConfig('config/core_compile.yml');
 
-    $this->logSection('cache', sprintf('generated cache for application "%s" in environment "%s"', $application, $environment));
+    $this->logSection('cache', sprintf('generated cache for application "%s" in environment "%s"', $arguments['application'], $arguments['environment']));
   }
 }
