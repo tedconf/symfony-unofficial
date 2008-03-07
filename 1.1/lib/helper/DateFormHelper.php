@@ -16,7 +16,7 @@ use_helper('Form');
  * @package    symfony
  * @subpackage helper
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
- * @version    SVN: $Id: DateFormHelper.php 3294 2007-01-16 06:53:15Z fabien $
+ * @version    SVN: $Id$
  */
 
 /**

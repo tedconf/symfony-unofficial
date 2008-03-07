@@ -52,6 +52,12 @@ class sfWebDebugLogger extends sfLogger
       ini_set('memory_limit', '256M'); // xdebug can consume a lot of memory
     }
 
+    // disable xdebug when an HTTP debug session exists (crashes Apache, see #2438)
+    if (isset($_GET['XDEBUG_SESSION_START']) || isset($_COOKIE['XDEBUG_SESSION']))
+    {
+      $this->xdebugLogging = false;
+    }
+
     return parent::initialize($dispatcher, $options);
   }
 
