@@ -27,6 +27,7 @@
  * @param  $open    boolean true to leave tag open
  * @return string
  */
+
 function tag($name, $options = array(), $open = false)
 {
   if (!$name)
@@ -34,7 +35,7 @@ function tag($name, $options = array(), $open = false)
     return '';
   }
 
-  return '<'.$name._tag_options($options).(($open) ? '>' : ' />');
+  return '<'.$name._tag_options($options).(($open || (sfConfig::get('sf_use_xhtml_tags', true) === false)) ? '>' : ' />');
 }
 
 function content_tag($name, $content = '', $options = array())
@@ -50,6 +51,11 @@ function content_tag($name, $content = '', $options = array())
 function cdata_section($content)
 {
   return "<![CDATA[$content]]>";
+}
+
+function conditional($condition, $content)
+{
+  return '<!--[if '.$condition.']>'."\n".$content.'<![endif]-->'."\n";
 }
 
 /**

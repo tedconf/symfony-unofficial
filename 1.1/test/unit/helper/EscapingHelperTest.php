@@ -3,16 +3,16 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- * 
+ *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
 
-require_once(dirname(__FILE__).'/../../bootstrap/unit.php');
+require_once(dirname(__FILE__).'/../../../test/bootstrap/unit.php');
 
 require_once(dirname(__FILE__).'/../../../lib/helper/EscapingHelper.php');
 
-$t = new lime_test(7, new lime_output_color());
+$t = new lime_test(13, new lime_output_color());
 
 sfConfig::set('sf_charset', 'UTF-8');
 
@@ -22,6 +22,15 @@ $t->is(esc_entities(10), 10, 'esc_entities() does not escape integers');
 $t->is(esc_entities(false), false, 'esc_entities() does not escape booleans');
 $t->is(esc_entities('foo bar'), 'foo bar', 'esc_entities() only escapes strings');
 $t->is(esc_entities('<b>foo</b> bar'), '&lt;b&gt;foo&lt;/b&gt; bar', 'esc_entities() only escapes strings');
+$t->is(esc_entities('ü&'), '&uuml;&amp;', 'esc_entities() utf-8 characters are translated');
+
+// esc_htmlspecialchars()
+$t->diag('esc_htmlspecialchars()');
+$t->is(esc_htmlspecialchars(10), 10, 'esc_htmlspecialchars() does not escape integers');
+$t->is(esc_htmlspecialchars(false), false, 'esc_htmlspecialchars() does not escape booleans');
+$t->is(esc_htmlspecialchars('foo bar'), 'foo bar', 'esc_htmlspecialchars() only escapes strings');
+$t->is(esc_htmlspecialchars('<b>foo</b> bar'), '&lt;b&gt;foo&lt;/b&gt; bar', 'esc_htmlspecialchars() only escapes strings');
+$t->is(esc_htmlspecialchars('ü&'), 'ü&amp;', 'esc_htmlspecialchars() utf-8 characters are NOT translated');
 
 // esc_raw()
 $t->diag('esc_raw()');

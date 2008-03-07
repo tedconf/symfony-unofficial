@@ -25,14 +25,17 @@
  */
 function truncate_text($text, $length = 30, $truncate_string = '...', $truncate_lastspace = false)
 {
+
   if ($text == '')
   {
     return '';
   }
 
-  if (strlen($text) > $length)
+  mb_internal_encoding(mb_detect_encoding($text));
+
+  if (mb_strlen($text) > $length)
   {
-    $truncate_text = substr($text, 0, $length - strlen($truncate_string));
+    $truncate_text = mb_substr($text, 0, $length - mb_strlen($truncate_string));
     if ($truncate_lastspace)
     {
       $truncate_text = preg_replace('/\s+?(\S+)?$/', '', $truncate_text);
@@ -79,16 +82,18 @@ function excerpt_text($text, $phrase, $radius = 100, $excerpt_string = '...')
     return '';
   }
 
-  $found_pos = strpos(strtolower($text), strtolower($phrase));
+  mb_internal_encoding(mb_detect_encoding($text));
+
+  $found_pos = mb_strpos(mb_strtolower($text), mb_strtolower($phrase));
   if ($found_pos !== false)
   {
     $start_pos = max($found_pos - $radius, 0);
-    $end_pos = min($found_pos + strlen($phrase) + $radius, strlen($text));
+    $end_pos = min($found_pos + mb_strlen($phrase) + $radius, mb_strlen($text));
 
     $prefix = ($start_pos > 0) ? $excerpt_string : '';
-    $postfix = $end_pos < strlen($text) ? $excerpt_string : '';
+    $postfix = $end_pos < mb_strlen($text) ? $excerpt_string : '';
 
-    return $prefix.substr($text, $start_pos, $end_pos - $start_pos).$postfix;
+    return $prefix.mb_substr($text, $start_pos, $end_pos - $start_pos).$postfix;
   }
 }
 
@@ -201,5 +206,5 @@ function _auto_link_urls($text, $href_options = array())
  */
 function _auto_link_email_addresses($text)
 {
-  return preg_replace('/([\w\.!#\$%\-+.]+@[A-Za-z0-9\-]+(\.[A-Za-z0-9\-]+)+)/', '<a href="mailto:\\1">\\1</a>', $text);
+  return preg_replace('/([^[>:[:alpha:]]|^)([\w\.!#\$%\-+.]+@[A-Za-z0-9\-]+(\.[A-Za-z0-9\-]+)+)/', '\\1<a href="mailto:\\2">\\2</a>', $text);
 }

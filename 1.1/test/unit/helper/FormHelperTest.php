@@ -3,12 +3,12 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- * 
+ *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
 
-require_once(dirname(__FILE__).'/../../bootstrap/unit.php');
+require_once(dirname(__FILE__).'/../../../test/bootstrap/unit.php');
 require_once($_test_dir.'/unit/sfContextMock.class.php');
 
 class myController
@@ -68,7 +68,7 @@ $t->is(options_for_select(array('group1' => array('item1', 'item2'), 'bar' => 'i
 
 // options
 $t->is(options_for_select(array('item1'), '', array('include_custom' => 'test')), "<option value=\"\">test</option>\n<option value=\"0\">item1</option>\n", 'options_for_select() can take an "include_custom" option');
-$t->is(options_for_select(array('item1'), '', array('include_blank' => true)), "<option value=\"\"></option>\n<option value=\"0\">item1</option>\n", 'options_for_select() can take an "include_blank" option');
+$t->is(options_for_select(array('item1'), '', array('include_blank' => true)), "<option value=\"\">&nbsp;</option>\n<option value=\"0\">item1</option>\n", 'options_for_select() can take an "include_blank" option');
 
 // form_tag()
 $t->diag('form_tag()');
@@ -152,8 +152,8 @@ $t->is(textarea_tag('name', null, array('class' => 'foo')), '<textarea name="nam
 $t->is(textarea_tag('name', null, array('id' => 'foo')), '<textarea name="name" id="foo"></textarea>', 'textarea_tag() can override the "id" attribute');
 $t->is(textarea_tag('name', null, array('size' => '5x20')), '<textarea name="name" id="name" rows="20" cols="5"></textarea>', 'textarea_tag() can take a "size" attribute');
 
-require_once(sfConfig::get('sf_symfony_lib_dir').'/helper/sfRichTextEditor.class.php');
-require_once(sfConfig::get('sf_symfony_lib_dir').'/helper/sfRichTextEditorTinyMCE.class.php');
+require_once(dirname(__FILE__).'/../../../lib/helper/sfRichTextEditor.class.php');
+require_once(dirname(__FILE__).'/../../../lib/helper/sfRichTextEditorTinyMCE.class.php');
 sfConfig::set('sf_web_dir', dirname(__FILE__));
 sfConfig::set('sf_rich_text_js_dir', 'fixtures');
 $t->like(textarea_tag('name', 'content', array('rich' => 'TinyMCE')), '/tinyMCE\.init/', 'textarea_tag() can create a rich textarea tag based on tinyMCE');

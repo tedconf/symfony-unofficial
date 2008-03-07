@@ -4,7 +4,7 @@ function debug_message($message)
 {
   if (sfConfig::get('sf_web_debug') && sfConfig::get('sf_logging_enabled'))
   {
-    sfContext::getInstance()->getEventDispatcher()->notify(new sfEvent(null, 'application.log', array('This feature is deprecated in favor of the log_message helper.', 'priority' => sfLogger::ERR)));
+    sfContext::getInstance()->getEventDispatcher()->notify(new sfEvent(null, 'application.log', array('This feature is deprecated in favor of the log_message helper.', 'priority' => sfLogger::ERROR)));
   }
 }
 

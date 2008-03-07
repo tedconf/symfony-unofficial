@@ -35,6 +35,10 @@ function form_error($param, $options = array(), $catalogue = 'messages')
   $style = $request->hasError($param_for_sf) ? '' : 'display:none;';
   $options['style'] = $style.(isset($options['style']) ? $options['style']:'');
 
+  if (!isset($options['tag']))
+  {
+    $options['tag'] = sfConfig::get('sf_validation_error_tag', 'div');;
+  }
   if (!isset($options['class']))
   {
     $options['class'] = sfConfig::get('sf_validation_error_class', 'form_error');
@@ -65,5 +69,5 @@ function form_error($param, $options = array(), $catalogue = 'messages')
     $error = $context->getI18N()->__($error, null, $catalogue);
   }
 
-  return content_tag('div', $prefix.$error.$suffix, $options)."\n";
+  return content_tag($options['tag'], $prefix.$error.$suffix, $options)."\n";
 }
