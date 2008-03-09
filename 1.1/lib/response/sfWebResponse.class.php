@@ -99,6 +99,8 @@ class sfWebResponse extends sfResponse
     {
       $this->options['charset'] = 'utf-8';
     }
+
+    $this->setContentType(isset($this->options['content_type']) ? $this->options['content_type'] : 'text/html');
   }
 
   /**
@@ -270,7 +272,7 @@ class sfWebResponse extends sfResponse
    */
   public function getContentType()
   {
-    return $this->getHttpHeader('Content-Type', 'text/html; charset='.$this->options['charset']);
+    return $this->getHttpHeader('Content-Type');
   }
 
   /**
