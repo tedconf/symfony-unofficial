@@ -397,7 +397,17 @@ class sfContext
   }
 
   /**
-   * Returns the configuration cache.
+   * Returns the global cache.
+   *
+   * @return sfCache A sfCache instance
+   */
+  public function getCache()
+  {
+    return isset($this->factories['cache']) ? $this->factories['cache'] : null;
+  }
+
+  /**
+   * Returns the configuration cache manager.
    *
    * @return sfConfigCache A sfConfigCache instance
    */
