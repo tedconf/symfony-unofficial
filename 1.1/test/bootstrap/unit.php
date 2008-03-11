@@ -27,12 +27,12 @@ sfCoreAutoload::register();
 require_once(dirname(__FILE__).'/../../lib/util/sfToolkit.class.php');
 sfConfig::set('sf_test_cache_dir', sfToolkit::getTmpDir().'/sf_test_project');
 
-// remove all cache
+// remove all test cache
 sf_unit_test_shutdown();
 
-
-mkdir(sfToolkit::getTmpDir().'/sf_test_project', 0777, true);
-
+// create test cache dir
+$sf_root_dir = sfToolkit::getTmpDir().'/sf_test_project';
+mkdir($sf_root_dir, 0777, true);
 
 register_shutdown_function('sf_unit_test_shutdown');
 
