@@ -10,8 +10,7 @@
 
 require_once(dirname(__FILE__).'/../../bootstrap/unit.php');
 
-// FIXME
-$t = new lime_test(0, new lime_output_color());
+$t = new lime_test(32, new lime_output_color());
 
 class myContext extends sfContext
 {
@@ -24,16 +23,22 @@ class ProjectConfiguration extends sfProjectConfiguration
 {
 }
 
-class frontendConfiguration extends sfApplicationConfiguration
+class testConfiguration extends sfApplicationConfiguration
 {
 }
-/*
+
+$configuration = new testConfiguration('test', true, $sf_root_dir);
+$context1 = sfContext::createInstance($configuration, 'context1', 'myContext');
+$context2 = sfContext::createInstance($configuration, 'context2', 'myContext');
+
+foreach (array('initialize', 'loadFactories', 'getInstance', 'hasInstance', 'get', 'set', 'has', 'switchTo', 'getActionName', 'getActionStack', 'getLogger', 'getEventDispatcher', 'getConfiguration', 'getConfigCache', 'getCache', 'getController', 'dispatch', 'getRequest', 'getResponse', 'getRouting', 'getI18n', 'getUser', 'getViewCacheManager', 'getDatabaseConnection') as $method)
+{
+  $t->can_ok($context1, $method, sprintf('"%s" is a method of sfContext', $method));
+}
+
 // ::getInstance()
 $t->diag('::getInstance()');
-$t->isa_ok(sfContext::getInstance('default', 'myContext'), 'myContext', '::getInstance() takes a sfContext class name as its second argument');
-
-$context1 = sfContext::getInstance('context1', 'myContext');
-$context2 = sfContext::getInstance('context2', 'myContext');
+$t->isa_ok(sfContext::getInstance('context1', 'myContext'), 'myContext', '::getInstance() takes a sfContext class name as its second argument');
 
 $t->is(sfContext::getInstance('context1'), $context1, '::getInstance() returns the named context if it already exists');
 
@@ -43,6 +48,7 @@ sfContext::switchTo('context1');
 $t->is(sfContext::getInstance(), $context1, '::switchTo() changes the default context instance returned by ::getInstance()');
 sfContext::switchTo('context2');
 $t->is(sfContext::getInstance(), $context2, '::switchTo() changes the default context instance returned by ::getInstance()');
+
 
 // ->get() ->set() ->has()
 $t->diag('->get() ->set() ->has()');
@@ -60,4 +66,3 @@ catch (sfException $e)
 {
   $t->pass('->get() throws an sfException if no object is stored for the given name');
 }
-*/
