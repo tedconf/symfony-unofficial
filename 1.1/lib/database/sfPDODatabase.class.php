@@ -22,14 +22,6 @@
  */
 class sfPDODatabase extends sfDatabase
 {
-
-  /**
-   * Event Dispatcher for logging
-   *
-   * @var log
-   */
-  protected static $dispatcher = null;
-
   /**
    * Connects to the database.
    *
@@ -111,21 +103,6 @@ class sfPDODatabase extends sfDatabase
   }
 
   /**
-   * Gets a sfEventDispatcher object.
-   *
-   * @return sfEventDispatcher
-   */
-  public static function getEventDispatcher()
-  {
-    if(!isset(self::$dispatcher))
-    {
-      self::$dispatcher = sfContext::getInstance()->getEventDispatcher();
-    }
-
-    return self::$dispatcher;
-  }
-
-  /**
    * Logs messages to debug log
    *
    * @param string $message Message to log.
@@ -135,9 +112,7 @@ class sfPDODatabase extends sfDatabase
     if (sfConfig::get('sf_debug') && sfConfig::get('sf_logging_enabled'))
     {
       // message on one line
-      $message = preg_replace("/\r?\n/", ' ', $message);
-
-      $this->getEventDispatcher()->notify(new sfEvent($this, 'application.log', array($message)));
+      sfContext::getInstance()->getEventDispatcher()->notify(new sfEvent($this, 'application.log', array(preg_replace('/\r?\n/', ' ', $message))));
 
       return true;
     }
@@ -152,8 +127,6 @@ class sfPDODatabase extends sfDatabase
    */
   public function shutdown ()
   {
-    $this->log('Disconnected from database.');
-
     if ($this->connection !== null)
     {
       @$this->connection = null;
