@@ -10,7 +10,7 @@
 
 require_once(dirname(__FILE__).'/../../bootstrap/unit.php');
 
-$t = new lime_test(134, new lime_output_color());
+$t = new lime_test(136, new lime_output_color());
 
 class sfPatternRoutingTest extends sfPatternRouting
 {
@@ -554,3 +554,15 @@ $r->connect('test', '/test/:value', array('module' => 'default', 'action' => 'in
 $r->connect('test1', '/test1/*', array('module' => 'default', 'action' => 'index'));
 $t->is($r->parse('/test/test%26foo%3Dbar%2Bfoo'), array('module' => 'default', 'action' => 'index', 'value' => 'test&foo=bar+foo'), '->parse() decodes parameter values');
 $t->is($r->parse('/test1/value/test%26foo%3Dbar%2Bfoo'), array('module' => 'default', 'action' => 'index', 'value' => 'test&foo=bar+foo'), '->parse() decodes parameter values');
+
+
+// feature change bug from sf1.0 - ticket #3090
+$r->clearRoutes();
+$r->connect('test', '/customer/:param1/:action/*', array('module' => 'default'));
+$r->connect('default', '/:module/:action');
+$url = '/customer/create';
+$params = array('module' => 'customer', 'action' => 'create');
+$t->is($r->parse($url), $params, 'parse /:module/:action route');
+$url = '/customer/param1/action';
+$params = array('module' => 'default', 'action' => 'action', 'param1' => 'param1');
+$t->is($r->parse($url), $params, 'parse /customer/:param1/:action/* route');
