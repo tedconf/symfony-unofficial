@@ -83,7 +83,7 @@ class sfPatternRouting extends sfRouting
    */
   public function loadConfiguration()
   {
-    if (!is_null($this->cache) && $routes = $this->cache->get('configuration'))
+    if (!is_null($this->cache) && $routes = $this->cache->get('symfony.routing.configuration'))
     {
       $this->routes = unserialize($routes);
     }
