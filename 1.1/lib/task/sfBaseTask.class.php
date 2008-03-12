@@ -105,7 +105,7 @@ abstract class sfBaseTask extends sfCommandApplicationTask
    */
   public function checkAppExists($app)
   {
-    if (!is_dir(getcwd().DIRECTORY_SEPARATOR.sfConfig::get('sf_apps_dir_name', 'apps').DIRECTORY_SEPARATOR.$app))
+    if (!is_dir(sfConfig::get('sf_apps_dir').'/'.$app))
     {
       throw new sfException(sprintf('Application "%s" does not exist', $app));
     }
@@ -121,7 +121,7 @@ abstract class sfBaseTask extends sfCommandApplicationTask
    */
   public function checkModuleExists($app, $module)
   {
-    if (!is_dir(getcwd().DIRECTORY_SEPARATOR.sfConfig::get('sf_apps_dir_name', 'apps').DIRECTORY_SEPARATOR.$app.DIRECTORY_SEPARATOR.sfConfig::get('sf_app_module_dir_name', 'modules').DIRECTORY_SEPARATOR.$module))
+    if (!is_dir(sfConfig::get('sf_apps_dir').'/'.$app.'/modules/'.$module))
     {
       throw new sfException(sprintf('Module "%s/%s" does not exist.', $app, $module));
     }
