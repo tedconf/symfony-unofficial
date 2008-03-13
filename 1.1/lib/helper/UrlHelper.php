@@ -265,17 +265,17 @@ function button_to($name, $internal_uri, $options = array())
     $query_string = '';
   }
 
-  if (isset($html_options['post']) && $html_options['post'])
+  if (isset($html_options['post']))
   {
     if (isset($html_options['popup']))
     {
       throw new sfConfigurationException('You can\'t use "popup" and "post" together.');
     }
+
     $html_options['type'] = 'submit';
-    unset($html_options['post']);
     $html_options = _convert_options_to_javascript($html_options);
 
-    return form_tag($internal_uri, array('method' => 'post', 'class' => 'button_to')).tag('input', $html_options).'</form>';
+    return form_tag($internal_uri, array('method' => 'post', 'class' => 'button_to')).'<div>'.tag('input', $html_options).'</div></form>';
   }
   else if (isset($html_options['popup']))
   {

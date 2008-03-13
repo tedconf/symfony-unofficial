@@ -1,13 +1,13 @@
 <?php
 
 /*
- * This file is part of the symfony package.
- * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- * (c) 2004 David Heinemeier Hansson
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- */
+* This file is part of the symfony package.
+* (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
+* (c) 2004 David Heinemeier Hansson
+*
+* For the full copyright and license information, please view the LICENSE
+* file that was distributed with this source code.
+*/
 
 /**
  * JavascriptHelper.
@@ -17,10 +17,11 @@
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  * @author     John Christopher <john.christopher@symfony-project.com>
  * @author     David Heinemeier Hansson
+ * @author     Fabian Lange <Fabian.Lange@web.de>
  * @version    SVN: $Id$
  */
 
-/*
+/**
  * Provides a set of helpers for calling JavaScript functions and, most importantly,
  * to call remote methods using what has been labelled AJAX[http://www.adaptivepath.com/publications/essays/archives/000385.php].
  * This means that you can call actions in your controllers without reloading the page,
@@ -46,14 +47,15 @@
  * If you're the visual type, there's an AJAX movie[http://www.rubyonrails.com/media/video/rails-ajax.mov] demonstrating
  * the use of form_remote_tag.
  */
+
 function get_callbacks()
 {
   static $callbacks;
   if (!$callbacks)
   {
     $callbacks = array_merge(array(
-      'uninitialized', 'loading', 'loaded', 'interactive', 'complete', 'failure', 'success'
-      ), range(100, 599));
+    'uninitialized', 'loading', 'loaded', 'interactive', 'complete', 'failure', 'success'
+    ), range(100, 599));
   }
 
   return $callbacks;
@@ -65,9 +67,9 @@ function get_ajax_options()
   if (!$ajax_options)
   {
     $ajax_options = array_merge(array(
-      'before', 'after', 'condition', 'url', 'asynchronous', 'method',
-      'insertion', 'position', 'form', 'with', 'update', 'script'
-      ), get_callbacks());
+    'before', 'after', 'condition', 'url', 'asynchronous', 'method',
+    'insertion', 'position', 'form', 'with', 'update', 'script'
+    ), get_callbacks());
   }
 
   return $ajax_options;
@@ -319,11 +321,9 @@ function submit_image_to_remote($name, $source, $options = array(), $options_htm
     $begin = $path_pos ? $path_pos + 1 : 0;
     $nb_str = ($dot_pos ? $dot_pos : strlen($source)) - $begin;
     $options_html['alt'] = ucfirst(substr($source, $begin, $nb_str));
-
-   }
+  }
 
   return tag('input', $options_html, false);
-
 }
 
 /**
@@ -382,20 +382,20 @@ function update_element_function($element_id, $options = array())
     case 'update':
       if (isset($options['position']) && $options['position'])
       {
-        $javascript_function = "new Insertion.".sfInflector::camelize($options['position'])."('$element_id','$content')";
+        $javascript_function = "\$('$element_id').insert('$content','".$options['position']."')";
       }
       else
       {
-        $javascript_function = "\$('$element_id').innerHTML = '$content'";
+        $javascript_function = "\$('$element_id').update('$content')";
       }
       break;
 
     case 'empty':
-      $javascript_function = "\$('$element_id').innerHTML = ''";
+      $javascript_function = "\$('$element_id').update('')";
       break;
 
     case 'remove':
-      $javascript_function = "Element.remove('$element_id')";
+      $javascript_function = "\$('$element_id').remove()";
       break;
 
     default:
@@ -738,6 +738,27 @@ function javascript_cdata_section($content)
 }
 
 /**
+ * Mark the start of a block that should only be shown in the browser if JavaScript
+ * is switched on.
+ */
+function if_javascript()
+{
+  ob_start();
+}
+
+/**
+ * Mark the end of a block that should only be shown in the browser if JavaScript
+ * is switched on.
+ */
+function end_if_javascript()
+{
+  $content = ob_get_clean();
+
+  echo javascript_tag("document.write('" . esc_js_no_entities($content) . "');");
+}
+
+
+/**
  * wrapper for script.aculo.us/prototype Ajax.Autocompleter.
  * @param string name value of input field
  * @param string default value for input field
@@ -789,32 +810,11 @@ function input_in_place_editor_tag($name, $url, $editor_options = array())
   $response->addJavascript(sfConfig::get('sf_prototype_web_dir').'/js/controls');
 
   $editor_options = _convert_options($editor_options);
-  $default_options = array('tag' => 'span', 'id' => '\''.$name.'_in_place_editor', 'class' => 'in_place_editor_field');
-
-  return _in_place_editor($name, $url, array_merge($default_options, $editor_options));
+  return _in_place_editor($name, $url, $editor_options);
 }
+
 
 /**
- * Mark the start of a block that should only be shown in the browser if JavaScript
- * is switched on.
- */
-function if_javascript()
-{
-  ob_start();
-}
-
-/**
- * Mark the end of a block that should only be shown in the browser if JavaScript
- * is switched on.
- */
-function end_if_javascript()
-{
-  $content = ob_get_clean();
-
-  echo javascript_tag("document.write('" . esc_js_no_entities($content) . "');");
-}
-
-/*
  * Makes an HTML element specified by the DOM ID '$field_id' become an in-place
  * editor of a property.
  *
@@ -835,7 +835,7 @@ function end_if_javascript()
  * 'url'                 Specifies the url where the updated value should
  *                       be sent after the user presses "ok".
  *
- * Addtional '$options' are:
+ * Some additional '$options' are:
  * 'rows'                Number of rows (more than 1 will use a TEXTAREA)
  * 'cancel_text'         The text on the cancel link. (default: "cancel")
  * 'save_text'           The text on the save link. (default: "ok")
@@ -843,69 +843,62 @@ function end_if_javascript()
  * 'options'             Pass through options to the AJAX call (see prototype's Ajax.Updater)
  * 'with'                JavaScript snippet that should return what is to be sent
  *                       in the AJAX call, 'form' is an implicit parameter
+ *
+ * for details see: http://mir.aculo.us/2007/7/17/in-place-editing-the-summer-2007-rewrite/
  */
-  function _in_place_editor($field_id, $url, $options = array())
+function _in_place_editor($field_id, $url, $options = array())
+{
+  $javascript = "new Ajax.InPlaceEditor(";
+
+  $javascript .= "'$field_id', ";
+  $javascript .= _array_or_string_for_javascript(url_for($url));
+
+  // translate symfony option names to InPlaceEditor options
+  if (isset($options['cancel_text']))
   {
-    $javascript = "new Ajax.InPlaceEditor(";
-
-    $javascript .= "'$field_id', ";
-    $javascript .= "'" . url_for($url) . "'";
-
-    $js_options = array();
-
-    if (isset($options['tokens'])) $js_options['tokens'] = _array_or_string_for_javascript($options['tokens']);
-
-    if (isset($options['cancel_text']))
-    {
-      $js_options['cancelText'] = "'".$options['cancel_text']."'";
-    }
-    if (isset($options['save_text']))
-    {
-      $js_options['okText'] = "'".$options['save_text']."'";
-    }
-
-    if (isset($options['click_to_edit_text']))
-    {
-      $js_options['clickToEditText'] = "'".$options['click_to_edit_text']."'";
-    }
-    if (isset($options['cols']))
-    {
-      $js_options['cols'] = $options['cols'];
-    }
-    if (isset($options['rows']))
-    {
-      $js_options['rows'] = $options['rows'];
-    }
-    if (isset($options['external_control']))
-    {
-      $js_options['externalControl'] = "'".$options['external_control']."'";
-    }
-    if (isset($options['options']))
-    {
-      $js_options['ajaxOptions'] = $options['options'];
-    }
-    if (isset($options['with']))
-    {
-      $js_options['callback'] = "function(form, value) { return ".$options['with']." }";
-    }
-    if (isset($options['highlightcolor']))
-    {
-      $js_options['highlightcolor'] = "'".$options['highlightcolor']."'";
-    }
-    if (isset($options['highlightendcolor']))
-    {
-      $js_options['highlightendcolor'] = "'".$options['highlightendcolor']."'";
-    }
-    if (isset($options['loadTextURL']))
-    {
-      $js_options['loadTextURL'] =  "'".$options['loadTextURL']."'";
-    }
-
-    $javascript .= ', '._options_for_javascript($js_options);
-    $javascript .= ');';
-
-    return javascript_tag($javascript);
+    $options['cancelText'] = _array_or_string_for_javascript($options['cancel_text']);
+    unset($options['cancel_text']);
   }
+  if (isset($options['save_text']))
+  {
+    $options['okText'] = _array_or_string_for_javascript($options['save_text']);
+    unset($options['save_text']);
+  }
+  if (isset($options['external_control']))
+  {
+    $options['externalControl'] = _array_or_string_for_javascript($options['external_control']);
+    unset($options['external_control']);
+  }
+  if (isset($options['options']))
+  {
+    $options['ajaxOptions'] = $options['options'];
+    unset($options['options']);
+  }
+  if (isset($options['with']))
+  {
+    $options['callback'] = "function(form, value) { return ".$options['with']." }";
+    unset($options['with']);
+  }
+  if (isset($options['highlightcolor']))
+  {
+    $options['highlightColor'] = _array_or_string_for_javascript($options['highlightcolor']);
+    unset($options['highlightcolor']);
+  }
+  if (isset($options['highlightendcolor']))
+  {
+    $options['highlightEndColor'] = _array_or_string_for_javascript($options['highlightendcolor']);
+    unset($options['highlightendcolor']);
+  }
+  if (isset($options['loadTextURL']))
+  {
+    $options['loadTextURL'] =  _array_or_string_for_javascript($options['loadTextURL']);
+  }
+
+  $javascript .= ', '._options_for_javascript($options);
+  $javascript .= ');';
+
+  return javascript_tag($javascript);
+}
 
 /**
  * wrapper for script.aculo.us/prototype Ajax.Autocompleter.
@@ -928,7 +921,7 @@ function _auto_complete_field($field_id, $url, $options = array())
     $javascript .= "'".get_id_from_name($field_id)."_auto_complete', ";
   }
 
-  $javascript .= "'".url_for($url)."'";
+  $javascript .= _array_or_string_for_javascript(url_for($url));
 
   $js_options = array();
   if (isset($options['tokens']))
@@ -941,7 +934,7 @@ function _auto_complete_field($field_id, $url, $options = array())
   }
   if (isset($options['indicator']))
   {
-    $js_options['indicator']  = "'".$options['indicator']."'";
+    $js_options['indicator']  = _array_or_string_for_javascript($options['indicator']);
   }
   if (isset($options['on_show']))
   {
@@ -967,10 +960,6 @@ function _auto_complete_field($field_id, $url, $options = array())
   {
     $js_options['afterUpdateElement'] = $options['after_update_element'];
   }
-  if (isset($options['param_name']))
-	  {
-	    $js_options['paramName'] = "'".$options['param_name']."'";
-  }
 
   $javascript .= ', '._options_for_javascript($js_options).');';
 
@@ -982,33 +971,57 @@ function _options_for_javascript($options)
   $opts = array();
   foreach ($options as $key => $value)
   {
-    $opts[] = "$key:$value";
+    $opts[] = $key.":"._boolean_for_javascript($value);
   }
   sort($opts);
 
   return '{'.join(', ', $opts).'}';
 }
 
+/**
+ * converts the given PHP array or string to the corresponding javascript array or string.
+ * javascript strings need to be single quoted.
+ *
+ * @param option (typically from option array)
+ * @return string javascript string or array equivalent
+ */
 function _array_or_string_for_javascript($option)
 {
   if (is_array($option))
   {
     return "['".join('\',\'', $option)."']";
   }
-  else if ($option)
+  else if (is_string($option) && $option[0] != "'")
   {
     return "'$option'";
   }
+  return $option;
+}
+
+/**
+ * converts the given PHP boolean to the corresponding javascript boolean.
+ * booleans need to be true or false (php will print 1 or nothing).
+ *
+ * @param bool (typically from option array)
+ * @return string javascript boolean equivalent
+ */
+function _boolean_for_javascript($bool)
+{
+  if (is_bool($bool))
+  {
+    return ($bool===true ? 'true' : 'false');
+  }
+  return $bool;
 }
 
 function _options_for_ajax($options)
 {
   $js_options = _build_callbacks($options);
 
-  $js_options['asynchronous'] = (isset($options['type']) && ($options['type'] == 'synchronous')) ? 'false' : 'true';
-  if (isset($options['method'])) $js_options['method'] = _method_option_to_s($options['method']);
+  $js_options['asynchronous'] = (isset($options['type']) && ($options['type'] == 'synchronous')) ? false : true;
+  if (isset($options['method'])) $js_options['method'] = _array_or_string_for_javascript($options['method']);
   if (isset($options['position'])) $js_options['insertion'] = "Insertion.".sfInflector::camelize($options['position']);
-  $js_options['evalScripts'] = (!isset($options['script']) || $options['script'] == '0' || $options['script'] == false) ? 'false' : 'true';
+  $js_options['evalScripts'] = (!isset($options['script']) || $options['script'] == '0' || $options['script'] == false) ? false : true;
 
   if (isset($options['form']))
   {
