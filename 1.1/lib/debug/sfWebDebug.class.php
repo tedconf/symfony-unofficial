@@ -335,6 +335,7 @@ class sfWebDebug
     $result .= $this->formatArrayAsHtml('settings', sfDebug::settingsAsArray());
     $result .= $this->formatArrayAsHtml('globals',  sfDebug::globalsAsArray());
     $result .= $this->formatArrayAsHtml('php',      sfDebug::phpInfoAsArray());
+    $result .= $this->formatArrayAsHtml('symfony',  sfDebug::symfonyInfoAsArray());
 
     return $result;
   }

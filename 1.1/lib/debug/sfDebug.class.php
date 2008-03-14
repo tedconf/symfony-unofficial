@@ -19,6 +19,19 @@
 class sfDebug
 {
   /**
+   * Returns symfony information as an array.
+   *
+   * @return array An array of symfony information
+   */
+  public static function symfonyInfoAsArray()
+  {
+    return array(
+      'version' => SYMFONY_VERSION,
+      'path'    => sfConfig::get('sf_symfony_lib_dir'),
+    );
+  }
+
+  /**
    * Returns PHP information as an array.
    *
    * @return  array An array of php information
