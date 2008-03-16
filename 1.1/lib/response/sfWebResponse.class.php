@@ -537,7 +537,7 @@ class sfWebResponse extends sfResponse
   {
     if ($escape)
     {
-      $title = htmlentities($title, ENT_QUOTES, sfConfig::get('sf_charset'));
+      $title = htmlspecialchars($title, ENT_QUOTES, $this->options['charset']);
     }
 
     $this->title = $title;
