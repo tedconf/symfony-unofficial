@@ -315,6 +315,7 @@ class sfPatternRouting extends sfRouting
         $defaults[$key] = urldecode($value);
       }
     }
+    $givenDefaults = $defaults;
     $defaults = $this->fixDefaults($defaults);
 
     // fix requirements regexs
@@ -386,6 +387,14 @@ class sfPatternRouting extends sfRouting
 
           $segments[] = $currentSeparator.'(?P<'.$variable.'>'.$requirements[$variable].')';
           $currentSeparator = '';
+
+          // for 1.0 BC, we don't take into account the default module and action variable
+          // for 1.2, remove the $givenDefaults var and move the $firstOptional setting to
+          // the condition below
+          if (!isset($givenDefaults[$variable]))
+          {
+            $firstOptional = count($segments);
+          }
 
           if (!isset($defaults[$variable]))
           {

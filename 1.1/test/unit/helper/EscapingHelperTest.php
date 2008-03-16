@@ -24,13 +24,13 @@ $t->is(esc_entities('foo bar'), 'foo bar', 'esc_entities() only escapes strings'
 $t->is(esc_entities('<b>foo</b> bar'), '&lt;b&gt;foo&lt;/b&gt; bar', 'esc_entities() only escapes strings');
 $t->is(esc_entities('ü&'), '&uuml;&amp;', 'esc_entities() utf-8 characters are translated');
 
-// esc_htmlspecialchars()
-$t->diag('esc_htmlspecialchars()');
-$t->is(esc_htmlspecialchars(10), 10, 'esc_htmlspecialchars() does not escape integers');
-$t->is(esc_htmlspecialchars(false), false, 'esc_htmlspecialchars() does not escape booleans');
-$t->is(esc_htmlspecialchars('foo bar'), 'foo bar', 'esc_htmlspecialchars() only escapes strings');
-$t->is(esc_htmlspecialchars('<b>foo</b> bar'), '&lt;b&gt;foo&lt;/b&gt; bar', 'esc_htmlspecialchars() only escapes strings');
-$t->is(esc_htmlspecialchars('ü&'), 'ü&amp;', 'esc_htmlspecialchars() utf-8 characters are NOT translated');
+// esc_specialchars()
+$t->diag('esc_specialchars()');
+$t->is(esc_specialchars(10), 10, 'esc_specialchars() does not escape integers');
+$t->is(esc_specialchars(false), false, 'esc_specialchars() does not escape booleans');
+$t->is(esc_specialchars('foo bar'), 'foo bar', 'esc_specialchars() only escapes strings');
+$t->is(esc_specialchars('<b>foo</b> bar'), '&lt;b&gt;foo&lt;/b&gt; bar', 'esc_specialchars() only escapes strings');
+$t->is(esc_specialchars('ü&'), 'ü&amp;', 'esc_specialchars() utf-8 characters are NOT translated');
 
 // esc_raw()
 $t->diag('esc_raw()');

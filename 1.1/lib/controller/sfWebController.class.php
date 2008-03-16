@@ -199,5 +199,6 @@ abstract class sfWebController extends sfController
     $response->setStatusCode($statusCode);
     $response->setHttpHeader('Location', $url);
     $response->setContent(sprintf('<html><head><meta http-equiv="refresh" content="%d;url=%s"/></head><body></body></html>', $delay, htmlspecialchars($url, ENT_QUOTES, sfConfig::get('sf_charset'))));
+    $response->send();
   }
 }

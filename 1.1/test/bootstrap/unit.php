@@ -44,4 +44,17 @@ function sf_unit_test_shutdown()
     sfToolkit::clearDirectory($sf_root_dir);
     rmdir($sf_root_dir);
   }
+
+  foreach (array_merge(glob(sfToolkit::getTmpDir().'/sessions*'), glob(sfToolkit::getTmpDir().'/sf*')) as $file)
+  {
+    if(is_dir($file))
+    {
+      sfToolkit::clearDirectory($file);
+      rmdir($file);
+    }
+    else
+    {
+      unlink($file);
+    }
+  }
 }

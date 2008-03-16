@@ -507,7 +507,7 @@ class sfWebResponse extends sfResponse
 
     if ($escape)
     {
-      $value = htmlentities($value, ENT_QUOTES, $this->options['charset']);
+      $value = htmlspecialchars($value, ENT_QUOTES, $this->options['charset']);
     }
 
     $current = isset($this->metas[$key]) ? $this->metas[$key] : null;

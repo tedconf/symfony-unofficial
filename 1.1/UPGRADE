@@ -70,8 +70,8 @@ This task can be launched several times without any side effect. Each time
 you upgrade to a new symfony 1.1 beta / RC or the final symfony 1.1, you
 need to launch this task.
 
-* If you don't plan to upgrade the validation system or all your helpers to
-the new system, you must enable the compatibility mode in `settings.yml`:
+  * If you don't plan to upgrade the validation or mailing system to
+    the new system, you must enable the compatibility mode in `settings.yml`:
 
     [yml]
     all:
@@ -86,7 +86,6 @@ more information):
   * sfProcessCache
   * validation system (validate.yml, validator classes, ...)
   * fill in filter
-  * helpers
   * sfMail with phpmailer
 
 Some upgrade tasks are not suited for automation and upgrading your configuration
@@ -381,14 +380,6 @@ a `sfConfigurationException` if `sf_compat_10` is set to `false`:
   * `->getFileExtension()`
   * `->moveFile()`
 
-
-sfValidator class
------------------
-
-If you use the symfony 1.0 interface for validation, your custom validators must
-now extend the `sfValidatorBase` class.
-
-
 `->initialize()` methods
 ------------------------
 
@@ -521,6 +512,7 @@ directory:
 
 The symfony core has been upgraded to take these changes into account.
 
+
 sfLoader
 --------
 
@@ -543,11 +535,13 @@ classes:
       * `->getI18NDirs()`
       * `->getConfigPaths()`
 
+
 sfCore
 ------
 
 The `sfCore` has been removed. The code has been moved to `sfProjectConfiguration`,
 `sfApplicationConfiguration`, and `sfContext` classes.
+
 
 Front Controllers
 -----------------
@@ -568,6 +562,7 @@ If you made some customizations, symfony will issue a warning and won't
 upgrade them automatically. You can then copy the default skeleton from
 symfony: /path/to/symfony/lib/task/generator/skeleton/app/web/index.php
 
+
 config.php
 ----------
 
@@ -577,10 +572,12 @@ class and the application configuration classes.
 If you've added some cutomizations in `config.php` files, you will have to migrate them
 to those new classes.
 
+
 Directory structure
 -------------------
 
 All `sfConfig` constants ending with `_dir_name` have been removed.
+
 
 Cache keys
 ----------
@@ -588,7 +585,7 @@ Cache keys
 The `sfViewCacheManager::removePattern()` and `sfToolkit::clearGlob()` don't work anymore for removing several cache parts at once. But the `sfViewCacheManager::remove()` now accepts internal URIs with wildcards. So you can replace:
 
     $cacheManager->removePattern('*/all/user/show/id/*');
-    
+
 By:
 
     $cacheManager->remove('user/show?id=*', '*', 'all');

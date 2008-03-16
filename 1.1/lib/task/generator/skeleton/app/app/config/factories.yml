@@ -110,7 +110,7 @@ all:
     class: sfAggregateLogger
     param:
       level: debug                          # error level for loggers
-      loggers:                              # error loggers to notify
+      loggers:
         sf_web_debug_logger:
           class: sfWebDebugLogger           # web debug logger class
           param:

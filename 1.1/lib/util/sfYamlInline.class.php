@@ -80,6 +80,10 @@ class sfYamlInline
         return "''";
       case preg_match(self::getTimestampRegex(), $value):
         return "'$value'";
+      case in_array(strtolower($value), array('true', 'on', '+', 'yes', 'y')):
+        return "'$value'";
+      case in_array(strtolower($value), array('false', 'off', '-', 'no', 'n')):
+        return "'$value'";
       default:
         return $value;
     }
@@ -152,7 +156,7 @@ class sfYamlInline
         // remove comments
         if (false !== $strpos = strpos($output, ' #'))
         {
-          $output = rtrim(substr($output, 0, $strpos - 1));
+          $output = rtrim(substr($output, 0, $strpos));
         }
       }
       else if (preg_match('/^(.+?)('.implode('|', $delimiters).')/', substr($scalar, $i), $match))

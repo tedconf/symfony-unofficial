@@ -34,6 +34,26 @@ function sf_functional_test_shutdown()
 {
   sfToolkit::clearDirectory(sfConfig::get('sf_cache_dir'));
   sfToolkit::clearDirectory(sfConfig::get('sf_log_dir'));
+
+  $sf_root_dir = sfToolkit::getTmpDir().'/sf_test_project';
+  if(is_dir($sf_root_dir))
+  {
+    sfToolkit::clearDirectory($sf_root_dir);
+    rmdir($sf_root_dir);
+  }
+
+  foreach (array_merge(glob(sfToolkit::getTmpDir().'/sessions*'), glob(sfToolkit::getTmpDir().'/sf*')) as $file)
+  {
+    if(is_dir($file))
+    {
+      sfToolkit::clearDirectory($file);
+      rmdir($file);
+    }
+    else
+    {
+      unlink($file);
+    }
+  }
 }
 
 return true;

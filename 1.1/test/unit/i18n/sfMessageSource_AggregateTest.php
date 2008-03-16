@@ -3,7 +3,7 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- * 
+ *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -13,11 +13,11 @@ require_once(dirname(__FILE__).'/../../bootstrap/unit.php');
 $t = new lime_test(9, new lime_output_color());
 
 // setup
-$temp1 = tempnam('/tmp/i18ndir', 'tmp');
+$temp1 = tempnam('/tmp/sf_i18n_dir', 'tmp');
 unlink($temp1);
 mkdir($temp1);
 
-$temp2 = tempnam('/tmp/i18ndir', 'tmp');
+$temp2 = tempnam('/tmp/sf_i18n_dir', 'tmp');
 unlink($temp2);
 mkdir($temp2);
 
@@ -33,6 +33,7 @@ $t->diag('->save()');
 $t->is($source->save(), false, '->save() returns false if no message is saved');
 $source->append('New message');
 $t->is($source->save(), true, '->save() returns true if some messages are saved');
+
 $source = get_source($temp1, $temp2);
 $source->setCulture('fr_FR');
 $format = new sfMessageFormat($source);
@@ -48,13 +49,11 @@ $source->setCulture('it');
 $format = new sfMessageFormat($source);
 $t->is($format->format('New message (it)'), 'New message (it)', '->save() saves new messages');
 
-$source->setCulture('fr_FR');
-
 // ->update()
 $t->diag('->update()');
-$t->is($source->update('New message', 'Nouveau message', 'Comments'), true, '->update() returns true if the message has been updated');
 $source = get_source($temp1, $temp2);
 $source->setCulture('fr_FR');
+$t->is($source->update('New message', 'Nouveau message', 'Comments on context'), true, '->update() returns true if the message has been updated');
 $format = new sfMessageFormat($source);
 $t->is($format->format('New message'), 'Nouveau message', '->update() updates a message translation');
 

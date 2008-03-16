@@ -36,7 +36,20 @@ class sfYaml
    */
   public static function load($input)
   {
-    $input = self::getIncludeContents($input);
+    $file = '';
+
+    // if input is a file, process it
+    if (strpos($input, "\n") === false && is_file($input))
+    {
+      $file = $input;
+
+      ob_start();
+      $retval = include($input);
+      $content = ob_get_clean();
+
+      // if an array is returned by the config file assume it's in plain php form else in yaml
+      $input = is_array($retval) ? $retval : $content;
+    }
 
     // if an array is returned by the config file assume it's in plain php form else in yaml
     if (is_array($input))
@@ -44,7 +57,7 @@ class sfYaml
       return $input;
     }
 
-    // syck is prefered over spyc
+    // syck is prefered over sfYamlParser
     if (function_exists('syck_load'))
     {
       $retval = syck_load($input);
@@ -53,11 +66,19 @@ class sfYaml
     }
     else
     {
-      require_once(dirname(__FILE__).'/Spyc.class.php');
+      require_once dirname(__FILE__).'/sfYamlParser.class.php';
+      $yaml = new sfYamlParser();
 
-      $spyc = new Spyc();
+      try
+      {
+        $ret = $yaml->parse($input);
+      }
+      catch (Exception $e)
+      {
+        throw new InvalidArgumentException(sprintf('Unable to parse %s: %s', $file ? sprintf('file "%s"', $file) : 'string', $e->getMessage()));
+      }
 
-      return $spyc->load($input);
+      return $ret;
     }
   }
 
@@ -71,7 +92,7 @@ class sfYaml
    *
    * @return string
    */
-  public static function dump($array)
+  public static function dump($array, $inline = 2)
   {
     if (function_exists('syck_dump'))
     {
@@ -79,36 +100,11 @@ class sfYaml
     }
     else
     {
-      require_once(dirname(__FILE__).'/Spyc.class.php');
+      require_once dirname(__FILE__).'/sfYamlDumper.class.php';
+      $yaml = new sfYamlDumper();
 
-      $spyc = new Spyc();
-
-      return $spyc->dump($array, false, 0);
+      return $yaml->dump($array, $inline);
     }
-  }
-
-  /**
-   * Get contents of input.
-   *
-   * @param string $input
-   *
-   * @return string
-   */
-  protected static function getIncludeContents($input)
-  {
-    // if input is a file, process it
-    if (strpos($input, "\n") === false && is_file($input))
-    {
-      ob_start();
-      $retval = include($input);
-      $contents = ob_get_clean();
-
-      // if an array is returned by the config file assume it's in plain php form else in yaml
-      return is_array($retval) ? $retval : $contents;
-    }
-
-    // else return original input
-    return $input;
   }
 }
 
