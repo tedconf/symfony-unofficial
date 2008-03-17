@@ -3,7 +3,7 @@
 /*
  * This file is part of the symfony package.
  * (c) Fabien Potencier <fabien.potencier@symfony-project.com>
- * 
+ *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -11,7 +11,7 @@
 require_once(dirname(__FILE__).'/../../bootstrap/unit.php');
 require_once(dirname(__FILE__).'/../../../lib/util/sfYamlParser.class.php');
 
-$t = new lime_test(66, new lime_output_color());
+$t = new lime_test(135, new lime_output_color());
 
 $parser = new sfYamlParser();
 
@@ -36,11 +36,15 @@ foreach ($files as $file)
     {
       $t->todo($test['test']);
     }
-    else
+    else if(isset($test['php']) && $test['php'])
     {
       $expected = var_export(eval('return '.trim($test['php']).';'), true);
 
-      $t->is(var_export($parser->parse($test['yaml']), true), $expected, $test['test'].' (parser)');
+      $t->is(var_export($parser->parse($test['yaml']), true), $expected, $test['test']);
+    }
+    else
+    {
+     //  $t->is(var_export($parser->parse($test['yaml']), true), $expected, $test['test']);
     }
   }
 }
