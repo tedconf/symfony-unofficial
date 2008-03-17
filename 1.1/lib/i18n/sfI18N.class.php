@@ -65,7 +65,11 @@ class sfI18N
     ), $options);
 
     $this->dispatcher->connect('user.change_culture', array($this, 'listenToChangeCultureEvent'));
-    $this->dispatcher->connect('controller.change_action', array($this, 'listenToChangeActionEvent'));
+
+    if($this->isMessageSourceFileBased($this->options['source']))
+    {
+      $this->dispatcher->connect('controller.change_action', array($this, 'listenToChangeActionEvent'));
+    }
   }
 
   /**
@@ -162,7 +166,8 @@ class sfI18N
   {
     if (!isset($this->messageSource))
     {
-      $this->setMessageSource($this->configuration->getI18NGlobalDirs(), $this->culture);
+      $dirs = ($this->isMessageSourceFileBased($this->options['source'])) ? $this->configuration->getI18NGlobalDirs() : null;
+      $this->setMessageSource($dirs, $this->culture);
     }
 
     return $this->messageSource;
