@@ -72,7 +72,7 @@ EOF;
 
     // Update project configuration files
     $finder = sfFinder::type('file')->name('properties.ini', '*apache*.conf', 'propel.ini');
-    $this->getFilesystem()->replaceTokens(array_merge(array(sfConfig::get('sf_lib_dir').'/ProjectConfiguration.class.php'), $finder->in(sfConfig::get('sf_config_dir'))), '##', '##',
+    $this->getFilesystem()->replaceTokens(array_merge(array(sfConfig::get('sf_config_dir').'/ProjectConfiguration.class.php'), $finder->in(sfConfig::get('sf_config_dir'))), '##', '##',
                                           array('PROJECT_NAME'   => $arguments['name'],
                                                 'PROJECT_DIR'    => sfConfig::get('sf_root_dir'),
                                                 'PROJECT_DOMAIN' => php_uname('n'),

@@ -311,6 +311,7 @@ class sfWebDebug
       // extensions
       'xdebug'        => (sfConfig::get('sf_xdebug', true) && extension_loaded('xdebug'))   ? 'on' : 'off',
       'syck'          => extension_loaded('syck')                                           ? 'on' : 'off',
+      'tokenizer'    => function_exists('token_get_all')                                    ? 'on' : 'off',
       'apc'           => extension_loaded('apc') && ini_get('apc.enabled')                  ? 'on' : 'off',
       'memcache'      => extension_loaded('memcache')                                       ? 'on' : 'off',
       'xcache'        => extension_loaded('xcache') && ini_get('xcache.cacher')             ? 'on' : 'off',
@@ -332,6 +333,7 @@ class sfWebDebug
     $context = sfContext::getInstance();
     $result .= $this->formatArrayAsHtml('request',  sfDebug::requestAsArray($context->getRequest()));
     $result .= $this->formatArrayAsHtml('response', sfDebug::responseAsArray($context->getResponse()));
+    $result .= $this->formatArrayAsHtml('user',     sfDebug::userAsArray($context->getUser()));
     $result .= $this->formatArrayAsHtml('settings', sfDebug::settingsAsArray());
     $result .= $this->formatArrayAsHtml('globals',  sfDebug::globalsAsArray());
     $result .= $this->formatArrayAsHtml('php',      sfDebug::phpInfoAsArray());
@@ -353,7 +355,7 @@ class sfWebDebug
     $id = ucfirst(strtolower($id));
     $content = '
     <h2>'.$id.' <a href="#" onclick="sfWebDebugToggle(\'sfWebDebug'.$id.'\'); return false;">'.image_tag(sfConfig::get('sf_web_debug_web_dir').'/images/toggle.gif').'</a></h2>
-    <div id="sfWebDebug'.$id.'" style="display: none"><pre>'.htmlspecialchars(@sfYaml::dump($values), ENT_QUOTES, sfConfig::get('sf_charset')).'</pre></div>
+    <div id="sfWebDebug'.$id.'" style="display: none"><pre>'.htmlspecialchars(sfYaml::dump($values), ENT_QUOTES, sfConfig::get('sf_charset')).'</pre></div>
     ';
 
     return $content;

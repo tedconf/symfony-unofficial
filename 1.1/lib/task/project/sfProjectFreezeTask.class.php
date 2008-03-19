@@ -90,7 +90,7 @@ EOF;
     $this->getFilesystem()->rename($sf_data_dir.DIRECTORY_SEPARATOR.'symfony'.DIRECTORY_SEPARATOR.'web'.DIRECTORY_SEPARATOR.'sf', $sf_web_dir.DIRECTORY_SEPARATOR.'sf');
 
     // change symfony path in ProjectConfiguration.class.php
-    $config = sfConfig::get('sf_lib_dir').'/ProjectConfiguration.class.php';
+    $config = sfConfig::get('sf_config_dir').'/ProjectConfiguration.class.php';
     $content = file_get_contents($config);
     $content = str_replace('<?php', "<?php\n\n# FROZEN_SF_LIB_DIR: $symfonyLibDir", $content);
     $content = preg_replace('#(\'|")'.preg_quote($symfonyLibDir, '#').'#', "dirname(__FILE__).$1/../lib/symfony", $content);

@@ -20,9 +20,9 @@ if (!isset($root_dir))
   $root_dir = realpath(dirname(__FILE__).sprintf('/../%s/fixtures/project', isset($type) ? $type : 'functional'));
 }
 
-$class = $app.'Configuration';
-require $root_dir.'/lib/'.$class.'.class.php';
-$configuration = new $class('test', isset($debug) ? $debug : true, $root_dir);
+require_once $root_dir.'/config/ProjectConfiguration.class.php';
+$configuration = ProjectConfiguration::getApplicationConfiguration($app, 'test', isset($debug) ? $debug : true);
+
 sfContext::createInstance($configuration);
 
 // remove all cache
