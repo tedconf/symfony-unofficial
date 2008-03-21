@@ -82,6 +82,16 @@ class sfI18N
   }
 
   /**
+   * Returns the initialization options
+   *
+   * @return array The options used to initialize sfI18n
+   */
+  public function getOptions()
+  {
+    return $this->options;
+  }
+
+  /**
    * Returns the configuration instance.
    *
    * @return sfApplicationConfiguration An sfApplicationConfiguration instance
