@@ -32,7 +32,7 @@ class sfGeneratorConfigHandler extends sfYamlConfigHandler
   public function execute($configFiles)
   {
     // parse the yaml
-    $config = $this->parseYamls($configFiles);
+    $config = self::getConfiguration($configFiles);
     if (!$config)
     {
       return '';
@@ -59,13 +59,13 @@ class sfGeneratorConfigHandler extends sfYamlConfigHandler
     }
 
     // generate class and add a reference to it
-    $generatorManager = new sfGeneratorManager();
+    $generatorManager = new sfGeneratorManager(sfContext::getInstance()->getConfiguration());
 
     // generator parameters
     $generatorParam = (isset($config['param']) ? $config['param'] : array());
 
     // hack to find the module name
-    preg_match('#'.sfConfig::get('sf_app_module_dir_name').'/([^/]+)/#', $configFiles[1], $match);
+    preg_match('#modules/([^/]+)/#', $configFiles[0], $match);
     $generatorParam['moduleName'] = $match[1];
 
     $data = $generatorManager->generate($config['class'], $generatorParam);
@@ -77,5 +77,13 @@ class sfGeneratorConfigHandler extends sfYamlConfigHandler
     $retval = sprintf($retval, date('Y/m/d H:i:s'), $data);
 
     return $retval;
+  }
+
+  /**
+   * @see sfConfigHandler
+   */
+  static public function getConfiguration(array $configFiles)
+  {
+    return self::parseYamls($configFiles);
   }
 }

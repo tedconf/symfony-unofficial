@@ -3,7 +3,7 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- * (c) 2004-2006 Sean Kerr.
+ * (c) 2004-2006 Sean Kerr <sean@code-box.org>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -17,7 +17,7 @@
  * @package    symfony
  * @subpackage config
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
- * @author     Sean Kerr <skerr@mojavi.org>
+ * @author     Sean Kerr <sean@code-box.org>
  * @version    SVN: $Id$
  */
 abstract class sfConfigHandler
@@ -71,7 +71,7 @@ abstract class sfConfigHandler
    *
    * @return string The new value
    */
-  public static function replaceConstants($value)
+  static public function replaceConstants($value)
   {
     if (is_array($value))
     {
@@ -94,10 +94,17 @@ abstract class sfConfigHandler
    */
   public static function replacePath($path)
   {
-    if (!sfToolkit::isPathAbsolute($path))
+    if (is_array($path))
     {
-      // not an absolute path so we'll prepend to it
-      $path = sfConfig::get('sf_app_dir').'/'.$path;
+      array_walk_recursive($path, create_function('&$path', '$path = sfConfigHandler::replacePath($path);'));
+    }
+    else
+    {
+      if (!sfToolkit::isPathAbsolute($path))
+      {
+        // not an absolute path so we'll prepend to it
+        $path = sfConfig::get('sf_app_dir').'/'.$path;
+      }
     }
 
     return $path;
@@ -111,5 +118,17 @@ abstract class sfConfigHandler
   public function getParameterHolder()
   {
     return $this->parameterHolder;
+  }
+
+  /**
+   * Returns the configuration for the current config handler.
+   *
+   * @param array An array of ordered configuration files
+   *
+   * @param array A configuration array
+   */
+  static public function getConfiguration(array $configFiles)
+  {
+    throw new LogicException('You must call the ::getConfiguration() method on a concrete config handler class');
   }
 }

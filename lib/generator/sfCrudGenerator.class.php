@@ -54,7 +54,7 @@ abstract class sfCrudGenerator extends sfGenerator
 
     if (!class_exists($modelClass))
     {
-      throw new sfInitializationException(sprintf('Unable to scaffold unexistant model "%s".', $modelClass));
+      throw new sfInitializationException(sprintf('Unable to scaffold nonexistent model "%s".', $modelClass));
     }
 
     $this->setScaffoldingClassName($modelClass);
@@ -71,7 +71,7 @@ abstract class sfCrudGenerator extends sfGenerator
 
     // theme exists?
     $theme = isset($this->params['theme']) ? $this->params['theme'] : 'default';
-    $themeDir = sfLoader::getGeneratorTemplate($this->getGeneratorClass(), $theme, '');
+    $themeDir = $this->generatorManager->getConfiguration()->getGeneratorTemplate($this->getGeneratorClass(), $theme, '');
     if (!is_dir($themeDir))
     {
       throw new sfConfigurationException(sprintf('The theme "%s" does not exist.', $theme));
@@ -156,7 +156,9 @@ abstract class sfCrudGenerator extends sfGenerator
     foreach ($this->getPrimaryKey() as $pk)
     {
       $fieldName  = sfInflector::underscore($pk->getPhpName());
-      $test_pks[] = sprintf("!\$this->getRequestParameter(%s)", $fieldNameAsArgument ? "\$$fieldName" : "'".$fieldName."'");
+      // 2 checks needed here, as '0' is a vaild PK.
+      $test_pks[] = sprintf("\$this->getRequestParameter(%s) === ''", $fieldNameAsArgument ? "\$$fieldName" : "'".$fieldName."'");
+      $test_pks[] = sprintf("\$this->getRequestParameter(%s) === null", $fieldNameAsArgument ? "\$$fieldName" : "'".$fieldName."'");
     }
 
     return implode("\n     || ", $test_pks);

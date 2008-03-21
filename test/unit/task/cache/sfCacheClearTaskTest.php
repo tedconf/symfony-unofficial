@@ -20,11 +20,11 @@ $task->run(array('test'));
 $task = new sfGenerateAppTask($dispatcher, $formatter);
 $task->run(array('frontend'));
 
-sfCore::initDirectoryLayout(sfConfig::get('sf_root_dir'), 'frontend', 'dev');
+require_once sfConfig::get('sf_root_dir').'/config/ProjectConfiguration.class.php';
+$configuration = ProjectConfiguration::getApplicationConfiguration('frontend', 'test', true);
 
 // Put something in the cache
 $file = sfConfig::get('sf_config_cache_dir').DIRECTORY_SEPARATOR.'test';
-mkdir(sfConfig::get('sf_config_cache_dir'), 0777, true);
 touch($file);
 
 $t->ok(file_exists($file), 'The test file is in the cache');

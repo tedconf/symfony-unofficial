@@ -3,10 +3,12 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- * 
+ *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+
+require_once(dirname(__FILE__).'/sfGeneratorBaseTask.class.php');
 
 /**
  * Generates a new application.
@@ -72,7 +74,7 @@ EOF;
   {
     $app = $arguments['application'];
 
-    $appDir = sfConfig::get('sf_root_dir').'/'.sfConfig::get('sf_apps_dir_name').'/'.$app;
+    $appDir = sfConfig::get('sf_apps_dir').'/'.$app;
 
     if (is_dir($appDir))
     {
@@ -81,7 +83,7 @@ EOF;
 
     // Create basic application structure
     $finder = sfFinder::type('any')->ignore_version_control()->discard('.sf');
-    $this->filesystem->mirror(sfConfig::get('sf_symfony_data_dir').'/skeleton/app/app', $appDir, $finder);
+    $this->getFilesystem()->mirror(dirname(__FILE__).'/skeleton/app/app', $appDir, $finder);
 
     // Create $app.php or index.php if it is our first app
     $indexName = 'index';
@@ -93,18 +95,32 @@ EOF;
 
     // Set no_script_name value in settings.yml for production environment
     $finder = sfFinder::type('file')->name('settings.yml');
-    $this->filesystem->replaceTokens($finder->in($appDir.'/'.sfConfig::get('sf_app_config_dir_name')), '##', '##', array('NO_SCRIPT_NAME' => ($firstApp ? 'on' : 'off')));
+    $this->getFilesystem()->replaceTokens($finder->in($appDir.'/config'), '##', '##', array('NO_SCRIPT_NAME' => ($firstApp ? 'on' : 'off')));
 
-    $this->filesystem->copy(sfConfig::get('sf_symfony_data_dir').'/skeleton/app/web/index.php', sfConfig::get('sf_web_dir').'/'.$indexName.'.php');
-    $this->filesystem->copy(sfConfig::get('sf_symfony_data_dir').'/skeleton/app/web/index_dev.php', sfConfig::get('sf_web_dir').'/'.$app.'_dev.php');
+    $this->getFilesystem()->copy(dirname(__FILE__).'/skeleton/app/web/index.php', sfConfig::get('sf_web_dir').'/'.$indexName.'.php');
+    $this->getFilesystem()->copy(dirname(__FILE__).'/skeleton/app/web/index.php', sfConfig::get('sf_web_dir').'/'.$app.'_dev.php');
 
-    $finder = sfFinder::type('file')->name($indexName.'.php', $app.'_dev.php');
-    $this->filesystem->replaceTokens($finder->in(sfConfig::get('sf_web_dir')), '##', '##', array('APP_NAME' => $app));
+    $this->getFilesystem()->replaceTokens(sfConfig::get('sf_web_dir').'/'.$indexName.'.php', '##', '##', array(
+      'APP_NAME'    => $app,
+      'ENVIRONMENT' => 'prod',
+      'IS_DEBUG'    => 'false',
+    ));
+
+    $this->getFilesystem()->replaceTokens(sfConfig::get('sf_web_dir').'/'.$app.'_dev.php', '##', '##', array(
+      'APP_NAME'    => $app,
+      'ENVIRONMENT' => 'dev',
+      'IS_DEBUG'    => 'true',
+    ));
+
+    $this->getFilesystem()->copy(dirname(__FILE__).'/skeleton/app/app/config/ApplicationConfiguration.class.php', $appDir.'/config/'.$app.'Configuration.class.php');
+
+    $this->getFilesystem()->replaceTokens($appDir.'/config/'.$app.'Configuration.class.php', '##', '##', array('APP_NAME' => $app));
 
     $fixPerms = new sfProjectPermissionsTask($this->dispatcher, $this->formatter);
+    $fixPerms->setCommandApplication($this->commandApplication);
     $fixPerms->run();
 
     // Create test dir
-    $this->filesystem->mkdirs(sfConfig::get('sf_root_dir').'/test/functional/'.$app);
+    $this->getFilesystem()->mkdirs(sfConfig::get('sf_test_dir').'/functional/'.$app);
   }
 }

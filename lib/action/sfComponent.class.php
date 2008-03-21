@@ -142,7 +142,7 @@ abstract class sfComponent
   {
     if (sfConfig::get('sf_web_debug') && sfConfig::get('sf_logging_enabled'))
     {
-      sfContext::getInstance()->getEventDispatcher()->notify(new sfEvent(null, 'application.log', array('This feature is deprecated in favor of the log_message helper.', 'priority' => sfLogger::ERR)));
+      $this->dispatcher->notify(new sfEvent(null, 'application.log', array('This feature is deprecated in favor of the log_message helper.', 'priority' => sfLogger::ERR)));
     }
   }
 
@@ -350,7 +350,7 @@ abstract class sfComponent
     $event = $this->dispatcher->notifyUntil(new sfEvent($this, 'component.method_not_found', array('method' => $method, 'arguments' => $arguments)));
     if (!$event->isProcessed())
     {
-      throw new sfException(sprintf('Call to undefined method sfComponent::%s.', $method));
+      throw new sfException(sprintf('Call to undefined method %s::%s.', get_class($this), $method));
     }
 
     return $event->getReturnValue();

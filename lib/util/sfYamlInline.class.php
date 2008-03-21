@@ -27,12 +27,12 @@ class sfYamlInline
    */
   static public function load($value)
   {
-    if (!$value)
+    $value = trim($value);
+
+    if (0 == strlen($value))
     {
       return '';
     }
-
-    $value = trim($value);
 
     switch ($value[0])
     {
@@ -48,7 +48,7 @@ class sfYamlInline
   /**
    * Dumps PHP array to YAML.
    *
-   * @param mixed PHP
+   * @param mixed   PHP
    *
    * @return string YAML
    */
@@ -56,8 +56,10 @@ class sfYamlInline
   {
     switch (true)
     {
+      case is_resource($value):
+        throw new InvalidArgumentException('Unable to dump PHP resources in a YAML file.');
       case is_object($value):
-        throw new sfException('Unable to dump objects to a YAML string.');
+        return '!!php/object:'.serialize($value);
       case is_array($value):
         return self::dumpArray($value);
       case is_null($value):
@@ -67,11 +69,21 @@ class sfYamlInline
       case false === $value:
         return 'false';
       case ctype_digit($value):
-        return (int) $value;
+        return is_string($value) ? "'$value'" : (int) $value;
       case is_numeric($value):
-        return is_infinite($value) ? str_ireplace('INF', '.Inf', strval($value)) : $value;
+        return is_infinite($value) ? str_ireplace('INF', '.Inf', strval($value)) : (is_string($value) ? "'$value'" : $value);
+      case false !== strpos($value, "\n"):
+        return sprintf('"%s"', str_replace(array('"', "\n"), array('\\"', '\n'), $value));
       case preg_match('/[ \s \' " \: \{ \} \[ \] , ]/x', $value):
-        return sprintf("'%s'", str_replace('\'', '\\\'', $value));
+        return sprintf("'%s'", str_replace('\'', '\'\'', $value));
+      case '' == $value:
+        return "''";
+      case preg_match(self::getTimestampRegex(), $value):
+        return "'$value'";
+      case in_array(strtolower($value), array('true', 'on', '+', 'yes', 'y')):
+        return "'$value'";
+      case in_array(strtolower($value), array('false', 'off', '-', 'no', 'n')):
+        return "'$value'";
       default:
         return $value;
     }
@@ -106,7 +118,7 @@ class sfYamlInline
     $output = array();
     foreach ($value as $key => $val)
     {
-      $output[] = sprintf('%s: %s', $key, self::dump($val));
+      $output[] = sprintf('%s: %s', self::dump($key), self::dump($val));
     }
 
     return sprintf('{ %s }', implode(', ', $output));
@@ -123,7 +135,7 @@ class sfYamlInline
    *
    * @return string YAML
    */
-  static protected function parseScalar($scalar, $delimiters = null, $stringDelimiters = array('"', "'"), &$i = 0, $evaluate = true)
+  static public function parseScalar($scalar, $delimiters = null, $stringDelimiters = array('"', "'"), &$i = 0, $evaluate = true)
   {
     if (in_array($scalar[$i], $stringDelimiters))
     {
@@ -140,6 +152,12 @@ class sfYamlInline
       {
         $output = substr($scalar, $i);
         $i += strlen($output);
+
+        // remove comments
+        if (false !== $strpos = strpos($output, ' #'))
+        {
+          $output = rtrim(substr($output, 0, $strpos));
+        }
       }
       else if (preg_match('/^(.+?)('.implode('|', $delimiters).')/', substr($scalar, $i), $match))
       {
@@ -148,7 +166,7 @@ class sfYamlInline
       }
       else
       {
-        throw new sfException(sprintf('Malformed inline YAML string (%s).', $scalar));
+        throw new InvalidArgumentException(sprintf('Malformed inline YAML string (%s).', $scalar));
       }
 
       $output = $evaluate ? self::evaluateScalar($output) : $output;
@@ -171,9 +189,11 @@ class sfYamlInline
     ++$i;
     $buffer = '';
     $len = strlen($scalar);
+    $escaped = '"' == $delimiter ? '\\"' : "''";
+
     while ($i < $len)
     {
-      if (isset($scalar[$i + 1]) && '\\'.$delimiter == $scalar[$i].$scalar[$i + 1])
+      if (isset($scalar[$i + 1]) && $escaped == $scalar[$i].$scalar[$i + 1])
       {
         $buffer .= $delimiter;
         ++$i;
@@ -188,6 +208,12 @@ class sfYamlInline
       }
 
       ++$i;
+    }
+
+    if ('"' == $delimiter)
+    {
+      // evaluate the string
+      $buffer = str_replace('\\n', "\n", $buffer);
     }
 
     return $buffer;
@@ -226,14 +252,31 @@ class sfYamlInline
         case ' ':
           break;
         default:
-          $output[] = self::parseScalar($sequence, array(',', ']'), array('"', "'"), $i);
+          $isQuoted = in_array($sequence[$i], array('"', "'"));
+          $value = self::parseScalar($sequence, array(',', ']'), array('"', "'"), $i);
+
+          if (!$isQuoted && false !== strpos($value, ':'))
+          {
+            // embedded mapping?
+            try
+            {
+              $value = self::parseMapping('{'.$value.'}');
+            }
+            catch (InvalidArgumentException $e)
+            {
+              // no, it's not
+            }
+          }
+
+          $output[] = $value;
+
           --$i;
       }
 
       ++$i;
     }
 
-    throw new sfException(sprintf('Malformed inline YAML string %s', $sequence));
+    throw new InvalidArgumentException(sprintf('Malformed inline YAML string %s', $sequence));
   }
 
   /**
@@ -300,7 +343,7 @@ class sfYamlInline
       }
     }
 
-    throw new sfException(sprintf('Malformed inline YAML string %s', $mapping));
+    throw new InvalidArgumentException(sprintf('Malformed inline YAML string %s', $mapping));
   }
 
   /**
@@ -320,6 +363,12 @@ class sfYamlInline
       case '' == $scalar:
       case '~' == $scalar:
         return null;
+      case 0 === strpos($scalar, '!str'):
+        return (string) substr($scalar, 5);
+      case 0 === strpos($scalar, '! '):
+        return intval(self::parseScalar(substr($scalar, 2)));
+      case 0 === strpos($scalar, '!!php/object:'):
+        return unserialize(substr($scalar, 13));
       case ctype_digit($scalar):
         return '0' == $scalar[0] ? octdec($scalar) : intval($scalar);
       case in_array(strtolower($scalar), array('true', 'on', '+', 'yes', 'y')):
@@ -329,13 +378,34 @@ class sfYamlInline
       case is_numeric($scalar):
         return '0x' == $scalar[0].$scalar[1] ? hexdec($scalar) : floatval($scalar);
       case 0 == strcasecmp($scalar, '.inf'):
+      case 0 == strcasecmp($scalar, '.NaN'):
         return -log(0);
       case 0 == strcasecmp($scalar, '-.inf'):
         return log(0);
-      case false !== ($ret = strtotime($scalar)):
-        return $ret;
+      case preg_match('/^(-|\+)?[0-9\,\.]+$/', $scalar):
+        return floatval(str_replace(',', '', $scalar));
+      case preg_match(self::getTimestampRegex(), $scalar):
+        return strtotime($scalar);
       default:
         return (string) $scalar;
     }
+  }
+
+  static protected function getTimestampRegex()
+  {
+    return <<<EOF
+    ~^
+    (?P<year>[0-9][0-9][0-9][0-9])
+    -(?P<month>[0-9][0-9]?)
+    -(?P<day>[0-9][0-9]?)
+    (?:(?:[Tt]|[ \t]+)
+    (?P<hour>[0-9][0-9]?)
+    :(?P<minute>[0-9][0-9])
+    :(?P<second>[0-9][0-9])
+    (?:\.(?P<fraction>[0-9]*))?
+    (?:[ \t]*(?P<tz>Z|(?P<tz_sign>[-+])(?P<tz_hour>[0-9][0-9]?)
+    (?::(?P<tz_minute>[0-9][0-9]))?))?)?
+    $~x
+EOF;
   }
 }

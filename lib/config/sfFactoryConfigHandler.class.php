@@ -3,7 +3,7 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- * (c) 2004-2006 Sean Kerr.
+ * (c) 2004-2006 Sean Kerr <sean@code-box.org>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -16,7 +16,7 @@
  * @package    symfony
  * @subpackage config
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
- * @author     Sean Kerr <skerr@mojavi.org>
+ * @author     Sean Kerr <sean@code-box.org>
  * @version    SVN: $Id$
  */
 class sfFactoryConfigHandler extends sfYamlConfigHandler
@@ -34,13 +34,7 @@ class sfFactoryConfigHandler extends sfYamlConfigHandler
   public function execute($configFiles)
   {
     // parse the yaml
-    $myConfig = $this->parseYamls($configFiles);
-
-    $myConfig = sfToolkit::arrayDeepMerge(
-      isset($myConfig['default']) && is_array($myConfig['default']) ? $myConfig['default'] : array(),
-      isset($myConfig['all']) && is_array($myConfig['all']) ? $myConfig['all'] : array(),
-      isset($myConfig[sfConfig::get('sf_environment')]) && is_array($myConfig[sfConfig::get('sf_environment')]) ? $myConfig[sfConfig::get('sf_environment')] : array()
-    );
+    $config = self::getConfiguration($configFiles);
 
     // init our data and includes arrays
     $includes  = array();
@@ -53,7 +47,7 @@ class sfFactoryConfigHandler extends sfYamlConfigHandler
     foreach ($factories as $factory)
     {
       // see if the factory exists for this controller
-      $keys = $myConfig[$factory];
+      $keys = $config[$factory];
 
       if (!isset($keys['class']))
       {
@@ -66,31 +60,26 @@ class sfFactoryConfigHandler extends sfYamlConfigHandler
       if (isset($keys['file']))
       {
         // we have a file to include
-        $file = $this->replaceConstants($keys['file']);
-        $file = $this->replacePath($file);
-
-        if (!is_readable($file))
+        if (!is_readable($keys['file']))
         {
           // factory file doesn't exist
-          throw new sfParseException(sprintf('Configuration file "%s" specifies class "%s" with nonexistent or unreadable file "%s".', $configFiles[0], $class, $file));
+          throw new sfParseException(sprintf('Configuration file "%s" specifies class "%s" with nonexistent or unreadable file "%s".', $configFiles[0], $class, $keys['file']));
         }
 
         // append our data
-        $includes[] = sprintf("require_once('%s');", $file);
+        $includes[] = sprintf("require_once('%s');", $keys['file']);
       }
 
       // parse parameters
+      $parameters = array();
       if (isset($keys['param']))
       {
-        $parameters = array();
-        foreach ($keys['param'] as $key => $value)
+        if (!is_array($keys['param']))
         {
-          $parameters[$key] = $this->replaceConstants($value);
+          throw new InvalidArgumentException(sprintf('The "param" key for the "%s" factory must be an array (in %s).', $class, $configFiles[0]));
         }
-      }
-      else
-      {
-        $parameters = null;
+
+        $parameters = $keys['param'];
       }
 
       // append new data
@@ -105,9 +94,7 @@ class sfFactoryConfigHandler extends sfYamlConfigHandler
           break;
 
         case 'response':
-          $parameters = array_merge(array('charset' => sfConfig::get('sf_charset'), 'logging' => sfConfig::get('sf_logging_enabled')), is_array($parameters) ? $parameters : array());
           $instances[] = sprintf("  \$class = sfConfig::get('sf_factory_response', '%s');\n  \$this->factories['response'] = new \$class(\$this->dispatcher, sfConfig::get('sf_factory_response_parameters', %s));", $class, var_export($parameters, true));
-
           $instances[] = sprintf("  if ('HEAD' == \$this->factories['request']->getMethodName())\n  {  \n    \$this->factories['response']->setHeaderOnly(true);\n  }\n");
           break;
 
@@ -124,7 +111,7 @@ class sfFactoryConfigHandler extends sfYamlConfigHandler
           break;
 
         case 'user':
-          $instances[] = sprintf("  \$class = sfConfig::get('sf_factory_user', '%s');\n  \$this->factories['user'] = new \$class(\$this->dispatcher, \$this->factories['storage'], array_merge(array('auto_shutdown' => false, 'culture' => \$this->factories['request']->getParameter('sf_culture'), 'default_culture' => sfConfig::get('sf_default_culture', 'en'), 'use_flash' => sfConfig::get('sf_use_flash'), 'logging' => sfConfig::get('sf_logging_enabled')), sfConfig::get('sf_factory_user_parameters', %s)));", $class, var_export(is_array($parameters) ? $parameters : array(), true));
+          $instances[] = sprintf("  \$class = sfConfig::get('sf_factory_user', '%s');\n  \$this->factories['user'] = new \$class(\$this->dispatcher, \$this->factories['storage'], array_merge(array('auto_shutdown' => false, 'culture' => \$this->factories['request']->getParameter('sf_culture')), sfConfig::get('sf_factory_user_parameters', %s)));", $class, var_export($parameters, true));
           break;
 
         case 'view_cache':
@@ -154,18 +141,24 @@ class sfFactoryConfigHandler extends sfYamlConfigHandler
           $instances[] = sprintf("\n  if (sfConfig::get('sf_i18n'))\n  {\n".
                      "    \$class = sfConfig::get('sf_factory_i18n', '%s');\n".
                      "%s".
-                     "    \$this->factories['i18n'] = new \$class(\$this->dispatcher, \$cache, %s);\n".
+                     "    \$this->factories['i18n'] = new \$class(\$this->configuration, \$cache, %s);\n".
                      "  }\n"
                      , $class, $cache, var_export($parameters, true)
                      );
           break;
 
         case 'routing':
-          $instances[] = sprintf("  \$class = sfConfig::get('sf_factory_routing', '%s');\n  \$this->factories['routing'] = new \$class(\$this->dispatcher, array_merge(array('auto_shutdown' => false, 'suffix' => sfConfig::get('sf_suffix'), 'default_module' => sfConfig::get('sf_default_module'), 'default_action' => sfConfig::get('sf_default_action'), 'logging' => sfConfig::get('sf_logging_enabled')), sfConfig::get('sf_factory_routing_parameters', %s)));", $class, var_export(is_array($parameters) ? $parameters : array(), true));
-          if (isset($parameters['load_configuration']) && $parameters['load_configuration'])
+          if (isset($parameters['cache']))
           {
-            $instances[] = "  \$this->factories['routing']->loadConfiguration();\n";
+            $cache = sprintf("    \$cache = new %s(%s);\n", $parameters['cache']['class'], var_export($parameters['cache']['param'], true));
+            unset($parameters['cache']);
           }
+          else
+          {
+            $cache = "    \$cache = null;\n";
+          }
+
+          $instances[] = sprintf("  \$class = sfConfig::get('sf_factory_routing', '%s');\n  %s\n\$this->factories['routing'] = new \$class(\$this->dispatcher, \$cache, array_merge(array('auto_shutdown' => false), sfConfig::get('sf_factory_routing_parameters', %s)));", $class, $cache, var_export($parameters, true));
           break;
 
         case 'logger':
@@ -174,7 +167,7 @@ class sfFactoryConfigHandler extends sfYamlConfigHandler
           {
             foreach ($parameters['loggers'] as $name => $keys)
             {
-              if (isset($keys['enabled']) && !$this->replaceConstants($keys['enabled']))
+              if (isset($keys['enabled']) && !$keys['enabled'])
               {
                 continue;
               }
@@ -188,7 +181,7 @@ class sfFactoryConfigHandler extends sfYamlConfigHandler
               $condition = true;
               if (isset($keys['param']['condition']))
               {
-                $condition = $this->replaceConstants($keys['param']['condition']);
+                $condition = $keys['param']['condition'];
                 unset($keys['param']['condition']);
               }
 
@@ -208,7 +201,7 @@ class sfFactoryConfigHandler extends sfYamlConfigHandler
           $instances[] = sprintf(
                          "  \$class = sfConfig::get('sf_factory_logger', '%s');\n  \$this->factories['logger'] = new \$class(\$this->dispatcher, array_merge(array('auto_shutdown' => false), sfConfig::get('sf_factory_logger_parameters', %s)));\n".
                          "  %s"
-                         , $class, var_export(is_array($parameters) ? $parameters : array(), true), $loggers);
+                         , $class, var_export($parameters, true), $loggers);
           break;
       }
     }
@@ -221,5 +214,23 @@ class sfFactoryConfigHandler extends sfYamlConfigHandler
                       implode("\n", $instances));
 
     return $retval;
+  }
+
+  /**
+   * @see sfConfigHandler
+   */
+  static public function getConfiguration(array $configFiles)
+  {
+    $config = self::replaceConstants(self::flattenConfigurationWithEnvironment(self::parseYamls($configFiles)));
+
+    foreach ($config as $factory => $values)
+    {
+      if (isset($values['file']))
+      {
+        $config[$factory]['file'] = $this->replacePath($values['file']);
+      }
+    }
+
+    return $config;
   }
 }

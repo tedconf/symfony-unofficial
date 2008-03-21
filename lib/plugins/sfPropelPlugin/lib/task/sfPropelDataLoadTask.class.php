@@ -8,6 +8,8 @@
  * file that was distributed with this source code.
  */
 
+require_once(dirname(__FILE__).'/sfPropelBaseTask.class.php');
+
 /**
  * Loads data from fixtures directory.
  *
@@ -68,25 +70,22 @@ EOF;
    */
   protected function execute($arguments = array(), $options = array())
   {
-    $this->bootstrapSymfony($arguments['application'], $options['env'], true);
-
-    sfSimpleAutoload::getInstance()->unregister();
-    sfSimpleAutoload::getInstance()->register();
-
     if (count($options['dir']))
     {
       $fixturesDirs = $options['dir'];
     }
     else
     {
-      if (!$pluginDirs = glob(sfConfig::get('sf_root_dir').'/plugins/*/data'))
+      if (!$pluginDirs = glob(sfConfig::get('sf_plugins_dir').'/*/data'))
       {
         $pluginDirs = array();
       }
       $fixturesDirs = sfFinder::type('dir')->name('fixtures')->in(array_merge($pluginDirs, array(sfConfig::get('sf_data_dir'))));
     }
 
-    $databaseManager = new sfDatabaseManager();
+    $configuration = ProjectConfiguration::getApplicationConfiguration($arguments['application'], $options['env'], true);
+
+    $databaseManager = new sfDatabaseManager($configuration);
 
     $data = new sfPropelData();
     $data->setDeleteCurrentData(isset($options['append']) ? ($options['append'] ? false : true) : true);
@@ -98,7 +97,7 @@ EOF;
         continue;
       }
 
-      $this->dispatcher->notify(new sfEvent($this, 'command.log', array($this->formatter->formatSection('propel', sprintf('load data from "%s"', $fixturesDir)))));
+      $this->logSection('propel', sprintf('load data from "%s"', $fixturesDir));
       $data->loadData($fixturesDir, $options['connection']);
     }
   }

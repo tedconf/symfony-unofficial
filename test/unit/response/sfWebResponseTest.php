@@ -10,7 +10,7 @@
 
 require_once(dirname(__FILE__).'/../../bootstrap/unit.php');
 
-$t = new lime_test(66, new lime_output_color());
+$t = new lime_test(72, new lime_output_color());
 
 class myWebResponse extends sfWebResponse
 {
@@ -26,6 +26,13 @@ class myWebResponse extends sfWebResponse
 }
 
 $dispatcher = new sfEventDispatcher();
+
+// ->initialize()
+$t->diag('->initialize()');
+$response = new myWebResponse($dispatcher, array('charset' => 'ISO-8859-1'));
+$t->is($response->getContentType(), 'text/html; charset=ISO-8859-1', '->initialize() takes a "charset" option');
+$response = new myWebResponse($dispatcher, array('content_type' => 'text/plain'));
+$t->is($response->getContentType(), 'text/plain; charset=utf-8', '->initialize() takes a "content_type" option');
 
 $response = new myWebResponse($dispatcher);
 
@@ -97,15 +104,14 @@ foreach (array(
 // ->getContentType() ->setContentType()
 $t->diag('->getContentType() ->setContentType()');
 
-$response->setParameter('charset', 'UTF-8');
-
-$t->is($response->getContentType(), 'text/html; charset=UTF-8', '->getContentType() returns a sensible default value');
+$response = new myWebResponse($dispatcher);
+$t->is($response->getContentType(), 'text/html; charset=utf-8', '->getContentType() returns a sensible default value');
 
 $response->setContentType('text/xml');
-$t->is($response->getContentType(), 'text/xml; charset=UTF-8', '->setContentType() adds a charset if none is given');
+$t->is($response->getContentType(), 'text/xml; charset=utf-8', '->setContentType() adds a charset if none is given');
 
 $response->setContentType('application/vnd.mozilla.xul+xml');
-$t->is($response->getContentType(), 'application/vnd.mozilla.xul+xml; charset=UTF-8', '->setContentType() adds a charset if none is given');
+$t->is($response->getContentType(), 'application/vnd.mozilla.xul+xml; charset=utf-8', '->setContentType() adds a charset if none is given');
 
 $response->setContentType('image/jpg');
 $t->is($response->getContentType(), 'image/jpg', '->setContentType() does not add a charset if the content-type is not text/*');
@@ -164,8 +170,8 @@ $t->is($response->getHttpHeader('Cache-Control'), 'max-age=12', '->addCacheContr
 $response->addCacheControlHttpHeader('no-cache');
 $t->is($response->getHttpHeader('Cache-Control'), 'max-age=12, no-cache', '->addCacheControlHttpHeader() respects ordering');
 
-// ->mergeProperties()
-$t->diag('->mergeProperties()');
+// ->copyProperties()
+$t->diag('->copyProperties()');
 $response1 = new myWebResponse($dispatcher);
 $response2 = new myWebResponse($dispatcher);
 
@@ -173,10 +179,10 @@ $response1->setHttpHeader('symfony', 'foo');
 $response1->setContentType('text/plain');
 $response1->setTitle('My title');
 
-$response2->mergeProperties($response1);
-$t->is($response1->getHttpHeader('symfony'), $response2->getHttpHeader('symfony'), '->mergeProperties() merges http headers');
-$t->is($response1->getContentType(), $response2->getContentType(), '->mergeProperties() merges content type');
-$t->is($response1->getTitle(), $response2->getTitle(), '->mergeProperties() merges titles');
+$response2->copyProperties($response1);
+$t->is($response1->getHttpHeader('symfony'), $response2->getHttpHeader('symfony'), '->copyProperties() merges http headers');
+$t->is($response1->getContentType(), $response2->getContentType(), '->copyProperties() merges content type');
+$t->is($response1->getTitle(), $response2->getTitle(), '->copyProperties() merges titles');
 
 // ->addStylesheet()
 $t->diag('->addStylesheet()');
@@ -193,11 +199,25 @@ $response->addStylesheet('bar', '', array('media' => 'print'));
 $stylesheets = $response->getStylesheets();
 $t->is($stylesheets['bar'], array('media' => 'print'), '->addStylesheet() takes an array of parameters as its third argument');
 
+try
+{
+  $response->addStylesheet('last', 'none');
+  $t->fail('->addStylesheet() throws an InvalidArgumentException if the position is not first, the empty string, or last');
+}
+catch (InvalidArgumentException $e)
+{
+  $t->pass('->addStylesheet() throws an InvalidArgumentException if the position is not first, the empty string, or last');
+}
+
 // ->getStylesheets()
 $t->diag('->getStylesheets()');
 $t->is($response->getStylesheets(), array('test' => array(), 'foo' => array(), 'bar' => array('media' => 'print')), '->getStylesheets() returns all current registered stylesheets');
 $t->is($response->getStylesheets('first'), array('first' => array()), '->getStylesheets() takes a position as its first argument');
 $t->is($response->getStylesheets('last'), array('last' => array()), '->getStylesheets() takes a position as its first argument');
+
+$t->diag('->removeStylesheet()');
+$response->removeStylesheet('foo');
+$t->is($response->getStylesheets(), array('test' => array(), 'bar' => array('media' => 'print')), '->getStylesheets() does no longer contain removed stylesheets');
 
 // ->addJavascript()
 $t->diag('->addJavascript()');
@@ -211,11 +231,25 @@ $t->ok(array_key_exists('first_js', $response->getJavascripts('first')), '->addJ
 $response->addJavascript('last_js', 'last');
 $t->ok(array_key_exists('last_js', $response->getJavascripts('last')), '->addJavascript() takes a position as its second argument');
 
+try
+{
+  $response->addJavascript('last_js', 'none');
+  $t->fail('->addJavascript() throws an InvalidArgumentException if the position is not first, the empty string, or last');
+}
+catch (InvalidArgumentException $e)
+{
+  $t->pass('->addJavascript() throws an InvalidArgumentException if the position is not first, the empty string, or last');
+}
+
 // ->getJavascripts()
 $t->diag('->getJavascripts()');
 $t->is($response->getJavascripts(), array('test' => array(), 'foo' => array('raw_name' => true)), '->getJavascripts() returns all current registered javascripts');
 $t->is($response->getJavascripts('first'), array('first_js' => array()), '->getJavascripts() takes a position as its first argument');
 $t->is($response->getJavascripts('last'), array('last_js' => array()), '->getJavascripts() takes a position as its first argument');
+
+$t->diag('->removeJavascript()');
+$response->removeJavascript('test');
+$t->is($response->getJavascripts(), array('foo' => array('raw_name' => true)), '->getJavascripts() does no longer contain removed javascripts');
 
 // ->setCookie() ->getCookies()
 $t->diag('->setCookie() ->getCookies()');

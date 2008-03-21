@@ -21,7 +21,7 @@ class sfComponentUpgrade extends sfUpgrade
   public function upgrade()
   {
     $phpFinder = $this->getFinder('file')->name('*.php');
-    $dirs = glob(sfConfig::get('sf_root_dir').'/apps/*/modules/*/actions');
+    $dirs = glob(sfConfig::get('sf_apps_dir').'/*/modules/*/actions');
     foreach ($phpFinder->in($dirs) as $file)
     {
       $content = file_get_contents($file);
@@ -32,7 +32,7 @@ class sfComponentUpgrade extends sfUpgrade
       );
       if ($count)
       {
-        $this->dispatcher->notify(new sfEvent($this, 'command.log', array($this->formatter->formatSection('component', sprintf('Migrating %s', $file)))));
+        $this->logSection('component', sprintf('Migrating %s', $file));
         file_put_contents($file, $content);
       }
     }

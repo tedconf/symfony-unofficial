@@ -31,12 +31,8 @@ class sfViewConfigHandler extends sfYamlConfigHandler
    */
   public function execute($configFiles)
   {
-    // set our required categories list and initialize our handler
-    $categories = array('required_categories' => array());
-    $this->initialize($categories);
-
     // parse the yaml
-    $this->mergeConfig($this->parseYamls($configFiles));
+    $this->yamlConfig = self::getConfiguration($configFiles);
 
     // init our data array
     $data = array();
@@ -110,31 +106,6 @@ class sfViewConfigHandler extends sfYamlConfigHandler
   }
 
   /**
-   * Merges assets and environement configuration.
-   *
-   * @param array A configuration array
-   */
-  protected function mergeConfig($myConfig)
-  {
-    // merge javascripts and stylesheets
-    $myConfig['all']['stylesheets'] = array_merge(isset($myConfig['default']['stylesheets']) && is_array($myConfig['default']['stylesheets']) ? $myConfig['default']['stylesheets'] : array(), isset($myConfig['all']['stylesheets']) && is_array($myConfig['all']['stylesheets']) ? $myConfig['all']['stylesheets'] : array());
-    unset($myConfig['default']['stylesheets']);
-
-    $myConfig['all']['javascripts'] = array_merge(isset($myConfig['default']['javascripts']) && is_array($myConfig['default']['javascripts']) ? $myConfig['default']['javascripts'] : array(), isset($myConfig['all']['javascripts']) && is_array($myConfig['all']['javascripts']) ? $myConfig['all']['javascripts'] : array());
-    unset($myConfig['default']['javascripts']);
-
-    // merge default and all
-    $myConfig['all'] = sfToolkit::arrayDeepMerge(
-      isset($myConfig['default']) && is_array($myConfig['default']) ? $myConfig['default'] : array(),
-      isset($myConfig['all']) && is_array($myConfig['all']) ? $myConfig['all'] : array()
-    );
-
-    unset($myConfig['default']);
-
-    $this->yamlConfig = $myConfig;
-  }
-
-  /**
    * Adds a component slot statement to the data.
    *
    * @param string The view name
@@ -190,16 +161,16 @@ class sfViewConfigHandler extends sfYamlConfigHandler
   protected function addLayout($viewName = '')
   {
     $data = '';
-
     if ($this->getConfigValue('has_layout', $viewName) && false !== $layout = $this->getConfigValue('layout', $viewName))
     {
-      $data = "  \$this->setDecoratorTemplate('$layout'.\$this->getExtension());\n";
+      // decorator configuration
+      $data .= "  \$this->setDecoratorTemplate(sfConfig::get('symfony.view.'.\$this->moduleName.'_'.\$this->actionName.'_layout', '$layout'.\$this->getExtension()));\n";
     }
 
     // For XMLHttpRequest, we want no layout by default
     // So, we check if the user requested has_layout: true or if he gave a layout: name for this particular action
     $localLayout = isset($this->yamlConfig[$viewName]['layout']) || isset($this->yamlConfig[$viewName]['has_layout']);
-    if (!$localLayout && $data)
+    if (!$localLayout && isset($data))
     {
       $data = "  if (!\$this->context->getRequest()->isXmlHttpRequest())\n  {\n  $data  }\n";
     }
@@ -225,7 +196,7 @@ class sfViewConfigHandler extends sfYamlConfigHandler
 
     foreach ($this->mergeConfigValue('metas', $viewName) as $name => $content)
     {
-      $data[] = sprintf("  \$response->addMeta('%s', '%s', false, false);", $name, str_replace('\'', '\\\'', preg_replace('/&amp;(?=\w+;)/', '&', htmlentities($content, ENT_QUOTES, sfConfig::get('sf_charset')))));
+      $data[] = sprintf("  \$response->addMeta('%s', '%s', false, false);", $name, str_replace('\'', '\\\'', preg_replace('/&amp;(?=\w+;)/', '&', htmlspecialchars($content, ENT_QUOTES, sfConfig::get('sf_charset')))));
     }
 
     return implode("\n", $data)."\n";
@@ -266,8 +237,6 @@ class sfViewConfigHandler extends sfYamlConfigHandler
         $key = $css;
         $options = array();
       }
-
-      $key = $this->replaceConstants($key);
 
       if ('-*' == $key)
       {
@@ -310,8 +279,6 @@ class sfViewConfigHandler extends sfYamlConfigHandler
         $options = array();
       }
 
-      $key = $this->replaceConstants($key);
-
       if ('-*' == $key)
       {
         $tmp = array();
@@ -350,5 +317,33 @@ class sfViewConfigHandler extends sfYamlConfigHandler
     }
 
     return implode("\n", $data)."\n";
+  }
+
+  /**
+   * @see sfConfigHandler
+   */
+  static public function getConfiguration(array $configFiles)
+  {
+    return self::mergeConfig(self::parseYamls($configFiles));
+  }
+
+  static protected function mergeConfig($config)
+  {
+    // merge javascripts and stylesheets
+    $config['all']['stylesheets'] = array_merge(isset($config['default']['stylesheets']) && is_array($config['default']['stylesheets']) ? $config['default']['stylesheets'] : array(), isset($config['all']['stylesheets']) && is_array($config['all']['stylesheets']) ? $config['all']['stylesheets'] : array());
+    unset($config['default']['stylesheets']);
+
+    $config['all']['javascripts'] = array_merge(isset($config['default']['javascripts']) && is_array($config['default']['javascripts']) ? $config['default']['javascripts'] : array(), isset($config['all']['javascripts']) && is_array($config['all']['javascripts']) ? $config['all']['javascripts'] : array());
+    unset($config['default']['javascripts']);
+
+    // merge default and all
+    $config['all'] = sfToolkit::arrayDeepMerge(
+      isset($config['default']) && is_array($config['default']) ? $config['default'] : array(),
+      isset($config['all']) && is_array($config['all']) ? $config['all'] : array()
+    );
+
+    unset($config['default']);
+
+    return self::replaceConstants($config);
   }
 }

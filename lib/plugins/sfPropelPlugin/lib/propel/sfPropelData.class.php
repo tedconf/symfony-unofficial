@@ -80,11 +80,9 @@ class sfPropelData extends sfData
     {
       $class = trim($class);
 
-      $peer_class = $class.'Peer';
+      $tableMap = $this->dbMap->getTable(constant($class.'Peer::TABLE_NAME'));
 
-      $tableMap = $this->dbMap->getTable(constant($peer_class.'::TABLE_NAME'));
-
-      $column_names = call_user_func_array(array($peer_class, 'getFieldNames'), array(BasePeer::TYPE_FIELDNAME));
+      $column_names = call_user_func_array(array($class.'Peer', 'getFieldNames'), array(BasePeer::TYPE_FIELDNAME));
 
       // iterate through datas for this class
       // might have been empty just for force a table to be emptied on import
@@ -247,16 +245,7 @@ class sfPropelData extends sfData
           continue;
         }
 
-        $peer_class = $class.'Peer';
-
-        if (!$classPath = sfAutoload::getInstance()->getClassPath($peer_class))
-        {
-          throw new sfException(sprintf('Unable to find path for class "%s".', $peer_class));
-        }
-
-        require_once($classPath);
-
-        call_user_func(array($peer_class, 'doDeleteAll'), $this->con);
+        call_user_func(array($class.'Peer', 'doDeleteAll'), $this->con);
 
         $this->deletedClasses[] = $class;
       }
@@ -270,7 +259,7 @@ class sfPropelData extends sfData
    */
   protected function loadMapBuilders()
   {
-    $files = sfFinder::type('file')->name('*MapBuilder.php')->in(sfLoader::getModelDirs());
+    $files = sfFinder::type('file')->name('*MapBuilder.php')->in(sfProjectConfiguration::getActive()->getModelDirs());
     foreach ($files as $file)
     {
       $mapBuilderClass = basename($file, '.php');
@@ -282,24 +271,45 @@ class sfPropelData extends sfData
   /**
    * Dumps data to fixture from one or more tables.
    *
-   * @param string directory or file to dump to
-   * @param mixed  name or names of tables to dump (or all to dump all tables)
-   * @param string connection name
+   * @param string The directory or file to dump to
+   * @param mixed  The name or names of tables to dump (or all to dump all tables)
+   * @param string The connection name (default to propel)
    */
-  public function dumpData($directory_or_file = null, $tables = 'all', $connectionName = 'propel')
+  public function dumpData($directory_or_file, $tables = 'all', $connectionName = 'propel')
   {
-    $sameFile = true;
-    if (is_dir($directory_or_file))
+    $dumpData = $this->getData($tables, $connectionName);
+
+    // save to file(s)
+    if (!is_dir($directory_or_file))
     {
-      // multi files
-      $sameFile = false;
+      file_put_contents($directory_or_file, sfYaml::dump($dumpData, 3));
     }
     else
     {
-      // same file
-      // delete file
-    }
+      $i = 0;
+      foreach ($tables as $tableName)
+      {
+        if (!isset($dumpData[$tableName]))
+        {
+          continue;
+        }
 
+        file_put_contents(sprintf("%s/%03d-%s.yml", $directory_or_file, ++$i, $tableName), sfYaml::dump(array($tableName => $dumpData[$tableName]), 3));
+      }
+    }
+  }
+
+  /**
+   * Returns data from one or more tables.
+   *
+   * @param  string directory or file to dump to
+   * @param  mixed  name or names of tables to dump (or all to dump all tables)
+   * @param  string connection name
+   *
+   * @return array  An array of database data
+   */
+  public function getData($tables = 'all', $connectionName = 'propel')
+  {
     $this->loadMapBuilders();
     $this->con = Propel::getConnection($connectionName);
     $this->dbMap = Propel::getDatabaseMap($connectionName);
@@ -425,24 +435,7 @@ class sfPropelData extends sfData
       }
     }
 
-    // save to file(s)
-    if ($sameFile)
-    {
-      file_put_contents($directory_or_file, Spyc::YAMLDump($dumpData));
-    }
-    else
-    {
-      $i = 0;
-      foreach ($tables as $tableName)
-      {
-        if (!isset($dumpData[$tableName]))
-        {
-          continue;
-        }
-
-        file_put_contents(sprintf("%s/%03d-%s.yml", $directory_or_file, ++$i, $tableName), Spyc::YAMLDump(array($tableName => $dumpData[$tableName])));
-      }
-    }
+    return $dumpData;
   }
 
   /**

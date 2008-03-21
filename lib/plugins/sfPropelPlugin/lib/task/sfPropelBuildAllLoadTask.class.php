@@ -8,6 +8,8 @@
  * file that was distributed with this source code.
  */
 
+require_once(dirname(__FILE__).'/sfPropelBaseTask.class.php');
+
 /**
  * Generates Propel model, SQL, initializes database, and load data.
  *
@@ -25,6 +27,11 @@ class sfPropelBuildAllLoadTask extends sfPropelBaseTask
   {
     $this->addArguments(array(
       new sfCommandArgument('application', sfCommandArgument::REQUIRED, 'The application name'),
+    ));
+
+    $this->addOptions(array(
+      new sfCommandOption('env', null, sfCommandOption::PARAMETER_REQUIRED, 'The environment', 'dev'),
+      new sfCommandOption('connection', null, sfCommandOption::PARAMETER_REQUIRED, 'The connection name', 'propel'),
     ));
 
     $this->aliases = array('propel-build-all-load');
@@ -52,10 +59,18 @@ EOF;
    */
   protected function execute($arguments = array(), $options = array())
   {
+    // load Propel configuration before Phing
+    $configuration = ProjectConfiguration::getApplicationConfiguration($arguments['application'], $options['env'], true);
+    $databaseManager = new sfDatabaseManager($configuration);
+    require_once sfConfig::get('sf_symfony_lib_dir').'/plugins/sfPropelPlugin/lib/propel/sfPropelAutoload.php';
+
     $buildAll = new sfPropelBuildAllTask($this->dispatcher, $this->formatter);
+    $buildAll->setCommandApplication($this->commandApplication);
     $buildAll->run();
 
     $loadData = new sfPropelLoadDataTask($this->dispatcher, $this->formatter);
-    $loadData->run(array('application' => $arguments['application']));
+    $loadData->setCommandApplication($this->commandApplication);
+
+    $loadData->run(array('application' => $arguments['application']), array('--env='.$options['env'], '--connection='.$options['connection']));
   }
 }

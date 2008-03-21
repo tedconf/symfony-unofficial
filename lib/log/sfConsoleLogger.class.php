@@ -16,16 +16,15 @@
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  * @version    SVN: $Id$
  */
-class sfConsoleLogger extends sfLogger
+class sfConsoleLogger extends sfStreamLogger
 {
   /**
-   * Logs a message.
-   *
-   * @param string Message
-   * @param string Message priority
+   * @see sfStreamLogger
    */
-  protected function doLog($message, $priority)
+  public function initialize(sfEventDispatcher $dispatcher, $options = array())
   {
-    echo $message.PHP_EOL;
+    $options['stream'] = STDOUT;
+
+    return parent::initialize($dispatcher, $options);
   }
 }

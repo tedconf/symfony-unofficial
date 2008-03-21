@@ -20,15 +20,20 @@ if (!isset($root_dir))
 {
   $root_dir = realpath(dirname(__FILE__).sprintf('/../%s/fixtures/project', isset($type) ? $type : 'functional'));
 }
-define('SF_ROOT_DIR',    $root_dir);
-define('SF_APP',         $app);
-define('SF_ENVIRONMENT', 'test');
-define('SF_DEBUG',       isset($debug) ? $debug : true);
 
-// initialize symfony
-require_once(SF_ROOT_DIR.DIRECTORY_SEPARATOR.'apps'.DIRECTORY_SEPARATOR.SF_APP.DIRECTORY_SEPARATOR.'config'.DIRECTORY_SEPARATOR.'config.php');
+require_once $root_dir.'/config/ProjectConfiguration.class.php';
+$configuration = ProjectConfiguration::getApplicationConfiguration($app, 'test', isset($debug) ? $debug : true);
+sfContext::createInstance($configuration);
 
 // remove all cache
-sfToolkit::clearDirectory(sfConfig::get('sf_app_cache_dir'));
+sf_functional_test_shutdown();
+
+register_shutdown_function('sf_functional_test_shutdown');
+
+function sf_functional_test_shutdown()
+{
+  sfToolkit::clearDirectory(sfConfig::get('sf_cache_dir'));
+  sfToolkit::clearDirectory(sfConfig::get('sf_log_dir'));
+}
 
 return true;

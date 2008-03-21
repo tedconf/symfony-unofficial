@@ -29,6 +29,7 @@ class sfProjectDeployTask extends sfBaseTask
 
     $this->addOptions(array(
       new sfCommandOption('go', null, sfCommandOption::PARAMETER_NONE, 'Do the deployment'),
+      new sfCommandOption('rsync-dir', null, sfCommandOption::PARAMETER_REQUIRED, 'The directory where to look for rsync*.txt files', 'config'),
     ));
 
     $this->aliases = array('sync');
@@ -39,11 +40,11 @@ class sfProjectDeployTask extends sfBaseTask
     $this->detailedDescription = <<<EOF
 The [project:deploy|INFO] task deploys a project on a server:
 
-  [./symfony deploy production|INFO]
+  [./symfony project:deploy production|INFO]
 
 The server must be configured in [config/properties.ini|COMMENT]:
 
-  [[production]
+  [production]
     host=www.example.com
     port=22
     user=fabien
@@ -57,7 +58,7 @@ in [config/properties.ini|COMMENT].
 By default, the task is in dry-mode. To do a real deployment, you
 must pass the [--go|COMMENT] option:
 
-  [./symfony deploy --go production|INFO]
+  [./symfony project:deploy --go production|INFO]
 
 Files and directories configured in [config/rsync_exclude.txt|COMMENT] are
 not deployed:
@@ -68,6 +69,11 @@ not deployed:
   /log/*|INFO]
 
 You can also create a [rsync.txt|COMMENT] and [rsync_include.txt|COMMENT] files.
+
+If you need to customize the [rsync*.txt|COMMENT] files based on the server,
+you can pass a [rsync-dir|COMMENT] option:
+
+  [./symfony project:deploy --go --rsync-dir=config/production production|INFO]
 EOF;
   }
 
@@ -127,24 +133,24 @@ EOF;
     else
     {
       $parameters = '-azC --force --delete';
-      if (file_exists('config/rsync_exclude.txt'))
+      if (file_exists($options['rsync-dir'].'/rsync_exclude.txt'))
       {
-        $parameters .= ' --exclude-from=config/rsync_exclude.txt';
+        $parameters .= sprintf(' --exclude-from=%s/rsync_exclude.txt', $options['rsync-dir']);
       }
 
-      if (file_exists('config/rsync_include.txt'))
+      if (file_exists($options['rsync-dir'].'/rsync_include.txt'))
       {
-        $parameters .= ' --include-from=config/rsync_include.txt';
+        $parameters .= sprintf(' --include-from=%s/rsync_include.txt', $options['rsync-dir']);
       }
 
-      if (file_exists('config/rsync.txt'))
+      if (file_exists($options['rsync-dir'].'/rsync.txt'))
       {
-        $parameters .= ' --files-from=config/rsync.txt';
+        $parameters .= sprintf(' --files-from=%s/rsync.txt', $options['rsync-dir']);
       }
     }
 
     $dryRun = $options['go'] ? '' : '--dry-run';
 
-    $this->dispatcher->notify(new sfEvent($this, 'command.log', array($this->filesystem->sh("rsync --progress $dryRun $parameters -e $ssh ./ $user$host:$dir"))));
+    $this->log($this->getFilesystem()->sh("rsync --progress $dryRun $parameters -e $ssh ./ $user$host:$dir"));
   }
 }

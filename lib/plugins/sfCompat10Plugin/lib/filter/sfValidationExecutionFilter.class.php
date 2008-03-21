@@ -3,7 +3,7 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- * (c) 2004-2006 Sean Kerr.
+ * (c) 2004-2006 Sean Kerr <sean@code-box.org>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -16,7 +16,7 @@
  * @package    symfony
  * @subpackage filter
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
- * @author     Sean Kerr <skerr@mojavi.org>
+ * @author     Sean Kerr <sean@code-box.org>
  * @version    SVN: $Id$
  */
 class sfValidationExecutionFilter extends sfFilter
@@ -108,11 +108,11 @@ class sfValidationExecutionFilter extends sfFilter
     $validated = true;
 
     // get the current action validation configuration
-    $validationConfig = $moduleName.'/'.sfConfig::get('sf_app_module_validate_dir_name').'/'.$actionName.'.yml';
+    $validationConfig = $moduleName.'/validate/'.$actionName.'.yml';
 
     // load validation configuration
     // do NOT use require_once
-    if (null !== $validateFile = sfConfigCache::getInstance()->checkConfig(sfConfig::get('sf_app_module_dir_name').'/'.$validationConfig, true))
+    if (null !== $validateFile = $this->context->getConfigCache()->checkConfig('modules/'.$validationConfig, true))
     {
       // create validator manager
       $validatorManager = new sfValidatorManager($this->context);

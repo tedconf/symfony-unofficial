@@ -48,12 +48,26 @@ abstract class sfCommandApplication
     $this->fixCgi();
 
     $this->configure();
+
+    $this->registerTasks();
   }
 
   /**
    * Configures the current command application.
    */
   abstract public function configure();
+
+  /**
+   * Returns the value of a given option.
+   *
+   * @param  string The option name
+   *
+   * @return mixed  The option value
+   */
+  public function getOption($name)
+  {
+    return isset($this->options[$name]) ? $this->options[$name] : null;
+  }
 
   /**
    * Returns the formatter instance.
@@ -68,10 +82,25 @@ abstract class sfCommandApplication
   /**
    * Registers an array of task objects.
    *
+   * If you pass null, this method will register all available tasks.
+   *
    * @param array An array of tasks
    */
-  public function registerTasks($tasks)
+  public function registerTasks($tasks = null)
   {
+    if (is_null($tasks))
+    {
+      $tasks = array();
+      foreach (get_declared_classes() as $class)
+      {
+        $r = new Reflectionclass($class);
+        if ($r->isSubclassOf('sfTask') && !$r->isAbstract())
+        {
+          $tasks[] = new $class($this->dispatcher, $this->formatter);
+        }
+      }
+    }
+
     foreach ($tasks as $task)
     {
       $this->registerTask($task);
@@ -190,6 +219,16 @@ abstract class sfCommandApplication
   }
 
   /**
+   * Returns the long version of the application.
+   *
+   * @param string The long version
+   */
+  public function getLongVersion()
+  {
+    return sprintf('%s version %s', $this->getName(), $this->formatter->format($this->getVersion(), 'INFO'))."\n";
+  }
+
+  /**
    * Returns whether the application must be verbose.
    *
    * @return Boolean true if the application must be verbose, false otherwise
@@ -282,7 +321,7 @@ abstract class sfCommandApplication
           $this->verbose = true;
           break;
         case 'version':
-          echo sprintf('%s version %s', $this->getName(), $this->formatter->format($this->getVersion(), 'INFO'))."\n";
+          echo $this->getLongVersion();
           exit(0);
       }
     }
@@ -461,11 +500,6 @@ abstract class sfCommandApplication
    */
   protected function fixCgi()
   {
-    if (false === strpos(PHP_SAPI, 'cgi'))
-    {
-      return;
-    }
-
     // handle output buffering
     @ob_end_flush();
     ob_implicit_flush(true);
@@ -475,6 +509,11 @@ abstract class sfCommandApplication
     ini_set('track_errors', true);
     ini_set('html_errors', false);
     ini_set('magic_quotes_runtime', false);
+
+    if (false === strpos(PHP_SAPI, 'cgi'))
+    {
+      return;
+    }
 
     // define stream constants
     define('STDIN',  fopen('php://stdin',  'r'));

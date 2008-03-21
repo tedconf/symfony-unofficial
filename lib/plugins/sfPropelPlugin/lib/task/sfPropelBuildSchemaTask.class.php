@@ -8,6 +8,8 @@
  * file that was distributed with this source code.
  */
 
+require_once(dirname(__FILE__).'/sfPropelBaseTask.class.php');
+
 /**
  * Creates a schema.xml from an existing database.
  *
@@ -52,18 +54,33 @@ EOF;
   {
     $this->callPhing('creole', self::DO_NOT_CHECK_SCHEMA);
 
+    $xmlSchemaPath = sfConfig::get('sf_config_dir').'/schema.xml';
+    $ymlSchemaPath = sfConfig::get('sf_config_dir').'/schema.yml';
+
     // Fix database name
-    if (file_exists(sfConfig::get('sf_config_dir').'/schema.xml'))
+    if (file_exists($xmlSchemaPath))
     {
-      $schema = file_get_contents(sfConfig::get('sf_config_dir').'/schema.xml');
-      $schema = preg_replace('/<database\s+name="[^"]+"/s', '<database name="propel"', $schema);
-      file_put_contents(sfConfig::get('sf_config_dir').'/schema.xml', $schema);
+      $schema = file_get_contents($xmlSchemaPath);
+      $schema = preg_replace('/<database\s+name="[^"]+"/s', '<database name="propel" package="lib.model"', $schema);
+      file_put_contents($xmlSchemaPath, $schema);
     }
 
-    if (!isset($options['xml']))
+    if (!$options['xml'])
     {
       $this->schemaToYML(self::DO_NOT_CHECK_SCHEMA, '');
       $this->cleanup();
+
+      if (file_exists($xmlSchemaPath))
+      {
+        unlink($xmlSchemaPath);
+      }
+    }
+    else
+    {
+      if (file_exists($ymlSchemaPath))
+      {
+        unlink($ymlSchemaPath);
+      }
     }
   }
 }

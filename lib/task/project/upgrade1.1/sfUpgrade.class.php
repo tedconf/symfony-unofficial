@@ -16,7 +16,7 @@
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  * @version    SVN: $Id$
  */
-abstract class sfUpgrade extends sfTask
+abstract class sfUpgrade extends sfBaseTask
 {
   protected
     $task = null;
@@ -40,7 +40,7 @@ abstract class sfUpgrade extends sfTask
    */
   protected function getFinder($type)
   {
-    return sfFinder::type($type)->prune('upgrade1.1');
+    return sfFinder::type($type)->prune('symfony')->discard('symfony');
   }
 
   /**
@@ -60,8 +60,8 @@ abstract class sfUpgrade extends sfTask
   protected function getProjectTemplateDirectories()
   {
     return array_merge(
-      glob(sfConfig::get('sf_root_dir').'/apps/*/modules/*/templates'),
-      glob(sfConfig::get('sf_root_dir').'/apps/*/templates')
+      glob(sfConfig::get('sf_apps_dir').'/*/modules/*/templates'),
+      glob(sfConfig::get('sf_apps_dir').'/*/templates')
     );
   }
 
@@ -70,7 +70,7 @@ abstract class sfUpgrade extends sfTask
    */
   protected function getProjectActionDirectories()
   {
-    return glob(sfConfig::get('sf_root_dir').'/apps/*/modules/*/actions');
+    return glob(sfConfig::get('sf_apps_dir').'/*/modules/*/actions');
   }
 
   /**
@@ -79,11 +79,11 @@ abstract class sfUpgrade extends sfTask
   protected function getProjectLibDirectories()
   {
     return array_merge(
-      glob(sfConfig::get('sf_root_dir').'/apps/*/modules/*/lib'),
-      glob(sfConfig::get('sf_root_dir').'/apps/*/lib'),
+      glob(sfConfig::get('sf_apps_dir').'/*/modules/*/lib'),
+      glob(sfConfig::get('sf_apps_dir').'/*/lib'),
       array(
-        sfConfig::get('sf_root_dir').'/apps/lib',
-        sfConfig::get('sf_root_dir').'/lib',
+        sfConfig::get('sf_apps_dir').'/lib',
+        sfConfig::get('sf_lib_dir'),
       )
     );
   }
@@ -94,22 +94,19 @@ abstract class sfUpgrade extends sfTask
   protected function getProjectConfigDirectories()
   {
     return array_merge(
-      glob(sfConfig::get('sf_root_dir').'/apps/*/modules/*/config'),
-      glob(sfConfig::get('sf_root_dir').'/apps/*/config'),
-      glob(sfConfig::get('sf_root_dir').'/config')
+      glob(sfConfig::get('sf_apps_dir').'/*/modules/*/config'),
+      glob(sfConfig::get('sf_apps_dir').'/*/config'),
+      glob(sfConfig::get('sf_config_dir'))
     );
   }
 
   /**
-   * Forward all non existing methods to the task.
+   * Returns all application names.
    *
-   * @param  string The method name
-   * @param  array  An array of arguments
-   *
-   * @return mixed  The return value of the task method call
+   * @return array An array of application names
    */
-  public function __call($method, $arguments)
+  protected function getApplications()
   {
-    return call_user_func_array(array($this->task, $method), $arguments);
+    return sfFinder::type('dir')->maxdepth(0)->ignore_version_control()->relative()->in(sfConfig::get('sf_apps_dir'));
   }
 }

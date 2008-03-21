@@ -32,7 +32,7 @@ class sfRootConfigHandler extends sfYamlConfigHandler
   public function execute($configFiles)
   {
     // parse the yaml
-    $config = $this->parseYamls($configFiles);
+    $config = self::getConfiguration($configFiles);
 
     // determine if we're loading the system config_handlers.yml or a module config_handlers.yml
     $moduleLevel = ($this->getParameterHolder()->get('module_level') === true) ? true : false;
@@ -67,28 +67,21 @@ class sfRootConfigHandler extends sfYamlConfigHandler
 
       if (isset($keys['file']))
       {
-        // we have a file to include
-        $file = $this->replaceConstants($keys['file']);
-        $file = $this->replacePath($file);
-
-        if (!is_readable($file))
+        if (!is_readable($keys['file']))
         {
           // handler file doesn't exist
-          throw new sfParseException(sprintf('Configuration file "%s" specifies class "%s" with nonexistent or unreadable file "%s".', $configFiles[0], $class, $file));
+          throw new sfParseException(sprintf('Configuration file "%s" specifies class "%s" with nonexistent or unreadable file "%s".', $configFiles[0], $class, $keys['file']));
         }
 
         // append our data
-        $includes[] = sprintf("require_once('%s');", $file);
+        $includes[] = sprintf("require_once('%s');", $keys['file']);
       }
 
       // parse parameters
       $parameters = (isset($keys['param']) ? var_export($keys['param'], true) : null);
 
       // append new data
-      $data[] = sprintf("\$this->handlers['%s'] = new %s();", $category, $class);
-
-      // initialize the handler with parameters
-      $data[] = sprintf("\$this->handlers['%s']->initialize(%s);", $category, $parameters);
+      $data[] = sprintf("\$this->handlers['%s'] = new %s(%s);", $category, $class, $parameters);
     }
 
     // compile data
@@ -98,5 +91,23 @@ class sfRootConfigHandler extends sfYamlConfigHandler
                       date('Y/m/d H:i:s'), implode("\n", $includes), implode("\n", $data));
 
     return $retval;
+  }
+
+  /**
+   * @see sfConfigHandler
+   */
+  static public function getConfiguration(array $configFiles)
+  {
+    $config = self::replaceConstants(self::parseYamls($configFiles));
+
+    foreach ($config as $category => $keys)
+    {
+      if (isset($keys['file']))
+      {
+        $config[$category]['file'] = self::replacePath($keys['file']);
+      }
+    }
+
+    return $config;
   }
 }

@@ -58,13 +58,9 @@ class sfViewCacheManager
 
     // cache instance
     $this->cache = $cache;
-
-    // register a named route for our partial cache (at the end)
+    
+    // routing instance
     $this->routing = $context->getRouting();
-    if (!$this->routing->hasRouteName('sf_cache_partial'))
-    {
-      $this->routing->connect('sf_cache_partial', '/sf_cache_partial/:module/:action/:sf_cache_key.', array(), array());
-    }
   }
 
   /**
@@ -89,12 +85,28 @@ class sfViewCacheManager
 
   /**
    * Generates a unique cache key for an internal URI.
+   * This cache key can be used by any of the cache engines as a unique identifier to a cached resource
    *
-   * @param  string The internal unified resource identifier.
+   * Basically, the cache key generated for the following internal URI:
+   *   module/action?key1=value1&key2=value2
+   * Looks like:
+   *   /localhost/all/module/action/key1/value1/key2/value2
+   *
+   * @param  string The internal unified resource identifier
+   *                Accepts rules formatted like 'module/action?key1=value1&key2=value2'
+   *                Does not accept rules starting with a route name, except for '@sf_cache_partial'
+   * @param  string The host name
+   *                Optional - defaults to the current host name bu default
+   * @param  string The vary headers, separated by |, or "all" for all vary headers
+   *                Defaults to 'all'
+   * @param  string The contextual prefix for contextual partials.
+   *                Defaults to 'currentModule/currentAction/currentPAram1/currentvalue1'
+   *                Used only by the sfViewCacheManager::remove() method
    *
    * @return string The cache key
+   *                If some of the parameters contained wildcards (* or **), the generated key will also have wildcards
    */
-  public function generateCacheKey($internalUri)
+  public function generateCacheKey($internalUri, $hostName = '', $vary = '', $contextualPrefix = '')
   {
     if ($callable = sfConfig::get('sf_cache_namespace_callable'))
     {
@@ -103,58 +115,109 @@ class sfViewCacheManager
         throw new sfException(sprintf('"%s" cannot be called as a function.', var_export($callable, true)));
       }
 
-      return call_user_func($callable, $internalUri);
+      return call_user_func($callable, $internalUri, $hostName, $vary);
     }
-
-    // generate uri
-    // we want our URL with / only
-    $oldUrlFormat = sfConfig::get('sf_url_format');
-    sfConfig::set('sf_url_format', 'PATH');
+    
+    if (strpos($internalUri, '@') === 0 && strpos($internalUri, '@sf_cache_partial') === false)
+    {
+      throw new sfException('A cache key cannot be generated for an internal URI using the @rule syntax');
+    }
+    
+    $cacheKey = '';
+    
     if ($this->isContextual($internalUri))
     {
-      list($route_name, $params) = $this->controller->convertUrlStringToParameters($internalUri);
-      $uri = $this->controller->genUrl($this->routing->getCurrentInternalUri()).sprintf('/%s/%s/%s', $params['module'], $params['action'], $params['sf_cache_key']);
-    }
-    else
-    {
-      $uri = $this->controller->genUrl($internalUri);
-    }
-    sfConfig::set('sf_url_format', $oldUrlFormat);
-
-    // prefix with vary headers
-    $varyHeaders = $this->getVary($internalUri);
-    if ($varyHeaders)
-    {
-      sort($varyHeaders);
-      $request = $this->context->getRequest();
-      $vary = '';
-
-      foreach ($varyHeaders as $header)
+      // Contextual partial
+      if(!$contextualPrefix)
       {
-        $vary .= $request->getHttpHeader($header).'|';
+        list($route_name, $params) = $this->controller->convertUrlStringToParameters($this->routing->getCurrentInternalUri());
+        $cacheKey = $this->convertParametersToKey($params);
       }
-
-      $vary = $vary;
+      else
+      {
+        $cacheKey = $contextualPrefix;
+      }
+      list($route_name, $params) = $this->controller->convertUrlStringToParameters($internalUri);
+      $cacheKey .= sprintf('/%s/%s/%s', $params['module'], $params['action'], $params['sf_cache_key']);
     }
     else
     {
-      $vary = 'all';
+      // Regular action or non-contextual partial
+      list($route_name, $params) = $this->controller->convertUrlStringToParameters($internalUri);
+      if ($route_name == 'sf_cache_partial')
+      {
+        $cacheKey = 'sf_cache_partial/';
+      }
+      $cacheKey .= $this->convertParametersToKey($params);
+    }
+    
+    // prefix with vary headers
+    if (!$vary)
+    {
+      $varyHeaders = $this->getVary($internalUri);
+      if ($varyHeaders)
+      {
+        sort($varyHeaders);
+        $request = $this->context->getRequest();
+        $vary = '';
+
+        foreach ($varyHeaders as $header)
+        {
+          $vary .= $request->getHttpHeader($header).'|';
+        }
+
+        $vary = $vary;
+      }
+      else
+      {
+        $vary = 'all';
+      }
     }
 
     // prefix with hostname
-    $request = $this->context->getRequest();
-    $hostName = $request->getHost();
-    $hostName = preg_replace('/[^a-z0-9]/i', '_', $hostName);
-    $hostName = strtolower(preg_replace('/_+/', '_', $hostName));
+    if (!$hostName)
+    {
+      $request = $this->context->getRequest();
+      $hostName = $request->getHost();
+      $hostName = preg_replace('/[^a-z0-9]/i', '_', $hostName);
+      $hostName = strtolower(preg_replace('/_+/', '_', $hostName));
+    }
 
-    $uri = '/'.$hostName.'/'.$vary.'/'.$uri;
+    $cacheKey = sprintf('/%s/%s/%s', $hostName, $vary, $cacheKey);
 
     // replace multiple /
-    $uri = preg_replace('#/+#', '/', $uri);
+    $cacheKey = preg_replace('#/+#', '/', $cacheKey);
 
-    return $uri;
+    return $cacheKey;
   }
-
+  
+  /**
+   * Transforms an associative array of parameters from an URI into a unique key
+   *
+   * @param Array   Associative array of parameters from the URI (including, at least, module and action)
+   *
+   * @return String Unique key
+   */
+  protected function convertParametersToKey($params)
+  {
+    if(!isset($params['module']) || !isset($params['action']))
+    {
+      throw new sfException('A cache key must contain both a module and an action parameter');
+    }
+    $module = $params['module'];
+    unset($params['module']);
+    $action = $params['action'];
+    unset($params['action']);
+    ksort($params);
+    $cacheKey = sprintf('%s/%s', $module, $action);
+    foreach ($params as $key => $value) 
+    {
+      $cacheKey .= sprintf('/%s/%s', $key, $value);
+    }
+    
+    return $cacheKey;
+  }
+  
   /**
    * Adds a cache to the manager.
    *
@@ -178,7 +241,7 @@ class sfViewCacheManager
     $this->cacheConfig[$moduleName][$actionName] = array(
       'withLayout'     => isset($options['withLayout']) ? $options['withLayout'] : false,
       'lifeTime'       => $options['lifeTime'],
-      'clientLifeTime' => isset($options['clientLifeTime']) && $options['clientLifeTime'] ? $options['clientLifeTime'] : $options['lifeTime'],
+      'clientLifeTime' => isset($options['clientLifeTime']) ? $options['clientLifeTime'] : $options['lifeTime'],
       'contextual'     => isset($options['contextual']) ? $options['contextual'] : false,
       'vary'           => isset($options['vary']) ? $options['vary'] : array(),
     );
@@ -193,7 +256,7 @@ class sfViewCacheManager
   {
     if (!isset($this->loaded[$moduleName]))
     {
-      require(sfConfigCache::getInstance()->checkConfig(sfConfig::get('sf_app_module_dir_name').'/'.$moduleName.'/'.sfConfig::get('sf_app_module_config_dir_name').'/cache.yml'));
+      require($this->context->getConfigCache()->checkConfig('modules/'.$moduleName.'/config/cache.yml'));
       $this->loaded[$moduleName] = true;
     }
   }
@@ -406,20 +469,28 @@ class sfViewCacheManager
    * Removes the content in the cache.
    *
    * @param string Internal uniform resource identifier
+   * @param string The host name
+   * @param string The vary headers, separated by |, or "all" for all vary headers
+   * @param string The removal prefix for contextual partials. Deauls to '**' (all actions, all params)
    *
-   * @return boolean true, if the remove happend otherwise false
+   * @return boolean true, if the remove happened, false otherwise
    */
-  public function remove($internalUri)
+  public function remove($internalUri, $hostName = '', $vary = '', $contextualPrefix = '**')
   {
     if (sfConfig::get('sf_logging_enabled'))
     {
       $this->dispatcher->notify(new sfEvent($this, 'application.log', array(sprintf('Remove cache for "%s"', $internalUri))));
     }
-
-    $key = $this->generateCacheKey($internalUri);
-    if ($this->cache->has($key))
+    
+    $cacheKey = $this->generateCacheKey($internalUri, $hostName, $vary, $contextualPrefix);
+    
+    if(strpos($cacheKey, '*'))
     {
-      $this->cache->remove($key);
+      return $this->cache->removePattern($cacheKey);
+    }
+    elseif ($this->cache->has($cacheKey))
+    {
+      return $this->cache->remove($cacheKey);
     }
   }
 
@@ -520,6 +591,110 @@ class sfViewCacheManager
   }
 
   /**
+   * Computes the cache key based on the passed parameters.
+   *
+   * @param array An array of parameters
+   */
+  public function computeCacheKey(array $parameters)
+  {
+    return isset($parameters['sf_cache_key']) ? $parameters['sf_cache_key'] : md5(serialize($parameters));
+  }
+
+  /**
+   * Computes a partial internal URI.
+   *
+   * @param  string The module name
+   * @param  string The action name
+   * @param  string The cache key
+   *
+   * @return string The internal URI
+   */
+  public function getPartialUri($module, $action, $cacheKey)
+  {
+    return sprintf('@sf_cache_partial?module=%s&action=%s&sf_cache_key=%s', $module, $action, $cacheKey);
+  }
+
+  /**
+   * Returns whether a partial template is in the cache.
+   *
+   * @param  string The module name
+   * @param  string The action name
+   * @param  string The cache key
+   *
+   * @return Boolean true if a partial is in the cache, false otherwise
+   */
+  public function hasPartialCache($module, $action, $cacheKey)
+  {
+    return $this->has($this->getPartialUri($module, $action, $cacheKey));
+  }
+
+  /**
+   * Gets a partial template from the cache.
+   *
+   * @param  string The module name
+   * @param  string The action name
+   * @param  string The cache key
+   *
+   * @return string The cache content
+   */
+  public function getPartialCache($module, $action, $cacheKey)
+  {
+    $uri = $this->getPartialUri($module, $action, $cacheKey);
+
+    if (!$this->isCacheable($uri))
+    {
+      return null;
+    }
+
+    // retrieve content from cache
+    $cache = $this->get($uri);
+
+    if (is_null($cache))
+    {
+      return null;
+    }
+
+    $cache = unserialize($cache);
+    $content = $cache['content'];
+    $this->context->getResponse()->merge($cache['response']);
+
+    if (sfConfig::get('sf_web_debug'))
+    {
+      $content = sfWebDebug::decorateContentWithDebug($uri, $content, true);
+    }
+
+    return $content;
+  }
+
+  /**
+   * Sets an action template in the cache.
+   *
+   * @param  string The module name
+   * @param  string The action name
+   * @param  string The cache key
+   * @param  string The content to cache
+   *
+   * @return string The cached content
+   */
+  public function setPartialCache($module, $action, $cacheKey, $content)
+  {
+    $uri = $this->getPartialUri($module, $action, $cacheKey);
+    if (!$this->isCacheable($uri))
+    {
+      return $content;
+    }
+
+    $saved = $this->set(serialize(array('content' => $content, 'response' => $this->context->getResponse())), $uri);
+
+    if ($saved && sfConfig::get('sf_web_debug'))
+    {
+      $content = sfWebDebug::decorateContentWithDebug($uri, $content, true);
+    }
+
+    return $content;
+  }
+
+  /**
    * Returns whether an action template is in the cache.
    *
    * @param  string  The internal URI
@@ -555,7 +730,8 @@ class sfViewCacheManager
 
     $cache = unserialize($cache);
     $content = $cache['content'];
-    $this->context->getResponse()->mergeProperties($cache['response']);
+    $cache['response']->setEventDispatcher($this->dispatcher);
+    $this->context->getResponse()->copyProperties($cache['response']);
 
     if (sfConfig::get('sf_web_debug'))
     {
@@ -630,6 +806,7 @@ class sfViewCacheManager
     }
 
     $cachedResponse = unserialize($retval);
+    $cachedResponse->setEventDispatcher($this->dispatcher);
 
     if (sfView::RENDER_VAR == $this->controller->getRenderMode())
     {

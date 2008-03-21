@@ -3,7 +3,7 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- * (c) 2004-2006 Sean Kerr.
+ * (c) 2004-2006 Sean Kerr <sean@code-box.org>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -17,7 +17,7 @@
  * @package    symfony
  * @subpackage request
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
- * @author     Sean Kerr <skerr@mojavi.org>
+ * @author     Sean Kerr <sean@code-box.org>
  * @version    SVN: $Id$
  */
 class sfWebRequest extends sfRequest
@@ -907,25 +907,7 @@ class sfWebRequest extends sfRequest
    */
   protected function parseRequestParameters()
   {
-    $parameters = array();
-    $parameters = $this->dispatcher->filter(new sfEvent($this, 'request.filter_parameters', array('path_info' => $this->getPathInfo())), $parameters)->getReturnValue();
-
-    if (!isset($parameters['module']))
-    {
-      $parameters['module'] = sfConfig::get('sf_default_module', 'default');
-    }
-
-    if (!isset($parameters['action']))
-    {
-      $parameters['action'] = sfConfig::get('sf_default_action', 'index');
-    }
-
-    if (empty($parameters['module']) || empty($parameters['action']))
-    {
-      throw new sfError404Exception(sprintf('Empty module and/or action after parsing the URL "%s" (%s/%s).', $this->getPathInfo(), $parameters['module'], $parameters['action']));
-    }
-
-    return $parameters;
+    return $this->dispatcher->filter(new sfEvent($this, 'request.filter_parameters', array('path_info' => $this->getPathInfo())), array())->getReturnValue();
   }
 
   /**

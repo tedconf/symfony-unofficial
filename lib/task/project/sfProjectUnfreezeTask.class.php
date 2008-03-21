@@ -44,30 +44,28 @@ EOF;
    */
   protected function execute($arguments = array(), $options = array())
   {
-    // Remove lib/symfony and data/symfony directories
+    // remove lib/symfony and data/symfony directories
     if (!is_dir('lib/symfony'))
     {
       throw new sfCommandException('You can unfreeze only if you froze the symfony libraries before.');
     }
 
-    $dirs = explode('#', file_get_contents('config/config.php.bak'));
-    $this->changeSymfonyDirs('\''.$dirs[0].'\'', '\''.$dirs[1].'\'');
+    // change symfony path in ProjectConfiguration.class.php
+    $config = sfConfig::get('sf_config_dir').'/ProjectConfiguration.class.php';
+    $content = file_get_contents($config);
+    if (preg_match('/^# FROZEN_SF_LIB_DIR\: (.+?)$/m', $content, $match))
+    {
+      $content = str_replace("# FROZEN_SF_LIB_DIR: {$match[1]}\n\n", '', $content);
+      $content = preg_replace('#^require_once.+?$#m', "require_once '{$match[1]}/autoload/sfCoreAutoload.class.php';", $content, 1);
+      file_put_contents($config, $content);
+    }
 
     $finder = sfFinder::type('any');
-    $this->filesystem->remove($finder->in(sfConfig::get('sf_lib_dir').'/symfony'));
-    $this->filesystem->remove(sfConfig::get('sf_lib_dir').'/symfony');
-    $this->filesystem->remove($finder->in(sfConfig::get('sf_data_dir').'/symfony'));
-    $this->filesystem->remove(sfConfig::get('sf_data_dir').'/symfony');
-    $this->filesystem->remove('symfony.php');
-    $this->filesystem->remove($finder->in(sfConfig::get('sf_web_dir').'/sf'));
-    $this->filesystem->remove(sfConfig::get('sf_web_dir').'/sf');
-   }
-
-  protected function changeSymfonyDirs($symfony_lib_dir, $symfony_data_dir)
-  {
-    $content = file_get_contents('config/config.php');
-    $content = preg_replace("/^(\s*.sf_symfony_lib_dir\s*=\s*).+?;/m", "$1$symfony_lib_dir;", $content);
-    $content = preg_replace("/^(\s*.sf_symfony_data_dir\s*=\s*).+?;/m", "$1$symfony_data_dir;", $content);
-    file_put_contents('config/config.php', $content);
+    $this->getFilesystem()->remove($finder->in(sfConfig::get('sf_lib_dir').'/symfony'));
+    $this->getFilesystem()->remove(sfConfig::get('sf_lib_dir').'/symfony');
+    $this->getFilesystem()->remove($finder->in(sfConfig::get('sf_data_dir').'/symfony'));
+    $this->getFilesystem()->remove(sfConfig::get('sf_data_dir').'/symfony');
+    $this->getFilesystem()->remove($finder->in(sfConfig::get('sf_web_dir').'/sf'));
+    $this->getFilesystem()->remove(sfConfig::get('sf_web_dir').'/sf');
   }
 }

@@ -3,7 +3,7 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- * (c) 2004-2006 Sean Kerr.
+ * (c) 2004-2006 Sean Kerr <sean@code-box.org>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -15,7 +15,7 @@
  * @package    symfony
  * @subpackage controller
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
- * @author     Sean Kerr <skerr@mojavi.org>
+ * @author     Sean Kerr <sean@code-box.org>
  * @version    SVN: $Id$
  */
 abstract class sfWebController extends sfController
@@ -31,7 +31,7 @@ abstract class sfWebController extends sfController
   public function genUrl($parameters = array(), $absolute = false)
   {
     // absolute URL or symfony URL?
-    if (!is_array($parameters) && preg_match('#^[a-z]+\://#', $parameters))
+    if (!is_array($parameters) && preg_match('#^[a-z][a-z0-9\+.\-]*\://#i', $parameters))
     {
       return $parameters;
     }
@@ -81,18 +81,6 @@ abstract class sfWebController extends sfController
       $querydiv = '?';
     }
 
-    // default module
-    if (!isset($parameters['module']))
-    {
-      $parameters['module'] = sfConfig::get('sf_default_module');
-    }
-
-    // default action
-    if (!isset($parameters['action']))
-    {
-      $parameters['action'] = sfConfig::get('sf_default_action');
-    }
-
     // routing to generate path
     $url .= $this->context->getRouting()->generate($route_name, $parameters, $querydiv, $divider, $equals);
 
@@ -119,6 +107,8 @@ abstract class sfWebController extends sfController
    */
   public function convertUrlStringToParameters($url)
   {
+    $givenUrl = $url;
+
     $params       = array();
     $query_string = '';
     $route_name   = '';
@@ -152,12 +142,13 @@ abstract class sfWebController extends sfController
     {
       $route_name = substr($url, 1);
     }
+    else if (false !== strpos($url, '/'))
+    {
+      list($params['module'], $params['action']) = explode('/', $url);
+    }
     else
     {
-      $tmp = explode('/', $url);
-
-      $params['module'] = $tmp[0];
-      $params['action'] = isset($tmp[1]) ? $tmp[1] : sfConfig::get('sf_default_action');
+      throw new InvalidArgumentException(sprintf('An internal URI must contain a module and an action (module/action) ("%s" given).', $givenUrl));
     }
 
     // split the query string
@@ -168,7 +159,7 @@ abstract class sfWebController extends sfController
         =                   # =
         (.*?)               # value
         (?:
-          (?=&[^&=]+=) | $   # followed by another key= or the end of the string
+          (?=&[^&=]+=) | $  # followed by another key= or the end of the string
         )
       /x', $query_string, $matches, PREG_SET_ORDER | PREG_OFFSET_CAPTURE);
       foreach ($matches as $match)
@@ -208,7 +199,7 @@ abstract class sfWebController extends sfController
     $response->clearHttpHeaders();
     $response->setStatusCode($statusCode);
     $response->setHttpHeader('Location', $url);
-    $response->setContent(sprintf('<html><head><meta http-equiv="refresh" content="%d;url=%s"/></head></html>', $delay, htmlentities($url, ENT_QUOTES, sfConfig::get('sf_charset'))));
+    $response->setContent(sprintf('<html><head><meta http-equiv="refresh" content="%d;url=%s"/></head></html>', $delay, htmlspecialchars($url, ENT_QUOTES, sfConfig::get('sf_charset'))));
     $response->send();
   }
 }

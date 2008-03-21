@@ -20,7 +20,10 @@ abstract class sfRouting
 {
   protected
     $dispatcher        = null,
+    $cache             = null,
     $defaultParameters = array(),
+    $defaultModule     = 'default',
+    $defaultAction     = 'index',
     $options           = array();
 
   /**
@@ -28,11 +31,11 @@ abstract class sfRouting
    *
    * @see initialize()
    */
-  public function __construct(sfEventDispatcher $dispatcher, $options = array())
+  public function __construct(sfEventDispatcher $dispatcher, sfCache $cache = null, $options = array())
   {
-    $this->initialize($dispatcher, $options);
+    $this->initialize($dispatcher, $cache, $options);
 
-    if (isset($this->options['auto_shutdown']) && $this->options['auto_shutdown'])
+    if (!isset($this->options['auto_shutdown']) || $this->options['auto_shutdown'])
     {
       register_shutdown_function(array($this, 'shutdown'));
     }
@@ -41,25 +44,34 @@ abstract class sfRouting
   /**
    * Initializes this sfRouting instance.
    *
-   * @param  sfEventDispatcher A sfEventDispatcher instance
-   * @param  array        An associative array of initialization options.
+   * Available options:
    *
-   * @return Boolean     true, if initialization completes successfully, otherwise false.
+   *  * default_module: The default module name
+   *  * default_action: The default action name
+   *  * logging:        Whether to log or not (false by default)
+   *  * debug:          Whether to cache or not (false by default)
    *
-   * @throws <b>sfInitializationException</b> If an error occurs while initializing this sfRouting.
+   * @param sfEventDispatcher A sfEventDispatcher instance
+   * @param sfCache           A sfCache instance
+   * @param array             An associative array of initialization options.
    */
-  public function initialize(sfEventDispatcher $dispatcher, $options = array())
+  public function initialize(sfEventDispatcher $dispatcher, sfCache $cache = null, $options = array())
   {
     $this->dispatcher = $dispatcher;
 
-    if (!isset($options['default_module']))
+    $options['debug'] = isset($options['debug']) ? (boolean) $options['debug'] : false;
+
+    // disable caching when in debug mode
+    $this->cache = $options['debug'] ? null : $cache;
+
+    if (isset($options['default_module']))
     {
-      $options['default_module'] = 'default';
+      $this->defaultModule = $options['default_module'];
     }
 
-    if (!isset($options['default_action']))
+    if (isset($options['default_action']))
     {
-      $options['default_action'] = 'index';
+      $this->defaultAction = $options['default_action'];
     }
 
     if (!isset($options['logging']))
@@ -71,6 +83,18 @@ abstract class sfRouting
 
     $this->dispatcher->connect('user.change_culture', array($this, 'listenToChangeCultureEvent'));
     $this->dispatcher->connect('request.filter_parameters', array($this, 'filterParametersEvent'));
+
+    $this->loadConfiguration();
+  }
+
+  /**
+   * Loads routing configuration.
+   *
+   * This methods notifies a routing.load_configuration event.
+   */
+  public function loadConfiguration()
+  {
+    $this->dispatcher->notify(new sfEvent($this, 'routing.load_configuration'));
   }
 
   /**
@@ -120,12 +144,12 @@ abstract class sfRouting
   *
   * @return string The generated URL
   */
-  abstract public function generate($name, $params, $querydiv = '/', $divider = '/', $equals = '/');
+  abstract public function generate($name, $params = array(), $querydiv = '/', $divider = '/', $equals = '/');
 
  /**
   * Parses a URL to find a matching route.
   *
-  * Returns null if no route match the URL.
+  * Throws a sfError404Exception if no route match the URL.
   *
   * @param  string URL to be parsed
   *
@@ -136,7 +160,7 @@ abstract class sfRouting
   abstract public function parse($url);
 
   /**
-   * Sets a default parameter for URL generation.
+   * Sets a default parameter.
    *
    * @param string The key
    * @param string The value
@@ -154,6 +178,31 @@ abstract class sfRouting
   public function setDefaultParameters($parameters)
   {
     $this->defaultParameters = $parameters;
+  }
+
+  protected function fixDefaults($arr)
+  {
+    if (empty($arr['module']))
+    {
+      $arr['module'] = $this->defaultModule;
+    }
+
+    if (empty($arr['action']))
+    {
+      $arr['action'] = $this->defaultAction;
+    }
+
+    return $arr;
+  }
+
+  protected function mergeArrays($arr1, $arr2)
+  {
+    foreach ($arr2 as $key => $value)
+    {
+      $arr1[$key] = $value;
+    }
+
+    return $arr1;
   }
 
   /**

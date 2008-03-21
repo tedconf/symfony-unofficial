@@ -3,14 +3,13 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- * (c) 2004-2006 Sean Kerr.
+ * (c) 2004-2006 Sean Kerr <sean@code-box.org>
  * 
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
 
 /**
- *
  * A view represents the presentation layer of an action. Output can be
  * customized by supplying attributes, which a template can manipulate and
  * display.
@@ -18,7 +17,7 @@
  * @package    symfony
  * @subpackage view
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
- * @author     Sean Kerr <skerr@mojavi.org>
+ * @author     Sean Kerr <sean@code-box.org>
  * @version    SVN: $Id$
  */
 abstract class sfView
@@ -128,8 +127,6 @@ abstract class sfView
 
     $this->parameterHolder = new sfParameterHolder();
     $this->parameterHolder->add(sfConfig::get('mod_'.strtolower($moduleName).'_view_param', array()));
-
-    $this->decoratorDirectory = sfConfig::get('sf_app_template_dir');
 
     // include view configuration
     $this->configure();
@@ -372,6 +369,11 @@ abstract class sfView
       return;
     }
 
+    if (!strpos($template, '.'))
+    {
+      $template .= $this->getExtension();
+    }
+
     if (sfToolkit::isPathAbsolute($template))
     {
       $this->decoratorDirectory = dirname($template);
@@ -379,12 +381,8 @@ abstract class sfView
     }
     else
     {
+      $this->decoratorDirectory = $this->context->getConfiguration()->getDecoratorDir($template);
       $this->decoratorTemplate = $template;
-    }
-
-    if (!strpos($this->decoratorTemplate, '.'))
-    {
-      $this->decoratorTemplate .= $this->getExtension();
     }
 
     // set decorator status
@@ -486,6 +484,36 @@ abstract class sfView
   }
 
   /**
+   * Gets the module name associated with this view.
+   *
+   * @return string A module name
+   */
+  public function getModuleName()
+  {
+    return $this->moduleName;
+  }
+
+  /**
+   * Gets the action name associated with this view.
+   *
+   * @return string An action name
+   */
+  public function getActionName()
+  {
+    return $this->actionName;
+  }
+
+  /**
+   * Gets the view name associated with this view.
+   *
+   * @return string An action name
+   */
+  public function getViewName()
+  {
+    return $this->viewName;
+  }
+
+  /**
    * Calls methods defined via sfEventDispatcher.
    *
    * @param string The method name
@@ -500,7 +528,7 @@ abstract class sfView
     $event = $this->dispatcher->notifyUntil(new sfEvent($this, 'view.method_not_found', array('method' => $method, 'arguments' => $arguments)));
     if (!$event->isProcessed())
     {
-      throw new sfException(sprintf('Call to undefined method sfView::%s.', $method));
+      throw new sfException(sprintf('Call to undefined method %s::%s.', get_class($this), $method));
     }
 
     return $event->getReturnValue();

@@ -3,7 +3,7 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- * (c) 2004-2006 Sean Kerr.
+ * (c) 2004-2006 Sean Kerr <sean@code-box.org>
  * 
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -17,7 +17,7 @@
  * @package    symfony
  * @subpackage exception
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
- * @author     Sean Kerr <skerr@mojavi.org>
+ * @author     Sean Kerr <sean@code-box.org>
  * @version    SVN: $Id$
  */
 class sfException extends Exception
@@ -111,8 +111,12 @@ class sfException extends Exception
     {
       $file = sfConfig::get('sf_web_dir').'/errors/error500.php';
 
+<<<<<<< .working
       ob_start();
       include is_readable($file) ? $file : sfConfig::get('sf_symfony_data_dir').'/web/errors/error500.php';
+=======
+      include is_readable($file) ? $file : dirname(__FILE__).'/data/error500.php';
+>>>>>>> .merge-right.r8006
 
       return ob_get_clean();
     }
@@ -134,8 +138,12 @@ class sfException extends Exception
       $globalsTable  = self::formatArrayAsHtml(sfDebug::globalsAsArray());
     }
 
+<<<<<<< .working
     ob_start();
     include sfConfig::get('sf_symfony_data_dir').'/data/exception.'.($format == 'html' ? 'php' : 'txt');
+=======
+    include dirname(__FILE__).'/data/exception.'.($format == 'html' ? 'php' : 'txt');
+>>>>>>> .merge-right.r8006
 
     return ob_get_clean();
   }

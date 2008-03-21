@@ -2,7 +2,7 @@
 
 /*
  * This file is part of the symfony package.
- * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
+ * (c) Fabien Potencier <fabien.potencier@symfony-project.com>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -13,8 +13,6 @@
  *
  * It maps an array of parameters to URLs definition. Each map is called a route.
  *
- * This class was initialy based on the Routes class of the Cake framework.
- *
  * @package    symfony
  * @subpackage routing
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
@@ -24,46 +22,88 @@ class sfPatternRouting extends sfRouting
 {
   protected
     $currentRouteName       = null,
-    $currentInternalUri     = null,
+    $currentInternalUri     = array(),
     $currentRouteParameters = null,
     $defaultSuffix          = '',
-    $routes                 = array();
+    $routes                 = array(),
+    $cacheData              = array(),
+    $cacheChanged           = false;
 
   /**
-   * Initialize this Routing.
+   * Initializes this Routing.
    *
-   * @param  sfEventDispatcher A sfEventDispatcher instance
-   * @param  array        An associative array of initialization options.
+   * Available options:
    *
-   * @return Boolean      true, if initialization completes successfully, otherwise false.
+   *  * suffix:             The default suffix
+   *  * variable_prefixes:  An array of characters that starts a variable name (: by default)
+   *  * segment_separators: An array of allowed characters for segment separators (/ and . by default)
+   *  * variable_regex:     A regex that match a valid variable name ([\w\d_]+ by default)
    *
-   * @throws <b>sfInitializationException</b> If an error occurs while initializing this sfRouting.
+   * @see sfRouting
    */
-  public function initialize(sfEventDispatcher $dispatcher, $options = array())
+  public function initialize(sfEventDispatcher $dispatcher, sfCache $cache = null, $options = array())
   {
-    parent::initialize($dispatcher, $options);
+    if (!isset($options['variable_prefixes']))
+    {
+      $options['variable_prefixes'] = array(':');
+    }
+
+    if (!isset($options['segment_separators']))
+    {
+      $options['segment_separators'] = array('/', '.');
+    }
+
+    if (!isset($options['variable_regex']))
+    {
+      $options['variable_regex'] = '[\w\d_]+';
+    }
+
+    $options['variable_prefix_regex']    = '(?:'.implode('|', array_map(create_function('$a', 'return preg_quote($a, \'#\');'), $options['variable_prefixes'])).')';
+    $options['segment_separators_regex'] = '(?:'.implode('|', array_map(create_function('$a', 'return preg_quote($a, \'#\');'), $options['segment_separators'])).')';
+    $options['variable_content_regex']   = '[^'.implode('', array_map(create_function('$a', 'return str_replace(\'-\', \'\-\', preg_quote($a, \'#\'));'), $options['segment_separators'])).']+';
+
+    if (!isset($options['load_configuration']))
+    {
+      $options['load_configuration'] = false;
+    }
 
     $this->setDefaultSuffix(isset($options['suffix']) ? $options['suffix'] : '');
-  }
 
-  /**
-   * Loads routing configuration.
-   */
-  public function loadConfiguration()
-  {
-    if ($config = sfConfigCache::getInstance()->checkConfig(sfConfig::get('sf_app_config_dir_name').'/routing.yml', true))
+    parent::initialize($dispatcher, $cache, $options);
+
+    if (!is_null($this->cache) && $cacheData = $this->cache->get('data'))
     {
-      include($config);
+      $this->cacheData = unserialize($cacheData);
     }
   }
 
   /**
-   * Gets the internal URI for the current request.
-   *
-   * @param boolean Whether to give an internal URI with the route name (@route)
-   *                or with the module/action pair
-   *
-   * @return string The current internal URI
+   * @see sfRouting
+   */
+  public function loadConfiguration()
+  {
+    if (!is_null($this->cache) && $routes = $this->cache->get('symfony.routing.configuration'))
+    {
+      $this->routes = unserialize($routes);
+    }
+    else
+    {
+      if ($this->options['load_configuration'] && $config = sfContext::getInstance()->getConfigCache()->checkConfig('config/routing.yml', true))
+      {
+        include($config);
+      }
+
+      parent::loadConfiguration();
+
+      if (!is_null($this->cache))
+      {
+        $this->cache->set('symfony.routing.configuration', serialize($this->routes));
+      }
+    }
+  }
+
+  /**
+   * @see sfRouting
    */
   public function getCurrentInternalUri($withRouteName = false)
   {
@@ -72,43 +112,35 @@ class sfPatternRouting extends sfRouting
       return null;
     }
 
-    if (is_null($this->currentInternalUri))
+    $typeId = $withRouteName ? 0 : 1;
+
+    if (!isset($this->currentInternalUri[$typeId]))
     {
       $parameters = $this->currentRouteParameters;
 
-      list($url, $regexp, $names, $namesHash, $defaults, $requirements, $suffix) = $this->routes[$this->currentRouteName];
+      list($url, $regex, $variables, $defaults, $requirements) = $this->routes[$this->currentRouteName];
 
-      if ($withRouteName)
-      {
-        $internalUri = '@'.$this->currentRouteName;
-      }
-      else
-      {
-        $module = isset($parameters['module']) && $parameters['module'] ? $parameters['module'] : $this->options['default_module'];
-        $action = isset($parameters['action']) && $parameters['action'] ? $parameters['action'] : $this->options['default_action'];
-
-        $internalUri = $module.'/'.$action;
-      }
+      $internalUri = $withRouteName ? '@'.$this->currentRouteName : $parameters['module'].'/'.$parameters['action'];
 
       $params = array();
 
       // add parameters
-      foreach ($names as $name)
+      foreach (array_keys($variables) as $variable)
       {
-        if ($name == 'module' || $name == 'action')
+        if ($variable == 'module' || $variable == 'action')
         {
           continue;
         }
 
-        $params[] = $name.'='.(isset($parameters[$name]) ? $parameters[$name] : (isset($defaults[$name]) ? $defaults[$name] : ''));
+        $params[] = $variable.'='.(isset($parameters[$variable]) ? $parameters[$variable] : (isset($defaults[$variable]) ? $defaults[$variable] : ''));
       }
 
       // add * parameters if needed
-      if (strpos($url, '*'))
+      if (false !== strpos($regex, '_star'))
       {
         foreach ($parameters as $key => $value)
         {
-          if ($key == 'module' || $key == 'action' || in_array($key, $names))
+          if ($key == 'module' || $key == 'action' || isset($variables[$key]))
           {
             continue;
           }
@@ -120,21 +152,24 @@ class sfPatternRouting extends sfRouting
       // sort to guaranty unicity
       sort($params);
 
-      $this->currentInternalUri = $internalUri.($params ? '?'.implode('&', $params) : '');
+      $this->currentInternalUri[$typeId] = $internalUri.($params ? '?'.implode('&', $params) : '');
     }
 
-    return $this->currentInternalUri;
+    return $this->currentInternalUri[$typeId];
   }
 
+  /**
+   * Sets the default suffix
+   *
+   * @param string The default suffix
+   */
   public function setDefaultSuffix($suffix)
   {
     $this->defaultSuffix = '.' == $suffix ? '' : $suffix;
   }
 
   /**
-   * Gets the current compiled route array.
-   *
-   * @return array The route array
+   * @see sfRouting
    */
   public function getRoutes()
   {
@@ -142,11 +177,7 @@ class sfPatternRouting extends sfRouting
   }
 
   /**
-   * Sets the compiled route array.
-   *
-   * @param array The route array
-   *
-   * @return array The route array
+   * @see sfRouting
    */
   public function setRoutes($routes)
   {
@@ -154,9 +185,7 @@ class sfPatternRouting extends sfRouting
   }
 
   /**
-   * Returns true if this instance has some routes.
-   *
-   * @return  boolean
+   * @see sfRouting
    */
   public function hasRoutes()
   {
@@ -164,7 +193,7 @@ class sfPatternRouting extends sfRouting
   }
 
   /**
-   * Clears all current routes.
+   * @see sfRouting
    */
   public function clearRoutes()
   {
@@ -215,27 +244,54 @@ class sfPatternRouting extends sfRouting
     return $this->connect($name, $route, $default, $requirements);
   }
 
- /**
-  * Adds a new route at the end of the current list of routes.
-  *
-  * A route string is a string with 2 special constructions:
-  * - :string: :string denotes a named paramater (available later as $request->getParameter('string'))
-  * - *: * match an indefinite number of parameters in a route
-  *
-  * Here is a very common rule in a symfony project:
-  *
-  * <code>
-  * $r->connect('/:module/:action/*');
-  * </code>
-  *
-  * @param  string The route name
-  * @param  string The route string
-  * @param  array  The default parameter values
-  * @param  array  The regexps parameters must match
-  *
-  * @return array  current routes
-  */
-  public function connect($name, $route, $default = array(), $requirements = array())
+  /**
+   * Adds a new route before a given one in the current list of routes.
+   *
+   * @see connect
+   */
+  public function insertRouteBefore($pivot, $name, $route, $default = array(), $requirements = array())
+  {
+    if (!isset($this->routes[$pivot]))
+    {
+      throw new sfConfigurationException(sprintf('Unable to insert route "%s" before inexistent route "%s".', $name, $pivot));
+    }
+
+    $routes = $this->routes;
+    $this->routes = array();
+    $newroutes = array();
+    foreach ($routes as $key => $value)
+    {
+      if ($key == $pivot)
+      {
+        $newroutes = array_merge($newroutes, $this->connect($name, $route, $default, $requirements));
+      }
+      $newroutes[$key] = $value;
+    }
+
+    return $this->routes = $newroutes;
+  }
+
+  /**
+   * Adds a new route at the end of the current list of routes.
+   *
+   * A route string is a string with 2 special constructions:
+   * - :string: :string denotes a named paramater (available later as $request->getParameter('string'))
+   * - *: * match an indefinite number of parameters in a route
+   *
+   * Here is a very common rule in a symfony project:
+   *
+   * <code>
+   * $r->connect('default', '/:module/:action/*');
+   * </code>
+   *
+   * @param  string The route name
+   * @param  string The route string
+   * @param  array  The default parameter values
+   * @param  array  The regexps parameters must match
+   *
+   * @return array  current routes
+   */
+  public function connect($name, $route, $defaults = array(), $requirements = array())
   {
     // route already exists?
     if (isset($this->routes[$name]))
@@ -243,90 +299,158 @@ class sfPatternRouting extends sfRouting
       throw new sfConfigurationException(sprintf('This named route already exists ("%s").', $name));
     }
 
-    $parsed = array();
-    $names  = array();
     $suffix = $this->defaultSuffix;
+    $route  = trim($route);
 
-    // used for performance reasons
-    $namesHash = array();
-
-    $r = null;
-    if (($route == '') || ($route == '/'))
+    // fix defaults
+    foreach ($defaults as $key => $value)
     {
-      $regexp = '/^[\/]*$/';
-      $this->routes[$name] = array($route, $regexp, array(), array(), $default, $requirements, $suffix);
+      if (ctype_digit($key))
+      {
+        $defaults[$value] = true;
+      }
+      else
+      {
+        $defaults[$key] = urldecode($value);
+      }
+    }
+    $givenDefaults = $defaults;
+    $defaults = $this->fixDefaults($defaults);
+
+    // fix requirements regexs
+    foreach ($requirements as $key => $regex)
+    {
+      if ('^' == $regex[0])
+      {
+        $regex = substr($regex, 1);
+      }
+      if ('$' == substr($regex, -1))
+      {
+        $regex = substr($regex, 0, -1);
+      }
+
+      $requirements[$key] = $regex;
+    }
+
+    // a route can start by a slash. remove it for parsing.
+    if (!empty($route) && '/' == $route[0])
+    {
+      $route = substr($route, 1);
+    }
+
+    if ($route == '')
+    {
+      $this->routes[$name] = array('/', '/^\/*$/', array(), $defaults, $requirements);
     }
     else
     {
-      $elements = array();
-      foreach (explode('/', $route) as $element)
+      // ignore the default suffix if one is already provided in the route
+      if ('/' == $route[strlen($route) - 1])
       {
-        if (trim($element))
+        // route ends by / (directory)
+        $suffix = '';
+      }
+      else if ('.' == $route[strlen($route) - 1])
+      {
+        // route ends by . (no suffix)
+        $suffix = '';
+        $route = substr($route, 0, strlen($route) -1); 
+      }
+      else if (preg_match('#\.(?:'.$this->options['variable_prefix_regex'].$this->options['variable_regex'].'|'.$this->options['variable_content_regex'].')$#i', $route))
+      {
+        // specific suffix for this route
+        // a . with a variable after or some cars without any separators
+        $suffix = '';
+      }
+
+      // parse the route
+      $segments = array();
+      $firstOptional = 0;
+      $buffer = $route;
+      $afterASeparator = true;
+      $currentSeparator = '';
+      $variables = array();
+
+      // a route is an array of (separator + variable) or (separator + text) segments
+      while (strlen($buffer))
+      {
+        if ($afterASeparator && preg_match('#^'.$this->options['variable_prefix_regex'].'('.$this->options['variable_regex'].')#', $buffer, $match))
         {
-          $elements[] = $element;
-        }
-      }
+          // a variable (like :foo)
+          $variable = $match[1];
 
-      if (!isset($elements[0]))
-      {
-        return false;
-      }
-
-      // specific suffix for this route?
-      // or /$ directory
-      if (preg_match('/^(.+)(\.\w*)$/i', $elements[count($elements) - 1], $matches))
-      {
-        $suffix = '.' == $matches[2] ? '' : $matches[2];
-        $elements[count($elements) - 1] = $matches[1];
-        $route = '/'.implode('/', $elements);
-      }
-      else if ($route{strlen($route) - 1} == '/')
-      {
-        $suffix = '/';
-      }
-
-      $regexp_suffix = preg_quote($suffix);
-
-      foreach ($elements as $element)
-      {
-        if (preg_match('/^:(.+)$/', $element, $r))
-        {
-          $element = $r[1];
-
-          // regex is [^\/]+ or the requirement regex
-          if (isset($requirements[$element]))
+          if (!isset($requirements[$variable]))
           {
-            $regex = $requirements[$element];
-            if (0 === strpos($regex, '^'))
-            {
-              $regex = substr($regex, 1);
-            }
-            if (strlen($regex) - 1 === strpos($regex, '$'))
-            {
-              $regex = substr($regex, 0, -1);
-            }
+            $requirements[$variable] = $this->options['variable_content_regex'];
+          }
+
+          $segments[] = $currentSeparator.'(?P<'.$variable.'>'.$requirements[$variable].')';
+          $currentSeparator = '';
+
+          // for 1.0 BC, we don't take into account the default module and action variable
+          // for 1.2, remove the $givenDefaults var and move the $firstOptional setting to
+          // the condition below
+          if (!isset($givenDefaults[$variable]))
+          {
+            $firstOptional = count($segments);
+          }
+
+          if (!isset($defaults[$variable]))
+          {
+            $defaults[$variable] = null;
+          }
+
+          $buffer = substr($buffer, strlen($match[0]));
+          $variables[$variable] = $match[0];
+          $afterASeparator = false;
+        }
+        else if ($afterASeparator)
+        {
+          // a static text
+          if (!preg_match('#^(.+?)(?:'.$this->options['segment_separators_regex'].'|$)#', $buffer, $match))
+          {
+            throw new InvalidArgumentException(sprintf('Unable to parse "%s" route near "%s".', $route, $buffer));
+          }
+
+          if ('*' == $match[1])
+          {
+            $segments[] = '(?:'.$currentSeparator.'(?P<_star>.*))?';
           }
           else
           {
-            $regex = '[^\/]+';
+            $segments[] = $currentSeparator.preg_quote($match[1], '#');
+            $firstOptional = count($segments);
           }
+          $currentSeparator = '';
 
-          $parsed[] = '(?:\/('.$regex.'))?';
-          $names[] = $element;
-          $namesHash[$element] = 1;
+          $buffer = substr($buffer, strlen($match[1]));
+          $afterASeparator = false;
         }
-        elseif (preg_match('/^\*$/', $element, $r))
+        else if (preg_match('#^'.$this->options['segment_separators_regex'].'#', $buffer, $match))
         {
-          $parsed[] = '(?:\/(.*))?';
+          // a separator (like / or .)
+          $currentSeparator = preg_quote($match[0], '#');
+
+          $buffer = substr($buffer, strlen($match[0]));
+          $afterASeparator = true;
         }
         else
         {
-          $parsed[] = '/'.$element;
+          // parsing problem
+          throw new InvalidArgumentException(sprintf('Unable to parse "%s" route near "%s".', $route, $buffer));
         }
       }
-      $regexp = '#^'.join('', $parsed).$regexp_suffix.'$#';
 
-      $this->routes[$name] = array($route, $regexp, $names, $namesHash, $default, $requirements, $suffix);
+      // all segments after the last static segment are optional
+      // be careful, the n-1 is optional only if n is empty
+      for ($i = $firstOptional, $max = count($segments); $i < $max; $i++)
+      {
+        $segments[$i] = str_repeat(' ', $i - $firstOptional).'(?:'.$segments[$i];
+        $segments[] = str_repeat(' ', $max - $i - 1).')?';
+      }
+
+      $regex = "#^/\n".implode("\n", $segments)."\n".$currentSeparator.preg_quote($suffix, '#')."$#x";
+      $this->routes[$name] = array('/'.$route.$suffix, $regex, $variables, $defaults, $requirements);
     }
 
     if ($this->options['logging'])
@@ -337,17 +461,22 @@ class sfPatternRouting extends sfRouting
     return $this->routes;
   }
 
- /**
-  * Generates a valid URLs for parameters.
-  *
-  * @param  array  The parameter values
-  * @param  string The divider between key/value pairs
-  * @param  string The equal sign to use between key and value
-  *
-  * @return string The generated URL
-  */
-  public function generate($name, $params, $querydiv = '/', $divider = '/', $equals = '/')
+  /**
+   * @see sfRouting
+   */
+  public function generate($name, $params = array(), $querydiv = '/', $divider = '/', $equals = '/')
   {
+    $params = $this->fixDefaults($params);
+
+    if (!is_null($this->cache))
+    {
+      $cacheKey = 'generate_'.$name.serialize(array_merge($this->defaultParameters, $params));
+      if (isset($this->cacheData[$cacheKey]))
+      {
+        return $this->cacheData[$cacheKey];
+      }
+    }
+
     // named route?
     if ($name)
     {
@@ -356,16 +485,14 @@ class sfPatternRouting extends sfRouting
         throw new sfConfigurationException(sprintf('The route "%s" does not exist.', $name));
       }
 
-      list($url, $regexp, $names, $namesHash, $defaults, $requirements, $suffix) = $this->routes[$name];
-      $defaults = array_merge($defaults, $this->defaultParameters);
+      list($url, $regex, $variables, $defaults, $requirements) = $this->routes[$name];
+      $defaults = $this->mergeArrays($defaults, $this->defaultParameters);
+      $tparams = $this->mergeArrays($defaults, $params);
 
       // all params must be given
-      foreach ($names as $tmp)
+      if ($diff = array_diff_key($variables, array_filter($tparams, create_function('$v', 'return !is_null($v);'))))
       {
-        if (!isset($params[$tmp]) && !isset($defaults[$tmp]))
-        {
-          throw new sfException(sprintf('Route named "%s" have a mandatory "%s" parameter.', $name, $tmp));
-        }
+        throw new InvalidArgumentException(sprintf('The "%s" route has some missing mandatory parameters (%s).', $name, implode(', ', $diff)));
       }
     }
     else
@@ -374,44 +501,41 @@ class sfPatternRouting extends sfRouting
       $found = false;
       foreach ($this->routes as $name => $route)
       {
-        list($url, $regexp, $names, $namesHash, $defaults, $requirements, $suffix) = $route;
-        $defaults = array_merge($defaults, $this->defaultParameters);
+        list($url, $regex, $variables, $defaults, $requirements) = $route;
+        $defaults = $this->mergeArrays($defaults, $this->defaultParameters);
+        $tparams = $this->mergeArrays($defaults, $params);
 
-        $tparams = array_merge($defaults, $params);
-
-        // we must match all names (all $names keys must be in $params array)
-        foreach ($names as $key)
+        // all $variables must be defined in the $tparams array
+        if (array_diff_key($variables, array_filter($tparams)))
         {
-          if (!isset($tparams[$key])) continue 2;
+          continue;
         }
 
-        // we must match all defaults with value except if present in names
-        foreach ($defaults as $key => $value)
+        // check requirements
+        foreach ($requirements as $reqParam => $reqRegexp)
         {
-          if (isset($namesHash[$key])) continue;
-
-          if (!isset($tparams[$key]) || $tparams[$key] != $value) continue 2;
-        }
-
-        // we must match all requirements for rule
-        foreach ($requirements as $req_param => $req_regexp)
-        {
-          if (!preg_match('/'.str_replace('/', '\\/', $req_regexp).'/', $tparams[$req_param]))
+          if (!is_null($tparams[$reqParam]) && !preg_match('#'.$reqRegexp.'#', $tparams[$reqParam]))
           {
             continue 2;
           }
         }
 
-        // we must have consumed all $params keys if there is no * in route
-        if (!strpos($url, '*'))
+        // all $params must be in $variables or $defaults if there is no * in route
+        if (false === strpos($regex, '_star') && array_diff_key(array_filter($params), $variables, $defaults))
         {
-          if (count(array_diff(array_keys($tparams), $names, array_keys($defaults))))
+          continue;
+        }
+
+        // check that $params does not override a default value that is not a variable
+        foreach (array_filter($defaults) as $key => $value)
+        {
+          if (!isset($variables[$key]) && $tparams[$key] != $value)
           {
-            continue;
+            continue 2;
           }
         }
 
-        // match found
+        // found
         $found = true;
         break;
       }
@@ -422,18 +546,19 @@ class sfPatternRouting extends sfRouting
       }
     }
 
-    $params = sfToolkit::arrayDeepMerge($defaults, $params);
+    // replace variables
+    $realUrl = $url;
+    foreach ($variables as $variable => $value)
+    {
+      $realUrl = str_replace($value, urlencode($tparams[$variable]), $realUrl);
+    }
 
-    $realUrl = preg_replace('/\:([^\/]+)/e', 'urlencode($params["\\1"])', $url);
-
-    // we add all other params if *
-    if (strpos($realUrl, '*'))
+    // add extra params if the route contains *
+    if (false !== strpos($regex, '_star'))
     {
       $tmp = array();
-      foreach ($params as $key => $value)
+      foreach (array_diff_key($tparams, $variables, $defaults) as $key => $value)
       {
-        if (isset($namesHash[$key]) || isset($defaults[$key])) continue;
-
         if (is_array($value))
         {
           foreach ($value as $v)
@@ -447,164 +572,134 @@ class sfPatternRouting extends sfRouting
         }
       }
       $tmp = implode($divider, $tmp);
-      if (strlen($tmp) > 0)
+      if ($tmp)
       {
         $tmp = $querydiv.$tmp;
       }
-      $realUrl = preg_replace('/\/\*(\/|$)/', "$tmp$1", $realUrl);
+
+      $realUrl = preg_replace('#'.$this->options['segment_separators_regex'].'\*('.$this->options['segment_separators_regex'].'|$)#', "$tmp$1", $realUrl);
     }
 
-    // strip off last divider character
-    if (strlen($realUrl) > 1)
+    if (!is_null($this->cache))
     {
-      $realUrl = rtrim($realUrl, $divider);
-    }
-
-    if ($realUrl != '/')
-    {
-      $realUrl .= $suffix;
+      $this->cacheChanged = true;
+      $this->cacheData[$cacheKey] = $realUrl;
     }
 
     return $realUrl;
   }
 
- /**
-  * Parses a URL to find a matching route.
-  *
-  * Returns null if no route match the URL.
-  *
-  * @param  string URL to be parsed
-  *
-  * @return array  An array of parameters
-  */
+  /**
+   * @see sfRouting
+   */
   public function parse($url)
   {
     // an URL should start with a '/', mod_rewrite doesn't respect that, but no-mod_rewrite version does.
-    if ($url && ('/' != $url[0]))
+    if ('/' != $url[0])
     {
       $url = '/'.$url;
     }
 
     // we remove the query string
-    if ($pos = strpos($url, '?'))
+    if (false !== $pos = strpos($url, '?'))
     {
       $url = substr($url, 0, $pos);
     }
 
-    // we remove multiple /
+    // remove multiple /
     $url = preg_replace('#/+#', '/', $url);
-    $out = array();
-    $break = false;
+
+    if (!is_null($this->cache))
+    {
+      $cacheKey = 'parse_'.$url;
+      if (isset($this->cacheData[$cacheKey]))
+      {
+        return $this->cacheData[$cacheKey];
+      }
+    }
+
+    $found = false;
     foreach ($this->routes as $routeName => $route)
     {
-      $out = array();
-      $r = null;
-
-      list($route, $regexp, $names, $namesHash, $defaults, $requirements, $suffix) = $route;
-
-      $break = false;
-
-      if (preg_match($regexp, $url, $r))
+      list($route, $regex, $variables, $defaults, $requirements) = $route;
+      if (!preg_match($regex, $url, $r))
       {
-        $break = true;
+        continue;
+      }
 
-        // remove the first element, which is the url
-        array_shift($r);
+      $defaults = array_merge($defaults, $this->defaultParameters);
+      $found    = true;
+      $out      = array();
 
-        // hack, pre-fill the default route names
-        foreach ($names as $name)
+      // *
+      if (isset($r['_star']))
+      {
+        $out = $this->parseStarParameter($r['_star']);
+        unset($r['_star']);
+      }
+
+      // defaults
+      $out = $this->mergeArrays($out, $defaults);
+
+      // variables
+      foreach ($r as $key => $value)
+      {
+        if (!is_int($key))
         {
-          $out[$name] = null;
-        }
-
-        // defaults
-        foreach ($defaults as $name => $value)
-        {
-          if (preg_match('#[a-z_\-]#i', $name))
-          {
-            $out[$name] = urldecode($value);
-          }
-          else
-          {
-            $out[$value] = true;
-          }
-        }
-
-        $pos = 0;
-        foreach ($r as $found)
-        {
-          // if $found is a named url element (i.e. ':action')
-          if (isset($names[$pos]))
-          {
-            $out[$names[$pos]] = urldecode($found);
-          }
-          // unnamed elements go in as 'pass'
-          else
-          {
-            $pass = explode('/', $found);
-            $found = '';
-            for ($i = 0, $max = count($pass); $i < $max; $i += 2)
-            {
-              if (!isset($pass[$i + 1]))
-              {
-                continue;
-              }
-
-              $found .= $pass[$i].'='.$pass[$i + 1].'&';
-            }
-            parse_str($found, $pass);
-            foreach ($pass as $key => $value)
-            {
-              // we add this parameters if not in conflict with named url element (i.e. ':action')
-              if (!isset($namesHash[$key]))
-              {
-                $out[$key] = $value;
-              }
-            }
-          }
-          $pos++;
-        }
-
-        // we must have found all :var stuffs in url? except if default values exists
-        foreach ($names as $name)
-        {
-          if (is_null($out[$name]))
-          {
-            $break = false;
-          }
-        }
-
-        if ($break)
-        {
-          // we store route name
-          $this->currentRouteName = $routeName;
-          $this->currentInternalUri = null;
-
-          if ($this->options['logging'])
-          {
-            $this->dispatcher->notify(new sfEvent($this, 'application.log', array(sprintf('Match route [%s] "%s"', $routeName, $route))));
-          }
-
-          break;
+          $out[$key] = urldecode($value);
         }
       }
+
+      // store the route name
+      $this->currentRouteName = $routeName;
+      $this->currentInternalUri = array();
+
+      if ($this->options['logging'])
+      {
+        $this->dispatcher->notify(new sfEvent($this, 'application.log', array(sprintf('Match route [%s] for "%s"', $routeName, $route))));
+      }
+
+      break;
     }
 
     // no route found
-    if (!$break)
+    if (!$found)
     {
-      if ($this->options['logging'])
-      {
-        $this->dispatcher->notify(new sfEvent($this, 'application.log', array('No matching route found')));
-      }
-
-      $this->currentRouteParameters = null;
-
       throw new sfError404Exception(sprintf('No matching route found for "%s"', $url));
     }
 
-    $this->currentRouteParameters = $out;
+    $this->currentRouteParameters = $this->fixDefaults($out);
+
+    if (!is_null($this->cache))
+    {
+      $this->cacheChanged = true;
+      $this->cacheData[$cacheKey] = $this->currentRouteParameters;
+    }
 
     return $this->currentRouteParameters;
+  }
+
+  protected function parseStarParameter($star)
+  {
+    $parameters = array();
+    $tmp = explode('/', $star);
+    for ($i = 0, $max = count($tmp); $i < $max; $i += 2)
+    {
+      $parameters[$tmp[$i]] = isset($tmp[$i + 1]) ? urldecode($tmp[$i + 1]) : true;
+    }
+
+    return $parameters;
+  }
+
+  /**
+   * @see sfRouting
+   */
+  public function shutdown()
+  {
+    if (!is_null($this->cache) && $this->cacheChanged)
+    {
+      $this->cacheChanged = false;
+      $this->cache->set('symfony.routing.data', serialize($this->cacheData));
+    }
   }
 }

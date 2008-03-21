@@ -24,72 +24,89 @@ class sfWebResponse extends sfResponse
     $cookies     = array(),
     $statusCode  = 200,
     $statusText  = 'OK',
-    $statusTexts = array(),
     $headerOnly  = false,
     $headers     = array(),
     $metas       = array(),
     $httpMetas   = array(),
+    $positions   = array('first', '', 'last'),
     $stylesheets = array(),
     $javascripts = array(),
     $slots       = array();
 
+  static protected $statusTexts = array(
+    '100' => 'Continue',
+    '101' => 'Switching Protocols',
+    '200' => 'OK',
+    '201' => 'Created',
+    '202' => 'Accepted',
+    '203' => 'Non-Authoritative Information',
+    '204' => 'No Content',
+    '205' => 'Reset Content',
+    '206' => 'Partial Content',
+    '300' => 'Multiple Choices',
+    '301' => 'Moved Permanently',
+    '302' => 'Found',
+    '303' => 'See Other',
+    '304' => 'Not Modified',
+    '305' => 'Use Proxy',
+    '306' => '(Unused)',
+    '307' => 'Temporary Redirect',
+    '400' => 'Bad Request',
+    '401' => 'Unauthorized',
+    '402' => 'Payment Required',
+    '403' => 'Forbidden',
+    '404' => 'Not Found',
+    '405' => 'Method Not Allowed',
+    '406' => 'Not Acceptable',
+    '407' => 'Proxy Authentication Required',
+    '408' => 'Request Timeout',
+    '409' => 'Conflict',
+    '410' => 'Gone',
+    '411' => 'Length Required',
+    '412' => 'Precondition Failed',
+    '413' => 'Request Entity Too Large',
+    '414' => 'Request-URI Too Long',
+    '415' => 'Unsupported Media Type',
+    '416' => 'Requested Range Not Satisfiable',
+    '417' => 'Expectation Failed',
+    '500' => 'Internal Server Error',
+    '501' => 'Not Implemented',
+    '502' => 'Bad Gateway',
+    '503' => 'Service Unavailable',
+    '504' => 'Gateway Timeout',
+    '505' => 'HTTP Version Not Supported',
+  );
+
   /**
    * Initializes this sfWebResponse.
    *
+   * Available options:
+   *
+   *  * charset:      The charset to use (utf-8 by default)
+   *  * content_type: The content type (text/html by default)
+   *
    * @param  sfEventDispatcher  A sfEventDispatcher instance
-   * @param  array              An array of parameters
+   * @param  array              An array of options
    *
    * @return Boolean            true, if initialization completes successfully, otherwise false
    *
    * @throws <b>sfInitializationException</b> If an error occurs while initializing this sfResponse
+   *
+   * @see sfResponse
    */
-  public function initialize(sfEventDispatcher $dispatcher, $parameters = array())
+  public function initialize(sfEventDispatcher $dispatcher, $options = array())
   {
-    parent::initialize($dispatcher, $parameters);
+    parent::initialize($dispatcher, $options);
 
-    $this->statusTexts = array(
-      '100' => 'Continue',
-      '101' => 'Switching Protocols',
-      '200' => 'OK',
-      '201' => 'Created',
-      '202' => 'Accepted',
-      '203' => 'Non-Authoritative Information',
-      '204' => 'No Content',
-      '205' => 'Reset Content',
-      '206' => 'Partial Content',
-      '300' => 'Multiple Choices',
-      '301' => 'Moved Permanently',
-      '302' => 'Found',
-      '303' => 'See Other',
-      '304' => 'Not Modified',
-      '305' => 'Use Proxy',
-      '306' => '(Unused)',
-      '307' => 'Temporary Redirect',
-      '400' => 'Bad Request',
-      '401' => 'Unauthorized',
-      '402' => 'Payment Required',
-      '403' => 'Forbidden',
-      '404' => 'Not Found',
-      '405' => 'Method Not Allowed',
-      '406' => 'Not Acceptable',
-      '407' => 'Proxy Authentication Required',
-      '408' => 'Request Timeout',
-      '409' => 'Conflict',
-      '410' => 'Gone',
-      '411' => 'Length Required',
-      '412' => 'Precondition Failed',
-      '413' => 'Request Entity Too Large',
-      '414' => 'Request-URI Too Long',
-      '415' => 'Unsupported Media Type',
-      '416' => 'Requested Range Not Satisfiable',
-      '417' => 'Expectation Failed',
-      '500' => 'Internal Server Error',
-      '501' => 'Not Implemented',
-      '502' => 'Bad Gateway',
-      '503' => 'Service Unavailable',
-      '504' => 'Gateway Timeout',
-      '505' => 'HTTP Version Not Supported',
-    );
+    $this->javascripts = array_combine($this->positions, array_fill(0, count($this->positions), array()));
+    $this->stylesheets = array_combine($this->positions, array_fill(0, count($this->positions), array()));
+
+    if (!isset($this->options['charset']))
+    {
+      $this->options['charset'] = 'utf-8';
+    }
+
+    $this->setContentType(isset($this->options['content_type']) ? $this->options['content_type'] : 'text/html');
   }
 
   /**
@@ -164,7 +181,7 @@ class sfWebResponse extends sfResponse
   public function setStatusCode($code, $name = null)
   {
     $this->statusCode = $code;
-    $this->statusText = null !== $name ? $name : $this->statusTexts[$code];
+    $this->statusText = null !== $name ? $name : self::$statusTexts[$code];
   }
 
   /**
@@ -248,7 +265,7 @@ class sfWebResponse extends sfResponse
     // add charset if needed (only on text content)
     if (false === stripos($value, 'charset') && (0 === stripos($value, 'text/') || strlen($value) - 3 === strripos($value, 'xml')))
     {
-      $value .= '; charset='.$this->getParameter('charset');
+      $value .= '; charset='.$this->options['charset'];
     }
 
     $this->headers['Content-Type'] = $value;
@@ -261,7 +278,7 @@ class sfWebResponse extends sfResponse
    */
   public function getContentType()
   {
-    return $this->getHttpHeader('Content-Type', 'text/html; charset='.$this->getParameter('charset'));
+    return $this->getHttpHeader('Content-Type');
   }
 
   /**
@@ -279,7 +296,7 @@ class sfWebResponse extends sfResponse
     $status = 'HTTP/1.1 '.$this->statusCode.' '.$this->statusText;
     header($status);
 
-    if ($this->getParameter('logging'))
+    if ($this->options['logging'])
     {
       $this->dispatcher->notify(new sfEvent($this, 'application.log', array(sprintf('Send status "%s"', $status))));
     }
@@ -289,7 +306,7 @@ class sfWebResponse extends sfResponse
     {
       header($name.': '.$value);
 
-      if ($value != '' && $this->getParameter('logging'))
+      if ($value != '' && $this->options['logging'])
       {
         $this->dispatcher->notify(new sfEvent($this, 'application.log', array(sprintf('Send header "%s": "%s"', $name, $value))));
       }
@@ -307,7 +324,7 @@ class sfWebResponse extends sfResponse
         setrawcookie($cookie['name'], $cookie['value'], $cookie['expire'], $cookie['path'], $cookie['domain'], $cookie['secure']);
       }
 
-      if ($this->getParameter('logging'))
+      if ($this->options['logging'])
       {
         $this->dispatcher->notify(new sfEvent($this, 'application.log', array(sprintf('Send cookie "%s": "%s"', $cookie['name'], $cookie['value']))));
       }
@@ -373,7 +390,7 @@ class sfWebResponse extends sfResponse
     }
     else
     {
-      throw new sfParameterException('The second getDate() method parameter must be one of: rfc1123, rfc1036 or asctime.');
+      throw new InvalidArgumentException('The second getDate() method parameter must be one of: rfc1123, rfc1036 or asctime.');
     }
   }
 
@@ -505,7 +522,7 @@ class sfWebResponse extends sfResponse
     // see include_metas() in AssetHelper
     if ($escape)
     {
-      $value = htmlentities($value, ENT_QUOTES, $this->getParameter('charset'));
+      $value = htmlspecialchars($value, ENT_QUOTES, $this->options['charset']);
     }
 
     $current = isset($this->metas[$key]) ? $this->metas[$key] : null;
@@ -537,6 +554,16 @@ class sfWebResponse extends sfResponse
   }
 
   /**
+   * Returns the available position names for stylesheets and javascripts in order.
+   *
+   * @return array An array of position names
+   */
+  public function getPositions()
+  {
+    return $this->positions;
+  }
+
+  /**
    * Retrieves stylesheets for the current web response.
    *
    * @param string  Position
@@ -550,11 +577,13 @@ class sfWebResponse extends sfResponse
       return $this->stylesheets;
     }
 
+    $this->validatePosition($position);
+
     return isset($this->stylesheets[$position]) ? $this->stylesheets[$position] : array();
   }
 
   /**
-   * Adds an stylesheet to the current web response.
+   * Adds a stylesheet to the current web response.
    *
    * @param string Stylesheet
    * @param string Position
@@ -562,12 +591,22 @@ class sfWebResponse extends sfResponse
    */
   public function addStylesheet($css, $position = '', $options = array())
   {
-    if (!isset($this->stylesheets[$position]))
-    {
-      $this->stylesheets[$position] = array();
-    }
+    $this->validatePosition($position);
 
     $this->stylesheets[$position][$css] = $options;
+  }
+
+  /**
+   * Removes a stylesheet from the current web response.
+   *
+   * @param string Stylesheet
+   * @param string Position
+   */
+  public function removeStylesheet($css, $position = '')
+  {
+    $this->validatePosition($position);
+
+    unset($this->stylesheets[$position][$css]);
   }
 
   /**
@@ -584,6 +623,8 @@ class sfWebResponse extends sfResponse
       return $this->javascripts;
     }
 
+    $this->validatePosition($position);
+
     return isset($this->javascripts[$position]) ? $this->javascripts[$position] : array();
   }
 
@@ -596,12 +637,22 @@ class sfWebResponse extends sfResponse
    */
   public function addJavascript($js, $position = '', $options = array())
   {
-    if (!isset($this->javascripts[$position]))
-    {
-      $this->javascripts[$position] = array();
-    }
+    $this->validatePosition($position);
 
     $this->javascripts[$position][$js] = $options;
+  }
+
+  /**
+   * Removes javascript code from the current web response.
+   *
+   * @param string Javascript code
+   * @param string Position
+   */
+  public function removeJavascript($js, $position = '')
+  {
+    $this->validatePosition($position);
+
+    unset($this->javascripts[$position][$js]);
   }
 
   /**
@@ -664,36 +715,59 @@ class sfWebResponse extends sfResponse
    *
    * @param sfWebResponse A sfWebResponse instance
    */
-  public function mergeProperties(sfWebResponse $response)
+  public function copyProperties(sfWebResponse $response)
   {
-    $this->parameterHolder = clone $response->getParameterHolder();
-    $this->headers         = $response->getHttpHeaders();
-    $this->metas           = $response->getMetas();
-    $this->httpMetas       = $response->getHttpMetas();
-    $this->stylesheets     = $response->getStylesheets('ALL');
-    $this->javascripts     = $response->getJavascripts('ALL');
-    $this->slots           = $response->getSlots();
+    $this->options     = $response->getOptions();
+    $this->headers     = $response->getHttpHeaders();
+    $this->metas       = $response->getMetas();
+    $this->httpMetas   = $response->getHttpMetas();
+    $this->stylesheets = $response->getStylesheets('ALL');
+    $this->javascripts = $response->getJavascripts('ALL');
+    $this->slots       = $response->getSlots();
   }
 
   /**
-   * Serializes the current instance.
+   * Merges all properties from a given sfWebResponse object to the current one.
    *
-   * @return array Objects instance
+   * @param sfWebResponse A sfWebResponse instance
+   */
+  public function merge(sfWebResponse $response)
+  {
+    foreach ($this->getPositions() as $position)
+    {
+      $this->javascripts[$position] = array_merge($this->getJavascripts($position), $response->getJavascripts($position));
+      $this->stylesheets[$position] = array_merge($this->getStylesheets($position), $response->getStylesheets($position));
+    }
+
+    $this->slots = array_merge($this->getSlots(), $response->getSlots());
+  }
+
+  /**
+   * @see sfResponse
    */
   public function serialize()
   {
-    return serialize(array($this->content, $this->statusCode, $this->statusText, $this->parameterHolder, $this->cookies, $this->headerOnly, $this->headers, $this->metas, $this->httpMetas, $this->stylesheets, $this->javascripts, $this->slots));
+    return serialize(array($this->content, $this->statusCode, $this->statusText, $this->options, $this->cookies, $this->headerOnly, $this->headers, $this->metas, $this->httpMetas, $this->stylesheets, $this->javascripts, $this->slots));
   }
 
   /**
-   * Unserializes a sfWebResponse instance.
+   * @see sfResponse
    */
   public function unserialize($serialized)
   {
-    $data = unserialize($serialized);
+    list($this->content, $this->statusCode, $this->statusText, $this->options, $this->cookies, $this->headerOnly, $this->headers, $this->metas, $this->httpMetas, $this->stylesheets, $this->javascripts, $this->slots) = unserialize($serialized);
+  }
 
-    $this->initialize(sfContext::hasInstance() ? sfContext::getInstance()->getEventDispatcher() : new sfEventDispatcher());
-
-    list($this->content, $this->statusCode, $this->statusText, $this->parameterHolder, $this->cookies, $this->headerOnly, $this->headers, $this->metas, $this->httpMetas, $this->stylesheets, $this->javascripts, $this->slots) = $data;
+  /**
+   * Validate a position name.
+   *
+   * @throws InvalidArgumentException if the position is not available
+   */
+  protected function validatePosition($position)
+  {
+    if (!in_array($position, $this->positions, true))
+    {
+      throw new InvalidArgumentException(sprintf('The position "%s" does not exist (available positions: %s).', $position, implode(', ', $this->positions)));
+    }
   }
 }

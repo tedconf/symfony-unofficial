@@ -4,7 +4,7 @@ COPYRIGHTS
 symfony
 -------
 
-symfony is originally based on Mojavi3 by Sean Kerr
+symfony is originally based on Mojavi3 by Sean Kerr <sean@code-box.org>
 
 Url:       http://www.symfony-project.com/
 Copyright: Fabien Potencier
@@ -62,15 +62,6 @@ symfony contains the Prado i18n core classes
 Url:       http://www.pradosoft.com/
 Copyright: 2004-2006, The PRADO Group
 License:   BSD - see licenses/LICENSE.prado file
-
-Spyc
-----
-
-symfony contains the Spyc software
-
-Url:       http://spyc.sourceforge.net/
-Copyright: 2005-2006 Chris Wanstrath
-License:   MIT - http://www.opensource.org/licenses/mit-license.php
 
 lime
 ----

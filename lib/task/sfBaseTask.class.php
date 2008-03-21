@@ -16,8 +16,11 @@
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  * @version    SVN: $Id$
  */
-abstract class sfBaseTask extends sfTask
+abstract class sfBaseTask extends sfCommandApplicationTask
 {
+  protected
+    $configuration = null;
+
   /**
    * @see sfTask
    */
@@ -27,58 +30,56 @@ abstract class sfBaseTask extends sfTask
 
     $this->checkProjectExists();
 
-    try
+    $application = $commandManager->getArgumentSet()->hasArgument('application') ? $commandManager->getArgumentValue('application') : null;
+    if (!is_null($application))
     {
-      if (!is_null($commandManager->getArgumentValue('application')))
+      $this->checkAppExists($application);
+
+      require_once sfConfig::get('sf_config_dir').'/ProjectConfiguration.class.php';
+      $this->configuration = ProjectConfiguration::getApplicationConfiguration($application, 'test', true);
+    }
+    else
+    {
+      if (file_exists(sfConfig::get('sf_config_dir').'/ProjectConfiguration.class.php'))
       {
-        $this->checkAppExists($commandManager->getArgumentValue('application'));
+        require_once sfConfig::get('sf_config_dir').'/ProjectConfiguration.class.php';
+        $this->configuration = new ProjectConfiguration();
+      }
+      else
+      {
+        $this->configuration = new sfProjectConfiguration(getcwd());
       }
     }
-    catch (sfCommandException $e)
+
+    $autoloader = sfSimpleAutoload::getInstance();
+    foreach ($this->configuration->getModelDirs() as $dir)
     {
+      $autoloader->addDirectory($dir);
     }
 
     return $this->execute($commandManager->getArgumentValues(), $commandManager->getOptionValues());
   }
 
-  public function __get($key)
-  {
-    switch ($key)
-    {
-      case 'filesystem':
-        if (!isset($this->filesystem))
-        {
-          $this->filesystem = new sfFilesystem($this->dispatcher, $this->formatter);
-        }
-
-        return $this->filesystem;
-      default:
-        trigger_error(sprintf('Undefined property: %s::$%s', get_class($this), $key), E_USER_NOTICE);
-    }
-  }
-
   /**
-   * Bootstraps a symfony application.
+   * Returns the filesystem instance.
    *
-   * @param string  The application name
-   * @param string  The environment name
-   * @param Boolean Whether to bootstrap the symfony application in debug mode
+   * @return sfFilesystem A sfFilesystem instance
    */
-  public function bootstrapSymfony($app, $env = 'dev', $debug = true)
+  public function getFilesystem()
   {
-    if (defined('SF_ROOT_DIR'))
+    if (!isset($this->filesystem))
     {
-      return;
+      if (is_null($this->commandApplication) || $this->commandApplication->isVerbose())
+      {
+        $this->filesystem = new sfFilesystem($this->dispatcher, $this->formatter);
+      }
+      else
+      {
+        $this->filesystem = new sfFilesystem();
+      }
     }
 
-    define('SF_ROOT_DIR',    sfConfig::get('sf_root_dir'));
-    define('SF_APP',         $app);
-    define('SF_ENVIRONMENT', $env);
-    define('SF_DEBUG',       $debug);
-
-    require_once(SF_ROOT_DIR.DIRECTORY_SEPARATOR.'apps'.DIRECTORY_SEPARATOR.SF_APP.DIRECTORY_SEPARATOR.'config'.DIRECTORY_SEPARATOR.'config.php');
-
-    sfContext::getInstance();
+    return $this->filesystem;
   }
 
   /**
@@ -103,7 +104,7 @@ abstract class sfBaseTask extends sfTask
    */
   public function checkAppExists($app)
   {
-    if (!is_dir(getcwd().'/apps/'.$app))
+    if (!is_dir(sfConfig::get('sf_apps_dir').'/'.$app))
     {
       throw new sfException(sprintf('Application "%s" does not exist', $app));
     }
@@ -119,7 +120,7 @@ abstract class sfBaseTask extends sfTask
    */
   public function checkModuleExists($app, $module)
   {
-    if (!is_dir(getcwd().'/apps/'.$app.'/modules/'.$module))
+    if (!is_dir(sfConfig::get('sf_apps_dir').'/'.$app.'/modules/'.$module))
     {
       throw new sfException(sprintf('Module "%s/%s" does not exist.', $app, $module));
     }

@@ -9,6 +9,7 @@
  */
 
 /**
+ * A View to render partials.
  *
  * @package    symfony
  * @subpackage view
@@ -17,11 +18,19 @@
  */
 class sfPartialView extends sfPHPView
 {
+  protected
+    $partialVars = array();
+
   /**
    * Executes any presentation logic for this view.
    */
   public function execute()
   {
+  }
+
+  public function setPartialVars(array $partialVars)
+  {
+    $this->partialVars = $partialVars;
   }
 
   /**
@@ -38,7 +47,7 @@ class sfPartialView extends sfPHPView
     }
     else
     {
-      $this->setDirectory(sfLoader::getTemplateDir($this->moduleName, $this->getTemplate()));
+      $this->setDirectory($this->context->getConfiguration()->getTemplateDir($this->moduleName, $this->getTemplate()));
     }
   }
 
@@ -54,11 +63,38 @@ class sfPartialView extends sfPHPView
       $timer = sfTimerManager::getTimer(sprintf('Partial "%s/%s"', $this->moduleName, $this->actionName));
     }
 
+    if (sfConfig::get('sf_cache'))
+    {
+      $viewCache = $this->context->getViewCacheManager();
+      $viewCache->registerConfiguration($this->moduleName);
+
+      $cacheKey = $viewCache->computeCacheKey($this->partialVars);
+      if ($retval = $viewCache->getPartialCache($this->moduleName, $this->actionName, $cacheKey))
+      {
+        return $retval;
+      }
+      else
+      {
+        $mainResponse = $this->context->getResponse();
+        $responseClass = get_class($mainResponse);
+        $this->context->setResponse($response = new $responseClass($this->context->getEventDispatcher(), $mainResponse->getOptions()));
+      }
+    }
+
+    $this->getAttributeHolder()->add($this->partialVars);
+
     // execute pre-render check
     $this->preRenderCheck();
 
     // render template
     $retval = $this->renderFile($this->getDirectory().'/'.$this->getTemplate());
+
+    if (sfConfig::get('sf_cache'))
+    {
+      $retval = $viewCache->setPartialCache($this->moduleName, $this->actionName, $cacheKey, $retval);
+      $this->context->setResponse($mainResponse);
+      $mainResponse->merge($response);
+    }
 
     if (sfConfig::get('sf_debug') && sfConfig::get('sf_logging_enabled'))
     {

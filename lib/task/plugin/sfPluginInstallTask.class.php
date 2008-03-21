@@ -8,6 +8,8 @@
  * file that was distributed with this source code.
  */
 
+require_once(dirname(__FILE__).'/sfPluginBaseTask.class.php');
+
 /**
  * Installs a plugin.
  *
@@ -71,6 +73,10 @@ You can specify another channel with the [channel|COMMENT] option:
   [./symfony plugin:install --channel=mypearchannel sfGuargPlugin|INFO]
   [./symfony plugin:install -c mypearchannel sfGuargPlugin|INFO]
 
+Or you can use the [channel/package|INFO] notation:
+
+  [./symfony plugin:install mypearchannel/sfGuargPlugin|INFO]
+
 You can also install PEAR packages hosted on a website:
 
   [./symfony plugin:install http://somewhere.example.com/sfGuargPlugin-1.0.0.tgz|INFO]
@@ -90,7 +96,10 @@ EOF;
    */
   protected function execute($arguments = array(), $options = array())
   {
-    $this->dispatcher->notify(new sfEvent($this, 'command.log', array($this->formatter->formatSection('plugin', sprintf('installing plugin "%s"', $arguments['name'])))));
+    $this->logSection('plugin', sprintf('installing plugin "%s"', $arguments['name']));
+
+    $options['version'] = $options['release'];
+    unset($options['release']);
 
     $this->getPluginManager()->installPlugin($arguments['name'], $options);
   }

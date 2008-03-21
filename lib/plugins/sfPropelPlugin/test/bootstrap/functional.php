@@ -18,22 +18,55 @@ if (!isset($root_dir))
 {
   $root_dir = realpath(dirname(__FILE__).sprintf('/../%s/fixtures', isset($type) ? $type : 'functional'));
 }
-define('SF_ROOT_DIR',    $root_dir);
-define('SF_APP',         $app);
-define('SF_ENVIRONMENT', 'test');
-define('SF_DEBUG',       isset($debug) ? $debug : true);
 
-// initialize symfony
-require_once(SF_ROOT_DIR.DIRECTORY_SEPARATOR.'apps'.DIRECTORY_SEPARATOR.SF_APP.DIRECTORY_SEPARATOR.'config'.DIRECTORY_SEPARATOR.'config.php');
+require_once $root_dir.'/config/ProjectConfiguration.class.php';
+$configuration = ProjectConfiguration::getApplicationConfiguration($app, 'test', isset($debug) ? $debug : true);
+sfContext::createInstance($configuration);
 
 // remove all cache
-sfToolkit::clearDirectory(sfConfig::get('sf_app_cache_dir'));
+sf_functional_test_shutdown();
+
+register_shutdown_function('sf_functional_test_shutdown');
+
+function sf_functional_test_shutdown()
+{
+  sfToolkit::clearDirectory(sfConfig::get('sf_cache_dir'));
+  sfToolkit::clearDirectory(sfConfig::get('sf_log_dir'));
+}
+
+// build Propel om/map/sql/forms
+$files = glob(sfConfig::get('sf_lib_dir').'/model/om/*.php');
+if (false === $files || !count($files))
+{
+  chdir(sfConfig::get('sf_root_dir'));
+  $task = new sfPropelBuildModelTask(new sfEventDispatcher(), new sfFormatter());
+  ob_start();
+  $task->run();
+  $output = ob_get_clean();
+}
+
+$files = glob(sfConfig::get('sf_data_dir').'/sql/*.php');
+if (false === $files || !count($files))
+{
+  chdir(sfConfig::get('sf_root_dir'));
+  $task = new sfPropelBuildSqlTask(new sfEventDispatcher(), new sfFormatter());
+  ob_start();
+  $task->run();
+  $output = ob_get_clean();
+}
+
+$files = glob(sfConfig::get('sf_lib_dir').'/form/base/*.php');
+if (false === $files || !count($files))
+{
+  chdir(sfConfig::get('sf_root_dir'));
+  $task = new sfPropelBuildFormsTask(new sfEventDispatcher(), new sfFormatter());
+  $task->run();
+}
 
 if (isset($fixtures))
 {
   // initialize database manager
-  $databaseManager = new sfDatabaseManager();
-  $databaseManager->initialize();
+  $databaseManager = new sfDatabaseManager($configuration);
 
   // cleanup database
   $db = sfConfig::get('sf_data_dir').DIRECTORY_SEPARATOR.'/database.sqlite';

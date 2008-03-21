@@ -3,7 +3,7 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- * (c) 2004-2006 Sean Kerr.
+ * (c) 2004-2006 Sean Kerr <sean@code-box.org>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -15,7 +15,7 @@
  * @package    symfony
  * @subpackage util
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
- * @author     Sean Kerr <skerr@mojavi.org>
+ * @author     Sean Kerr <sean@code-box.org>
  * @version    SVN: $Id$
  */
 class sfToolkit
@@ -183,17 +183,8 @@ class sfToolkit
    */
   public static function stripComments($source)
   {
-    if (!sfConfig::get('sf_strip_comments', true))
+    if (!sfConfig::get('sf_strip_comments', true) || !function_exists('token_get_all'))
     {
-      return $source;
-    }
-
-    // tokenizer available?
-    if (!function_exists('token_get_all'))
-    {
-      $source = sfToolkit::pregtr($source, array('#/\*((?!\*/)[\d\D\s])*\*/#' => '',   // remove /* ... */
-                                                 '#^\s*//.*$#m'               => '')); // remove // ...
-
       return $source;
     }
 
@@ -496,33 +487,79 @@ class sfToolkit
    */
   public static function getArrayValueForPath($values, $name, $default = null)
   {
-    if (false !== ($offset = strpos($name, '[')))
+    if (false === $offset = strpos($name, '['))
     {
-      if (isset($values[substr($name, 0, $offset)]))
-      {
-        $array = $values[substr($name, 0, $offset)];
-
-        while ($pos = strpos($name, '[', $offset))
-        {
-          $end = strpos($name, ']', $pos);
-          if ($end == $pos + 1)
-          {
-            // reached a []
-            break;
-          }
-          else if (!isset($array[substr($name, $pos + 1, $end - $pos - 1)]))
-          {
-            return $default;
-          }
-          $array = $array[substr($name, $pos + 1, $end - $pos - 1)];
-          $offset = $end;
-        }
-
-        return $array;
-      }
+      return isset($values[$name]) ? $values[$name] : $default;
     }
 
-    return $default;
+    if (!isset($values[substr($name, 0, $offset)]))
+    {
+      return $default;
+    }
+
+    $array = $values[substr($name, 0, $offset)];
+
+    while (false !== $pos = strpos($name, '[', $offset))
+    {
+      $end = strpos($name, ']', $pos);
+      if ($end == $pos + 1)
+      {
+        // reached a []
+        if (!is_array($array))
+        {
+          return $default;
+        }
+        break;
+      }
+      else if (!isset($array[substr($name, $pos + 1, $end - $pos - 1)]))
+      {
+        return $default;
+      }
+      $array = $array[substr($name, $pos + 1, $end - $pos - 1)];
+      $offset = $end;
+    }
+
+    return $array;
+  }
+
+  /**
+   * Returns true if the a path exists for the given array.
+   *
+   * @param array  The values to search
+   * @param string The token name
+   *
+   * @return Boolean
+   */
+  public static function hasArrayValueForPath($values, $name)
+  {
+    if (false === $offset = strpos($name, '['))
+    {
+      return array_key_exists($name, $values);
+    }
+
+    if (!isset($values[substr($name, 0, $offset)]))
+    {
+      return false;
+    }
+
+    $array = $values[substr($name, 0, $offset)];
+    while (false !== $pos = strpos($name, '[', $offset))
+    {
+      $end = strpos($name, ']', $pos);
+      if ($end == $pos + 1)
+      {
+        // reached a []
+        return is_array($array);
+      }
+      else if (!isset($array[substr($name, $pos + 1, $end - $pos - 1)]))
+      {
+        return false;
+      }
+      $array = $array[substr($name, $pos + 1, $end - $pos - 1)];
+      $offset = $end;
+    }
+
+    return true;
   }
 
   /**

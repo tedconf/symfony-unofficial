@@ -48,8 +48,10 @@ class symfony_cmd
 
   public function execute_command($cmd)
   {
+    $symfony = file_exists('symfony') ? 'symfony' : dirname(__FILE__).'/../../data/bin/symfony';
+
     ob_start();
-    passthru(sprintf('%s -d html_errors=off -d open_basedir= -q "%s" %s 2>&1', $this->php_cli, dirname(__FILE__).'/../../data/bin/symfony', $cmd), $return);
+    passthru(sprintf('%s -d html_errors=off -d open_basedir= -q "%s" %s 2>&1', $this->php_cli, $symfony, $cmd), $return);
     $content = ob_get_clean();
     $this->t->cmp_ok($return, '<=', 0, sprintf('"symfony %s" returns ok', $cmd));
 
@@ -119,10 +121,10 @@ $t->is($content, $c->get_fixture_content('test/unit/result-harness.txt'), '"test
 $content = $c->execute_command('test:all');
 $t->is($content, $c->get_fixture_content('test/result-harness.txt'), '"test:all" launches all unit and functional tests');
 
-$content = $c->execute_command('project:freeze');
-$t->like(file_get_contents($c->tmp_dir.DS.'config'.DS.'config.php'), '/dirname\(__FILE__\)/', '"project:freeze" freezes symfony lib and data dir into the project directory');
+$content = $c->execute_command(sprintf('project:freeze %s', realpath(dirname(__FILE__).'/../../data')));
+$t->like(file_get_contents($c->tmp_dir.DS.'config'.DS.'ProjectConfiguration.class.php'), '/dirname\(__FILE__\)/', '"project:freeze" freezes symfony lib and data dir into the project directory');
 
 $content = $c->execute_command('project:unfreeze');
-$t->unlike(file_get_contents($c->tmp_dir.DS.'config'.DS.'config.php'), '/dirname\(__FILE__\)/', '"project:unfreeze" unfreezes symfony lib and data dir');
+$t->unlike(file_get_contents($c->tmp_dir.DS.'config'.DS.'ProjectConfiguration.class.php'), '/dirname\(__FILE__\)/', '"project:unfreeze" unfreezes symfony lib and data dir');
 
 $c->shutdown();

@@ -3,7 +3,7 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- * (c) 2004-2006 Sean Kerr.
+ * (c) 2004-2006 Sean Kerr <sean@code-box.org>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -17,7 +17,7 @@
  * @package    symfony
  * @subpackage controller
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
- * @author     Sean Kerr <skerr@mojavi.org>
+ * @author     Sean Kerr <sean@code-box.org>
  * @version    SVN: $Id$
  */
 class sfFrontWebController extends sfWebController
@@ -43,6 +43,11 @@ class sfFrontWebController extends sfWebController
       $request    = $this->context->getRequest();
       $moduleName = $request->getParameter('module');
       $actionName = $request->getParameter('action');
+
+      if (empty($moduleName) || empty($actionName))
+      {
+        throw new sfError404Exception(sprintf('Empty module and/or action after parsing the URL "%s" (%s/%s).', $request->getPathInfo(), $moduleName, $actionName));
+      }
 
       // make the first request
       $this->forward($moduleName, $actionName);

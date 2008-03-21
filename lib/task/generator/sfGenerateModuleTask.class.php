@@ -8,6 +8,8 @@
  * file that was distributed with this source code.
  */
 
+require_once(dirname(__FILE__).'/sfGeneratorBaseTask.class.php');
+
 /**
  * Generates a new module.
  *
@@ -64,10 +66,10 @@ EOF;
    */
   protected function execute($arguments = array(), $options = array())
   {
-    $app       = $arguments['application'];
-    $module    = $arguments['module'];
+    $app    = $arguments['application'];
+    $module = $arguments['module'];
 
-    $moduleDir = sfConfig::get('sf_root_dir').'/'.sfConfig::get('sf_apps_dir_name').'/'.$app.'/'.sfConfig::get('sf_app_module_dir_name').'/'.$module;
+    $moduleDir = sfConfig::get('sf_app_module_dir').'/'.$module;
 
     if (is_dir($moduleDir))
     {
@@ -89,21 +91,21 @@ EOF;
     }
     else
     {
-      $skeletonDir = sfConfig::get('sf_symfony_data_dir').'/skeleton/module';
+      $skeletonDir = dirname(__FILE__).'/skeleton/module';
     }
 
     // create basic application structure
     $finder = sfFinder::type('any')->ignore_version_control()->discard('.sf');
-    $this->filesystem->mirror($skeletonDir.'/module', $moduleDir, $finder);
+    $this->getFilesystem()->mirror($skeletonDir.'/module', $moduleDir, $finder);
 
     // create basic test
-    $this->filesystem->copy($skeletonDir.'/test/actionsTest.php', sfConfig::get('sf_root_dir').'/test/functional/'.$app.'/'.$module.'ActionsTest.php');
+    $this->getFilesystem()->copy($skeletonDir.'/test/actionsTest.php', sfConfig::get('sf_test_dir').'/functional/'.$app.'/'.$module.'ActionsTest.php');
 
     // customize test file
-    $this->filesystem->replaceTokens(sfConfig::get('sf_root_dir').'/test/functional/'.$app.DIRECTORY_SEPARATOR.$module.'ActionsTest.php', '##', '##', $constants);
+    $this->getFilesystem()->replaceTokens(sfConfig::get('sf_test_dir').'/functional/'.$app.DIRECTORY_SEPARATOR.$module.'ActionsTest.php', '##', '##', $constants);
 
     // customize php and yml files
     $finder = sfFinder::type('file')->name('*.php', '*.yml');
-    $this->filesystem->replaceTokens($finder->in($moduleDir), '##', '##', $constants);
+    $this->getFilesystem()->replaceTokens($finder->in($moduleDir), '##', '##', $constants);
   }
 }

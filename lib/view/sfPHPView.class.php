@@ -3,18 +3,19 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- * (c) 2004-2006 Sean Kerr.
+ * (c) 2004-2006 Sean Kerr <sean@code-box.org>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
 
 /**
+ * A view that uses PHP as the templating engine.
  *
  * @package    symfony
  * @subpackage view
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
- * @author     Sean Kerr <skerr@mojavi.org>
+ * @author     Sean Kerr <sean@code-box.org>
  * @version    SVN: $Id$
  */
 class sfPHPView extends sfView
@@ -39,10 +40,8 @@ class sfPHPView extends sfView
     }
 
     $coreHelpersLoaded = 1;
-    $core_helpers = array('Helper', 'Url', 'Asset', 'Tag', 'Escaping');
-    $standard_helpers = sfConfig::get('sf_standard_helpers');
 
-    $helpers = array_unique(array_merge($core_helpers, $standard_helpers));
+    $helpers = array_unique(array_merge(array('Helper', 'Url', 'Asset', 'Tag', 'Escaping'), sfConfig::get('sf_standard_helpers')));
 
     // remove default Form helper if compat_10 is false
     if (!sfConfig::get('sf_compat_10') && false !== $i = array_search('Form', $helpers))
@@ -69,7 +68,7 @@ class sfPHPView extends sfView
 
     $this->loadCoreAndStandardHelpers();
 
-    extract($this->attributeHolder->toArray());
+    extract($this->attributeHolder->toArray(), EXTR_REFS);
 
     // render
     ob_start();
@@ -102,16 +101,12 @@ class sfPHPView extends sfView
     $this->context->set('view_instance', $this);
 
     // require our configuration
-    $viewConfigFile = $this->moduleName.'/'.sfConfig::get('sf_app_module_config_dir_name').'/view.yml';
-    require(sfConfigCache::getInstance()->checkConfig(sfConfig::get('sf_app_module_dir_name').'/'.$viewConfigFile));
-
-    // decorator configuration
-    $this->setDecoratorTemplate(sfConfig::get('symfony.view.'.$this->moduleName.'_'.$this->actionName.'_layout'));
+    require($this->context->getConfigCache()->checkConfig('modules/'.$this->moduleName.'/config/view.yml'));
 
     // set template directory
     if (!$this->directory)
     {
-      $this->setDirectory(sfLoader::getTemplateDir($this->moduleName, $this->getTemplate()));
+      $this->setDirectory($this->context->getConfiguration()->getTemplateDir($this->moduleName, $this->getTemplate()));
     }
   }
 

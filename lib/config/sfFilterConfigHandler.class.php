@@ -3,7 +3,7 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- * (c) 2004-2006 Sean Kerr.
+ * (c) 2004-2006 Sean Kerr <sean@code-box.org>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -15,7 +15,7 @@
  * @package    symfony
  * @subpackage config
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
- * @author     Sean Kerr <skerr@mojavi.org>
+ * @author     Sean Kerr <sean@code-box.org>
  * @version    SVN: $Id$
  */
 class sfFilterConfigHandler extends sfYamlConfigHandler
@@ -33,28 +33,7 @@ class sfFilterConfigHandler extends sfYamlConfigHandler
   public function execute($configFiles)
   {
     // parse the yaml
-    $config = $this->parseYaml($configFiles[0]);
-    foreach (array_slice($configFiles, 1) as $i => $configFile)
-    {
-      // we get the order of the new file and merge with the previous configurations
-      $previous = $config;
-
-      $config = array();
-      foreach ($this->parseYaml($configFile) as $key => $value)
-      {
-        $value = (array) $value;
-        $config[$key] = isset($previous[$key]) ? sfToolkit::arrayDeepMerge($previous[$key], $value) : $value;
-      }
-
-      // check that every key in previous array is still present (to avoid problem when upgrading)
-      foreach (array_keys($previous) as $key)
-      {
-        if (!isset($config[$key]))
-        {
-          throw new sfConfigurationException(sprintf('The filter name "%s" is defined in "%s" but not present in "%s" file. To disable a filter, add a "enabled" key with a false value.', $key, $configFiles[$i], $configFile));
-        }
-      }
-    }
+    $config = self::getConfiguration($configFiles);
 
     // init our data and includes arrays
     $data     = array();
@@ -80,24 +59,20 @@ class sfFilterConfigHandler extends sfYamlConfigHandler
 
       if (isset($keys['file']))
       {
-        // we have a file to include
-        $file = $this->replaceConstants($keys['file']);
-        $file = $this->replacePath($file);
-
-        if (!is_readable($file))
+        if (!is_readable($keys['file']))
         {
           // filter file doesn't exist
-          throw new sfParseException(sprintf('Configuration file "%s" specifies class "%s" with nonexistent or unreadable file "%s".', $configFiles[0], $class, $file));
+          throw new sfParseException(sprintf('Configuration file "%s" specifies class "%s" with nonexistent or unreadable file "%s".', $configFiles[0], $class, $keys['file']));
         }
 
         // append our data
-        $includes[] = sprintf("require_once('%s');\n", $file);
+        $includes[] = sprintf("require_once('%s');\n", $keys['file']);
       }
 
       $condition = true;
       if (isset($keys['param']['condition']))
       {
-        $condition = $this->replaceConstants($keys['param']['condition']);
+        $condition = $keys['param']['condition'];
         unset($keys['param']['condition']);
       }
 
@@ -176,5 +151,46 @@ if (\$actionInstance->isSecure())
   {$this->addFilter($category, $class, $parameters)}
 }
 EOF;
+  }
+
+  /**
+   * @see sfConfigHandler
+   */
+  static public function getConfiguration(array $configFiles)
+  {
+    $config = self::parseYaml($configFiles[0]);
+    foreach (array_slice($configFiles, 1) as $i => $configFile)
+    {
+      // we get the order of the new file and merge with the previous configurations
+      $previous = $config;
+
+      $config = array();
+      foreach (self::parseYaml($configFile) as $key => $value)
+      {
+        $value = (array) $value;
+        $config[$key] = isset($previous[$key]) ? sfToolkit::arrayDeepMerge($previous[$key], $value) : $value;
+      }
+
+      // check that every key in previous array is still present (to avoid problem when upgrading)
+      foreach (array_keys($previous) as $key)
+      {
+        if (!isset($config[$key]))
+        {
+          throw new sfConfigurationException(sprintf('The filter name "%s" is defined in "%s" but not present in "%s" file. To disable a filter, add a "enabled" key with a false value.', $key, $configFiles[$i], $configFile));
+        }
+      }
+    }
+
+    $config = self::replaceConstants($config);
+
+    foreach ($config as $category => $keys)
+    {
+      if (isset($keys['file']))
+      {
+        $config['category']['file'] = $this->replacePath($keys['file']);
+      }
+    }
+
+    return $config;
   }
 }

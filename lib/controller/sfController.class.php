@@ -3,7 +3,7 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- * (c) 2004-2006 Sean Kerr.
+ * (c) 2004-2006 Sean Kerr <sean@code-box.org>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -15,7 +15,7 @@
  * @package    symfony
  * @subpackage controller
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
- * @author     Sean Kerr <skerr@mojavi.org>
+ * @author     Sean Kerr <sean@code-box.org>
  * @version    SVN: $Id$
  */
 abstract class sfController
@@ -98,7 +98,7 @@ abstract class sfController
    */
   protected function controllerExists($moduleName, $controllerName, $extension, $throwExceptions)
   {
-    $dirs = sfLoader::getControllerDirs($moduleName);
+    $dirs = $this->context->getConfiguration()->getControllerDirs($moduleName);
     foreach ($dirs as $dir => $checkEnabled)
     {
       // plugin module enabled?
@@ -194,7 +194,7 @@ abstract class sfController
     }
 
     // check for a module generator config file
-    sfConfigCache::getInstance()->import(sfConfig::get('sf_app_module_dir_name').'/'.$moduleName.'/'.sfConfig::get('sf_app_module_config_dir_name').'/generator.yml', true, true);
+    $this->context->getConfigCache()->import('modules/'.$moduleName.'/config/generator.yml', true, true);
 
     if (!$this->actionExists($moduleName, $actionName))
     {
@@ -214,7 +214,7 @@ abstract class sfController
     $this->getActionStack()->addEntry($moduleName, $actionName, $actionInstance);
 
     // include module configuration
-    require(sfConfigCache::getInstance()->checkConfig(sfConfig::get('sf_app_module_dir_name').'/'.$moduleName.'/'.sfConfig::get('sf_app_module_config_dir_name').'/module.yml'));
+    require($this->context->getConfigCache()->checkConfig('modules/'.$moduleName.'/config/module.yml'));
 
     // check if this module is internal
     if ($this->getActionStack()->getSize() == 1 && sfConfig::get('mod_'.strtolower($moduleName).'_is_internal') && !sfConfig::get('sf_test'))
@@ -226,7 +226,7 @@ abstract class sfController
     if (sfConfig::get('mod_'.strtolower($moduleName).'_enabled'))
     {
       // check for a module config.php
-      $moduleConfig = sfConfig::get('sf_app_module_dir').'/'.$moduleName.'/'.sfConfig::get('sf_app_module_config_dir_name').'/config.php';
+      $moduleConfig = sfConfig::get('sf_app_module_dir').'/'.$moduleName.'/config/config.php';
       if (is_readable($moduleConfig))
       {
         require_once($moduleConfig);
@@ -356,7 +356,7 @@ abstract class sfController
   public function getView($moduleName, $actionName, $viewName)
   {
     // user view exists?
-    $file = sfConfig::get('sf_app_module_dir').'/'.$moduleName.'/'.sfConfig::get('sf_app_module_view_dir_name').'/'.$actionName.$viewName.'View.class.php';
+    $file = sfConfig::get('sf_app_module_dir').'/'.$moduleName.'/view/'.$actionName.$viewName.'View.class.php';
 
     if (is_readable($file))
     {
@@ -375,8 +375,7 @@ abstract class sfController
     else
     {
       // view class (as configured in module.yml or defined in action)
-      $viewClassName = sfConfig::get('mod_'.strtolower($moduleName).'_view_class');
-      $class = sfAutoload::getInstance()->getClassPath($viewClassName.'View') ? $viewClassName.'View' : 'sfPHPView';
+      $class = sfConfig::get('mod_'.strtolower($moduleName).'_view_class', 'sfPHP').'View';
     }
 
     return new $class($this->context, $moduleName, $actionName, $viewName);
@@ -439,8 +438,24 @@ abstract class sfController
       sfConfig::set('mod_'.strtolower($module).'_view_class', $viewName);
     }
 
-    // forward to the mail action
-    $this->forward($module, $action);
+    try
+    {
+      // forward to the mail action
+      $this->forward($module, $action);
+    }
+    catch (Exception $e)
+    {
+      // put render mode back
+      $this->setRenderMode($renderMode);
+
+      // remove viewName
+      if ($viewName)
+      {
+        sfConfig::set('mod_'.strtolower($module).'_view_class', $currentViewName);
+      }
+
+      throw $e;
+    }
 
     // grab the action entry from this forward
     $actionEntry = $actionStack->getEntry($index);
@@ -519,7 +534,7 @@ abstract class sfController
     $event = $this->dispatcher->notifyUntil(new sfEvent($this, 'controller.method_not_found', array('method' => $method, 'arguments' => $arguments)));
     if (!$event->isProcessed())
     {
-      throw new sfException(sprintf('Call to undefined method sfController::%s.', $method));
+      throw new sfException(sprintf('Call to undefined method %s::%s.', get_class($this), $method));
     }
 
     return $event->getReturnValue();

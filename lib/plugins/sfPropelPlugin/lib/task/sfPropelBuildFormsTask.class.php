@@ -8,6 +8,8 @@
  * file that was distributed with this source code.
  */
 
+require_once(dirname(__FILE__).'/sfPropelBaseTask.class.php');
+
 /**
  * Create form classes for the current model.
  *
@@ -56,9 +58,9 @@ EOF;
    */
   protected function execute($arguments = array(), $options = array())
   {
-    $this->dispatcher->notify(new sfEvent($this, 'command.log', array($this->formatter->formatSection('propel', 'generating form classes'))));
+    $this->logSection('propel', 'generating form classes');
 
-    $generatorManager = new sfGeneratorManager();
+    $generatorManager = new sfGeneratorManager($this->configuration);
 
     $generatorManager->generate('sfPropelFormGenerator', array('connection' => $options['connection']));
   }

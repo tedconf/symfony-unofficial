@@ -3,14 +3,15 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- * (c) 2004-2006 Sean Kerr.
+ * (c) 2004-2006 Sean Kerr <sean@code-box.org>
  * 
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
 
 /**
- * sfParameterHolder provides a base class for managing parameters.
+ * sfNamespacedParameterHolder provides a class for managing parameters
+ * with support for namespaces.
  *
  * Parameters, in this case, are used to extend classes with additional data
  * that requires no additional logic to manage.
@@ -18,21 +19,21 @@
  * @package    symfony
  * @subpackage util
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
- * @author     Sean Kerr <skerr@mojavi.org>
+ * @author     Sean Kerr <sean@code-box.org>
  * @version    SVN: $Id$
  */
-class sfNamespacedParameterHolder implements Serializable
+class sfNamespacedParameterHolder extends sfParameterHolder
 {
   protected $default_namespace = null;
   protected $parameters = array();
 
   /**
-   * The constructor for sfParameterHolder.
-   * 
+   * The constructor for sfNamespacedParameterHolder.
+   *
    * The default namespace may be overridden at initialization as follows:
    * <code>
    * <?php
-   * $mySpecialPH = new sfParameterHolder('symfony/special');
+   * $mySpecialPH = new sfNamespacedParameterHolder('symfony/special');
    * ?>
    * </code>
    */
@@ -191,34 +192,13 @@ class sfNamespacedParameterHolder implements Serializable
       $ns = $this->default_namespace;
     }
 
-    if (false !== ($offset = strpos($name, '[')))
-    {
-      if (isset($this->parameters[$ns][substr($name, 0, $offset)]))
-      {
-        $array = $this->parameters[$ns][substr($name, 0, $offset)];
-
-        while ($pos = strpos($name, '[', $offset))
-        {
-          $end = strpos($name, ']', $pos);
-          if ($end == $pos + 1)
-          {
-            // reached a []
-            return true;
-          }
-          else if (!isset($array[substr($name, $pos + 1, $end - $pos - 1)]))
-          {
-            return false;
-          }
-          $array = $array[substr($name, $pos + 1, $end - $pos - 1)];
-          $offset = $end;
-        }
-
-        return true;
-      }
-    }
-    elseif (isset($this->parameters[$ns][$name]))
+    if (isset($this->parameters[$ns][$name]))
     {
       return true;
+    }
+    else if (isset($this->parameters[$ns]))
+    {
+      return sfToolkit::hasArrayValueForPath($this->parameters[$ns], $name);
     }
 
     return false;
@@ -401,7 +381,7 @@ class sfNamespacedParameterHolder implements Serializable
   }
 
   /**
-   * Unserializes a sfParameterHolder instance.
+   * Unserializes a sfNamespacedParameterHolder instance.
    */
   public function unserialize($serialized)
   {

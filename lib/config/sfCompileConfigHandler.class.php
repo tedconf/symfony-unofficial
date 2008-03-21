@@ -3,7 +3,7 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- * (c) 2004-2006 Sean Kerr.
+ * (c) 2004-2006 Sean Kerr <sean@code-box.org>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -16,7 +16,7 @@
  * @package    symfony
  * @subpackage config
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
- * @author     Sean Kerr <skerr@mojavi.org>
+ * @author     Sean Kerr <sean@code-box.org>
  * @version    SVN: $Id$
  */
 class sfCompileConfigHandler extends sfYamlConfigHandler
@@ -34,11 +34,7 @@ class sfCompileConfigHandler extends sfYamlConfigHandler
   public function execute($configFiles)
   {
     // parse the yaml
-    $config = array();
-    foreach ($configFiles as $configFile)
-    {
-      $config = array_merge($config, $this->parseYaml($configFile));
-    }
+    $config = self::getConfiguration($configFiles);
 
     // init our data
     $data = '';
@@ -46,9 +42,6 @@ class sfCompileConfigHandler extends sfYamlConfigHandler
     // let's do our fancy work
     foreach ($config as $file)
     {
-      $file = $this->replaceConstants($file);
-      $file = $this->replacePath($file);
-
       if (!is_readable($file))
       {
         // file doesn't exist
@@ -64,10 +57,10 @@ class sfCompileConfigHandler extends sfYamlConfigHandler
       }
 
       // insert configuration files
-      $contents = preg_replace_callback(array('#(require|include)(_once)?\((sfConfigCache::getInstance\(\)|\$configCache)->checkConfig\([^_]+sf_app_config_dir_name[^\.]*\.\'/([^\']+)\'\)\);#m',
-                                          '#()()(sfConfigCache::getInstance\(\)|\$configCache)->import\(.sf_app_config_dir_name\.\'/([^\']+)\'(, false)?\);#m'),
+/*      $contents = preg_replace_callback(array('#(require|include)(_once)?\((sfContext::getInstance\(\)\->getConfigCache\(\)|\$configCache)->checkConfig\(\'config/([^\']+)\'\)\);#m',
+                                          '#()()(sfContext::getInstance\(\)\->getConfigCache\(\)|\$configCache)->import\(\'config/([^\']+)\'(, false)?\);#m'),
                                         array($this, 'insertConfigFileCallback'), $contents);
-
+*/
       // strip php tags
       $contents = sfToolkit::pregtr($contents, array('/^\s*<\?(php)?/m' => '',
                                                      '/^\s*\?>/m'       => ''));
@@ -89,7 +82,7 @@ class sfCompileConfigHandler extends sfYamlConfigHandler
                       date('Y/m/d H:i:s'), $data);
 
     // save current symfony release
-    file_put_contents(sfConfig::get('sf_config_cache_dir').'/VERSION', sfCore::VERSION);
+    file_put_contents(sfConfig::get('sf_config_cache_dir').'/VERSION', SYMFONY_VERSION);
 
     return $retval;
   }
@@ -100,13 +93,27 @@ class sfCompileConfigHandler extends sfYamlConfigHandler
    */
   protected function insertConfigFileCallback($matches)
   {
-    $configFile = sfConfig::get('sf_app_config_dir_name').'/'.$matches[4];
+    $configFile = 'config/'.$matches[4];
 
-    sfConfigCache::getInstance()->checkConfig($configFile);
+    $configCache = sfContext::getInstance()->getConfigCache();
+    $configCache->checkConfig($configFile);
 
-    $config = "// '$configFile' config file\n".
-              file_get_contents(sfConfigCache::getInstance()->getCacheName($configFile));
+    $config = "// '$configFile' config file\n".file_get_contents($configCache->getCacheName($configFile));
 
     return $config;
+  }
+
+  /**
+   * @see sfConfigHandler
+   */
+  static public function getConfiguration(array $configFiles)
+  {
+    $config = array();
+    foreach ($configFiles as $configFile)
+    {
+      $config = array_merge($config, self::parseYaml($configFile));
+    }
+
+    return self::replacePath(self::replaceConstants($config));
   }
 }

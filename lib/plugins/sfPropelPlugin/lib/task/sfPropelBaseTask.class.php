@@ -32,11 +32,19 @@ abstract class sfPropelBaseTask extends sfBaseTask
 
     if (!self::$done)
     {
+      set_include_path(get_include_path().PATH_SEPARATOR.dirname(__FILE__).'/../vendor');
+
+      $libDir = dirname(__FILE__).'/..';
+
       $autoloader = sfSimpleAutoload::getInstance();
-      $autoloader->addDirectory(dirname(__FILE__).'/../vendor/creole');
-      $autoloader->addDirectory(dirname(__FILE__).'/../vendor/propel');
-      $autoloader->addDirectory(sfConfig::get('sf_root_dir').'/lib/model');
-      $autoloader->addDirectory(sfConfig::get('sf_root_dir').'/lib/form');
+      $autoloader->addDirectory($libDir.'/vendor/creole');
+      $autoloader->addDirectory($libDir.'/vendor/propel');
+      $autoloader->addDirectory($libDir.'/creole');
+      $autoloader->addDirectory($libDir.'/propel');
+      $autoloader->setClassPath('Propel', $libDir.'/propel/sfPropelAutoload.php');
+      $autoloader->addDirectory(sfConfig::get('sf_lib_dir').'/model');
+      $autoloader->addDirectory(sfConfig::get('sf_lib_dir').'/form');
+      $autoloader->register();
 
       self::$done = true;
     }
@@ -46,7 +54,7 @@ abstract class sfPropelBaseTask extends sfBaseTask
   {
     $finder = sfFinder::type('file')->name('*schema.xml');
 
-    $schemas = array_merge($finder->in('config'), $finder->in(glob(sfConfig::get('sf_root_dir').'/plugins/*/config')));
+    $schemas = array_merge($finder->in('config'), $finder->in(glob(sfConfig::get('sf_plugins_dir').'/*/config')));
     if (self::CHECK_SCHEMA === $checkSchema && !count($schemas))
     {
       throw new sfCommandException('You must create a schema.xml file.');
@@ -57,7 +65,7 @@ abstract class sfPropelBaseTask extends sfBaseTask
     {
       $dbSchema->loadXML($schema);
 
-      $this->dispatcher->notify(new sfEvent($this, 'command.log', array($this->formatter->formatSection('schema', sprintf('converting "%s" to YML', $schema)))));
+      $this->logSection('schema', sprintf('converting "%s" to YML', $schema));
 
       $localprefix = $prefix;
 
@@ -71,7 +79,7 @@ abstract class sfPropelBaseTask extends sfBaseTask
       $yml_file_name = str_replace('.xml', '.yml', basename($schema));
 
       $file = str_replace(basename($schema), $prefix.$yml_file_name,  $schema);
-      $this->dispatcher->notify(new sfEvent($this, 'command.log', array($this->formatter->formatSection('schema', 'putting '.$file))));
+      $this->logSection('schema', sprintf('putting %s', $file));
       file_put_contents($file, $dbSchema->asYAML());
     }
   }
@@ -80,7 +88,7 @@ abstract class sfPropelBaseTask extends sfBaseTask
   {
     $finder = sfFinder::type('file')->name('*schema.yml');
     $dirs = array('config');
-    if ($pluginDirs = glob(sfConfig::get('sf_root_dir').'/plugins/*/config'))
+    if ($pluginDirs = glob(sfConfig::get('sf_plugins_dir').'/*/config'))
     {
       $dirs = array_merge($dirs, $pluginDirs);
     }
@@ -91,11 +99,36 @@ abstract class sfPropelBaseTask extends sfBaseTask
     }
 
     $dbSchema = new sfPropelDatabaseSchema();
+    
     foreach ($schemas as $schema)
     {
-      $dbSchema->loadYAML($schema);
+      $schemaArray = sfYaml::load($schema);
+      
+      if (!isset($schemaArray['classes']))
+      {
+        // Old schema syntax: we convert it 
+        $schemaArray = $dbSchema->convertOldToNewYaml($schemaArray);
+      }
 
-      $this->dispatcher->notify(new sfEvent($this, 'command.log', array($this->formatter->formatSection('schema', sprintf('converting "%s" to XML', $schema)))));
+      $customSchemaFilename = str_replace(array(sfConfig::get('sf_root_dir').DIRECTORY_SEPARATOR, 'plugins'.DIRECTORY_SEPARATOR, 'config'.DIRECTORY_SEPARATOR, DIRECTORY_SEPARATOR, 'schema.yml'), array('', '', '', '_', 'schema.custom.yml'), $schema);
+      $customSchemas = sfFinder::type('file')->name($customSchemaFilename)->in($dirs);
+      
+      foreach ($customSchemas as $customSchema)
+      {
+        $this->logSection('schema', sprintf('found custom schema %s', $customSchema));
+        
+        $customSchemaArray = sfYaml::load($customSchema);
+        if (!isset($customSchemaArray['classes']))
+        {
+          // Old schema syntax: we convert it 
+          $customSchemaArray = $dbSchema->convertOldToNewYaml($customSchemaArray);
+        }
+        $schemaArray = sfToolkit::arrayDeepMerge($schemaArray, $customSchemaArray);
+      }
+
+      $dbSchema->loadArray($schemaArray);
+
+      $this->logSection('schema', sprintf('converting "%s" to XML', $schema));
 
       $localprefix = $prefix;
 
@@ -109,14 +142,14 @@ abstract class sfPropelBaseTask extends sfBaseTask
       $xml_file_name = str_replace('.yml', '.xml', basename($schema));
 
       $file = str_replace(basename($schema), $localprefix.$xml_file_name,  $schema);
-      $this->dispatcher->notify(new sfEvent($this, 'command.log', array($this->formatter->formatSection('schema', 'putting '.$file))));
+      $this->logSection('schema', sprintf('putting %s', $file));
       file_put_contents($file, $dbSchema->asXML());
     }
   }
 
   protected function copyXmlSchemaFromPlugins($prefix = '')
   {
-    $schemas = sfFinder::type('file')->name('*schema.xml')->in(glob(sfConfig::get('sf_root_dir').'/plugins/*/config'));
+    $schemas = sfFinder::type('file')->name('*schema.xml')->in(glob(sfConfig::get('sf_plugins_dir').'/*/config'));
     foreach ($schemas as $schema)
     {
       // reset local prefix
@@ -138,10 +171,10 @@ abstract class sfPropelBaseTask extends sfBaseTask
         $localprefix = $prefix.$localprefix;
       }
 
-      $this->filesystem->copy($schema, 'config'.DIRECTORY_SEPARATOR.$localprefix.basename($schema));
+      $this->getFilesystem()->copy($schema, 'config'.DIRECTORY_SEPARATOR.$localprefix.basename($schema));
       if ('' === $localprefix)
       {
-        $this->filesystem->remove($schema);
+        $this->getFilesystem()->remove($schema);
       }
     }
   }
@@ -149,7 +182,7 @@ abstract class sfPropelBaseTask extends sfBaseTask
   protected function cleanup()
   {
     $finder = sfFinder::type('file')->name('generated-*schema.xml');
-    $this->filesystem->remove($finder->in(array('config', 'plugins')));
+    $this->getFilesystem()->remove($finder->in(array('config', 'plugins')));
   }
 
   protected function callPhing($taskName, $checkSchema)
@@ -173,7 +206,7 @@ abstract class sfPropelBaseTask extends sfBaseTask
     set_include_path(sfConfig::get('sf_symfony_lib_dir').PATH_SEPARATOR.get_include_path());
 
     $options = array(
-      'project.dir'       => sfConfig::get('sf_root_dir').'/config',
+      'project.dir'       => sfConfig::get('sf_config_dir'),
       'build.properties'  => 'propel.ini',
       'propel.output.dir' => sfConfig::get('sf_root_dir'),
     );
@@ -185,19 +218,19 @@ abstract class sfPropelBaseTask extends sfBaseTask
     // Build file
     $args[] = '-f';
     $args[] = realpath(sfConfig::get('sf_symfony_lib_dir').'/plugins/sfPropelPlugin/lib/vendor/propel-generator/build.xml');
-/*
+
     if (is_null($this->commandApplication) || !$this->commandApplication->isVerbose())
     {
       $args[] = '-q';
     }
-*/
+
     // Logger
     if (DIRECTORY_SEPARATOR != '\\' && (function_exists('posix_isatty') && @posix_isatty(STDOUT)))
     {
       $args[] = '-logger';
       $args[] = 'phing.listener.AnsiColorLogger';
     }
-    
+
     $args[] = $taskName;
 
     Phing::startup();
@@ -222,5 +255,12 @@ class sfPhing extends Phing
   function getPhingVersion()
   {
     return 'sfPhing';
+  }
+
+  public static function shutdown($exitcode = 0)
+  {
+    self::getTimer()->stop();
+
+    throw new Exception(sprintf('Problem executing Phing task (%s).', $exitcode));
   }
 }

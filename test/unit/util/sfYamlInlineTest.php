@@ -10,7 +10,7 @@
 
 require_once(dirname(__FILE__).'/../../bootstrap/unit.php');
 
-$t = new lime_test(98, new lime_output_color());
+$t = new lime_test(100, new lime_output_color());
 
 // ::load()
 $t->diag('::load()');
@@ -33,8 +33,8 @@ $testsForLoad = array(
   '2007-10-30T02:59:43Z' => gmmktime(2, 59, 43, 10, 30, 2007),
   '2007-10-30 02:59:43 Z' => gmmktime(2, 59, 43, 10, 30, 2007),
 
-  '"a \"string\" with \'quoted strings inside\'"' => 'a "string" with \'quoted strings inside\'',
-  "'a \"string\" with \'quoted strings inside\''" => 'a "string" with \'quoted strings inside\'',
+  '"a \\"string\\" with \'quoted strings inside\'"' => 'a "string" with \'quoted strings inside\'',
+  "'a \"string\" with ''quoted strings inside'''" => 'a "string" with \'quoted strings inside\'',
 
   // sequences
   '[foo, bar, false, null, 12]' => array('foo', 'bar', false, null, 12),
@@ -59,6 +59,8 @@ $testsForLoad = array(
   '[foo, [bar, [foo, [bar, foo]], foo]]' => array('foo', array('bar', array('foo', array('bar', 'foo')), 'foo')),
 
   '[foo, {bar: foo, foo: [foo, {bar: foo}]}, [foo, {bar: foo}]]' => array('foo', array('bar' => 'foo', 'foo' => array('foo', array('bar' => 'foo'))), array('foo', array('bar' => 'foo'))),
+
+  '[foo, bar: { foo: bar }]' => array('foo', '1' => array('bar' => array('foo' => 'bar'))),
 );
 
 foreach ($testsForLoad as $yaml => $value)
@@ -78,15 +80,14 @@ $testsForDump = array(
   '.Inf' => -log(0),
   '-.Inf' => log(0),
 
-  "'a \"string\" with \'quoted strings inside\''" => 'a "string" with \'quoted strings inside\'',
-  "'a \"string\" with \'quoted strings inside\''" => 'a "string" with \'quoted strings inside\'',
+  "'a \"string\" with ''quoted strings inside'''" => 'a "string" with \'quoted strings inside\'',
 
   // sequences
   '[foo, bar, false, null, 12]' => array('foo', 'bar', false, null, 12),
   '[\'foo,bar\', \'foo bar\']' => array('foo,bar', 'foo bar'),
 
   // mappings
-  '{ foo: bar, bar: foo, false: false, null: null, integer: 12 }' => array('foo' => 'bar', 'bar' => 'foo', 'false' => false, 'null' => null, 'integer' => 12),
+  '{ foo: bar, bar: foo, \'false\': false, null: null, integer: 12 }' => array('foo' => 'bar', 'bar' => 'foo', 'false' => false, 'null' => null, 'integer' => 12),
   '{ foo: bar, bar: \'foo: bar\' }' => array('foo' => 'bar', 'bar' => 'foo: bar'),
 
   // nested sequences and mappings

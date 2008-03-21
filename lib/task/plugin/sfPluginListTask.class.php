@@ -8,6 +8,8 @@
  * file that was distributed with this source code.
  */
 
+require_once(dirname(__FILE__).'/sfPluginBaseTask.class.php');
+
 /**
  * Lists installed plugins.
  *
@@ -43,12 +45,12 @@ EOF;
    */
   protected function execute($arguments = array(), $options = array())
   {
-    $this->dispatcher->notify(new sfEvent($this, 'command.log', array($this->formatter->format('Installed plugins:', 'COMMENT'))));
+    $this->log($this->formatter->format('Installed plugins:', 'COMMENT'));
 
     foreach ($this->getPluginManager()->getInstalledPlugins() as $package)
     {
-      $alias = $this->getPluginManager()->getRegistry()->getChannel($package->getChannel())->getAlias();
-      $this->dispatcher->notify(new sfEvent($this, 'command.log', array(sprintf(' %-40s %10s-%-6s %s', $this->formatter->format($package->getPackage(), 'INFO'), $package->getVersion(), $package->getState() ? $package->getState() : null, $this->formatter->format(sprintf('# %s (%s)', $package->getChannel(), $alias), 'COMMENT')))));
+      $alias = $this->getPluginManager()->getEnvironment()->getRegistry()->getChannel($package->getChannel())->getAlias();
+      $this->log(sprintf(' %-40s %10s-%-6s %s', $this->formatter->format($package->getPackage(), 'INFO'), $package->getVersion(), $package->getState() ? $package->getState() : null, $this->formatter->format(sprintf('# %s (%s)', $package->getChannel(), $alias), 'COMMENT')));
     }
   }
 }

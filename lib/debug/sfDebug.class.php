@@ -19,6 +19,19 @@
 class sfDebug
 {
   /**
+   * Returns symfony information as an array.
+   *
+   * @return array An array of symfony information
+   */
+  public static function symfonyInfoAsArray()
+  {
+    return array(
+      'version' => SYMFONY_VERSION,
+      'path'    => sfConfig::get('sf_symfony_lib_dir'),
+    );
+  }
+
+  /**
    * Returns PHP information as an array.
    *
    * @return array An array of php information
@@ -92,21 +105,17 @@ class sfDebug
    *
    * @return array The request parameter holders
    */
-  public static function requestAsArray($request)
+  public static function requestAsArray(sfRequest $request)
   {
-    if ($request)
+    if (!$request)
     {
-      $values = array(
-        'parameterHolder' => self::flattenParameterHolder($request->getParameterHolder()),
-        'attributeHolder' => self::flattenParameterHolder($request->getAttributeHolder()),
-      );
-    }
-    else
-    {
-      $values = array('parameterHolder' => array(), 'attributeHolder' => array());
+      return array();
     }
 
-    return $values;
+    return array(
+      'parameterHolder' => self::flattenParameterHolder($request->getParameterHolder()),
+      'attributeHolder' => self::flattenParameterHolder($request->getAttributeHolder()),
+    );
   }
 
   /**
@@ -116,38 +125,43 @@ class sfDebug
    *
    * @return array The response parameters
    */
-  public static function responseAsArray($response)
+  public static function responseAsArray(sfResponse $response)
   {
-    if ($response)
+    if (!$response)
     {
-      $values = array(
-        'cookies'         => array(),
-        'httpHeaders'     => array(),
-        'parameterHolder' => self::flattenParameterHolder($response->getParameterHolder()),
-      );
-      if (method_exists($response, 'getHttpHeaders'))
-      {
-        foreach ($response->getHttpHeaders() as $key => $value)
-        {
-          $values['httpHeaders'][$key] = $value;
-        }
-      }
-
-      if (method_exists($response, 'getCookies'))
-      {
-        $cookies = array();
-        foreach ($response->getCookies() as $key => $value)
-        {
-          $values['cookies'][$key] = $value;
-        }
-      }
-    }
-    else
-    {
-      $values = array('cookies' => array(), 'httpHeaders' => array(), 'parameterHolder' => array());
+      return array();
     }
 
-    return $values;
+    return array(
+      'options'     => $response->getOptions(),
+      'cookies'     => method_exists($response, 'getCookies')     ? $response->getCookies() : array(),
+      'httpHeaders' => method_exists($response, 'getHttpHeaders') ? $response->getHttpHeaders() : array(),
+      'javascripts' => method_exists($response, 'getJavascripts') ? $response->getJavascripts('ALL') : array(),
+      'stylesheets' => method_exists($response, 'getStylesheets') ? $response->getStylesheets('ALL') : array(),
+      'metas'       => method_exists($response, 'getMetas')       ? $response->getMetas() : array(),
+      'httpMetas'   => method_exists($response, 'getHttpMetas')   ? $response->getHttpMetas() : array(),
+    );
+  }
+
+  /**
+   * Returns user parameters as an array.
+   *
+   * @param sfUser A sfUser instance
+   *
+   * @return array The user parameters
+   */
+  public static function userAsArray(sfUser $user)
+  {
+    if (!$user)
+    {
+      return array();
+    }
+
+    return array(
+      'options'         => $user->getOptions(),
+      'attributeHolder' => self::flattenParameterHolder($user->getAttributeHolder()),
+      'culture'         => $user->getCulture(),
+    );
   }
 
   /**

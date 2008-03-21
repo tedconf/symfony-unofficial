@@ -19,6 +19,7 @@
 class sfI18N
 {
   protected
+    $configuration = null,
     $dispatcher    = null,
     $cache         = null,
     $options       = array(),
@@ -31,22 +32,32 @@ class sfI18N
    *
    * @see initialize()
    */
-  public function __construct(sfEventDispatcher $dispatcher, sfCache $cache = null, $options = array())
+  public function __construct(sfApplicationConfiguration $configuration, sfCache $cache = null, $options = array())
   {
-    $this->initialize($dispatcher, $cache, $options);
+    $this->initialize($configuration, $cache, $options);
   }
 
   /**
    * Initializes this class.
    *
-   * @param sfEventDispatcher A sfEventDispatcher implementation instance
-   * @param sfCache           A sfCache instance
-   * @param array             An array of options
+   * Available options:
+   *
+   *  * culture:             The culture
+   *  * source:              The i18n source (XLIFF by default)
+   *  * debug:               Whether to enable debug or not (false by default)
+   *  * database:            The database name (default by default)
+   *  * untranslated_prefix: The prefix to use when a message is not translated
+   *  * untranslated_suffix: The suffix to use when a message is not translated
+   *
+   * @param sfApplicationConfiguration A sfApplicationConfiguration instance
+   * @param sfCache                    A sfCache instance
+   * @param array                      An array of options
    */
-  public function initialize(sfEventDispatcher $dispatcher, sfCache $cache = null, $options = array())
+  public function initialize(sfApplicationConfiguration $configuration, sfCache $cache = null, $options = array())
   {
-    $this->dispatcher = $dispatcher;
-    $this->cache      = $cache;
+    $this->configuration = $configuration;
+    $this->dispatcher = $configuration->getEventDispatcher();
+    $this->cache = $cache;
 
     if (isset($options['culture']))
     {
@@ -62,8 +73,22 @@ class sfI18N
       'untranslated_suffix' => '[/T]',
     ), $options);
 
-    $dispatcher->connect('user.change_culture', array($this, 'listenToChangeCultureEvent'));
-    $dispatcher->connect('controller.change_action', array($this, 'listenToChangeActionEvent'));
+    $this->dispatcher->connect('user.change_culture', array($this, 'listenToChangeCultureEvent'));
+
+    if($this->isMessageSourceFileBased($this->options['source']))
+    {
+      $this->dispatcher->connect('controller.change_action', array($this, 'listenToChangeActionEvent'));
+    }
+  }
+
+  /**
+   * Returns the configuration instance.
+   *
+   * @return sfApplicationConfiguration An sfApplicationConfiguration instance
+   */
+  public function getConfiguration()
+  {
+    return $this->configuration;
   }
 
   /**
@@ -131,6 +156,9 @@ class sfI18N
   {
     $this->culture = $culture;
 
+    // change user locale for formatting, collation, and internal error messages
+    setlocale(LC_ALL, $culture.'.utf8');
+
     if ($this->messageSource)
     {
       $this->messageSource->setCulture($culture);
@@ -147,7 +175,8 @@ class sfI18N
   {
     if (!isset($this->messageSource))
     {
-      $this->setMessageSource(sfLoader::getI18NGlobalDirs(), $this->culture);
+      $dirs = ($this->isMessageSourceFileBased($this->options['source'])) ? $this->configuration->getI18NGlobalDirs() : null;
+      $this->setMessageSource($dirs, $this->culture);
     }
 
     return $this->messageSource;
@@ -313,6 +342,6 @@ class sfI18N
   public function listenToChangeActionEvent(sfEvent $event)
   {
     // change message source directory to our module
-    $this->setMessageSource(sfLoader::getI18NDirs($event['module']));
+    $this->setMessageSource($this->configuration->getI18NDirs($event['module']));
   }
 }

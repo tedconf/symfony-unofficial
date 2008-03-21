@@ -31,6 +31,18 @@ class cacheActions extends sfActions
   {
   }
 
+  public function executePartial()
+  {
+  }
+
+  public function executeAnotherPartial()
+  {
+  }
+
+  public function executeComponent()
+  {
+  }
+
   public function executeSpecificCacheKey()
   {
   }
@@ -74,7 +86,7 @@ class cacheActions extends sfActions
   protected function prepareImage()
   {
     $this->getResponse()->setContentType('image/png');
-    $this->image = file_get_contents(sfConfig::get('sf_symfony_data_dir').'/web/sf/sf_default/images/icons/ok48.png');
+    $this->image = file_get_contents(dirname(__FILE__).'/../data/ok48.png');
     $this->setTemplate('image');
   }
 }

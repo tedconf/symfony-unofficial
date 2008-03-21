@@ -3,7 +3,7 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- * (c) 2004-2006 Sean Kerr.
+ * (c) 2004-2006 Sean Kerr <sean@code-box.org>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -17,24 +17,25 @@
  * @package    symfony
  * @subpackage database
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
- * @author     Sean Kerr <skerr@mojavi.org>
+ * @author     Sean Kerr <sean@code-box.org>
  * @version    SVN: $Id$
  */
 class sfDatabaseManager
 {
   protected
-    $databases = array();
+    $configuration = null,
+    $databases     = array();
 
   /**
    * Class constructor.
    *
    * @see initialize()
    */
-  public function __construct($options = array())
+  public function __construct(sfApplicationConfiguration $configuration, $options = array())
   {
-    $this->initialize();
+    $this->initialize($configuration);
 
-    if (isset($options['auto_shutdown']) && $options['auto_shutdown'])
+    if (!isset($options['auto_shutdown']) || $options['auto_shutdown'])
     {
       register_shutdown_function(array($this, 'shutdown'));
     }
@@ -43,12 +44,16 @@ class sfDatabaseManager
   /**
    * Initializes this sfDatabaseManager object
    *
+   * @param  sfApplicationConfiguration A sfApplicationConfiguration instance
+   *
    * @return bool true, if initialization completes successfully, otherwise false
    *
    * @throws <b>sfInitializationException</b> If an error occurs while initializing this sfDatabaseManager object
    */
-  public function initialize()
+  public function initialize(sfApplicationConfiguration $configuration)
   {
+    $this->configuration = $configuration;
+
     $this->loadConfiguration();
   }
 
@@ -57,7 +62,18 @@ class sfDatabaseManager
    */
   public function loadConfiguration()
   {
-    require(sfConfigCache::getInstance()->checkConfig(sfConfig::get('sf_app_config_dir_name').'/databases.yml'));
+    require($this->configuration->getConfigCache()->checkConfig('config/databases.yml'));
+  }
+
+  /**
+   * Sets a database connection.
+   *
+   * @param string     The database name
+   * @param sfDatabase A sfDatabase instance
+   */
+  public function setDatabase($name, sfDatabase $database)
+  {
+    $this->databases[$name] = $database;
   }
 
   /**

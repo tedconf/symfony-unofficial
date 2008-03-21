@@ -16,7 +16,7 @@
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  * @version    SVN: $Id$
  */
-class sfValidatorDate extends sfValidator
+class sfValidatorDate extends sfValidatorBase
 {
   /**
    * Configures the current validator.
@@ -33,7 +33,7 @@ class sfValidatorDate extends sfValidator
    *
    *  * bad_format
    *
-   * @see sfValidator
+   * @see sfValidatorBase
    */
   protected function configure($options = array(), $messages = array())
   {
@@ -47,7 +47,7 @@ class sfValidatorDate extends sfValidator
   }
 
   /**
-   * @see sfValidator
+   * @see sfValidatorBase
    */
   protected function doClean($value)
   {
@@ -115,6 +115,11 @@ class sfValidatorDate extends sfValidator
       return $this->getEmptyValue();
     }
 
+    if (!checkdate(intval($value['month']), intval($value['day']), intval($value['year'])))
+    {
+      throw new sfValidatorError($this, 'invalid', array('value' => $value));
+    }
+
     if ($this->getOption('with_time'))
     {
       // if one time value is empty, all others must be empty too
@@ -160,7 +165,7 @@ class sfValidatorDate extends sfValidator
   }
 
   /**
-   * @see sfValidator
+   * @see sfValidatorBase
    */
   protected function isEmpty($value)
   {
