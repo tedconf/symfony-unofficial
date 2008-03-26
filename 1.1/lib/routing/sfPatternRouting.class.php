@@ -456,7 +456,7 @@ class sfPatternRouting extends sfRouting
 
     if ($this->options['logging'])
     {
-      $this->dispatcher->notify(new sfEvent($this, 'application.log', array(sprintf('Connect "%s"%s', $route, $suffix ? ' ("'.$suffix.'" suffix)' : ''))));
+      $this->dispatcher->notify(new sfEvent($this, 'application.log', array(sprintf('Connect "/%s"%s', $route, $suffix ? ' ("'.$suffix.'" suffix)' : ''))));
     }
 
     return $this->routes;
