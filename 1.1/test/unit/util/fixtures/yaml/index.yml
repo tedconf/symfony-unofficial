@@ -1,6 +1,7 @@
 - sfComments
 - sfTests
 - sfObjects
+- sfMergeKey
 - YtsAnchorAlias
 - YtsBasicTests
 - YtsBlockMapping
