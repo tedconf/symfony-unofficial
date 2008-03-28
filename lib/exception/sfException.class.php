@@ -111,12 +111,8 @@ class sfException extends Exception
     {
       $file = sfConfig::get('sf_web_dir').'/errors/error500.php';
 
-<<<<<<< .working
       ob_start();
-      include is_readable($file) ? $file : sfConfig::get('sf_symfony_data_dir').'/web/errors/error500.php';
-=======
       include is_readable($file) ? $file : dirname(__FILE__).'/data/error500.php';
->>>>>>> .merge-right.r8006
 
       return ob_get_clean();
     }
@@ -138,12 +134,8 @@ class sfException extends Exception
       $globalsTable  = self::formatArrayAsHtml(sfDebug::globalsAsArray());
     }
 
-<<<<<<< .working
     ob_start();
-    include sfConfig::get('sf_symfony_data_dir').'/data/exception.'.($format == 'html' ? 'php' : 'txt');
-=======
     include dirname(__FILE__).'/data/exception.'.($format == 'html' ? 'php' : 'txt');
->>>>>>> .merge-right.r8006
 
     return ob_get_clean();
   }
