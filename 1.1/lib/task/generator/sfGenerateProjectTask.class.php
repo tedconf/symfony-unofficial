@@ -67,7 +67,7 @@ EOF;
     }
 
     // create basic project structure
-    $finder = sfFinder::type('any')->ignore_version_control()->discard('.sf');
+    $finder = sfFinder::type('any')->discard('.sf');
     $this->getFilesystem()->mirror(dirname(__FILE__).DIRECTORY_SEPARATOR.'skeleton'.DIRECTORY_SEPARATOR.'project', sfConfig::get('sf_root_dir'), $finder);
 
     // Update project configuration files

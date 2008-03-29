@@ -183,7 +183,7 @@ class sfSimpleAutoload
   {
     if ($dirs = glob($dir))
     {
-      $finder = sfFinder::type('file')->ignore_version_control()->follow_link()->name('*'.$ext);
+      $finder = sfFinder::type('file')->follow_link()->name('*'.$ext);
       foreach ($dirs as $dir)
       {
         if (in_array($dir, $this->dirs))
