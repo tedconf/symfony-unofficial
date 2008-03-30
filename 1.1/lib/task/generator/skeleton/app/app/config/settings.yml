@@ -3,8 +3,8 @@ prod:
     error_reporting:        <?php echo (E_PARSE | E_COMPILE_ERROR | E_ERROR | E_CORE_ERROR | E_USER_ERROR)."\n" ?> # Determines which events are logged.
     logging_enabled:        on        # Enable logging
     no_script_name:         ##NO_SCRIPT_NAME##      # Enable the front controller name in generated URLs
-    cache:                  on       # Enable the template cache
-    etag:                   on       # Enable etag handling
+    cache:                  off       # Enable the template cache
+    etag:                   off       # Enable etag handling
 
 dev:
   .settings:
@@ -38,10 +38,13 @@ all:
   .settings:
     # Optional features - Deactivating unused features increases performance
     use_database:           on        # Enable database manager. Set to off if you don't use a database.
-    i18n:                   on        # Enable interface translation. Set to off if your application should not be translated.
+    i18n:                   off       # Enable interface translation. Set to off if your application should not be translated.
     check_symfony_version:  off       # Enable check of symfony version for every request. Set to on to have symfony clear the cache automatically when the framework is upgraded. Set to off if you always clear the cache after an upgrade.
     compressed:             off       # Enable PHP response compression. Set to on to compress the outgoing HTML via the PHP handler.
-    check_lock:             on        # Enable the application lock system triggered by the clear-cache and disable tasks. Set to on to have all requests to disabled applications redirected to the $sf_symfony_data_dir/web/arrors/unavailable.php page.
+    check_lock:             off       # Enable the application lock system triggered by the clear-cache and disable tasks. Set to on to have all requests to disabled applications redirected to the $sf_symfony_data_dir/web/arrors/unavailable.php page.
+
+    # Form security secret (CSRF protection)
+    form_csrf_secret:       false     # Unique secret to enable CSRF protection or false to disable
 
     # Output escaping settings
     escaping_strategy:      bc                 # Determines how variables are made available to templates. Accepted values: bc, both, on, off. The value off deactivates escaping completely and gives a slight boost.
@@ -68,7 +71,7 @@ all:
     web_debug_web_dir:      /sf/sf_web_debug
 
     # Helpers
-    standard_helpers:       [Partial, Cache, Form] # helpers included in all templates by default
+    standard_helpers:       [Partial, Cache, Form, I18N] # helpers included in all templates by default
     use_xhtml_tags:         on                     # use open (html style) or closed (xhtml style) tags
 
     # Activated modules from plugins or from the symfony core

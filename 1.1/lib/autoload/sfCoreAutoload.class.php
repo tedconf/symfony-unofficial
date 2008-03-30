@@ -358,10 +358,6 @@ class sfCoreAutoload
   'sfNamespacedParameterHolder' => 'util',
   'sfParameterHolder' => 'util',
   'sfToolkit' => 'util',
-  'sfYaml' => 'util',
-  'sfYamlDumper' => 'util',
-  'sfYamlInline' => 'util',
-  'sfYamlParser' => 'util',
   'sfValidatorI18nChoiceCountry' => 'validator/i18n',
   'sfValidatorI18nChoiceLanguage' => 'validator/i18n',
   'sfValidatorAnd' => 'validator',
@@ -428,5 +424,9 @@ class sfCoreAutoload
   'sfWidgetFormSelectRadio' => 'widget',
   'sfWidgetFormTextarea' => 'widget',
   'sfWidgetFormTime' => 'widget',
+  'sfYaml' => 'yaml',
+  'sfYamlDumper' => 'yaml',
+  'sfYamlInline' => 'yaml',
+  'sfYamlParser' => 'yaml',
 );
 }

@@ -3,21 +3,21 @@
 /*
  * This file is part of the symfony package.
  * (c) Fabien Potencier <fabien.potencier@symfony-project.com>
- *
+ * 
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
 
 require_once(dirname(__FILE__).'/../../bootstrap/unit.php');
-require_once(dirname(__FILE__).'/../../../lib/util/sfYamlParser.class.php');
-require_once(dirname(__FILE__).'/../../../lib/util/sfYamlDumper.class.php');
+require_once(dirname(__FILE__).'/../../../lib/yaml/sfYamlParser.class.php');
+require_once(dirname(__FILE__).'/../../../lib/yaml/sfYamlDumper.class.php');
 
 $t = new lime_test(138, new lime_output_color());
 
 $parser = new sfYamlParser();
 $dumper = new sfYamlDumper();
 
-$path = dirname(__FILE__).'/fixtures/yaml';
+$path = dirname(__FILE__).'/fixtures';
 $files = $parser->parse(file_get_contents($path.'/index.yml'));
 foreach ($files as $file)
 {
