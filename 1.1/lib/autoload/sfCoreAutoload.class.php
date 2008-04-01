@@ -98,7 +98,7 @@ class sfCoreAutoload
    */
   static public function make()
   {
-    $libDir = realpath(dirname(__FILE__).'/..');
+    $libDir = str_replace(DIRECTORY_SEPARATOR, '/', realpath(dirname(__FILE__).DIRECTORY_SEPARATOR.'..'));
     require_once $libDir.'/util/sfFinder.class.php';
 
     $files = sfFinder::type('file')
@@ -110,10 +110,12 @@ class sfCoreAutoload
       ->in($libDir)
     ;
 
+    sort($files, SORT_STRING);
+
     $classes = array();
     foreach ($files as $file)
     {
-      $classes[basename($file, '.class.php')] = str_replace($libDir.'/', '', dirname($file));
+      $classes[basename($file, '.class.php')] = str_replace($libDir.'/', '', str_replace(DIRECTORY_SEPARATOR, '/', dirname($file)));
     }
 
     $content = preg_replace('/protected \$classes = array *\(.*?\)/s', 'protected $classes = '.var_export($classes, true), file_get_contents(__FILE__));
@@ -125,9 +127,9 @@ class sfCoreAutoload
   // To update it, use sfCoreAutoload::make()
   protected $classes = array (
   'sfAction' => 'action',
-  'sfActions' => 'action',
   'sfActionStack' => 'action',
   'sfActionStackEntry' => 'action',
+  'sfActions' => 'action',
   'sfComponent' => 'action',
   'sfComponents' => 'action',
   'sfData' => 'addon',
@@ -224,6 +226,7 @@ class sfCoreAutoload
   'sfRichTextEditor' => 'helper',
   'sfRichTextEditorFCK' => 'helper',
   'sfRichTextEditorTinyMCE' => 'helper',
+  'TGettext' => 'i18n/Gettext',
   'sfI18nApplicationExtract' => 'i18n/extract',
   'sfI18nExtract' => 'i18n/extract',
   'sfI18nExtractorInterface' => 'i18n/extract',
@@ -232,7 +235,6 @@ class sfCoreAutoload
   'sfI18nYamlExtractor' => 'i18n/extract',
   'sfI18nYamlGeneratorExtractor' => 'i18n/extract',
   'sfI18nYamlValidateExtractor' => 'i18n/extract',
-  'TGettext' => 'i18n/Gettext',
   'sfChoiceFormat' => 'i18n',
   'sfCultureInfo' => 'i18n',
   'sfDateFormat' => 'i18n',
@@ -244,10 +246,10 @@ class sfCoreAutoload
   'sfMessageSource_Aggregate' => 'i18n',
   'sfMessageSource_Database' => 'i18n',
   'sfMessageSource_File' => 'i18n',
-  'sfMessageSource_gettext' => 'i18n',
   'sfMessageSource_MySQL' => 'i18n',
   'sfMessageSource_SQLite' => 'i18n',
   'sfMessageSource_XLIFF' => 'i18n',
+  'sfMessageSource_gettext' => 'i18n',
   'sfNumberFormat' => 'i18n',
   'sfNumberFormatInfo' => 'i18n',
   'sfAggregateLogger' => 'log',
@@ -363,10 +365,10 @@ class sfCoreAutoload
   'sfValidatorAnd' => 'validator',
   'sfValidatorBase' => 'validator',
   'sfValidatorBoolean' => 'validator',
+  'sfValidatorCSRFToken' => 'validator',
   'sfValidatorCallback' => 'validator',
   'sfValidatorChoice' => 'validator',
   'sfValidatorChoiceMany' => 'validator',
-  'sfValidatorCSRFToken' => 'validator',
   'sfValidatorDate' => 'validator',
   'sfValidatorDateTime' => 'validator',
   'sfValidatorDecorator' => 'validator',
@@ -393,8 +395,8 @@ class sfCoreAutoload
   'sfOutputEscaperObjectDecorator' => 'view/escaper',
   'sfOutputEscaperSafe' => 'view/escaper',
   'sfEscapedViewParameterHolder' => 'view',
-  'sfPartialView' => 'view',
   'sfPHPView' => 'view',
+  'sfPartialView' => 'view',
   'sfView' => 'view',
   'sfViewCacheManager' => 'view',
   'sfViewParameterHolder' => 'view',
@@ -430,3 +432,5 @@ class sfCoreAutoload
   'sfYamlParser' => 'yaml',
 );
 }
+
+// sfCoreAutoload::make();
