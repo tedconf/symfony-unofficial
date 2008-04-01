@@ -77,7 +77,7 @@ function escape_javascript($javascript = '')
  */
 function escape_once($html)
 {
-  return fix_double_escape(htmlspecialchars($html, ENT_QUOTES, sfConfig::get('sf_charset')));
+  return fix_double_escape(htmlspecialchars($html, ENT_COMPAT, sfConfig::get('sf_charset')));
 }
 
 /**

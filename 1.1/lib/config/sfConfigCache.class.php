@@ -333,7 +333,10 @@ class sfConfigCache
     if (!is_dir(dirname($cache)))
     {
       // create directory structure if needed
-      @mkdir(dirname($cache), 0777, true);
+      if (false === @mkdir(dirname($cache), 0777, true))
+      {
+        throw new sfCacheException(sprintf('Failed to make cache directory "%s" while generating cache for configuration file "%s".', dirname($cache), $config));
+      }
     }
 
     if (!$fp = fopen($cache, 'wb'))
