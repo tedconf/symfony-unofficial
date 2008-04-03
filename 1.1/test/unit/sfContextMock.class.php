@@ -38,9 +38,9 @@ class sfContext
   protected
     $sessionPath = '';
 
-  static public function getInstance($factories = array())
+  static public function getInstance($factories = array(), $force = false)
   {
-    if (!isset(self::$instance))
+    if (!isset(self::$instance) || $force)
     {
       self::$instance = new sfContext();
 
