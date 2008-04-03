@@ -134,7 +134,7 @@ class sfPDODatabase extends sfDatabase
   }
 
   /**
-   * Magic method for calling PropelPDO directly via sfPropelDatabase
+   * Magic method for calling PDO directly via sfPDODatabase
    *
    * @param string $method
    * @param array $arguments
