@@ -8,6 +8,8 @@
   <?php include_title(); ?>
 </head>
 <body>
-  <?php echo $this->getAttributeHolder()->isEscaped() ? $sf_data->getRaw('sf_content') : $sf_content; ?>
+
+<?php echo $sf_content ?>
+
 </body>
 </html>
