@@ -27,7 +27,6 @@
 - %SF_SYMFONY_LIB_DIR%/util/sfNamespacedParameterHolder.class.php
 - %SF_SYMFONY_LIB_DIR%/view/sfView.class.php
 - %SF_SYMFONY_LIB_DIR%/view/sfViewParameterHolder.class.php
-- %SF_SYMFONY_LIB_DIR%/view/sfEscapedViewParameterHolder.class.php
 
 # these classes are optionals but very likely to be used
 - %SF_SYMFONY_LIB_DIR%/controller/sfWebController.class.php

@@ -27,17 +27,18 @@ abstract class sfApplicationConfiguration extends ProjectConfiguration
   /**
    * Constructor.
    *
-   * @param string  The environment name
-   * @param Boolean true to enable debug mode
-   * @param string  The project root directory
+   * @param string            The environment name
+   * @param Boolean           true to enable debug mode
+   * @param string            The project root directory
+   * @param sfEventDispatcher An event dispatcher
    */
-  public function __construct($environment, $debug, $rootDir = null)
+  public function __construct($environment, $debug, $rootDir = null, sfEventDispatcher $dispatcher = null)
   {
     $this->environment = $environment;
     $this->debug       = (boolean) $debug;
     $this->application = str_replace('Configuration', '', get_class($this));
 
-    parent::__construct($rootDir);
+    parent::__construct($rootDir, $dispatcher);
 
     $this->configure();
 
@@ -157,9 +158,22 @@ abstract class sfApplicationConfiguration extends ProjectConfiguration
   {
     if (sfToolkit::hasLockFile(sfConfig::get('sf_cache_dir').DIRECTORY_SEPARATOR.$this->getApplication().'_'.$this->getEnvironment().'.lck', 5))
     {
-      // application is not available
-      $file = sfConfig::get('sf_web_dir').'/errors/unavailable.php';
-      include(is_readable($file) ? $file : sfConfig::get('sf_symfony_lib_dir').'/exception/data/unavailable.php');
+      // application is not available - we'll find the most specific unavailable page...
+      $files = array(
+        sfConfig::get('sf_app_config_dir').'/unavailable.php',
+        sfConfig::get('sf_config_dir').'/unavailable.php',
+        sfConfig::get('sf_web_dir').'/errors/unavailable.php',
+        sfConfig::get('sf_symfony_lib_dir').'/exception/data/unavailable.php',
+      );
+
+      foreach ($files as $file)
+      {
+        if (is_readable($file))
+        {
+          include $file;
+          break;
+        }
+      }
 
       die(1);
     }

@@ -129,11 +129,27 @@ class sfException extends Exception
     // send an error 500 if not in debug mode
     if (!sfConfig::get('sf_debug'))
     {
-      $file = sfConfig::get('sf_web_dir').'/errors/error500.php';
+      $files = array();
 
-      ob_start();
-      require is_readable($file) ? $file : dirname(__FILE__).'/data/error500.php';
-      return ob_get_clean();
+
+      // first check for app/project specific error page, can only do this if we have a context
+      if (sfConfig::get('sf_app_config_dir'))
+      {
+        $files[] = sfConfig::get('sf_app_config_dir').'/error_500.php';
+      }
+      $files[] = sfConfig::get('sf_config_dir').'/error_500.php';
+      $files[] = sfConfig::get('sf_web_dir').'/errors/error500.php';
+      $files[] = dirname(__FILE__).'/data/error500.php';
+
+      foreach ($files as $file)
+      {
+        if (is_readable($file))
+        {
+          ob_start();
+          require($file);
+          return ob_get_clean();
+        }
+      }
     }
 
     $message = (null !== $exception->getMessage()) ? $exception->getMessage() : 'n/a';
@@ -217,7 +233,7 @@ class sfException extends Exception
    */
   static protected function formatArrayAsHtml($values)
   {
-    return '<pre>'.@sfYaml::Dump($values).'</pre>';
+    return '<pre>'.@sfYaml::dump($values).'</pre>';
   }
 
   /**

@@ -91,7 +91,6 @@ more information):
 Some upgrade tasks are not suited for automation and upgrading your configuration
 and object model for Propel is one of them.
 
-
 Propel
 ------
 
@@ -102,6 +101,39 @@ For complete upgrade instructions see: http://propel.phpdb.org/trac/wiki/Users/D
 ------------------------------------------------------------
 The remaining sections explain backward incompatible changes:
 ------------------------------------------------------------
+
+Batch scripts
+-------------
+
+The use of batch scripts is deprecated, in favor of custom CLI tasks. The new CLI system makes it easy to add a new symfony command to a project, so refer to the Chapter 16 of the symfony book for a detailed how-to on CLI tasks.
+
+If you just want your old batch scripts to work, you need to change the first lines of the every batch scripts--the lines that look like a front controller's initialization. So change the following:
+
+    [php]
+    <?php
+    define('SF_ROOT_DIR',    realpath(dirname(__FILE__).'/..'));
+    define('SF_APP',         'frontend');
+    define('SF_ENVIRONMENT', 'prod');
+    define('SF_DEBUG',       false);
+
+      require_once(SF_ROOT_DIR.DIRECTORY_SEPARATOR.'apps'.DIRECTORY_SEPARATOR.SF_APP.DIRECTORY_SEPARATOR.'config'.DIRECTORY_SEPARATOR.'config.php');
+    // your batch code here
+
+To:
+
+    [php]
+    <?php
+    require_once(dirname(__FILE__).'/../config/ProjectConfiguration.class.php');
+    $configuration = ProjectConfiguration::getApplicationConfiguration('frontend', 'prod', false);
+    sfContext::createInstance($configuration);
+
+    // your batch code here
+
+If you need to initialize the database connection, just add the following lines:
+
+    [php]
+    $databaseManager = new sfDatabaseManager($configuration);
+    $databaseManager->loadConfiguration();
 
 
 Flash attributes
@@ -614,6 +646,56 @@ only has access to **global** variables (all `sf_` variables) and variables regi
 Refer to this wiki page for more information on how to upgrade:
 
     http://trac.symfony-project.com/wiki/Symfony11LayoutUpgrade
+
+Tasks
+-----
+
+The symfony command line task names have changed. They now use a namespace syntax. The old task names still work--they are just aliases for the new task names. Here is a table showing the name changes:
+
+    Old task name             |  New task name
+    --------------------------|-----------------
+    clear-cache               | cache:clear
+    clear-controllers         | project:clear-controllers
+    disable                   | project:disable
+    downgrade                 | [Not implemented]
+    enable                    | project:enable
+    fix-perms                 | project:permissions
+    freeze                    | project:freeze
+    init-app                  | generate:app
+    init-batch                | [Not implemented]
+    init-controller           | [Not implemented]
+    init-module               | generate:module
+    init-project              | generate:project
+    log-purge                 | log:clear
+    log-rotate                | log:rotate
+    plugin-install            | plugin:install
+    plugin-list               | plugin:list
+    plugin-uninstall          | plugin:uninstall
+    plugin-upgrade            | plugin:upgrade
+    propel-build-all          | propel:build-all
+    propel-build-all-load     | propel:build-all-load
+    propel-build-db           | propel:build-db
+    propel-build-model        | propel:build-model
+    propel-build-schema       | propel:build-schema
+    propel-build-sql          | propel:build-sql
+    propel-convert-xml-schema | propel:schema-to-yml
+    propel-convert-yml-schema | propel:schema-to-xml
+    propel-dump-data          | propel:data-dump
+    propel-generate-crud      | propel:generate-crud
+    propel-init-admin         | propel:init-admin
+    propel-init-crud          | [Not implemented]
+    propel-insert-sql         | propel:insert-sql
+    propel-load-data          | propel:data-load
+    sync                      | project:deploy
+    test-all                  | test:all
+    test-functional           | test:functional
+    test-unit                 | test:unit
+    unfreeze                  | project:unfreeze
+    upgrade                   | project:freeze
+
+As before, if you want to list the available tasks, just call the `symfony` command with no argument:
+
+    > php symfony
 
 NOTE to early adopters
 ----------------------

@@ -270,24 +270,7 @@ function has_slot($name)
  */
 function include_slot($name)
 {
-  $context = sfContext::getInstance();
-  $slots = $context->getResponse()->getSlots();
-
-  if (sfConfig::get('sf_logging_enabled'))
-  {
-    $context->getEventDispatcher()->notify(new sfEvent(null, 'application.log', array(sprintf('Get slot "%s"', $name))));
-  }
-
-  if (isset($slots[$name]))
-  {
-    echo $slots[$name];
-
-    return true;
-  }
-  else
-  {
-    return false;
-  }
+  return $v = get_slot($name) ? print $v : false;
 }
 
 /**

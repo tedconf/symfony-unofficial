@@ -36,6 +36,15 @@ all:
 
   request:
     class: sfWebRequest
+    param:
+      formats:
+        txt:  text/plain
+        js:   [application/javascript, application/x-javascript, text/javascript]
+        css:  text/css
+        json: [application/json, application/x-json]
+        xml:  [text/xml, application/xml, application/x-xml]
+        rdf:  application/rdf+xml
+        atom: application/atom+xml
 
   response:
     class: sfWebResponse
@@ -97,6 +106,9 @@ all:
       suffix:               .       # Default suffix for generated URLs. If set to a single dot (.), no suffix is added. Possible values: .html, .php, and so on.
       default_module:       default
       default_action:       index
+      variable_prefixes:    [':']
+      segment_separators:   ['/', '.']
+      variable_regex:       '[\w\d_]+'
       debug:                %SF_DEBUG%
       logging:              %SF_LOGGING_ENABLED%
       cache:

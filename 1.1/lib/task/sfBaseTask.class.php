@@ -37,18 +37,18 @@ abstract class sfBaseTask extends sfCommandApplicationTask
       $this->checkAppExists($application);
 
       require_once sfConfig::get('sf_config_dir').'/ProjectConfiguration.class.php';
-      $this->configuration = ProjectConfiguration::getApplicationConfiguration($application, $environment, true);
+      $this->configuration = ProjectConfiguration::getApplicationConfiguration($application, $environment, true, null, $this->dispatcher);
     }
     else
     {
       if (file_exists(sfConfig::get('sf_config_dir').'/ProjectConfiguration.class.php'))
       {
         require_once sfConfig::get('sf_config_dir').'/ProjectConfiguration.class.php';
-        $this->configuration = new ProjectConfiguration();
+        $this->configuration = new ProjectConfiguration(null, $this->dispatcher);
       }
       else
       {
-        $this->configuration = new sfProjectConfiguration(getcwd());
+        $this->configuration = new sfProjectConfiguration(getcwd(), $this->dispatcher);
       }
     }
 
