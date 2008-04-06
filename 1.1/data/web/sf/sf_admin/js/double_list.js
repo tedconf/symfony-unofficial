@@ -1,6 +1,8 @@
 
-function double_list_move(src, dest)
+function double_list_move(srcId, destId)
 {
+  var src=document.getElementById(srcId);
+  var dest=document.getElementById(destId);
   for (var i = 0; i < src.options.length; i++)
   {
     if (src.options[i].selected)
