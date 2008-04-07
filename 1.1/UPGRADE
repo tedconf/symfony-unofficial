@@ -700,7 +700,7 @@ As before, if you want to list the available tasks, just call the `symfony` comm
 NOTE to early adopters
 ----------------------
 
-If you have upgraded your project and have a `lib/Projectconfiguratioun.class.php` file,
+If you have upgraded your project and have a `lib/ProjectConfiguration.class.php` file,
 then you need to upgrade your project manually before being able to launch the
 `project:upgrade1.1` task.
 
