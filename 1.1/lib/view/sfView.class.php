@@ -151,12 +151,12 @@ abstract class sfView
   {
     if ('both' === sfConfig::get('sf_escaping_strategy'))
     {
-      $this->dispatcher->notify(new sfEvent($this, 'application.log', array('Escaping strategy "both" is deprecated, please use "on".', 'priority' => sfLogger::ERR)));
+      $this->dispatcher->notify(new sfEvent($this, 'application.log', array('Escaping strategy "both" is deprecated, please use "on".', 'priority' => sfLogger::ERROR)));
       sfConfig::set('sf_escaping_strategy', 'on');
     }
     else if ('bc' === sfConfig::get('sf_escaping_strategy'))
     {
-      $this->dispatcher->notify(new sfEvent($this, 'application.log', array('Escaping strategy "bc" is deprecated, please use "off".', 'priority' => sfLogger::ERR)));
+      $this->dispatcher->notify(new sfEvent($this, 'application.log', array('Escaping strategy "bc" is deprecated, please use "off".', 'priority' => sfLogger::ERROR)));
       sfConfig::set('sf_escaping_strategy', 'off');
     }
 
