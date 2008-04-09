@@ -65,6 +65,8 @@ EOF;
 
     $this->checkAppExists($application);
 
+    $this->configuration = ProjectConfiguration::getApplicationConfiguration($arguments['application'], $arguments['environment'], true);
+
     sfContext::createInstance($this->configuration);
 
     // simulate http requests to prime configuration/i18n/view cache
