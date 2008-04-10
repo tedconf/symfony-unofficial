@@ -586,9 +586,9 @@ function visual_effect($name, $element_id = false, $js_options = array())
 
 /**
  * Makes the elements with the DOM ID specified by '$element_id' sortable
- * by drag-and-drop and make an AJAX call whenever the sort order has
- * changed. By default, the action called gets the serialized sortable
- * element as parameters.
+ * by drag-and-drop and if an 'url' is specified make an AJAX call whenever
+ * the sort order has changed. By default, the action called gets the
+ * serialized sortable element as parameters.
  *
  * Example:
  *   <php echo sortable_element($my_list, array(
@@ -615,7 +615,7 @@ function sortable_element($element_id, $options = array())
     $options['with'] = "Sortable.serialize('$element_id')";
   }
 
-  if (!isset($options['onUpdate']))
+  if (!isset($options['onUpdate']) && isset($options['url']))
   {
     $options['onUpdate'] = "function(){".remote_function($options)."}";
   }
