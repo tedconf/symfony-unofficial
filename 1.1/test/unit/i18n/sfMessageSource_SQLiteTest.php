@@ -19,9 +19,22 @@ if (!extension_loaded('SQLite'))
   return;
 }
 
-// setup
 $temp = tempnam('/tmp/sf_i18n_dir', 'tmp');
-unlink($temp);
+
+function sf_test_shutdown()
+{
+  global $temp;
+
+  if (file_exists($temp))
+  {
+    unlink($temp);
+  }
+}
+
+// setup
+sf_test_shutdown();
+
+register_shutdown_function('sf_test_shutdown');
 
 $source = init_fixtures($temp);
 $source->setCulture('fr_FR');
@@ -69,9 +82,6 @@ $source = sfMessageSource::factory('SQLite', 'sqlite://localhost/'.$temp);
 $source->setCulture('fr_FR');
 $format = new sfMessageFormat($source);
 $t->is($format->format('New message'), 'New message', '->delete() deletes a message');
-
-// teardown
-unlink($temp);
 
 function init_fixtures($temp)
 {

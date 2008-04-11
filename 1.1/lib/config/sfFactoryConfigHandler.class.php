@@ -145,6 +145,7 @@ class sfFactoryConfigHandler extends sfYamlConfigHandler
 
           $instances[] = sprintf("\n  if (sfConfig::get('sf_i18n'))\n  {\n".
                      "    \$class = sfConfig::get('sf_factory_i18n', '%s');\n  %s\$this->factories['i18n'] = new \$class(\$this->configuration, \$cache, %s);\n".
+                     "    sfWidgetFormSchemaFormatter::setTranslationCallable(array(\$this->factories['i18n'], '__'));\n".
                      "  }\n"
                      , $class, $cache, var_export($parameters, true)
                      );
