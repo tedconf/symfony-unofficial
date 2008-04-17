@@ -142,7 +142,7 @@ abstract class sfComponent
   {
     if (sfConfig::get('sf_web_debug') && sfConfig::get('sf_logging_enabled'))
     {
-      $this->dispatcher->notify(new sfEvent(null, 'application.log', array('This feature is deprecated in favor of the log_message helper.', 'priority' => sfLogger::ERROR)));
+      $this->dispatcher->notify(new sfEvent(null, 'application.log', array('This feature is deprecated in favor of the log_message helper.', 'priority' => sfLogger::ERR)));
     }
   }
 

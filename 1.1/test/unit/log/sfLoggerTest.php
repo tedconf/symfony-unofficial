@@ -35,12 +35,12 @@ $t->is($logger->getLogLevel(), sfLogger::INFO, '->getLogLevel() gets the current
 $logger->setLogLevel(sfLogger::WARNING);
 $t->is($logger->getLogLevel(), sfLogger::WARNING, '->setLogLevel() sets the log level');
 $logger->setLogLevel('error');
-$t->is($logger->getLogLevel(), sfLogger::ERROR, '->setLogLevel() accepts a class constant or a string as its argument');
+$t->is($logger->getLogLevel(), sfLogger::ERR, '->setLogLevel() accepts a class constant or a string as its argument');
 
 // ->initialize()
 $t->diag('->initialize()');
-$logger->initialize($dispatcher, array('level' => sfLogger::ERROR));
-$t->is($logger->getLogLevel(), sfLogger::ERROR, '->initialize() takes an array of parameters as its second argument');
+$logger->initialize($dispatcher, array('level' => sfLogger::ERR));
+$t->is($logger->getLogLevel(), sfLogger::ERR, '->initialize() takes an array of parameters as its second argument');
 
 // ::getPriorityName()
 $t->diag('::getPriorityName()');
@@ -63,11 +63,11 @@ $t->is($logger->log, 'message', '->log() logs a message');
 
 // log level
 $t->diag('log levels');
-foreach (array('fatal', 'alert', 'critical', 'error', 'warning', 'notice', 'info', 'debug') as $level)
+foreach (array('fatal', 'alert', 'crit', 'err', 'warning', 'notice', 'info', 'debug') as $level)
 {
   $levelConstant = 'sfLogger::'.strtoupper($level);
 
-  foreach (array('fatal', 'alert', 'critical', 'error', 'warning', 'notice', 'info', 'debug') as $logLevel)
+  foreach (array('fatal', 'alert', 'crit', 'err', 'warning', 'notice', 'info', 'debug') as $logLevel)
   {
     $logLevelConstant = 'sfLogger::'.strtoupper($logLevel);
     $logger->setLogLevel(constant($logLevelConstant));
@@ -81,11 +81,11 @@ foreach (array('fatal', 'alert', 'critical', 'error', 'warning', 'notice', 'info
 
 // shortcuts
 $t->diag('log shortcuts');
-foreach (array('fatal', 'alert', 'critical', 'error', 'warning', 'notice', 'info', 'debug') as $level)
+foreach (array('fatal', 'alert', 'crit', 'err', 'warning', 'notice', 'info', 'debug') as $level)
 {
   $levelConstant = 'sfLogger::'.strtoupper($level);
 
-  foreach (array('fatal', 'alert', 'critical', 'error', 'warning', 'notice', 'info', 'debug') as $logLevel)
+  foreach (array('fatal', 'alert', 'crit', 'err', 'warning', 'notice', 'info', 'debug') as $logLevel)
   {
     $logger->setLogLevel(constant('sfLogger::'.strtoupper($logLevel)));
 

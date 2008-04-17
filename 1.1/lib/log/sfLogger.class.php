@@ -25,13 +25,14 @@
  * @subpackage log
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  * @version    SVN: $Id$
+ * @todo       Switch from pear error constants to more verbose
  */
 abstract class sfLogger
 {
   const FATAL     = 0; // System is unusable
   const ALERT     = 1; // Immediate action required
-  const CRITICAL  = 2; // Critical conditions
-  const ERROR     = 3; // Error conditions
+  const CRIT      = 2; // Critical conditions
+  const ERR       = 3; // Error conditions
   const WARNING   = 4; // Warning conditions
   const NOTICE    = 5; // Normal but significant
   const INFO      = 6; // Informational
@@ -155,7 +156,7 @@ abstract class sfLogger
    */
   public function critical($message)
   {
-    $this->log($message, self::CRITICAL);
+    $this->log($message, self::CRIT);
   }
 
   /**
@@ -165,7 +166,7 @@ abstract class sfLogger
    */
   public function error($message)
   {
-    $this->log($message, self::ERROR);
+    $this->log($message, self::ERR);
   }
 
   /**
@@ -248,8 +249,8 @@ abstract class sfLogger
     static $levels  = array(
       self::FATAL    => 'fatal',
       self::ALERT    => 'alert',
-      self::CRITICAL => 'critical',
-      self::ERROR    => 'error',
+      self::CRIT     => 'critical',
+      self::ERR      => 'error',
       self::WARNING  => 'warning',
       self::NOTICE   => 'notice',
       self::INFO     => 'info',

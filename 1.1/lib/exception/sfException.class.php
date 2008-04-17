@@ -116,7 +116,7 @@ class sfException extends Exception
 
       if (sfConfig::get('sf_logging_enabled'))
       {
-        $dispatcher->notify(new sfEvent($exception, 'application.log', array($exception->getMessage(), 'priority' => sfLogger::ERROR)));
+        $dispatcher->notify(new sfEvent($exception, 'application.log', array($exception->getMessage(), 'priority' => sfLogger::ERR)));
       }
 
       $event = $dispatcher->notifyUntil(new sfEvent($exception, 'application.throw_exception'));

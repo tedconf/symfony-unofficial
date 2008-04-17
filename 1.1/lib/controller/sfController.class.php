@@ -396,7 +396,7 @@ abstract class sfController
   {
     if (sfConfig::get('sf_logging_enabled'))
     {
-      $this->dispatcher->notify(new sfEvent($this, 'application.log', array('sendEmail method is deprecated', 'priority' => sfLogger::ERROR)));
+      $this->dispatcher->notify(new sfEvent($this, 'application.log', array('sendEmail method is deprecated', 'priority' => sfLogger::ERR)));
     }
 
     return $this->getPresentationFor($module, $action, 'sfMail');
