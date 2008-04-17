@@ -154,7 +154,7 @@ abstract class sfLogger
    *
    * @param string Message
    */
-  public function critical($message)
+  public function crit($message)
   {
     $this->log($message, self::CRIT);
   }
@@ -164,7 +164,7 @@ abstract class sfLogger
    *
    * @param string Message
    */
-  public function error($message)
+  public function err($message)
   {
     $this->log($message, self::ERR);
   }

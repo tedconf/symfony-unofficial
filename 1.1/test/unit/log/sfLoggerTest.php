@@ -34,7 +34,7 @@ $t->diag('->setLogLevel() ->getLogLevel()');
 $t->is($logger->getLogLevel(), sfLogger::INFO, '->getLogLevel() gets the current log level');
 $logger->setLogLevel(sfLogger::WARNING);
 $t->is($logger->getLogLevel(), sfLogger::WARNING, '->setLogLevel() sets the log level');
-$logger->setLogLevel('error');
+$logger->setLogLevel('err');
 $t->is($logger->getLogLevel(), sfLogger::ERR, '->setLogLevel() accepts a class constant or a string as its argument');
 
 // ->initialize()
