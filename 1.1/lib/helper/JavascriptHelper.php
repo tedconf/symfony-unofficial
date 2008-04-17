@@ -453,6 +453,31 @@ function remote_function($options)
     {
       $update[] = "failure:'".$options['update']['failure']."'";
     }
+
+    if (isset($options['indicator']))
+    {
+      $show = "; Element.show('".$options['indicator']."');";
+      $hide = "; Element.hide('".$options['indicator']."');";
+
+      if (isset($options['loading']))
+      {
+        $options['loading'].= $show;
+      }
+      else
+      {
+        $options['loading'] = $show;
+      }
+
+      if(isset($options['complete']))
+      {
+        $options['complete'].= $hide;
+      }
+      else
+      {
+        $options['complete'] = $hide;
+      }
+    }
+
     $update = '{'.join(',', $update).'}';
   }
   else if (isset($options['update']))
