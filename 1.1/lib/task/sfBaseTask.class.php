@@ -31,13 +31,13 @@ abstract class sfBaseTask extends sfCommandApplicationTask
     $this->checkProjectExists();
 
     $application = $commandManager->getArgumentSet()->hasArgument('application') ? $commandManager->getArgumentValue('application') : null;
-    $environment = $commandManager->getArgumentSet()->hasArgument('environment') ? $commandManager->getArgumentValue('environment') : 'cli';
+    $env         = $commandManager->getOptionSet()->hasOption('env') ? $commandManager->getOptionValue('env') : 'cli';
     if (!is_null($application))
     {
       $this->checkAppExists($application);
 
       require_once sfConfig::get('sf_config_dir').'/ProjectConfiguration.class.php';
-      $this->configuration = ProjectConfiguration::getApplicationConfiguration($application, $environment, true, null, $this->dispatcher);
+      $this->configuration = ProjectConfiguration::getApplicationConfiguration($application, $env, true, null, $this->dispatcher);
     }
     else
     {
