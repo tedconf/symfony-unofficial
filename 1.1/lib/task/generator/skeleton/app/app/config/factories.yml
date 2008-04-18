@@ -2,7 +2,7 @@
 prod:
   logger:
     param:
-      level: error
+      level: err
 
 # development environment
 dev:
