@@ -561,7 +561,10 @@ class sfBrowser
       }
       else if ($nodeName == 'input' && $element->getAttribute('type') == 'file')
       {
-        $filename = isset($arguments[$elementName]) ? $arguments[$elementName] : '';
+        $ph = new sfParameterHolder();
+        $ph->add($arguments);
+
+        $filename = $ph->get($elementName, '');
 
         if (is_readable($filename))
         {
@@ -574,7 +577,10 @@ class sfBrowser
           $fileSize = 0;
         }
 
-        $this->files[$elementName] = array('name' => basename($filename), 'type' => '', 'tmp_name' => $filename, 'error' => $fileError, 'size' => $fileSize);
+        $ph->remove($elementName);
+        $arguments = $ph->getAll();
+
+        $this->parseArgumentAsArray($elementName, array('name' => basename($filename), 'type' => '', 'tmp_name' => $filename, 'error' => $fileError, 'size' => $fileSize), $this->files);
       }
       else if (
         $nodeName == 'input'
