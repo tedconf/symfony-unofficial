@@ -61,11 +61,11 @@ class sfException extends Exception
 
     if (!sfConfig::get('sf_test'))
     {
-      // clean current output buffer
-      // while (@ob_end_clean());
-
       // log all exceptions in php system error log
       error_log($exception->getMessage());
+
+      // clean current output buffer
+      while (@ob_end_clean());
 
       ob_start(sfConfig::get('sf_compressed') ? 'ob_gzhandler' : '');
 
