@@ -16,6 +16,7 @@ class myContext extends sfContext
 {
   public function initialize(sfApplicationConfiguration $configuration)
   {
+    $this->configuration = $configuration;
   }
 }
 
