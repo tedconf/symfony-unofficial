@@ -76,12 +76,28 @@ class sfSymfonyCommandApplication extends sfCommandApplication
    */
   protected function loadTasks()
   {
-    $dirs = array(
-      sfConfig::get('sf_symfony_lib_dir').'/task',               // symfony tasks
-      sfConfig::get('sf_symfony_lib_dir').'/plugins/*/lib/task', // bundled plugin tasks
-      sfConfig::get('sf_plugins_dir').'/*/lib/task',             // plugin tasks
-      sfConfig::get('sf_lib_dir').'/task',                       // project tasks
-    );
+    $dirs = array(sfConfig::get('sf_symfony_lib_dir').'/task'); // symfony core tasks
+
+    // only add bundled plugins that were not overloaded in the project
+    $installedPlugins = sfFinder::type('dir')->maxdepth(0)->relative()->in(sfConfig::get('sf_root_dir').'/plugins');
+    foreach (new DirectoryIterator(sfConfig::get('sf_symfony_lib_dir').'/plugins') as $bundledPlugin)
+    {
+      if ($bundledPlugin->isDot())
+      {
+        continue;
+      }
+
+      $path = $bundledPlugin->getRealpath().'/lib/task';
+      if (!in_array($bundledPlugin->getFilename(), $installedPlugins) && is_dir($path))
+      {
+        $dirs[] = $path;
+      }
+    }
+
+    $dirs = array_merge($dirs, array(sfConfig::get('sf_plugins_dir').'/*/lib/task',             // plugin tasks
+                                     sfConfig::get('sf_lib_dir').'/task',                       // project tasks
+                                     ));
+
     $finder = sfFinder::type('file')->name('*Task.class.php');
 
     foreach ($dirs as $globDir)
