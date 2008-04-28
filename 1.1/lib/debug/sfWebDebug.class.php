@@ -299,7 +299,6 @@ class sfWebDebug
       // core features
       'cache'         => sfConfig::get('sf_cache')               ? 'on' : 'off',
       'i18n'          => sfConfig::get('sf_i18n')                ? 'on' : 'off',
-      'security'      => sfConfig::get('sf_use_security')        ? 'on' : 'off',
       'escaping'      => sfConfig::get('sf_escaping_strategy')   ? 'on' : 'off',
       'database'      => sfConfig::get('sf_use_database')        ? 'on' : 'off',
       'compression'   => sfConfig::get('sf_compressed')          ? 'on' : 'off',
