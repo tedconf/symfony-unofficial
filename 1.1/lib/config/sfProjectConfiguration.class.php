@@ -246,7 +246,7 @@ class sfProjectConfiguration
       // plugins can override bundle plugins
       if (false !== $pos = array_search($plugin, $projectPlugins))
       {
-        $pluginPaths[] = sfConfig::get('sf_plugins_dir').'/'.$plugin;
+        $pluginPaths[] = sfConfig::get('sf_plugins_dir').'/'.basename($plugin);
         unset($projectPlugins[$pos]);
       }
       else
