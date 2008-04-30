@@ -290,6 +290,7 @@ class sfCoreAutoload
   'sfRouting' => 'routing',
   'sfDatabaseSessionStorage' => 'storage',
   'sfMySQLSessionStorage' => 'storage',
+  'sfMySQLiSessionStorage' => 'storage',
   'sfNoStorage' => 'storage',
   'sfPDOSessionStorage' => 'storage',
   'sfPostgreSQLSessionStorage' => 'storage',
