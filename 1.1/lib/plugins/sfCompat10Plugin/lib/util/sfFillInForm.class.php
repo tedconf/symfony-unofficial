@@ -53,6 +53,12 @@ class sfFillInForm
   public function fillInXml($xml, $formName, $formId, $values)
   {
     $dom = new DomDocument('1.0', sfConfig::get('sf_charset', 'UTF-8'));
+    if (strpos($xml,'<!DOCTYPE') === false)
+    {
+      $xml = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" '.
+             '"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">'.
+             $xml;
+    }
     @$dom->loadXML($xml);
 
     $dom = $this->fillInDom($dom, $formName, $formId, $values);
@@ -72,13 +78,6 @@ class sfFillInForm
     {
       $ns = '';
     }
-
-    $query = 'descendant::'.$ns.'input[@name and (not(@type)';
-    foreach ($this->types as $type)
-    {
-      $query .= ' or @type="'.$type.'"';
-    }
-    $query .= ')] | descendant::'.$ns.'textarea[@name] | descendant::'.$ns.'select[@name]';
 
     // find our form
     if ($formName)
@@ -106,6 +105,13 @@ class sfFillInForm
         throw new sfException(sprintf('The form "%s" cannot be found.', $formName ? $formName : $formId));
       }
     }
+
+    $query = 'descendant::'.$ns.'input[@name and (not(@type)';
+    foreach ($this->types as $type)
+    {
+      $query .= ' or @type="'.$type.'"';
+    }
+    $query .= ')] | descendant::'.$ns.'textarea[@name] | descendant::'.$ns.'select[@name]';
 
     foreach ($xpath->query($query, $form) as $element)
     {
@@ -141,22 +147,19 @@ class sfFillInForm
         {
           // text input
           $element->removeAttribute('value');
-          if ($this->hasValue($values, $name))
-          {
-            $element->setAttribute('value', $this->escapeValue($this->getValue($values, $name), $name));
-          }
+          $element->setAttribute('value', $this->escapeValue($this->getValue($values, $name, true), $name));
         }
       }
       else if ($element->nodeName == 'textarea')
       {
         $el = $element->cloneNode(false);
-        $el->appendChild($dom->createTextNode($this->escapeValue($this->getValue($values, $name), $name)));
+        $el->appendChild($dom->createTextNode($this->escapeValue($this->getValue($values, $name, true), $name)));
         $element->parentNode->replaceChild($el, $element);
       }
       else if ($element->nodeName == 'select')
       {
-        // select
-        $value    = $this->getValue($values, $name);
+        //if the name contains [] it is part of an array that needs to be shifted
+        $value    = $this->getValue($values, $name, strpos($name,'[]') !== false);
         $multiple = $element->hasAttribute('multiple');
         foreach ($xpath->query('descendant::'.$ns.'option', $element) as $option)
         {
@@ -189,11 +192,19 @@ class sfFillInForm
     return null !== sfToolkit::getArrayValueForPath($values, $name);
   }
 
-  protected function getValue($values, $name)
+  //use reference to values so that arrays can be shifted.
+  protected function getValue(&$values, $name, $shiftArray = false)
   {
     if (array_key_exists($name, $values))
     {
-      return $values[$name];
+      $return = $values[$name];
+      if ($shiftArray && is_array($return))
+      {
+        //we need to remove the first element from the array. Therefore we need a reference
+        $arrayRef = &$values[$name];
+        $return = array_shift($arrayRef);
+      }
+      return $return;
     }
 
     return sfToolkit::getArrayValueForPath($values, $name);
