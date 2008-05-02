@@ -951,6 +951,10 @@ function _in_place_editor($field_id, $url, $options = array())
 function _auto_complete_field($field_id, $url, $options = array())
 {
   $javascript = "new Ajax.Autocompleter(";
+    if (isset($options['param_name'])) 
+    {
+      $js_options['paramName'] = "'".$options['param_name']."'";
+    }
 
   $javascript .= "'".get_id_from_name($field_id)."', ";
   if (isset($options['update']))
