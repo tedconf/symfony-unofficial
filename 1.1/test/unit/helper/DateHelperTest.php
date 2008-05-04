@@ -11,7 +11,7 @@
 require_once(dirname(__FILE__).'/../../../test/bootstrap/unit.php');
 require_once($_test_dir.'/unit/sfContextMock.class.php');
 
-$t = new lime_test(499, new lime_output_color());
+$t = new lime_test(500, new lime_output_color());
 
 class sfUser
 {
@@ -63,7 +63,8 @@ $t->is(distance_of_time_in_words($now - 35 * 86400, $now), 'about 1 month', $msg
 $t->is(distance_of_time_in_words($now - 75 * 86400, $now), '3 months', $msg);
 
 $t->is(distance_of_time_in_words($now - 370 * 86400, $now), 'about 1 year', $msg);
-$t->is(distance_of_time_in_words($now - 4 * 365 * 86400, $now), 'over 4 years', $msg);
+$t->is(distance_of_time_in_words($now - 4 * 370 * 86400, $now), 'over 4 years', $msg);
+$t->is(distance_of_time_in_words($now - 1000 * 86400, $now), 'over 2 years', $msg);
 
 // distance_of_time_in_hours
 $t->diag('distance_of_time_in_hours');

@@ -45,7 +45,11 @@ class sfValidatorConfigHandler extends sfYamlConfigHandler
     {
       if (!isset($config[$category]))
       {
-        throw new sfParseException(sprintf('Configuration file "%s" is missing "%s" category.', $configFiles[0], $category));
+        if (!isset($config['fillin']))
+        {
+          throw new sfParseException(sprintf('Configuration file "%s" is missing "%s" category.', $configFiles[0], $category));
+        }
+        $config[$category] = array();
       }
     }
 
@@ -97,9 +101,9 @@ class sfValidatorConfigHandler extends sfYamlConfigHandler
     $data[] = "  case sfRequest::GET:";
     $data[] = "  case sfRequest::HEAD:";
 
-    $ret = $this->generateRegistration('GET', $data, $methods, $names, $validators);
+    $this->generateRegistration('GET', $data, $methods, $names, $validators);
 
-    if ($ret)
+    if (count($fillin))
     {
       $data[] = sprintf("    \$this->context->getRequest()->setAttribute('symfony.fillin', %s);", $fillin);
     }
@@ -108,9 +112,9 @@ class sfValidatorConfigHandler extends sfYamlConfigHandler
     // generate POST file/parameter data
     $data[] = "  case sfRequest::POST:";
 
-    $ret = $this->generateRegistration('POST', $data, $methods, $names, $validators);
+    $this->generateRegistration('POST', $data, $methods, $names, $validators);
 
-    if ($ret)
+    if (count($fillin))
     {
       $data[] = sprintf("    \$this->context->getRequest()->setAttribute('symfony.fillin', %s);", $fillin);
     }
