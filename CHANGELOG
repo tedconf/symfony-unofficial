@@ -1,3 +1,15 @@
+Version 1.1.0 RC1
+------------------
+
+* The `sfValidatorPropelChoice` validator doesn't use the ''PHP name'' format anymore to reference table columns, but directly the column name, to be coherent with the way everything else works. Also, the `sfValidatorPropelUnique` validator has been added and is now used by the `propel:build-forms` task.
+* Also regarding the forms framework, the possibility has been added to pass HTML attributes for each field when rendering a form or a widget schema, to ease forms templating and output customization. 
+* The `plugin:install` task now checks the license of the plugin. If the plugin is not licensed under a LGPL, MIT, BSD, Apache, or PHP license, the task won't install it except if you pass a `--force-license` option.
+* Support has been added to the schema YAML format for Propel 1.2 inheritance.
+* Paths were incorrect when uploading a file. This has been fixed.
+* Tests has been updated to ensure they work under both case-sensitive and unsensitive filesystems.
+* Fabian Lange has provided a huge work to ensure the fillin filter works as expected in any case.
+* The autoloading performance problem which was occuring in dev environment in certain very rare circumstances has been fixed
+
 Version 1.1.0 beta4
 -------------------
 
