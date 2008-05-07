@@ -272,9 +272,10 @@ function form_remote_tag($options = array(), $options_html = array())
   $options = _parse_attributes($options);
   $options_html = _parse_attributes($options_html);
 
+
   $options['form'] = true;
 
-  $options_html['onsubmit'] = remote_function($options).'; return false;';
+  $options_html['onsubmit'] = remote_function($options).' return false;';
   $options_html['action'] = isset($options_html['action']) ? $options_html['action'] : url_for($options['url']);
   $options_html['method'] = isset($options_html['method']) ? $options_html['method'] : 'post';
 
@@ -296,7 +297,7 @@ function submit_to_remote($name, $value, $options = array(), $options_html = arr
   }
 
   $options_html['type'] = 'button';
-  $options_html['onclick'] = remote_function($options).'; return false;';
+  $options_html['onclick'] = remote_function($options).' return false;';
   $options_html['name'] = $name;
   $options_html['value'] = $value;
 
@@ -318,7 +319,7 @@ function submit_image_to_remote($name, $source, $options = array(), $options_htm
   }
 
   $options_html['type'] = 'image';
-  $options_html['onclick'] = remote_function($options).'; return false;';
+  $options_html['onclick'] = remote_function($options).' return false;';
   $options_html['name'] = $name;
   $options_html['src'] = image_path($source);
 
@@ -511,7 +512,7 @@ function remote_function($options)
     }
   }
 
-  return $function;
+  return $function.';';
 }
 
 /**
@@ -951,7 +952,7 @@ function _in_place_editor($field_id, $url, $options = array())
 function _auto_complete_field($field_id, $url, $options = array())
 {
   $javascript = "new Ajax.Autocompleter(";
-    if (isset($options['param_name'])) 
+    if (isset($options['param_name']))
     {
       $js_options['paramName'] = "'".$options['param_name']."'";
     }

@@ -29,12 +29,12 @@ class sfAPCCache extends sfCache
    */
   public function initialize($options = array())
   {
-    parent::initialize($options);
-
     if (!function_exists('apc_store') || !ini_get('apc.enabled'))
     {
       throw new sfInitializationException('You must have APC installed and enabled to use sfAPCCache class.');
     }
+
+    parent::initialize($options);
   }
 
  /**

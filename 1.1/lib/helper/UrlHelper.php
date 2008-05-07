@@ -66,8 +66,8 @@ function url_for($internal_uri, $absolute = false)
  * <code>
  *  echo link_to('Delete this page', 'my_module/my_action');
  *    => <a href="/path/to/my/action">Delete this page</a>
- *  echo link_to('Visit Hoogle', 'http://www.hoogle.com');
- *    => <a href="http://www.hoogle.com">Visit Hoogle</a>
+ *  echo link_to('Visit google', 'http://www.google.com');
+ *    => <a href="http://www.google.com">Visit google</a>
  *  echo link_to('Delete this page', 'my_module/my_action', array('id' => 'myid', 'confirm' => 'Are you sure?', 'absolute' => true));
  *    => <a href="http://myapp.example.com/path/to/my/action" id="myid" onclick="return confirm('Are you sure?');">Delete this page</a>
  * </code>
@@ -231,9 +231,10 @@ function link_to_unless($condition, $name = '', $url = '', $options = array())
  * @return string XHTML compliant <input> tag
  * @see    url_for, link_to
  */
-function button_to($name, $internal_uri, $options = array())
+function button_to($name, $internal_uri ='', $options = array())
 {
-  $html_options = _convert_options($options);
+  $html_options = _parse_attributes($options);
+
   $html_options['value'] = $name;
 
   $absolute = false;
@@ -270,21 +271,23 @@ function button_to($name, $internal_uri, $options = array())
 
     return form_tag($internal_uri, array('method' => 'post', 'class' => 'button_to')).content_tag('div', tag('input', $html_options)).'</form>';
   }
-  else if (isset($html_options['popup']))
-  {
-    $html_options['type'] = 'button';
-    $html_options = _convert_options_to_javascript($html_options, $internal_uri, $absolute);
 
-    return tag('input', $html_options);
+  $url = url_for($internal_uri, $absolute);
+  $url = "'".$url.$query_string."'";
+
+  $html_options['type'] = 'button';
+  if (isset($html_options['popup']))
+  {
+    $html_options = _convert_options_to_javascript($html_options, $url);
+    unset($html_options['popup']);
   }
   else
   {
-    $html_options['type']    = 'button';
-    $html_options['onclick'] = "document.location.href='".url_for($internal_uri, $absolute).$query_string."';";
+    $html_options['onclick'] = "document.location.href=".$url.";";
     $html_options = _convert_options_to_javascript($html_options);
-
-    return tag('input', $html_options);
   }
+
+  return tag('input', $html_options);
 }
 
 /**
@@ -347,7 +350,7 @@ function mail_to($email, $name = '', $options = array(), $default_value = array(
   return content_tag('a', $name, $html_options);
 }
 
-function _convert_options_to_javascript($html_options, $internal_uri = '', $absolute = false)
+function _convert_options_to_javascript($html_options, $url = 'this.href')
 {
   // confirm
   $confirm = isset($html_options['confirm']) ? $html_options['confirm'] : '';
@@ -369,7 +372,7 @@ function _convert_options_to_javascript($html_options, $internal_uri = '', $abso
   }
   else if ($confirm && $popup)
   {
-    $html_options['onclick'] = $onclick.'if ('._confirm_javascript_function($confirm).') { '._popup_javascript_function($popup, $internal_uri, $absolute).' };return false;';
+    $html_options['onclick'] = $onclick.'if ('._confirm_javascript_function($confirm).') { '._popup_javascript_function($popup, $url).' };return false;';
   }
   else if ($confirm && $post)
   {
@@ -392,7 +395,7 @@ function _convert_options_to_javascript($html_options, $internal_uri = '', $abso
   }
   else if ($popup)
   {
-    $html_options['onclick'] = $onclick._popup_javascript_function($popup, $internal_uri, $absolute).'return false;';
+    $html_options['onclick'] = $onclick._popup_javascript_function($popup, $url).'return false;';
   }
 
   return $html_options;
@@ -403,10 +406,9 @@ function _confirm_javascript_function($confirm)
   return "confirm('".escape_javascript($confirm)."')";
 }
 
-function _popup_javascript_function($popup, $internal_uri = '', $absolute = false)
-{
-  $url = $internal_uri == '' ? 'this.href' : "'".url_for($internal_uri, $absolute)."'";
 
+function _popup_javascript_function($popup, $url = '')
+{
   if (is_array($popup))
   {
     if (isset($popup[1]))

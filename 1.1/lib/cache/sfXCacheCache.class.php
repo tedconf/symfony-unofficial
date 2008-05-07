@@ -25,20 +25,23 @@ class sfXCacheCache extends sfCache
    *
    * Available parameters:
    *
-   * * see sfCache for default parameters available for all drivers
+   * * see sfCache for default options available for all drivers
    *
    * @see sfCache
    */
-  public function initialize($parameters = array())
+  public function initialize($options = array())
   {
-    parent::initialize($parameters);
-
     if (!function_exists('xcache_set'))
     {
       throw new sfInitializationException('You must have XCache installed and enabled to use sfXCacheCache class.');
     }
 
-    $this->prefix = md5($this->getParameter('prefix', sfConfig::get('sf_app'))).self::SEPARATOR;
+    if (!ini_get('xcache.var_size'))
+    {
+      throw new sfInitializationException('You must set the "xcache.var_size" variable to a value greater than 0 to use sfXCacheCache class.');
+    }
+
+    parent::initialize($options);
   }
 
  /**

@@ -40,12 +40,12 @@ class sfMemcacheCache extends sfCache
    */
   public function initialize($options = array())
   {
-    parent::initialize($options);
-
     if (!class_exists('Memcache'))
     {
       throw new sfInitializationException('You must have memcache installed and enabled to use sfMemcacheCache class.');
     }
+
+    parent::initialize($options);
 
     if ($this->getOption('memcache'))
     {
