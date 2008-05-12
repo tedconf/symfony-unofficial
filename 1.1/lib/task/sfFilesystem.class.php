@@ -261,9 +261,12 @@ class sfFilesystem
    *
    * @param string The command to execute on the shell
    */
-  public function sh($cmd)
+  public function sh($cmd, $log = true)
   {
-    $this->logSection('exec ', $cmd);
+    if($log === true)
+    {
+      $this->logSection('exec ', $cmd);
+    }
 
     ob_start();
     passthru($cmd.' 2>&1', $return);
