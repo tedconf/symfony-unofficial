@@ -1,8 +1,28 @@
 dwhittle branch is contributed by Dustin Whittle <dustin.whittle@symfony-project.com>.
 
+** This branch should be considered unstable and is completely unsupported **
+** Most tweaks from this branch are available in the official symfony code **
+
+Dependencies
+------------
+
+  Minimum version PHP 5.2.6 with APC + mbstring extensions
+
+  php.ini - enable apc in cli
+  ---------------------------
+  [apc]
+  extension=apc.so
+  apc.enabled=1
+  apc.enable_cli=1
+  apc.cache_by_default=1
+  apc.localcache=1
+  apc.write_lock=1
+  ---------------------------
+
+
+
 Differences from 1.1
-----------------------------
-  Requirements: PHP 5.2+ with APC enabled
+--------------------
 
   ORM/Database:
     * additonal configuration options for sfPDODatabase
@@ -30,45 +50,67 @@ Differences from 1.1
     * prefetch task for pregenerating production cache
 
   Skeleton Configuration:
-
-    * changed default settings to be more generic
+    * tweaked default settings
+    * cache factories now use apc by default
 
   Environments:
-    * added cli environment for symfony command line + tasks + batch scripts
-    * addition of qa + staging environments
-    * dimensions integration
+    * added cli environment for symfony command line + tasks
 
   Routing:
     * based on Francois(routing)/Fabien(trunk)/1.0(bc methods)
     * ajax only routes
     * method based routing
 
-  Debug Environment (wip)
-    * added links to validator
-    * cssreboot/jsshell/yslow widget
-    * tweaks to debugger
-
-  I18n:
-    * ajax inline editor for translator mode
-
   Response:
     * title is independent of meta
 
-  View:
-    * assets are part of cache after view is rendered
 
-  Control Panel (wip) -> ysfControlPanelPlugin
-    * integration + refactor of sfControlPanelPlugin
+Contributed plugins:
 
-  Build System = Packaging + Deployment (wip) -> ysfBuildPlugin
-    * Aggregation/Minification of js/css (YUICompressor + cssmin) + view.yml updates
+(dw)
+
+  dwCryptPlugin - http://trac.symfony-project.com/wiki/dwCryptPlugin
+
+    * Simple interface to mcrypt encryption/decryption
+
+  dwSwfChartPlugin - http://trac.symfony-project.com/wiki/dwSwfChartPlugin
+
+    * Helpers for generating swf charts
+
+  dwJpgraphPlugin - http://trac.symfony-project.com/wiki/dwJpgraphPlugin
+
+    * Helpers for integrating JpGraph
+
+  dwPrototypeTooltipPlugin - http://trac.symfony-project.com/wiki/dwPrototypeTooltipPlugin
+
+    * Helpers for prototype tooltips
+
+  dwPrototypeWindowPlugin - http://trac.symfony-project.com/wiki/dwPrototypeWindowPlugin
+
+    * Helpers for prototype window plugins
+
+
+(Yahoo!)
+
+  ysfDimensionsPlugin - http://trac.symfony-project.com/wiki/ysfDimensionsPlugin
+
+    * Dimensions can customize configuation, controller selection, and view selection - very useful for i18n and
+
+  ysfR3Plugin - http://trac.symfony-project.com/wiki/ysfR3Plugin
+
+    * Integrates Y! R3 I18n library
+
+  ysfBuildPlugin - http://trac.symfony-project.com/wiki/ysfBuildPlugin
+
+    * Aggregation/Minification of js/css (YUICompressor) + rewrite view.yml
     * Akamai/S3 url rewriting for static assets
     * Lint Test Tasks: PHP, JS, YAML
     * Cache pregeneration / optimization Tasks
     * Packaging of project as .tar.bz2 and .deb
     * Support for deployment via rsync, libssh2 scp transfer, or ftp transfer
 
-  YUI (wip) -> ysfYUIPlugin
+  ysfYUIPlugin - http://trac.symfony-project.com/wiki/ysfYUIPlugin
+
     * css/js framework
     * event system
     * helpers
@@ -76,3 +118,8 @@ Differences from 1.1
     * widgets (datatable)
     * integrated debugger/logging
     * rich admin (ajax filter updates, sortable, inline edit, etc..)
+
+  ysfAPIClientPlugin - http://trac.symfony-project.com/wiki/ysfAPIClientPlugin
+
+    * Adds api adapter for parallel web service requests with curl_multi
+    * Adds structure to create web service based object model
