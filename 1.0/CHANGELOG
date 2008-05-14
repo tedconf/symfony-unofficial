@@ -1,23 +1,43 @@
-Version 1.0.15PRE
---------------
+Version 1.0.17PRE
+-------------
 
 This is a bug fix release.
+
+Version 1.0.16
+-------------
+
+This is a bug fix release.
+
+* r8922: fixed yml validator file can be overriden by a remote attacker (closes #1617)
+
+Version 1.0.15
+-------------
+
+This is a bug fix release.
+
+* r8861: fixed problem with PHP 5.2.6 and ini variables access value (closes #3466 - related to http://bugs.php.net/bug.php?id=44936)
+* r8836: fixed some issues with button_to helper (closes #3184)
+* r8831: fixed include_remove option not used in ObjectAdminHelper? (closes #2079)
+* r8827: remote_function will return a complete Javascript statement including the trailing semicolon. (closes #3135)
+* r8825: fixed I18N helper dependency (closes #1794)
+* r8823: fixed FCK editor not being populated by fillin filter. (closes #732)
+* r8819: corrected ID generation for TinyMCE rich editor when no id was given. (closes #3474)
 
 Version 1.0.14
 -------------
 
 This is a bug fix release.
 
-* r8763: fixed DateHelper distance_of_time_in_words() generates incorrect output for some dates (closes #3322) 
+* r8763: fixed DateHelper distance_of_time_in_words() generates incorrect output for some dates (closes #3322)
 * r8754: validation yml with fillin is used even without other validators defined in the file. (closes #3232)
 * r8720: fixed url validation bug by applied carls patch (1.1 backport). (closes #1373)
 * r8718: Add support for "paramName" option to _auto_complete_field() function (closes #2345)
-* r8716: sfFillInForm adds a content-type meta if non present so that dom->loadHTML works correctly. (closes #2653) 
+* r8716: sfFillInForm adds a content-type meta if non present so that dom->loadHTML works correctly. (closes #2653)
 * r8709: fillin now handles array notations like <input type="text" name "textinput[]"/> correctly. (closes #2811)
 * r8707: fixed ajax response fillin, which does not include a doctype because it is returned without layout. (closes #1687)
 * r8699: added compat options to propel database  (fixes #3364)
 * r8695: made sfFillInForm work with checkbox arrays as well like checkbox_many[]. (closes #1776, #3399)
-* r8664: made sfMySQLSessionStorage more robust by using SQL date functions and no longer injecting php timestamps. (fixes #3394) 
+* r8664: made sfMySQLSessionStorage more robust by using SQL date functions and no longer injecting php timestamps. (fixes #3394)
 * r8651: corrected checking for Eaccelerator in sfProcessCache. (closes #3425)
 * r8445: fixed web debug toolbar in safari (closes #3328, #1673)
 * r8319: added some more information to non symfony exceptions. (closes #2864)
