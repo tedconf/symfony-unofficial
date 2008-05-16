@@ -675,7 +675,7 @@ class sfViewCacheManager
 
     if (sfConfig::get('sf_web_debug'))
     {
-      $content = $this->context->get('sf_web_debug')->decorateContentWithDebug($uri, $content, false);
+      $content = $this->dispatcher->filter(new sfEvent($this, 'view.cache.filter_content', array('response' => $this->context->getResponse(), 'uri' => $uri, 'new' => false)), $content)->getReturnValue();
     }
 
     return $content;
@@ -703,7 +703,7 @@ class sfViewCacheManager
 
     if (sfConfig::get('sf_web_debug'))
     {
-      $content = $this->context->get('sf_web_debug')->decorateContentWithDebug($uri, $content, true);
+      $content = $this->dispatcher->filter(new sfEvent($this, 'view.cache.filter_content', array('response' => $this->context->getResponse(), 'uri' => $uri, 'new' => true)), $content)->getReturnValue();
     }
 
     return $content;
@@ -750,7 +750,7 @@ class sfViewCacheManager
 
     if (sfConfig::get('sf_web_debug'))
     {
-      $content = $this->context->get('sf_web_debug')->decorateContentWithDebug($uri, $content, false);
+      $content = $this->dispatcher->filter(new sfEvent($this, 'view.cache.filter_content', array('response' => $this->context->getResponse(), 'uri' => $uri, 'new' => false)), $content)->getReturnValue();
     }
 
     return array($content, $cache['decoratorTemplate']);
@@ -776,7 +776,7 @@ class sfViewCacheManager
 
     if ($saved && sfConfig::get('sf_web_debug'))
     {
-      $content = $this->context->get('sf_web_debug')->decorateContentWithDebug($uri, $content, true);
+      $content = $this->dispatcher->filter(new sfEvent($this, 'view.cache.filter_content', array('response' => $this->context->getResponse(), 'uri' => $uri, 'new' => true)), $content)->getReturnValue();
     }
 
     return $content;
@@ -799,7 +799,8 @@ class sfViewCacheManager
 
     if ($saved && sfConfig::get('sf_web_debug'))
     {
-      $content = $this->context->get('sf_web_debug')->decorateContentWithDebug($uri, $this->context->getResponse()->getContent(), true);
+      $content = $this->dispatcher->filter(new sfEvent($this, 'view.cache.filter_content', array('response' => $this->context->getResponse(), 'uri' => $uri, 'new' => true)), $this->context->getResponse()->getContent())->getReturnValue();
+
       $this->context->getResponse()->setContent($content);
     }
   }
@@ -834,7 +835,8 @@ class sfViewCacheManager
 
       if (sfConfig::get('sf_web_debug'))
       {
-        $content = $this->context->get('sf_web_debug')->decorateContentWithDebug($uri, $this->context->getResponse()->getContent(), false);
+        $content = $this->dispatcher->filter(new sfEvent($this, 'view.cache.filter_content', array('response' => $this->context->getResponse(), 'uri' => $uri, 'new' => false)), $this->context->getResponse()->getContent())->getReturnValue();
+
         $this->context->getResponse()->setContent($content);
       }
     }

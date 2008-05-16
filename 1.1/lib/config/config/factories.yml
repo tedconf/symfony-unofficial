@@ -87,11 +87,13 @@ default:
         sf_web_debug_logger:
           class: sfWebDebugLogger           # web debug logger class
           param:
-            level:          debug           # error level for web debug toolbar
-            condition:      %SF_WEB_DEBUG%  # switch on or off based on setting
-            xdebug_logging: true            # enable xdebug profiling
+            level:           debug           # error level for web debug toolbar
+            condition:       %SF_WEB_DEBUG%  # switch on or off based on setting
+            xdebug_logging:  true            # enable xdebug profiling
+            web_debug_class: sfWebDebug      # web debug class
         sf_file_logger:
           class: sfFileLogger
           param:
-            level:  debug                                       # error level for log file
-            file:   %SF_LOG_DIR%/%SF_APP%_%SF_ENVIRONMENT%.log  # path to log file
+            level:           debug                                       # error level for log file
+            file:            %SF_LOG_DIR%/%SF_APP%_%SF_ENVIRONMENT%.log  # path to log file
+            xdebug_logging:  true

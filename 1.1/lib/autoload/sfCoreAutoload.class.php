@@ -415,7 +415,6 @@ class sfCoreAutoload
   'sfWidgetForm' => 'widget',
   'sfWidgetFormDate' => 'widget',
   'sfWidgetFormDateTime' => 'widget',
-  'sfWidgetFormIdentity' => 'widget',
   'sfWidgetFormInput' => 'widget',
   'sfWidgetFormInputCheckbox' => 'widget',
   'sfWidgetFormInputFile' => 'widget',
