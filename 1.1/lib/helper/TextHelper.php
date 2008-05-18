@@ -25,17 +25,22 @@
  */
 function truncate_text($text, $length = 30, $truncate_string = '...', $truncate_lastspace = false)
 {
-
   if ($text == '')
   {
     return '';
   }
 
-  mb_internal_encoding(mb_detect_encoding($text));
-
-  if (mb_strlen($text) > $length)
+  $mbstring = extension_loaded('mbstring');
+  if($mbstring)
   {
-    $truncate_text = mb_substr($text, 0, $length - mb_strlen($truncate_string));
+    mb_internal_encoding(mb_detect_encoding($text));
+  }
+  $strlen = ($mbstring) ? 'mb_strlen' : 'strlen';
+  $substr = ($mbstring) ? 'mb_substr' : 'substr';
+
+  if ($strlen($text) > $length)
+  {
+    $truncate_text = $substr($text, 0, $length - $strlen($truncate_string));
     if ($truncate_lastspace)
     {
       $truncate_text = preg_replace('/\s+?(\S+)?$/', '', $truncate_text);
@@ -85,20 +90,28 @@ function excerpt_text($text, $phrase, $radius = 100, $excerpt_string = '...', $e
     return '';
   }
 
-  mb_internal_encoding(mb_detect_encoding($text));
+  $mbstring = extension_loaded('mbstring');
+  if($mbstring)
+  {
+    mb_internal_encoding(mb_detect_encoding($text));
+  }
+  $strlen = ($mbstring) ? 'mb_strlen' : 'strlen';
+  $strpos = ($mbstring) ? 'mb_strpos' : 'strpos';
+  $strtolower = ($mbstring) ? 'mb_strtolower' : 'strtolower';
+  $substr = ($mbstring) ? 'mb_substr' : 'substr';
 
-  $found_pos = mb_strpos(mb_strtolower($text), mb_strtolower($phrase));
+  $found_pos = $strpos(mb_strtolower($text), mb_strtolower($phrase));
   if ($found_pos !== false)
   {
     $start_pos = max($found_pos - $radius, 0);
-    $end_pos = min($found_pos + mb_strlen($phrase) + $radius, mb_strlen($text));
-    $excerpt = mb_substr($text, $start_pos, $end_pos - $start_pos);
+    $end_pos = min($found_pos + $strlen($phrase) + $radius, $strlen($text));
+    $excerpt = $substr($text, $start_pos, $end_pos - $start_pos);
     $prefix = ($start_pos > 0) ? $excerpt_string : '';
-    $postfix = $end_pos < mb_strlen($text) ? $excerpt_string : '';
+    $postfix = $end_pos < $strlen($text) ? $excerpt_string : '';
 
     if ($excerpt_space)
     {
-      //only cut off at ends where $exceprt_string is added
+      // only cut off at ends where $exceprt_string is added
       if($prefix)
       {
         $excerpt = preg_replace('/^(\S+)?\s+?/', ' ', $excerpt);
