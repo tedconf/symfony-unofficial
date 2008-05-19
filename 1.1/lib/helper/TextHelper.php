@@ -100,7 +100,7 @@ function excerpt_text($text, $phrase, $radius = 100, $excerpt_string = '...', $e
   $strtolower = ($mbstring) ? 'mb_strtolower' : 'strtolower';
   $substr = ($mbstring) ? 'mb_substr' : 'substr';
 
-  $found_pos = $strpos(mb_strtolower($text), mb_strtolower($phrase));
+  $found_pos = $strpos($strtolower($text), $strtolower($phrase));
   if ($found_pos !== false)
   {
     $start_pos = max($found_pos - $radius, 0);
@@ -235,5 +235,5 @@ function _auto_link_urls($text, $href_options = array())
  */
 function _auto_link_email_addresses($text)
 {
-  return preg_replace('/([^[>:[:alpha:]]|^)([\w\.!#\$%\-+.]+@[A-Za-z0-9\-]+(\.[A-Za-z0-9\-]+)+)/', '\\1<a href="mailto:\\2">\\2</a>', $text);
+  return preg_replace('/([\w\.!#\$%\-+.]+@[A-Za-z0-9\-]+(\.[A-Za-z0-9\-]+)+)/', '<a href="mailto:\\1">\\1</a>', $text);
 }
