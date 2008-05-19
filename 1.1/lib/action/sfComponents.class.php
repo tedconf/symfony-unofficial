@@ -18,20 +18,19 @@
  */
 abstract class sfComponents extends sfComponent
 {
-
   /**
  	 * Dispatches to the component defined by the 'component' parameter of the sfRequest object.
  	 *
- 	 * This method try to execute the executeXXX() method of the current object where XXX is the
+ 	 * This method tries to execute the executeXXX() method of the current object where XXX is the
  	 * defined component name.
  	 *
- 	 * @param  sfRequest The current sfRequest object
- 	 *
+ 	 * @param  sfRequest $request The current sfRequest object
  	 * @return string    A string containing the view name associated with this component
  	 *
  	 * @throws sfInitializationException
  	 *
  	 * @see sfComponent
+ 	 *
  	 */
   public function execute($request)
   {
