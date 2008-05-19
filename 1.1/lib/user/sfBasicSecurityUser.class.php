@@ -78,7 +78,7 @@ class sfBasicSecurityUser extends sfUser implements sfSecurityUser
   /**
    * Adds a credential.
    *
-   * @param  mixed credential
+   * @param mixed $credential
    */
   public function addCredential($credential)
   {
@@ -116,9 +116,9 @@ class sfBasicSecurityUser extends sfUser implements sfSecurityUser
   /**
    * Returns true if user has credential.
    *
-   * @param  mixed credentials
-   * @param  boolean useAnd specify the mode, either AND or OR
-   * @return boolean
+   * @param  mixed $credentials
+   * @param  bool  $useAnd       specify the mode, either AND or OR
+   * @return bool
    *
    * @author Olivier Verdier <Olivier.Verdier@free.fr>
    */
@@ -169,7 +169,7 @@ class sfBasicSecurityUser extends sfUser implements sfSecurityUser
   /**
    * Sets authentication for user.
    *
-   * @param  boolean
+   * @param  bool $authenticated
    */
   public function setAuthenticated($authenticated)
   {
@@ -204,7 +204,7 @@ class sfBasicSecurityUser extends sfUser implements sfSecurityUser
   /**
    * Returns the timestamp of the last user request.
    *
-   * @param  integer
+   * @param  int
    */
   public function getLastRequestTime()
   {
@@ -216,6 +216,10 @@ class sfBasicSecurityUser extends sfUser implements sfSecurityUser
    *
    *  * timeout: Timeout to automatically log out the user in seconds (1800 by default)
    *             Set to false to disable
+   *
+   * @param sfEventDispatcher $dispatcher  An sfEventDispatcher instance.
+   * @param sfStorage         $storage     An sfStorage instance.
+   * @param array             $options     An associative array of options.
    *
    * @see sfUser
    */
