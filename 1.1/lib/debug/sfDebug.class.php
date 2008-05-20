@@ -106,7 +106,7 @@ class sfDebug
   /**
    * Returns request parameter holders as an array.
    *
-   * @param sfRequest A sfRequest instance
+   * @param sfRequest $request A sfRequest instance
    *
    * @return array The request parameter holders
    */
@@ -126,7 +126,7 @@ class sfDebug
   /**
    * Returns response parameters as an array.
    *
-   * @param sfResponse A sfResponse instance
+   * @param sfResponse $response A sfResponse instance
    *
    * @return array The response parameters
    */
@@ -151,7 +151,7 @@ class sfDebug
   /**
    * Returns user parameters as an array.
    *
-   * @param sfUser A sfUser instance
+   * @param sfUser $user A sfUser instance
    *
    * @return array The user parameters
    */
@@ -172,7 +172,7 @@ class sfDebug
   /**
    * Returns a parameter holder as an array.
    *
-   * @param sfParameterHolder A sfParameterHolder instance
+   * @param sfParameterHolder $parameterHolder A sfParameterHolder instance
    *
    * @return array The parameter holder as an array
    */

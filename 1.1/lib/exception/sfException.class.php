@@ -28,7 +28,7 @@ class sfException extends Exception
   /**
    * Wraps an Exception.
    *
-   * @param Exception An Exception instance
+   * @param Exception $e An Exception instance
    *
    * @return sfException An sfException instance that wraps the given Exception object
    */
@@ -43,7 +43,7 @@ class sfException extends Exception
   /**
    * Changes the wrapped exception.
    *
-   * @param Exception An Exception instance
+   * @param Exception $e An Exception instance
    */
   public function setWrappedException(Exception $e)
   {
@@ -89,6 +89,10 @@ class sfException extends Exception
     return $response;
   }
 
+
+  /**
+   * Prints the stack trace for this exception.
+   */
   public function printStackTrace()
   {
     $exception = is_null($this->wrappedException) ? $this : $this->wrappedException;
@@ -178,8 +182,8 @@ class sfException extends Exception
   /**
    * Returns an array of exception traces.
    *
-   * @param Exception An Exception implementation instance
-   * @param string The trace format (plain or html)
+   * @param Exception $exception  An Exception implementation instance
+   * @param string    $format     The trace format (plain or html)
    *
    * @return array An array of traces
    */
@@ -228,7 +232,7 @@ class sfException extends Exception
   /**
    * Returns an HTML version of an array as YAML.
    *
-   * @param array The values array
+   * @param array $values The values array
    *
    * @return string An HTML string
    */
@@ -240,8 +244,8 @@ class sfException extends Exception
   /**
    * Returns an excerpt of a code file around the given line number.
    *
-   * @param string A file path
-   * @param int The selected line number
+   * @param string $file  A file path
+   * @param int    $line  The selected line number
    *
    * @return string An HTML string
    */
@@ -264,11 +268,11 @@ class sfException extends Exception
   /**
    * Formats an array as a string.
    *
-   * @param array The argument array
-   * @param boolean
-   * @param string The format string (html or plain)
+   * @param array   $args     The argument array
+   * @param boolean $single
+   * @param string  $format   The format string (html or plain)
    *
-   * @return string
+   * @return string The arguments formatted
    */
   static protected function formatArgs($args, $single = false, $format = 'html')
   {

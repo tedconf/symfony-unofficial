@@ -21,7 +21,7 @@ class sfViewConfigHandler extends sfYamlConfigHandler
   /**
    * Executes this configuration handler.
    *
-   * @param array An array of absolute filesystem path to a configuration file
+   * @param array $configFiles An array of absolute filesystem path to a configuration file
    *
    * @return string Data to be written to a cache file
    *
@@ -108,7 +108,7 @@ class sfViewConfigHandler extends sfYamlConfigHandler
   /**
    * Adds a component slot statement to the data.
    *
-   * @param string The view name
+   * @param string $viewName The view name
    *
    * @return string The PHP statement
    */
@@ -150,7 +150,7 @@ class sfViewConfigHandler extends sfYamlConfigHandler
   /**
    * Adds a template setting statement to the data.
    *
-   * @param string The view name
+   * @param string $viewName The view name
    *
    * @return string The PHP statement
    */
@@ -170,7 +170,7 @@ class sfViewConfigHandler extends sfYamlConfigHandler
   /**
    * Adds a layout statement statement to the data.
    *
-   * @param  string The view name
+   * @param  string $viewName The view name
    *
    * @return string The PHP statement
    */
@@ -224,7 +224,7 @@ EOF;
   /**
    * Adds http metas and metas statements to the data.
    *
-   * @param string The view name
+   * @param string $viewName  The view name
    *
    * @return string The PHP statement
    */
@@ -262,7 +262,7 @@ EOF;
   /**
    * Adds stylesheets and javascripts statements to the data.
    *
-   * @param string The view name
+   * @param string $viewName The view name
    *
    * @return string The PHP statement
    */
@@ -358,7 +358,7 @@ EOF;
   /**
    * Adds an escaping statement to the data.
    *
-   * @param string The view name
+   * @param string $viewName The view name
    *
    * @return string The PHP statement
    */
