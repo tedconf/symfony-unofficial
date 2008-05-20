@@ -271,7 +271,7 @@ class sfValidatorErrorSchema extends sfValidatorError implements ArrayAccess, It
    * @param string $offset  (ignored)
    * @param string $value   (ignored)
    *
-   * @throws sfException
+   * @throws LogicException
    */
   public function offsetSet($offset, $value)
   {

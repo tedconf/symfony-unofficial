@@ -42,6 +42,8 @@ class sfSessionStorage extends sfStorage
    *
    * The default values for all 'session_cookie_*' options are those returned by the session_get_cookie_params() function
    *
+   * @param array $options  An associative array of options
+   *
    * @see sfStorage
    */
   public function initialize($options = null)
@@ -101,7 +103,7 @@ class sfSessionStorage extends sfStorage
    *
    * The preferred format for a key is directory style so naming conflicts can be avoided.
    *
-   * @param string A unique key identifying your data
+   * @param  string $key  A unique key identifying your data
    *
    * @return mixed Data associated with the key
    */
@@ -122,7 +124,7 @@ class sfSessionStorage extends sfStorage
    *
    * The preferred format for a key is directory style so naming conflicts can be avoided.
    *
-   * @param string A unique key identifying your data
+   * @param  string $key  A unique key identifying your data
    *
    * @return mixed Data associated with the key
    */
@@ -144,8 +146,8 @@ class sfSessionStorage extends sfStorage
    *
    * The preferred format for a key is directory style so naming conflicts can be avoided.
    *
-   * @param string A unique key identifying your data
-   * @param mixed  Data associated with your key
+   * @param string $key   A unique key identifying your data
+   * @param mixed  $data  Data associated with your key
    *
    */
   public function write($key, $data)
