@@ -238,7 +238,7 @@ class sfFactoryConfigHandler extends sfYamlConfigHandler
     {
       if (isset($values['file']))
       {
-        $config[$factory]['file'] = $this->replacePath($values['file']);
+        $config[$factory]['file'] = self::replacePath($values['file']);
       }
     }
 
