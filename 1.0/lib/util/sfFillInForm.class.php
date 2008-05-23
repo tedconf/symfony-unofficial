@@ -40,11 +40,16 @@ class sfFillInForm
     $this->types = $types;
   }
 
+  /**
+   * fills in the values and returns HTML. This is a non validating tolerant mode.
+   *
+   * @return HTML with values filled in
+   */
   public function fillInHtml($html, $formName, $formId, $values)
   {
     $dom = new DomDocument('1.0', sfConfig::get('sf_charset', 'UTF-8'));
 
-    $noHead = strpos($html,'<head>') === false;
+    $noHead = strpos($html,'<head') === false;
     if ($noHead){
       // loadHTML needs the conent-type meta for the charset
       $html = '<meta http-equiv="Content-Type" content="text/html; charset='.sfConfig::get('sf_charset').'"/>'.$html;
@@ -64,6 +69,23 @@ class sfFillInForm
     return $dom->saveHTML();
   }
 
+  /**
+   * fills in the values and returns XHTML. This is same as XML but stripts the XML Prolog.
+   *
+   * @return XHTML without prolog with values filled in
+   */
+  public function fillInXhtml($xml, $formName, $formId, $values)
+  {
+    $xhtml = $this->fillInXml($xml, $formName, $formId, $values);
+    $prolog_regexp = '/^' . preg_quote('<?xml version="1.0"?>') . '\s*/';
+    return preg_replace($prolog_regexp, '', $xhtml);
+  }
+
+  /**
+   * fills in the values and returns XHTML. It can only work correctly on validating XHTML.
+   *
+   * @return XHTML including XML prolog with values filled in
+   */
   public function fillInXml($xml, $formName, $formId, $values)
   {
     $dom = new DomDocument('1.0', sfConfig::get('sf_charset', 'UTF-8'));
