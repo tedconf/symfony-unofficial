@@ -28,8 +28,8 @@ class sfForm implements ArrayAccess
     $CSRFFieldName  = '_csrf_token';
 
   protected
-    $validatorSchema = null,
     $widgetSchema    = null,
+    $validatorSchema = null,
     $errorSchema     = null,
     $formField       = null,
     $formFields      = array(),
