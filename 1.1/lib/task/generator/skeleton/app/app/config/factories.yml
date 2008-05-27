@@ -72,18 +72,18 @@ all:
       session_cookie_http_only: false                 # cookie can only be accessed via http protocol
 
   cache:
-    class: sfAPCCache          # cache class: sfAPCCache, sfXCacheCache, sfMemcacheCache, sfEAccelleratorCache
+    class: sfAPCCache                # cache class: sfAPCCache, sfXCacheCache, sfMemcacheCache, sfEAccelleratorCache
     param:
       automatic_cleaning_factor: 0
-      lifetime:  86400         # default cache ttl
-      prefix:    %SF_APP_DIR%  # prefix
+      lifetime:  86400               # default cache ttl
+      prefix:    %SF_APP_DIR%/cache  # prefix
 
   view_cache:
     class: sfAPCCache
     param:
       automatic_cleaning_factor: 0
-      lifetime:  86400         # default cache ttl
-      prefix:    %SF_APP_DIR%  # prefix
+      lifetime:  86400                  # default cache ttl
+      prefix:    %SF_APP_DIR%/template  # prefix
 
   i18n:
     class: sfI18N
@@ -97,7 +97,7 @@ all:
         param:
           automatic_cleaning_factor: 0
           lifetime:                  31556926
-          prefix:                    %SF_APP_DIR%
+          prefix:                    %SF_APP_DIR%/i18n
 
   routing:
     class: sfPatternRouting         # routing class: sfPatternRouting, sfPathInfoRouting, sfNoRouting
@@ -116,7 +116,7 @@ all:
         param:
           automatic_cleaning_factor: 0
           lifetime:                  31556926
-          prefix:                    %SF_APP_DIR%
+          prefix:                    %SF_APP_DIR%/routing
 
   logger:
     class: sfAggregateLogger

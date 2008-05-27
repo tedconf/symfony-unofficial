@@ -13,9 +13,10 @@ class ##MODULE_NAME##Actions extends sfActions
   /**
    * Executes index action
    *
+   * @param sfRequest $request A request object
    */
-  public function executeIndex()
+  public function executeIndex($request)
   {
-
+    return sfView::SUCCESS;
   }
 }

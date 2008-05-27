@@ -36,11 +36,11 @@ default:
       session_name:  symfony  # name of session cookie
 
   cache:
-    class: sfAPCCache          # cache class: sfAPCCache, sfXCacheCache, sfMemcacheCache, sfEAccelleratorCache
+    class: sfAPCCache                # cache class: sfAPCCache, sfXCacheCache, sfMemcacheCache, sfEAccelleratorCache
     param:
       automatic_cleaning_factor: 0
-      lifetime:  86400         # default cache ttl
-      prefix:    %SF_APP_DIR%  # prefix
+      lifetime:  86400               # default cache ttl
+      prefix:    %SF_APP_DIR%/cache  # prefix
 
   view_cache:
     class: sfAPCCache
@@ -70,6 +70,9 @@ default:
       suffix:               .       # Default suffix for generated URLs. If set to a single dot (.), no suffix is added. Possible values: .html, .php, and so on.
       default_module:       default
       default_action:       index
+      variable_prefixes:    [':']
+      segment_separators:   ['/', '.']
+      variable_regex:       '[\w\d_]+'
       debug:                %SF_DEBUG%
       logging:              %SF_LOGGING_ENABLED%
       cache:
@@ -97,3 +100,4 @@ default:
             level:           debug                                       # error level for log file
             file:            %SF_LOG_DIR%/%SF_APP%_%SF_ENVIRONMENT%.log  # path to log file
             xdebug_logging:  true
+
