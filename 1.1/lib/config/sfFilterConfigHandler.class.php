@@ -187,7 +187,7 @@ EOF;
     {
       if (isset($keys['file']))
       {
-        $config['category']['file'] = $this->replacePath($keys['file']);
+        $config['category']['file'] = self::replacePath($keys['file']);
       }
     }
 
