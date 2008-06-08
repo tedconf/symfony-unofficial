@@ -41,7 +41,7 @@ abstract class sfAdminGenerator extends sfCrudGenerator
     $help = $this->getParameterValue($type.'.fields.'.$column->getName().'.help');
     if ($help)
     {
-      return "[?php echo image_tag(sfConfig::get('sf_admin_web_dir').'/images/help.png', array('align' => 'absmiddle', 'alt' => __('".$this->escapeString($help)."'), 'title' => __('".$this->escapeString($help)."'))) ?]";
+      return "[?php echo image_tag(sfConfig::get('sf_admin_web_dir').'/images/help.png', array('alt' => __('".$this->escapeString($help)."'), 'title' => __('".$this->escapeString($help)."'))) ?]";
     }
 
     return '';
@@ -132,7 +132,7 @@ abstract class sfAdminGenerator extends sfCrudGenerator
       }
       else
       {
-        $options['style'] = 'background: #ffc url('.$icon.') no-repeat 3px 2px';
+        $options['class'] = 'sf_admin_default_action';
       }
     }
 
