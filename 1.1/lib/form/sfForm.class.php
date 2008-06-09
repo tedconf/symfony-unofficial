@@ -253,6 +253,11 @@ class sfForm implements ArrayAccess
    */
   public function embedForm($name, sfForm $form, $decorator = null)
   {
+    if (true === $this->isBound() || true === $form->isBound())
+    {
+      throw new LogicException('A bound form cannot be embedded');
+    }
+    
     $form = clone $form;
     unset($form[self::$CSRFFieldName]);
 
@@ -264,6 +269,9 @@ class sfForm implements ArrayAccess
 
     $this->widgetSchema[$name] = new sfWidgetFormSchemaDecorator($widgetSchema, $decorator);
     $this->validatorSchema[$name] = $form->getValidatorSchema();
+
+    $this->mergePreValidator($form->getValidatorSchema()->getPreValidator());
+    $this->mergePostValidator($form->getValidatorSchema()->getPostValidator());
 
     $this->resetFormFields();
   }
@@ -282,6 +290,11 @@ class sfForm implements ArrayAccess
    */
   public function embedFormForEach($name, sfForm $form, $n, $decorator = null, $innerDecorator = null, $attributes = array(), $options = array(), $labels = array())
   {
+    if (true === $this->isBound() || true === $form->isBound())
+    {
+      throw new LogicException('A bound form cannot be embedded');
+    }
+
     $form = clone $form;
     unset($form[self::$CSRFFieldName]);
 
@@ -308,6 +321,91 @@ class sfForm implements ArrayAccess
     $this->validatorSchema[$name] = new sfValidatorSchemaForEach($form->getValidatorSchema(), $n);
 
     $this->resetFormFields();
+  }
+
+  /**
+   * Merges current form widget and validator schemas with the ones from the 
+   * sfForm object passed as parameter
+   *
+   * @param  sfForm   $form      The sfForm instance to merge with current form
+   * @throws LogicException      If one of the form has already been bound
+   */
+  public function mergeForm(sfForm $form)
+  {
+    if (true === $this->isBound() || true === $form->isBound())
+    {
+      throw new LogicException('A bound form cannot be merged');
+    }
+
+    $form = clone $form;
+    unset($form[self::$CSRFFieldName]);
+
+    $this->defaults = array_merge($this->defaults, $form->getDefaults());
+
+    foreach ($form->getWidgetSchema()->getFields() as $field => $widget)
+    {
+      $this->widgetSchema[$field] = $widget;
+    }
+
+    foreach ($form->getValidatorSchema()->getFields() as $field => $validator)
+    {
+      $this->validatorSchema[$field] = $validator;
+    }
+
+    $this->mergePreValidator($form->getValidatorSchema()->getPreValidator());
+    $this->mergePostValidator($form->getValidatorSchema()->getPostValidator());
+
+    $this->resetFormFields();
+  }
+
+  /**
+   * Merges a validator with the current pre validators.
+   *
+   * @param sfValidatorBase $validator A validator to be merged
+   */
+  public function mergePreValidator(sfValidatorBase $validator = null)
+  {
+    if (is_null($validator))
+    {
+      return;
+    }
+
+    if (is_null($this->validatorSchema->getPreValidator()))
+    {
+      $this->validatorSchema->setPreValidator($validator);
+    }
+    else
+    {
+      $this->validatorSchema->setPreValidator(new sfValidatorAnd(array(
+        $this->validatorSchema->getPreValidator(),
+        $validator,
+      )));
+    }
+  }
+
+  /**
+   * Merges a validator with the current post validators.
+   *
+   * @param sfValidatorBase $validator A validator to be merged
+   */
+  public function mergePostValidator(sfValidatorBase $validator = null)
+  {
+    if (is_null($validator))
+    {
+      return;
+    }
+
+    if (is_null($this->validatorSchema->getPostValidator()))
+    {
+      $this->validatorSchema->setPostValidator($validator);
+    }
+    else
+    {
+      $this->validatorSchema->setPostValidator(new sfValidatorAnd(array(
+        $this->validatorSchema->getPostValidator(),
+        $validator,
+      )));
+    }
   }
 
   /**
