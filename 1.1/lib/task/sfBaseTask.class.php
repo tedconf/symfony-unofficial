@@ -60,6 +60,11 @@ abstract class sfBaseTask extends sfCommandApplicationTask
       $autoloader->addDirectory($dir);
     }
 
+    if ($this->hasCommandApplication() && !$this->getCommandApplication()->withTrace())
+    {
+      sfConfig::set('sf_logging_enabled', false);
+    }
+
     return $this->execute($commandManager->getArgumentValues(), $commandManager->getOptionValues());
   }
 
@@ -72,7 +77,7 @@ abstract class sfBaseTask extends sfCommandApplicationTask
   {
     if (!isset($this->filesystem))
     {
-      if (is_null($this->commandApplication) || $this->commandApplication->isVerbose())
+      if (!$this->hasCommandApplication() || ($this->hasCommandApplication() && $this->getCommandApplication()->isVerbose()))
       {
         $this->filesystem = new sfFilesystem($this->dispatcher, $this->formatter);
       }
