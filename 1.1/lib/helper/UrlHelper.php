@@ -299,6 +299,7 @@ function button_to($name, $internal_uri ='', $options = array())
     {
       throw new sfConfigurationException('You can\'t use "popup" and "post" together.');
     }
+    unset($html_options['post']);
 
     $html_options['type'] = 'submit';
     $html_options = _convert_options_to_javascript($html_options);
