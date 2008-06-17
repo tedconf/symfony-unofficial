@@ -293,12 +293,21 @@ class sfBrowser
       unset($this->vars['HTTP_IF_MODIFIED_SINCE']);
     }
 
+    $content = $response->getContent();
+
     // for HTML/XML content, create a DOM and sfDomCssSelector objects for the response content
-    if (preg_match('/(x|ht)ml/i', $response->getContentType()))
+    if (!empty($content) && preg_match('/(x|ht)ml/i', $response->getContentType(), $matches))
     {
       $this->dom = new DomDocument('1.0', sfConfig::get('sf_charset'));
       $this->dom->validateOnParse = true;
-      @$this->dom->loadHTML($response->getContent());
+      if($matches[1] == 'x')
+      {
+        $this->dom->loadXML($content);
+      }
+      else
+      {
+        $this->dom->loadHTML($content);
+      }
       $this->domCssSelector = new sfDomCssSelector($this->dom);
     }
     else
@@ -457,7 +466,7 @@ class sfBrowser
 
   /**
    * Test for an uncaught exception.
-   * 
+   *
    * @return  boolean
    */
   public function checkCurrentExceptionIsEmpty()
