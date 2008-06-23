@@ -343,6 +343,7 @@ class sfCoreAutoload
   'sfLoggerUpgrade' => 'task/project/upgrade1.1',
   'sfPropelUpgrade' => 'task/project/upgrade1.1',
   'sfRenderingFilterUpgrade' => 'task/project/upgrade1.1',
+  'sfSettingsUpgrade' => 'task/project/upgrade1.1',
   'sfSingletonUpgrade' => 'task/project/upgrade1.1',
   'sfTestUpgrade' => 'task/project/upgrade1.1',
   'sfUpgrade' => 'task/project/upgrade1.1',

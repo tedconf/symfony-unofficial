@@ -18,8 +18,14 @@ dev:
 
 test:
   .settings:
-    error_reporting:        <?php echo (E_ALL | E_STRICT)."\n" ?> # Determines which events are logged.
-    compressed:             off       # Enable PHP response compression. Set to on to compress the outgoing HTML via the PHP handler.
+    error_reporting:        <?php echo ((E_ALL | E_STRICT) ^ E_NOTICE)."\n" ?>
+    logging_enabled:        on        # Enable logging
+    no_script_name:         on
+    compressed:             off
+    cache:                  off
+    etag:                   off
+    web_debug:              off
+
 
 all:
   .actions:

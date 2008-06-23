@@ -257,7 +257,7 @@ class PHPMailer {
   private $boundary        = array();
   private $language        = array();
   private $error_count     = 0;
-  private $LE              = "\n";
+  private $LE              = PHP_EOL;
   private $sign_key_file   = "";
   private $sign_key_pass   = "";
 
