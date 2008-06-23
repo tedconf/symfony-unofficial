@@ -111,9 +111,14 @@ class sfCacheFilter extends sfFilter
       // set some headers that deals with cache
       if ($lifetime = $this->cacheManager->getClientLifeTime($uri, 'page'))
       {
-        $this->response->setHttpHeader('Last-Modified', $this->response->getDate(time()), false);
-        $this->response->setHttpHeader('Expires', $this->response->getDate(time() + $lifetime), false);
-        $this->response->addCacheControlHttpHeader('max-age', $lifetime);
+		$lastModified = $this->response->getHttpHeader('Last-Modified') ? $this->response->getHttpHeader('Last-Modified') : $this->response->getDate(time());
+        $this->response->setHttpHeader('Last-Modified', $lastModified, false);
+        //This prevent sent Expires and max-age, allowing to check Last-Modified everytime it access the url 
+        if (!$this->cacheManager->getCheckModified($uri)) 
+        {
+          $this->response->setHttpHeader('Expires', $this->response->getDate(time() + $lifetime), false);
+          $this->response->addCacheControlHttpHeader('max-age', $lifetime);
+        }
       }
 
       // set Vary headers
@@ -129,9 +134,9 @@ class sfCacheFilter extends sfFilter
     if ($this->response->hasHttpHeader('Last-Modified') || sfConfig::get('sf_etag'))
     {
       // FIXME: these headers are set by PHP sessions (see session_cache_limiter())
-      $this->response->setHttpHeader('Cache-Control', null, false);
-      $this->response->setHttpHeader('Expires', null, false);
-      $this->response->setHttpHeader('Pragma', null, false);
+      $this->response->setHttpHeader('Cache-Control', '', false);
+      $this->response->setHttpHeader('Expires', '', false);
+      $this->response->setHttpHeader('Pragma', '', false);
     }
 
     // Etag support

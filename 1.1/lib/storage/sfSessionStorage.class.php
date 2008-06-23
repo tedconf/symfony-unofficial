@@ -93,7 +93,8 @@ class sfSessionStorage extends sfStorage
 
     if ($this->options['auto_start'] && !self::$sessionStarted)
     {
-      session_start();
+	  session_cache_limiter('');
+	  session_start();
       self::$sessionStarted = true;
     }
   }
