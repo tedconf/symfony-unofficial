@@ -3,7 +3,7 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- * 
+ *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -11,7 +11,7 @@
 require_once(dirname(__FILE__).'/../../bootstrap/unit.php');
 require_once($_test_dir.'/../../../../test/unit/sfContextMock.class.php');
 
-$t = new lime_test(28, new lime_output_color());
+$t = new lime_test(72, new lime_output_color());
 
 $context = sfContext::getInstance();
 $v = new sfEmailValidator($context);
@@ -23,6 +23,19 @@ $validEmails = array(
   'fabien.potencier@symfony-project.com',
   'example@example.co.uk',
   'fabien_potencier@example.fr',
+  'fabien-potencier@example.fr',
+  'example_example.foo.123.bar@subdomain.domain-example.com',
+  'Abc@example.com',
+  'Abc.123@example.com',
+  '1234567890@domain.com',
+  'abcd@example-one.com',
+  '_______@domain.com',
+  'user+mailbox/department=shipping@example.com',
+  'my-_.email.-_@example.com',
+  'myemail______@example.com',
+  'myemail______@example-example.123.com',
+  '!#$%&\'*+-/=?^_`.{|}~@example.com',
+  'example@example.museum',
 );
 
 $invalidEmails = array(
@@ -30,6 +43,12 @@ $invalidEmails = array(
   'example@',
   'example@localhost',
   'example@example.com@example.com',
+  'example@example.com@example.com',
+  'example@invalid_example.com',
+  '<script>alert(1)</script>@example.com',
+  'Abc..123@example.com',
+  'example@example..com',
+  '&lt;script&gt;alert(1)&lt;/script&gt;@example.com',
 );
 
 $validEmailsNotStrict = array(
@@ -43,6 +62,9 @@ $invalidEmailsNotStrict = array(
   'example',
   'example@',
   'example@example.com@example.com',
+  'Abc..123@example.com',
+  'example@example..com',
+  '<script>alert(1)</script>@example.com',
 );
 
 $v->initialize($context);

@@ -4,7 +4,7 @@
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
  * (c) 2004-2006 Sean Kerr <sean@code-box.org>
- * 
+ *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -34,7 +34,19 @@ class sfEmailValidator extends sfValidator
     $strict = $this->getParameterHolder()->get('strict');
     if ($strict == true)
     {
-      $re = '/^([^@\s]+)@((?:[-a-z0-9]+\.)+[a-z]{2,})$/i';
+      /*
+       * From Wikipedia: http://en.wikipedia.org/wiki/E-mail_address
+       * According to RFC 2822, the local-part of the e-mail address may use any of these ASCII characters:
+       * Uppercase and lowercase letters
+       * The digits 0 through 9
+       * The characters ! # $ % * / ? | ^ { } ` ~ & ' + - = _
+       * The character . provided that it is not the first nor last character in the local-part, nor may it appear two or more times consecutively
+       *
+       */
+      $re = '/^([a-zA-Z0-9\!#\$%\*\/\?\|\^\{\}`~&\'\+\-=_])+'     // allowed characters
+            .'(\.([a-zA-Z0-9\!#\$%\*\/\?\|\^\{\}`~&\'\+\-=_])+)*' // allowed characters + dot
+            .'\@'
+            .'(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$/';        // domain
     }
     else
     {
