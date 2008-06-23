@@ -188,9 +188,10 @@ function _get_propel_object_list($object, $method, $options)
 {
   // get the lists of objects
   $through_class = _get_option($options, 'through_class');
+  $related_column = _get_option($options, 'related_column', null);
 
-  $objects = sfPropelManyToMany::getAllObjects($object, $through_class);
-  $objects_associated = sfPropelManyToMany::getRelatedObjects($object, $through_class);
+  $objects = sfPropelManyToMany::getAllObjects($object, $through_class, $related_column);
+  $objects_associated = sfPropelManyToMany::getRelatedObjects($object, $through_class, $related_column);
   $ids = array_map(create_function('$o', 'return $o->getPrimaryKey();'), $objects_associated);
 
   return array($objects, $objects_associated, $ids);
