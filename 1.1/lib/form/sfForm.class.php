@@ -3,7 +3,7 @@
 /*
  * This file is part of the symfony package.
  * (c) Fabien Potencier <fabien.potencier@symfony-project.com>
- * 
+ *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -257,7 +257,7 @@ class sfForm implements ArrayAccess
     {
       throw new LogicException('A bound form cannot be embedded');
     }
-    
+
     $form = clone $form;
     unset($form[self::$CSRFFieldName]);
 
@@ -321,7 +321,7 @@ class sfForm implements ArrayAccess
   }
 
   /**
-   * Merges current form widget and validator schemas with the ones from the 
+   * Merges current form widget and validator schemas with the ones from the
    * sfForm object passed as parameter
    *
    * @param  sfForm   $form      The sfForm instance to merge with current form
@@ -749,7 +749,7 @@ class sfForm implements ArrayAccess
    *
    * @return sfFormFieldSchema A sfFormFieldSchema instance
    */
-  protected function getFormField()
+  public function getFormFieldSchema()
   {
     if (is_null($this->formField))
     {
