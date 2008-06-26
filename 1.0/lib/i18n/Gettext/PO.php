@@ -1,20 +1,4 @@
 <?php
-/**
- * TGettext_PO class file.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the BSD License.
- *
- * Copyright(c) 2004 by Qiang Xue. All rights reserved.
- *
- * To contact the author write to {@link mailto:qiang.xue@gmail.com Qiang Xue}
- * The latest version of PRADO can be obtained from:
- * {@link http://prado.sourceforge.net/}
- *
- * @author Wei Zhuo <weizhuo[at]gmail[dot]com>
- * @version $Revision: 1415 $  $Date: 2006-06-11 01:33:51 -0700 (Sun, 11 Jun 2006) $
- * @package System.I18N.core
- */
 
 // +----------------------------------------------------------------------+
 // | PEAR :: File :: Gettext :: PO                                        |
@@ -32,22 +16,24 @@
 
 /**
  * File::Gettext::PO
- * 
+ *
  * @author      Michael Wallner <mike@php.net>
+ * @package     symfony
+ * @subpackage  i18n
  * @license     PHP License
  */
- 
+
 require_once dirname(__FILE__).'/TGettext.class.php';
 
-/** 
+/**
  * File_Gettext_PO
  *
  * GNU PO file reader and writer.
- * 
+ *
  * @author      Michael Wallner <mike@php.net>
  * @version     $Revision: 1415 $
  * @access      public
- * @package System.I18N.core 
+ * @package System.I18N.core
  */
 class TGettext_PO extends TGettext
 {
@@ -75,13 +61,13 @@ class TGettext_PO extends TGettext
         if (!isset($file)) {
             $file = $this->file;
         }
-        
+
         // load file
         if (!$contents = @file($file)) {
             return false;
         }
         $contents = implode('', $contents);
-        
+
         // match all msgid/msgstr entries
         $matched = preg_match_all(
             '/(msgid\s+("([^"]|\\\\")*?"\s*)+)\s+' .
@@ -89,11 +75,11 @@ class TGettext_PO extends TGettext
             $contents, $matches
         );
         unset($contents);
-        
+
         if (!$matched) {
             return false;
         }
-        
+
         // get all msgids and msgtrs
         for ($i = 0; $i < $matched; $i++) {
             $msgid = preg_replace(
@@ -102,16 +88,16 @@ class TGettext_PO extends TGettext
                 '/\s*msgstr\s*"(.*)"\s*/s', '\\1', $matches[4][$i]);
             $this->strings[parent::prepare($msgid)] = parent::prepare($msgstr);
         }
-        
+
         // check for meta info
         if (isset($this->strings[''])) {
             $this->meta = parent::meta2array($this->strings['']);
             unset($this->strings['']);
         }
-        
+
         return true;
     }
-    
+
     /**
      * Save PO file
      *
@@ -150,7 +136,7 @@ class TGettext_PO extends TGettext
                 'msgstr "' . parent::prepare($t, true) . '"' . "\n\n"
             );
         }
-        
+
         //done
         @flock($fh, LOCK_UN);
         @fclose($fh);

@@ -257,9 +257,9 @@ class sfI18N
   }
 
   /**
-   * Returns a timestamp from a date formatted with a given culture.
+   * Returns a timestamp from a date with time formatted with a given culture.
    *
-   * @param  string  $date  The formatted date as string
+   * @param  string  $dateTime  The formatted date with time as string
    * @param  string  $culture The culture
    *
    * @return integer The timestamp
