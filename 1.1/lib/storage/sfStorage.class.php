@@ -81,10 +81,11 @@ abstract class sfStorage
    */
   abstract public function read($key);
 
+
   /**
    * Regenerates id that represents this storage.
    *
-   * @param boolean Destroy session when regenerating?
+   * @param  boolean destroy Destroy session when regenerating?
    *
    * @return boolean True if session regenerated, false if error
    *
@@ -106,13 +107,6 @@ abstract class sfStorage
   abstract public function remove($key);
 
   /**
-   * Executes the shutdown procedure.
-   *
-   * @throws <b>sfStorageException</b> If an error occurs while shutting down this storage
-   */
-  abstract public function shutdown();
-
-  /**
    * Writes data to this storage.
    *
    * The preferred format for a key is directory style so naming conflicts can be avoided.
@@ -123,4 +117,11 @@ abstract class sfStorage
    * @throws <b>sfStorageException</b> If an error occurs while writing to this storage
    */
   abstract public function write($key, $data);
+
+  /**
+   * Executes the shutdown procedure.
+   *
+   * @throws <b>sfStorageException</b> If an error occurs while shutting down this storage
+   */
+  abstract public function shutdown();
 }

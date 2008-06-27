@@ -71,6 +71,7 @@ class sfBasicSecurityUser extends sfUser implements sfSecurityUser
           return;
         }
       }
+
       $this->storage->regenerate(false);
     }
   }
@@ -111,7 +112,6 @@ class sfBasicSecurityUser extends sfUser implements sfSecurityUser
     }
     $this->storage->regenerate(false);
   }
-
 
   /**
    * Returns true if user has credential.

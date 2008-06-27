@@ -3,7 +3,7 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- * 
+ *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -75,6 +75,11 @@ class sfCacheFilter extends sfFilter
 
     $uri = $this->routing->getCurrentInternalUri();
 
+    if (is_null($uri))
+    {
+      return true;
+    }
+
     // page cache
     $cacheable = $this->cacheManager->isCacheable($uri);
     if ($cacheable && $this->cacheManager->withLayout($uri))
@@ -111,14 +116,9 @@ class sfCacheFilter extends sfFilter
       // set some headers that deals with cache
       if ($lifetime = $this->cacheManager->getClientLifeTime($uri, 'page'))
       {
-		$lastModified = $this->response->getHttpHeader('Last-Modified') ? $this->response->getHttpHeader('Last-Modified') : $this->response->getDate(time());
-        $this->response->setHttpHeader('Last-Modified', $lastModified, false);
-        //This prevent sent Expires and max-age, allowing to check Last-Modified everytime it access the url 
-        if (!$this->cacheManager->getCheckModified($uri)) 
-        {
-          $this->response->setHttpHeader('Expires', $this->response->getDate(time() + $lifetime), false);
-          $this->response->addCacheControlHttpHeader('max-age', $lifetime);
-        }
+        $this->response->setHttpHeader('Last-Modified', $this->response->getDate(time()), false);
+        $this->response->setHttpHeader('Expires', $this->response->getDate(time() + $lifetime), false);
+        $this->response->addCacheControlHttpHeader('max-age', $lifetime);
       }
 
       // set Vary headers
@@ -133,10 +133,9 @@ class sfCacheFilter extends sfFilter
     // remove PHP automatic Cache-Control and Expires headers if not overwritten by application or cache
     if ($this->response->hasHttpHeader('Last-Modified') || sfConfig::get('sf_etag'))
     {
-      // FIXME: these headers are set by PHP sessions (see session_cache_limiter())
-      $this->response->setHttpHeader('Cache-Control', '', false);
-      $this->response->setHttpHeader('Expires', '', false);
-      $this->response->setHttpHeader('Pragma', '', false);
+      $this->response->setHttpHeader('Cache-Control', null, false);
+      $this->response->setHttpHeader('Expires', null, false);
+      $this->response->setHttpHeader('Pragma', null, false);
     }
 
     // Etag support

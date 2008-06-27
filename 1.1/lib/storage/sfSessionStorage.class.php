@@ -93,8 +93,7 @@ class sfSessionStorage extends sfStorage
 
     if ($this->options['auto_start'] && !self::$sessionStarted)
     {
-	  session_cache_limiter('');
-	  session_start();
+	    session_start();
       self::$sessionStarted = true;
     }
   }
@@ -159,7 +158,8 @@ class sfSessionStorage extends sfStorage
   /**
    * Regenerates id that represents this storage.
    *
-   * @param boolean Destroy session when regenerating?
+   * @param  boolean $destroy Destroy session when regenerating?
+   *
    * @return boolean True if session regenerated, false if error
    *
    */

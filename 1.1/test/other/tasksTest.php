@@ -65,6 +65,13 @@ class sf_test_project
   }
 }
 
+if (!extension_loaded('SQLite'))
+{
+  $t->skip('You need SQLite to run these tests', 33);
+
+  return;
+}
+
 $t = new lime_test(33, new lime_output_color());
 $c = new sf_test_project();
 $c->initialize($t);

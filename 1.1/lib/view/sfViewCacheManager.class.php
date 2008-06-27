@@ -246,7 +246,6 @@ class sfViewCacheManager
       'withLayout'     => isset($options['withLayout']) ? $options['withLayout'] : false,
       'lifeTime'       => $options['lifeTime'],
       'clientLifeTime' => isset($options['clientLifeTime']) ? $options['clientLifeTime'] : $options['lifeTime'],
-      'checkModified'  => isset($options['checkModified']) ? $options['checkModified'] : false,
       'contextual'     => isset($options['contextual']) ? $options['contextual'] : false,
       'vary'           => isset($options['vary']) ? $options['vary'] : array(),
     );
@@ -300,18 +299,6 @@ class sfViewCacheManager
   public function getClientLifeTime($internalUri)
   {
     return $this->getCacheConfig($internalUri, 'clientLifeTime', 0);
-  }
-
-  /**
-   * Retrieves the check modified from the cache option list.
-   *
-   * @param string Internal uniform resource identifier
-   *
-   * @return boolean true, if check Last-Modified otherwise false
-   */
-  public function getCheckModified($internalUri)
-  {
-    return $this->getCacheConfig($internalUri, 'checkModified', false);
   }
 
   /**
