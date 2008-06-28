@@ -19,7 +19,6 @@ class myStorage extends sfStorage
   public function regenerate($destroy = false) {}
   public function shutdown() {}
   public function write($key, $data) {}
-  public function regenerate($destroy = false) {}
 }
 
 class fakeStorage
