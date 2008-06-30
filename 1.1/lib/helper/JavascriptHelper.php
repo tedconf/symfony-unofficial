@@ -799,7 +799,6 @@ function end_if_javascript()
   echo javascript_tag("document.write('" . esc_js_no_entities($content) . "');");
 }
 
-
 /**
  * wrapper for script.aculo.us/prototype Ajax.Autocompleter.
  * @param string name value of input field
@@ -829,7 +828,7 @@ function input_auto_complete_tag($name, $value, $url, $tag_options = array(), $c
 
   $tag_options['id'] = get_id_from_name(isset($tag_options['id']) ? $tag_options['id'] : $name);
 
-  $javascript  = input_tag($name, $value, $tag_options);
+  $javascript  = tag('input', array_merge(array('type' => 'text', 'name' => $name, 'value' => $value), _convert_options($tag_options)));
   $javascript .= content_tag('div', '' , array('id' => $tag_options['id'].'_auto_complete', 'class' => 'auto_complete'));
   $javascript .= _auto_complete_field($tag_options['id'], $url, $comp_options);
 
