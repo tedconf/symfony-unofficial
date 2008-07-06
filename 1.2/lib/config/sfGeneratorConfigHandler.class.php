@@ -79,22 +79,7 @@ class sfGeneratorConfigHandler extends sfYamlConfigHandler
 
   static public function getContent(sfGeneratorManager $generatorManager, $class, $parameters)
   {
-    $data = '';
-
-    // TODO: remove when the admin generator is moved to the new form framework
-    $r = new ReflectionClass($class);
-    if ('sfPropelAdminGenerator' == $class || $r->isSubclassOf(new ReflectionClass('sfPropelAdminGenerator')))
-    {
-      $data .= <<<EOF
-sfConfig::set('sf_compat_10', true);
-require sfConfig::get('sf_symfony_lib_dir').'/plugins/sfCompat10Plugin/config/config.php';
-
-EOF;
-    }
-
-    $data .= $generatorManager->generate($class, $parameters);
-
-    return $data;
+    return $generatorManager->generate($class, $parameters);
   }
 
   /**
