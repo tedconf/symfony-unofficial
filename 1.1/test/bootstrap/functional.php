@@ -12,7 +12,7 @@
 ini_set('magic_quotes_runtime', 'off');
 ini_set('register_globals', 'off');
 ini_set('session.auto_start', 'off');
-ini_set('arg.output_separator', '&amp;');
+ini_set('arg_separator.output', '&amp;');
 ini_set('allow_url_fopen', 'on');
 
 if (!isset($root_dir))
@@ -39,19 +39,22 @@ function sf_functional_test_shutdown()
   if(is_dir($sf_root_dir))
   {
     sfToolkit::clearDirectory($sf_root_dir);
-    rmdir($sf_root_dir);
+    @rmdir($sf_root_dir);
   }
 
-  foreach (array_merge(glob(sfToolkit::getTmpDir().'/sessions*'), glob(sfToolkit::getTmpDir().'/sf*')) as $file)
+  $sessions = glob(sfToolkit::getTmpDir().'/sessions*');
+  $tmp_files = glob(sfToolkit::getTmpDir().'/sf*');
+  $files = array_merge(empty($sessions) ? array() : $sessions, empty($tmp_files) ? array() : $tmp_files);
+  foreach ($files as $file)
   {
     if(is_dir($file))
     {
       sfToolkit::clearDirectory($file);
-      rmdir($file);
+      @rmdir($file);
     }
     else
     {
-      unlink($file);
+      @unlink($file);
     }
   }
 }
