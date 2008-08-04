@@ -71,7 +71,7 @@ class sfToolkit
         if (is_link($directory.'/'.$file))
         {
           // delete symlink
-          unlink($directory.'/'.$file);
+          @unlink($directory.'/'.$file);
         }
         else if (is_dir($directory.'/'.$file))
         {
@@ -84,7 +84,7 @@ class sfToolkit
         else
         {
           // delete the file
-          unlink($directory.'/'.$file);
+          @unlink($directory.'/'.$file);
         }
       }
     }
@@ -115,7 +115,7 @@ class sfToolkit
       else
       {
         // delete file
-        unlink($file);
+        @unlink($file);
       }
     }
   }
