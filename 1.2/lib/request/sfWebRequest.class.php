@@ -45,9 +45,9 @@ class sfWebRequest extends sfRequest
    *
    * @throws <b>sfInitializationException</b> If an error occurs while initializing this sfRequest
    */
-  public function initialize(sfEventDispatcher $dispatcher, $parameters = array(), $attributes = array())
+  public function initialize(sfEventDispatcher $dispatcher, $parameters = array(), $attributes = array(), $options = array())
   {
-    parent::initialize($dispatcher, $parameters, $attributes);
+    parent::initialize($dispatcher, $parameters, $attributes, $options);
 
     if (isset($_SERVER['REQUEST_METHOD']))
     {
@@ -83,24 +83,26 @@ class sfWebRequest extends sfRequest
       $this->setMethod(self::GET);
     }
 
-    foreach ($this->getAttribute('formats', array()) as $format => $mimeTypes)
+    if (isset($this->options['formats']))
     {
-      $this->setFormat($format, $mimeTypes);
+      foreach ($this->options['formats'] as $format => $mimeTypes)
+      {
+        $this->setFormat($format, $mimeTypes);
+      }
+    }
+
+    if (!isset($this->options['path_info_key']))
+    {
+      $this->options['path_info_key'] = 'PATH_INFO';
+    }
+
+    if (!isset($this->options['path_info_array']))
+    {
+      $this->options['path_info_array'] = 'SERVER';
     }
 
     // load parameters from GET/PATH_INFO/POST
     $this->loadParameters();
-  }
-
-  /**
-   * Retrieves an array of files.
-   *
-   * @param  string $key  A key
-   * @return array  An associative array of files
-   */
-  public function getFiles($key = null)
-  {
-    return is_null($key) ? $_FILES : (isset($_FILES[$key]) ? $_FILES[$key] : array());
   }
 
   /**
@@ -177,7 +179,7 @@ class sfWebRequest extends sfRequest
     $pathArray = $this->getPathInfoArray();
 
     // simulate PATH_INFO if needed
-    $sf_path_info_key = sfConfig::get('sf_path_info_key', 'PATH_INFO');
+    $sf_path_info_key = $this->options['path_info_key'];
     if (!isset($pathArray[$sf_path_info_key]) || !$pathArray[$sf_path_info_key])
     {
       if (isset($pathArray['REQUEST_URI']))
@@ -194,9 +196,9 @@ class sfWebRequest extends sfRequest
     else
     {
       $pathInfo = $pathArray[$sf_path_info_key];
-      if ($sf_relative_url_root = $this->getRelativeUrlRoot())
+      if ($relativeUrlRoot = $this->getRelativeUrlRoot())
       {
-        $pathInfo = preg_replace('/^'.str_replace('/', '\\/', $sf_relative_url_root).'\//', '', $pathInfo);
+        $pathInfo = preg_replace('/^'.str_replace('/', '\\/', $relativeUrlRoot).'\//', '', $pathInfo);
       }
     }
 
@@ -488,9 +490,16 @@ class sfWebRequest extends sfRequest
    */
   public function getRelativeUrlRoot()
   {
-    if ($this->relativeUrlRoot === null)
+    if (is_null($this->relativeUrlRoot))
     {
-      $this->relativeUrlRoot = sfConfig::get('sf_relative_url_root', preg_replace('#/[^/]+\.php5?$#', '', $this->getScriptName()));
+      if (!isset($this->options['relative_url_root']))
+      {
+        $this->relativeUrlRoot = preg_replace('#/[^/]+\.php5?$#', '', $this->getScriptName());
+      }
+      else
+      {
+        $this->relativeUrlRoot = $this->options['relative_url_root'];
+      }
     }
 
     return $this->relativeUrlRoot;
@@ -547,7 +556,7 @@ class sfWebRequest extends sfRequest
     if (!$this->pathInfoArray)
     {
       // parse PATH_INFO
-      switch (sfConfig::get('sf_path_info_array', 'SERVER'))
+      switch ($this->options['path_info_array'])
       {
         case 'SERVER':
           $this->pathInfoArray =& $_SERVER;
@@ -643,6 +652,17 @@ class sfWebRequest extends sfRequest
     }
 
     return $this->format;
+  }
+
+  /**
+   * Retrieves an array of files.
+   *
+   * @param  string $key  A key
+   * @return array  An associative array of files
+   */
+  static public function getFiles($key = null)
+  {
+    return is_null($key) ? $_FILES : (isset($_FILES[$key]) ? $_FILES[$key] : array());
   }
 
   /**
@@ -777,7 +797,7 @@ class sfWebRequest extends sfRequest
       }
     }
 
-    if (sfConfig::get('sf_logging_enabled'))
+    if ($this->options['logging'])
     {
       $this->dispatcher->notify(new sfEvent($this, 'application.log', array(sprintf('Request parameters %s', str_replace("\n", '', var_export($this->getParameterHolder()->getAll(), true))))));
     }

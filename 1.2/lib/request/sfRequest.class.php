@@ -59,11 +59,10 @@ abstract class sfRequest
   const HEAD = 7;
 
   protected
-    $errors          = array(),
     $dispatcher      = null,
     $method          = null,
+    $options         = array(),
     $parameterHolder = null,
-    $config          = null,
     $attributeHolder = null;
 
   /**
@@ -71,9 +70,9 @@ abstract class sfRequest
    *
    * @see initialize()
    */
-  public function __construct(sfEventDispatcher $dispatcher, $parameters = array(), $attributes = array())
+  public function __construct(sfEventDispatcher $dispatcher, $parameters = array(), $attributes = array(), $options = array())
   {
-    $this->initialize($dispatcher, $parameters, $attributes);
+    $this->initialize($dispatcher, $parameters, $attributes, $options);
   }
 
   /**
@@ -87,9 +86,16 @@ abstract class sfRequest
    *
    * @throws <b>sfInitializationException</b> If an error occurs while initializing this sfRequest
    */
-  public function initialize(sfEventDispatcher $dispatcher, $parameters = array(), $attributes = array())
+  public function initialize(sfEventDispatcher $dispatcher, $parameters = array(), $attributes = array(), $options = array())
   {
     $this->dispatcher = $dispatcher;
+
+    $this->options = $options;
+
+    if (!isset($this->options['logging']))
+    {
+      $this->options['logging'] = false;
+    }
 
     // initialize parameter and attribute holders
     $this->parameterHolder = new sfParameterHolder();
