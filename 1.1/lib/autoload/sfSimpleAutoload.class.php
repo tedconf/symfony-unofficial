@@ -174,20 +174,23 @@ class sfSimpleAutoload
   }
 
   /**
-   * Adds a directory to the autoloading system.
+   * Adds a directory to the autoloading system if not yet present and give it the highest possible precedence.
    *
    * @param string The directory to look for classes
    * @param string The extension to look for
    */
   public function addDirectory($dir, $ext = '.php')
   {
-    if ($dirs = glob($dir))
+    if($dirs = glob($dir))
     {
       $finder = sfFinder::type('file')->follow_link()->name('*'.$ext);
       foreach ($dirs as $dir)
       {
-        if (in_array($dir, $this->dirs))
+        if (false !== ($key = array_search($dir, $this->dirs)))
         {
+          unset($this->dirs[$key]);
+          $this->dirs[] = $dir;
+
           if ($this->cacheLoaded)
           {
             continue;
