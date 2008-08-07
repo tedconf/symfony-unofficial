@@ -63,7 +63,7 @@ class sfYamlParser
       // tab?
       if (preg_match('#^\t+#', $this->currentLine))
       {
-        throw new InvalidArgumentException(sprintf('A YAML file cannot contain tabs as indentation at line %d (%s).', $this->getRealCurrentLineNb(), $this->currentLine));
+        throw new InvalidArgumentException(sprintf('A YAML file cannot contain tabs as indentation at line %d (%s).', $this->getRealCurrentLineNb() + 1, $this->currentLine));
       }
 
       $isRef = $isInPlace = $isProcessed = false;
@@ -106,7 +106,7 @@ class sfYamlParser
             $isInPlace = substr($values['value'], 1);
             if (!array_key_exists($isInPlace, $this->refs))
             {
-              throw new InvalidArgumentException(sprintf('Reference "%s" does not exist on line %s.', $isInPlace, $this->currentLine));
+              throw new InvalidArgumentException(sprintf('Reference "%s" does not exist at line %s (%s).', $isInPlace, $this->getRealCurrentLineNb() + 1, $this->currentLine));
             }
           }
           else
@@ -146,6 +146,8 @@ class sfYamlParser
             }
 
             $isProcessed = $merged;
+          
+            throw new InvalidArgumentException(sprintf('In place substitution must point to a reference at line %s (%s).', $this->getRealCurrentLineNb() + 1, $this->currentLine));
           }
         }
         else if (isset($values['value']) && preg_match('#^&(?P<ref>[^ ]+) *(?P<value>.*)#', $values['value'], $matches))
@@ -206,7 +208,7 @@ class sfYamlParser
           return $value;
         }
 
-        throw new InvalidArgumentException(sprintf('Unable to parse line %d (%s).', $this->getRealCurrentLineNb(), $this->currentLine));
+        throw new InvalidArgumentException(sprintf('Unable to parse line %d (%s).', $this->getRealCurrentLineNb() + 1, $this->currentLine));
       }
 
       if ($isRef)
@@ -251,7 +253,7 @@ class sfYamlParser
 
     if (!$this->isCurrentLineEmpty() && 0 == $newIndent)
     {
-      throw new InvalidArgumentException(sprintf('Indentation problem at line %d (%s)', $this->getRealCurrentLineNb(), $this->currentLine));
+      throw new InvalidArgumentException(sprintf('Indentation problem at line %d (%s)', $this->getRealCurrentLineNb() + 1, $this->currentLine));
     }
 
     $data = array(substr($this->currentLine, $newIndent));
@@ -287,7 +289,7 @@ class sfYamlParser
       }
       else
       {
-        throw new InvalidArgumentException(sprintf('Indentation problem at line %d (%s)', $this->getRealCurrentLineNb(), $this->currentLine));
+        throw new InvalidArgumentException(sprintf('Indentation problem at line %d (%s)', $this->getRealCurrentLineNb() + 1, $this->currentLine));
       }
     }
 
