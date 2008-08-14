@@ -1,0 +1,192 @@
+Upgrade from 1.1 to 1.2
+=======================
+
+This document describes the changes made in symfony 1.2 and what need
+to be done to upgrade your symfony 1.1 projects.
+
+WARNING: symfony 1.2 is only compatible with PHP 5.2.4.
+
+How to upgrade?
+---------------
+
+To upgrade a project:
+
+  * If you don't use a SCM tool, please make a backup of your project.
+
+  * Launch the `project:upgrade1.2` task from your project directory
+    to perform an automatic upgrade:
+
+        $ ./symfony project:upgrade1.2
+
+    This task can be launched several times without any side effect. Each time
+    you upgrade to a new symfony 1.2 beta / RC or the final symfony 1.2, you
+    have to launch this task.
+
+The remaining sections explain the main changes made in symfony 1.2.
+
+Configuration
+-------------
+
+Request
+~~~~~~~
+
+The `path_info_array`, `path_info_key`, and `relative_url_root` settings have
+been moved from `settings.yml` to `factories.yml` (in the `param` section of the
+`request` factory configuration).
+
+This change removes the dependency between `sfRequest` and `sfConfig`.
+
+These three request options are now passed to the request constructor as a
+fourth argument. The formats are also passed as an option,
+instead of being passed as an attribute.
+
+Response
+~~~~~~~~
+
+There is a new setting for the `response` factory: `send_http_headers`.
+This setting is `true` by default, except for the `test` environment where
+the headers must not be sent by PHP (the same goal was achieved by using
+the `sf_test` setting in symfony 1.1).
+
+This change removes the dependency between `sfResponse` and `sfConfig`.
+
+Validators
+----------
+
+The `sfValidatorSchemaCompare` constant values have been changed. No change to
+your code need to be done, but now, you can use nice shortcuts.
+The following two examples are equivalent:
+
+    [php]
+    // symfony 1.1 and 1.2
+    $v = new sfValidatorSchemaCompare('left', sfValidatorSchemaCompare::EQUAL, 'right');
+
+    // symfony 1.2 only
+    $v = new sfValidatorSchemaCompare('left', '==', 'right');
+
+Tests
+-----
+
+Cookies are now extensively supported in the `sfBrowser` and `sfTestBrowser`
+classes.
+
+You can manage cookies between requests by using the `setCookie()`,
+`removeCookie()`, and `clearCookies()` methods of the `sfBrowser` class:
+
+    [php]
+    $b->
+      setCookie('foo', 'bar')->
+      removeCookie('bar')->
+      get('/')->
+      // ...
+
+      clearCookies()->
+      get('/')->
+      // ...
+
+You can also test cookies with the `hasCookie()` and `isCookie()` methods of
+the `sfTestBrowser` class:
+
+    [php]
+    $b->
+      get('/')->
+      hasCookie('foo')->
+      hasCookie('foobar', false)->
+      isCookie('foo', 'bar')->
+      isCookie('foo', '/a/')->
+      isCookie('foo', '/!z/')->
+
+The `hasCookie()` method takes a Boolean as its second argument to be able to
+test the fact that a cookie is not set.
+
+The second argument of the `isCookie()` method behaves as the second argument
+of the `checkElementResponse` method. It can be a string, a regular expression,
+or a negative regular expression.
+
+The browser class also automatically expires cookies as per the `expire` value
+of each cookie.
+
+YAML
+----
+
+The YAML parser now supports full merge key (see http://yaml.org/type/merge.html
+for more examples).
+
+    [php]
+    $yaml = new sfYamlParser();
+
+    print_r($yaml->parse(<<<EOF
+    default_param: &default_param
+      datasource: propel
+      phptype:    mysql
+      hostspec:   localhost
+      database:   db
+      username:   user
+      password:   pass
+
+    param:
+      <<: *default_param
+      username:   myuser
+      password:   mypass
+    EOF
+    ));
+
+    // displays
+    Array
+    (
+        [default_param] => Array
+            (
+                [datasource] => propel
+                [phptype]    => mysql
+                [hostspec]   => localhost
+                [database]   => db
+                [username]   => user
+                [password]   => pass
+            )
+
+        [param] => Array
+            (
+                [datasource] => propel
+                [phptype]    => mysql
+                [hostspec]   => localhost
+                [database]   => db
+                [username]   => myuser
+                [password]   => mypass
+            )
+
+    )
+
+Actions
+-------
+
+By default, when you use the `redirectIf()` or `redirectUnless()` methods
+in your actions, symfony automatically changes the response HTTP status
+code to 302.
+
+These two methods now have an additional optional argument to change this
+default status code:
+
+    [php]
+    $this->redirectIf($condition, '@homepage', 301);
+    $this->redirectUnless($condition, '@homepage', 301);
+
+The `redirect()` method already have this feature.
+
+sfParameterHolder
+-----------------
+
+The `has()` method of `sfParameterHolder` has been changed to be more
+semantically correct.
+
+It now returns `true` even if the value is `null`:
+
+    [php]
+    $ph = new sfParameterHolder();
+    $ph->set('foo', 'bar');
+    $ph->set('bar', null);
+
+    $ph->has('foo') === true;
+    $ph->has('bar') === true; // returns false under symfony 1.0 or 1.1
+
+The `sfParameterHolder::has()` method is used by the `hasParameter()` and
+`hasAttribute()` methods available for a large number of core classes.
