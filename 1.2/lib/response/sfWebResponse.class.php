@@ -165,7 +165,7 @@ class sfWebResponse extends sfResponse
       }
     }
 
-    $this->cookies[] = array(
+    $this->cookies[$name] = array(
       'name'     => $name,
       'value'    => $value,
       'expire'   => $expire,
@@ -323,14 +323,7 @@ class sfWebResponse extends sfResponse
     // cookies
     foreach ($this->cookies as $cookie)
     {
-      if (version_compare(phpversion(), '5.2', '>='))
-      {
-        setrawcookie($cookie['name'], $cookie['value'], $cookie['expire'], $cookie['path'], $cookie['domain'], $cookie['secure'], $cookie['httpOnly']);
-      }
-      else
-      {
-        setrawcookie($cookie['name'], $cookie['value'], $cookie['expire'], $cookie['path'], $cookie['domain'], $cookie['secure']);
-      }
+      setrawcookie($cookie['name'], $cookie['value'], $cookie['expire'], $cookie['path'], $cookie['domain'], $cookie['secure'], $cookie['httpOnly']);
 
       if ($this->options['logging'])
       {
@@ -691,13 +684,7 @@ class sfWebResponse extends sfResponse
    */
   public function getCookies()
   {
-    $cookies = array();
-    foreach ($this->cookies as $cookie)
-    {
-      $cookies[$cookie['name']] = $cookie;
-    }
-
-    return $cookies;
+    return $this->cookies;
   }
 
   /**
