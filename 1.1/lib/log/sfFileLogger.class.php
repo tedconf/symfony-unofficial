@@ -119,7 +119,7 @@ class sfFileLogger extends sfLogger
    */
   public function shutdown()
   {
-    if ($this->fp)
+    if (is_resource($this->fp))
     {
       fclose($this->fp);
     }
