@@ -344,6 +344,80 @@ abstract class sfAction extends sfComponent
   }
 
   /**
+   * Retrieves the default view to be executed when a given request is not served by this action.
+   *
+   * @return string A string containing the view name associated with this action
+   */
+  public function getDefaultView()
+  {
+    if (!sfConfig::get('sf_compat_10'))
+    {
+      throw new sfConfigurationException('You must set "compat_10" to true if you want to use this method which is deprecated.');
+    }
+
+    return sfView::INPUT;
+  }
+
+  /**
+   * Retrieves the request methods on which this action will process validation and execution.
+   *
+   * @return int One of the following values:
+   *
+   * - sfRequest::GET
+   * - sfRequest::POST
+   * - sfRequest::PUT
+   * - sfRequest::DELETE
+   * - sfRequest::HEAD
+   * - sfRequest::NONE
+   *
+   * @see sfRequest
+   */
+  public function getRequestMethods()
+  {
+    if (!sfConfig::get('sf_compat_10'))
+    {
+      throw new sfConfigurationException('You must set "compat_10" to true if you want to use this method which is deprecated.');
+    }
+
+    return sfRequest::GET
+           | sfRequest::POST
+           | sfRequest::PUT
+           | sfRequest::DELETE
+           | sfRequest::HEAD
+           | sfRequest::NONE;
+  }
+
+  /**
+   * Executes any post-validation error application logic.
+   *
+   * @return string A string containing the view name associated with this action
+   */
+  public function handleError()
+  {
+    if (!sfConfig::get('sf_compat_10'))
+    {
+      throw new sfConfigurationException('You must set "compat_10" to true if you want to use this method which is deprecated.');
+    }
+
+    return sfView::ERROR;
+  }
+
+  /**
+   * Validates manually files and parameters.
+   *
+   * @return bool true, if validation completes successfully, otherwise false.
+   */
+  public function validate()
+  {
+    if (!sfConfig::get('sf_compat_10'))
+    {
+      throw new sfConfigurationException('You must set "compat_10" to true if you want to use this method which is deprecated.');
+    }
+
+    return true;
+  }
+
+  /**
    * Returns the security configuration for this module.
    *
    * @return string Current security configuration as an array
