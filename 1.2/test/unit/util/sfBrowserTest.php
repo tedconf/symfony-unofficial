@@ -10,7 +10,7 @@
 
 require_once(dirname(__FILE__).'/../../bootstrap/unit.php');
 
-$t = new lime_test(51, new lime_output_color());
+$t = new lime_test(54, new lime_output_color());
 
 // ->click()
 $t->diag('->click()');
@@ -76,6 +76,8 @@ $html = <<<EOF
       <input name="myarray[]" value="value2" />
       <input name="myarray[]" value="value3" />
       <input type="file" name="myfile" />
+      <input type="checkbox" name="checkbox1" value="checkboxvalue" checked="checked" />
+      <input type="checkbox" name="checkbox2" checked="checked" />
       <input type="button" name="mybutton" value="mybuttonvalue" />
       <input type="submit" name="submit" value="submit" />
     </form>
@@ -109,6 +111,8 @@ $html = <<<EOF
       </span></div>
     </form>
 
+    <a href="/myotherlink">test link</a>
+
   </body>
 </html>
 EOF;
@@ -139,6 +143,9 @@ catch(Exception $e)
 list($method, $uri, $parameters) = $b->click('test link');
 $t->is($uri, '/mylink', '->click() clicks on links');
 
+list($method, $uri, $parameters) = $b->click('test link', array(), 1);
+$t->is($uri, '/myotherlink', '->click() can take a third argument to tell the position of the link to click on');
+
 list($method, $uri, $parameters) = $b->click('image link');
 $t->is($uri, '/myimagelink', '->click() clicks on image links');
 
@@ -156,6 +163,8 @@ $t->is($parameters['article']['or']['much']['longer'], 'very long!', '->click() 
 $t->is($parameters['submit'], 'submit', '->click() populates button clicked');
 $t->ok(!isset($parameters['mybutton']), '->click() do not populate buttons not clicked');
 $t->is($parameters['myarray'], array('value1', 'value2', 'value3'), '->click() recognizes array names');
+$t->is($parameters['checkbox1'], 'checkboxvalue', '->click() returns the value of the checkbox value attribute');
+$t->is($parameters['checkbox2'], '1', '->click() returns 1 if the checkbox has no value');
 
 list($method, $uri, $parameters) = $b->click('mybuttonvalue');
 $t->is($uri, '/myform', '->click() clicks on form buttons');
@@ -252,4 +261,3 @@ $files = $b->getFiles();
 
 $t->is($files['myfile']['error'], UPLOAD_ERR_OK, 'existent file exists (UPLOAD_ERR_OK)');
 $t->is($files['myfile']['name'], basename($existentFilename), 'name key ok');
-
