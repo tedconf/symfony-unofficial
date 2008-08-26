@@ -63,13 +63,17 @@ as their first argument:
     $response->addStylesheet('foo.css');
     $response->addStylesheet('bar.css', 'first');
 
-    var_export($response->getStylesheets(sfWebResponse::ALL));
+    var_export($response->getStylesheets());
 
     // outputs
     array(
       'bar.css' => array(),
       'foo.css' => array(),
     )
+
+The `sfWebResponse::ALL` is also now the default value for the position argument.
+In symfony 1.1, as the default value is the empty string, the methods only return
+the files registered for the default position by default, which is not very intuitive.
 
 In symfony 1.1, you was able to get all the files by passing the `'ALL'` string
 as the position, and this behavior is still available by passing
@@ -97,6 +101,10 @@ All the positions (first, '', and last) are now also available as constants:
     sfWebResponse::FIRST  === 'first'
     sfWebResponse::MIDDLE === ''
     sfWebResponse::LAST   === 'last'
+
+The `removeStylesheet()` and `removeJavascript()` methods now only take one argument,
+the file to remove from the response. It will remove the file in all the available
+positions. In symfony 1.1, they take the position as a second argument.
 
 Validators
 ----------
@@ -318,3 +326,36 @@ to remove all Propel related logs and timer logs from the logs panel.
 The total time displayed on the web debug toolbar is now computed with `$_SERVER['REQUEST_TIME']`
 (we used to compute it with `sfConfig::get('sf_time_start')`, which does not exist anymore).
 This means that the time displayed will be much larger than in symfony 1.0 and 1.1.
+
+Browser
+-------
+
+The `sfBrowser` and `sfTestBrowser` classes have been refactored in four classes:
+
+  * `sfBrowserBase`:        The base browser class. It knows nothing about symfony,
+                            except classes from the symfony platform.
+
+  * `sfBrowser`:            It inherits from `sfBrowserBase` and implements the
+                            methods specific to symfony.
+
+  * `sfTestFunctionalBase`: The base functional test class. It implements test
+                            methods that are independant from symfony.
+
+  * `sfTestFunctional`:     It inherits from `sfTestFunctionalBase` and implements
+                            the test methods specific to symfony.
+
+  * `sfTestBrowser`:        A BC class which is the same as the `sfTestFunctional`
+                            class with a constructor signature compatible with symfony 1.1
+
+The idea behind the refactor is that the `sfTestFunctional` class is a test class,
+not a browser. So, it takes a browser and a test object as its arguments:
+
+    [php]
+    $testBrowser = new sfTestBrowser('localhost');
+
+    $tester = new sfTestFunctional(new sfBrowser('localhost'), new lime_test());
+
+The `sfTestFunctional` class acts as a proxy for the browser class which means
+that all methods from the browser are accessible directly from the tester object.
+
+This refactor must not introduce backward incompatibility with symfony 1.1.

@@ -174,7 +174,7 @@ class sfWebDebug
         // sql queries log
         if (preg_match('/\b(SELECT|INSERT|UPDATE|DELETE)\b/', $log, $match))
         {
-          $sqlLogs[] .= $log;
+          $sqlLogs[] = $match[1];
         }
 
         ++$line_nb;
