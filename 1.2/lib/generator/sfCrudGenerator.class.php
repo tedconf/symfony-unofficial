@@ -23,7 +23,6 @@ abstract class sfCrudGenerator extends sfGenerator
   protected
     $singularName  = '',
     $pluralName    = '',
-    $peerClassName = '',
     $map           = null,
     $tableMap      = null,
     $primaryKey    = array(),
@@ -120,9 +119,7 @@ abstract class sfCrudGenerator extends sfGenerator
     $params = array();
     foreach ($this->getPrimaryKey() as $pk)
     {
-      $name = sfInflector::underscore($pk->getPhpName());
-//      $params[] = sprintf("\$request->getParameter('%s', \$request->getParameter('%s'))", sprintf('%s[%s]', $prefix, $name), $name);
-      $params[] = sprintf("\$request->getParameter('%s')", $name);
+      $params[] = sprintf("\$request->getParameter('%s')", sfInflector::underscore($pk->getPhpName()));
     }
 
     return implode(",\n".str_repeat(' ', max(0, $indent - strlen($this->singularName.$this->className))), $params);
@@ -200,10 +197,9 @@ abstract class sfCrudGenerator extends sfGenerator
    */
   protected function setScaffoldingClassName($className)
   {
-    $this->singularName  = sfInflector::underscore($className);
-    $this->pluralName    = $this->singularName.'s';
-    $this->className     = $className;
-    $this->peerClassName = $className.'Peer';
+    $this->singularName = isset($this->params['singular']) ? $this->params['singular'] : sfInflector::underscore($className);
+    $this->pluralName   = isset($this->params['plural']) ? $this->params['plural'] : $this->singularName.'s';
+    $this->className    = $className;
   }
 
   /**
@@ -234,16 +230,6 @@ abstract class sfCrudGenerator extends sfGenerator
   public function getClassName()
   {
     return $this->className;
-  }
-
-  /**
-   * Gets the Peer class name.
-   *
-   * @return string
-   */
-  public function getPeerClassName()
-  {
-    return $this->peerClassName;
   }
 
   /**
