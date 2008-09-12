@@ -38,6 +38,19 @@ abstract class sfTestFunctionalBase
     {
       self::$test = !is_null($lime) ? $lime : new lime_test(null, new lime_output_color());
     }
+
+    // register our shutdown function
+    register_shutdown_function(array($this, 'shutdown'));
+  }
+
+  /**
+   * Shutdown function.
+   *
+   * @return void
+   */
+  public function shutdown()
+  {
+    $this->checkCurrentExceptionIsEmpty();
   }
 
   /**
@@ -90,6 +103,8 @@ abstract class sfTestFunctionalBase
    */
   public function call($uri, $method = 'get', $parameters = array(), $changeStack = true)
   {
+    $this->checkCurrentExceptionIsEmpty();
+
     $uri = $this->browser->fixUri($uri);
 
     $this->test()->comment(sprintf('%s %s', strtolower($method), $uri));
@@ -203,6 +218,20 @@ abstract class sfTestFunctionalBase
   public function isRequestParameter($key, $value)
   {
     $this->test()->is($this->getRequest()->getParameter($key), $value, sprintf('request parameter "%s" is "%s"', $key, $value));
+
+    return $this;
+  }
+
+  /**
+   * Tests if the current HTTP method matches the given one
+   *
+   * @param  string  $method  The HTTP method name
+   *
+   * @return sfTestBrowser The current sfTestBrowser instance
+   */
+  public function isRequestMethod($method)
+  {
+    $this->test()->ok($this->getRequest()->isMethod($method), sprintf('request method is "%s"', strtoupper($method)));
 
     return $this;
   }
@@ -331,7 +360,7 @@ abstract class sfTestFunctionalBase
    */
   public function throwsException($class = null, $message = null)
   {
-    $e = $this->getCurrentException();
+    $e = $this->browser->getCurrentException();
 
     if (null === $e)
     {
@@ -365,17 +394,17 @@ abstract class sfTestFunctionalBase
 
     return $this;
   }
-  
+
   /**
    * Triggers a test failure if an uncaught exception is present.
-   * 
+   *
    * @return  bool
    */
   public function checkCurrentExceptionIsEmpty()
   {
     if (false === ($empty = $this->browser->checkCurrentExceptionIsEmpty()))
     {
-      $this->test()->fail(sprintf('last request threw an uncaught exception "%s: %s"', get_class($this->getCurrentException()), $this->getCurrentException()->getMessage()));
+      $this->test()->fail(sprintf('last request threw an uncaught exception "%s: %s"', get_class($this->browser->getCurrentException()), $this->browser->getCurrentException()->getMessage()));
     }
 
     return $empty;

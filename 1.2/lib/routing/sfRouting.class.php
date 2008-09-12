@@ -241,7 +241,6 @@ abstract class sfRouting
   public function filterParametersEvent(sfEvent $event, $parameters)
   {
     $context = $event->getParameters();
-    unset($context['path_info']);
 
     $this->options['context'] = $context;
 
@@ -257,7 +256,14 @@ abstract class sfRouting
   {
     if (isset($this->options['context']['prefix']))
     {
-      $url = $this->options['context']['prefix'].$url;
+      if (0 === strpos($url, 'http'))
+      {
+        $url = preg_replace('#https?\://[^/]+#', '$0'.$this->options['context']['prefix'], $url);
+      }
+      else
+      {
+        $url = $this->options['context']['prefix'].$url;
+      }
     }
 
     if ($absolute && isset($this->options['context']['host']))

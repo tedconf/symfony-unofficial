@@ -45,8 +45,11 @@ class sfBrowser extends sfBrowserBase
     $this->context->getResponse()->setContent($retval);
 
     // manually shutdown user to save current session data
-    $this->context->getUser()->shutdown();
-    $this->context->getStorage()->shutdown();
+    if ($this->context->getUser())
+    {
+      $this->context->getUser()->shutdown();
+      $this->context->getStorage()->shutdown();
+    }
   }
 
   /**
@@ -64,6 +67,7 @@ class sfBrowser extends sfBrowserBase
       {
         $currentConfiguration = $this->context->getConfiguration();
         $configuration = ProjectConfiguration::getApplicationConfiguration($currentConfiguration->getApplication(), $currentConfiguration->getEnvironment(), $currentConfiguration->isDebug());
+        $configuration->getEventDispatcher()->connect('application.throw_exception', array($this, 'ListenToException'));
         $this->context = sfContext::createInstance($configuration);
         unset($currentConfiguration);
       }
@@ -71,9 +75,8 @@ class sfBrowser extends sfBrowserBase
       {
         $this->context = sfContext::getInstance();
         $this->context->initialize($this->context->getConfiguration());
+        $this->context->getEventDispatcher()->connect('application.throw_exception', array($this, 'ListenToException'));
       }
-
-      $this->context->getEventDispatcher()->connect('application.throw_exception', array($this, 'ListenToException'));
     }
 
     return $this->context;
