@@ -55,6 +55,11 @@ class sfWidgetFormSelectRadio extends sfWidgetForm
    */
   public function render($name, $value = null, $attributes = array(), $errors = array())
   {
+    if ('[]' != substr($name, -2))
+    {
+      $name .= '[]';
+    }
+
     $choices = $this->getOption('choices');
     if ($choices instanceof sfCallable)
     {
@@ -65,10 +70,10 @@ class sfWidgetFormSelectRadio extends sfWidgetForm
     foreach ($choices as $key => $option)
     {
       $baseAttributes = array(
-        'name'  => $name,
+        'name'  => substr($name, 0, -2),
         'type'  => 'radio',
         'value' => self::escapeOnce($key),
-        'id'    => $id = $this->generateId($name.'[]', self::escapeOnce($key)),
+        'id'    => $id = $this->generateId($name, self::escapeOnce($key)),
       );
 
       if (strval($key) == strval($value === false ? 0 : $value))
@@ -94,5 +99,18 @@ class sfWidgetFormSelectRadio extends sfWidgetForm
     }
 
     return $this->renderContentTag('ul', implode($this->getOption('separator'), $rows), array('class' => 'radio_list'));
+  }
+
+  public function __clone()
+  {
+    if ($this->getOption('choices') instanceof sfCallable)
+    {
+      $callable = $this->getOption('choices')->getCallable();
+      if (is_array($callable))
+      {
+        $callable[0] = $this;
+        $this->setOption('choices', new sfCallable($callable));
+      }
+    }
   }
 }

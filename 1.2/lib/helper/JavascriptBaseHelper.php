@@ -76,7 +76,10 @@
    */
   function if_javascript()
   {
-    ob_start();
+    if (!sfContext::getInstance()->getRequest()->isXmlHttpRequest())
+    {
+      ob_start();
+    }
   }
 
   /**
@@ -85,9 +88,11 @@
    */
   function end_if_javascript()
   {
-    $content = ob_get_clean();
-
-    echo javascript_tag("document.write('" . esc_js_no_entities($content) . "');");
+    if (!sfContext::getInstance()->getRequest()->isXmlHttpRequest())
+    {
+      $content = ob_get_clean();
+      echo javascript_tag("document.write('" . esc_js_no_entities($content) . "');");
+    }
   }
 
   /** 
@@ -97,7 +102,7 @@
    * @param option (typically from option array)
    * @return string javascript string or array equivalent 
    */ 
-  function _array_or_string_for_javascript($option)
+  function array_or_string_for_javascript($option)
   {
     if (is_array($option))
     {
@@ -110,12 +115,22 @@
     return $option;
   }
 
-   function _options_for_javascript($options)
+  /**
+  * converts the the PHP options array into a javscript array
+   *
+   * @param array
+   * @return string javascript arry equivalent 
+  */
+  function options_for_javascript($options)
   {
     $opts = array();
     foreach ($options as $key => $value)
     {
-      $opts[] = $key.":"._boolean_for_javascript($value);
+      if (is_array($value))
+      {
+       $value = options_for_javascript($value);
+      }
+      $opts[] = $key.":".boolean_for_javascript($value);
     }
     sort($opts);
 
@@ -129,27 +144,11 @@
    * @param bool (typically from option array)
    * @return string javascript boolean equivalent 
    */ 
-  function _boolean_for_javascript($bool)
+  function boolean_for_javascript($bool)
   {
     if (is_bool($bool)) 
     { 
       return ($bool===true ? 'true' : 'false'); 
     }
     return $bool;
-  }
-
-  function _build_callbacks($options)
-  {
-    $callbacks = array();
-    foreach (get_callbacks() as $callback)
-    {
-      if (isset($options[$callback]))
-      {
-        $name = 'on'.ucfirst($callback);
-        $code = $options[$callback];
-        $callbacks[$name] = 'function(request, json){'.$code.'}';
-      }
-    }
-
-    return $callbacks;
   }

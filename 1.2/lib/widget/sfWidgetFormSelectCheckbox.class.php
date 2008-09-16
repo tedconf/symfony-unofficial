@@ -9,14 +9,14 @@
  */
 
 /**
- * sfWidgetFormSelectRadio represents radio HTML tags.
+ * sfWidgetFormSelectCheckbox represents an array of checkboxes.
  *
  * @package    symfony
  * @subpackage widget
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  * @version    SVN: $Id$
  */
-class sfWidgetFormSelectRadio extends sfWidgetForm
+class sfWidgetFormSelectCheckbox extends sfWidgetForm
 {
   /**
    * Constructor.
@@ -24,14 +24,14 @@ class sfWidgetFormSelectRadio extends sfWidgetForm
    * Available options:
    *
    *  * choices:         An array of possible choices (required)
-   *  * label_separator: The separator to use between the input radio and the label
-   *  * separator:       The separator to use between each input radio
-   *  * formatter:       A callable to call to format the radio choices
+   *  * label_separator: The separator to use between the input checkbox and the label
+   *  * separator:       The separator to use between each input checkbox
+   *  * formatter:       A callable to call to format the checkbox choices
    *                     The formatter callable receives the widget and the array of inputs as arguments
    *
    * @param array $options     An array of options
    * @param array $attributes  An array of default HTML attributes
-   *   
+   *
    * @see sfWidgetForm
    */
   protected function configure($options = array(), $attributes = array())
@@ -70,13 +70,13 @@ class sfWidgetFormSelectRadio extends sfWidgetForm
     foreach ($choices as $key => $option)
     {
       $baseAttributes = array(
-        'name'  => substr($name, 0, -2),
-        'type'  => 'radio',
+        'name'  => $name,
+        'type'  => 'checkbox',
         'value' => self::escapeOnce($key),
         'id'    => $id = $this->generateId($name, self::escapeOnce($key)),
       );
 
-      if (strval($key) == strval($value === false ? 0 : $value))
+      if (in_array(strval($key), $value))
       {
         $baseAttributes['checked'] = 'checked';
       }
@@ -98,7 +98,7 @@ class sfWidgetFormSelectRadio extends sfWidgetForm
       $rows[] = $this->renderContentTag('li', $input['input'].$this->getOption('label_separator').$input['label']);
     }
 
-    return $this->renderContentTag('ul', implode($this->getOption('separator'), $rows), array('class' => 'radio_list'));
+    return $this->renderContentTag('ul', implode($this->getOption('separator'), $rows), array('class' => 'checkbox_list'));
   }
 
   public function __clone()

@@ -187,9 +187,9 @@ function url_for_form(sfForm $form, $routePrefix)
   return url_for($uri, $form->getObject());
 }
 
-function form_tag_for(sfForm $form, $routePrefix)
+function form_tag_for(sfForm $form, $routePrefix, $attributes = array())
 {
-  return $form->renderFormTag(url_for_form($form, $routePrefix));
+  return $form->renderFormTag(url_for_form($form, $routePrefix), $attributes);
 }
 
 /**
@@ -530,7 +530,7 @@ function _method_javascript_function($method)
   if ('post' != strtolower($method))
   {
     $function .= "var m = document.createElement('input'); m.setAttribute('type', 'hidden'); ";
-    $function .= sprintf("m.setAttribute('name', 'sf_method'); m.setAttribute('value', '%s'); f.appendChild(m);", strtoupper($method));
+    $function .= sprintf("m.setAttribute('name', 'sf_method'); m.setAttribute('value', '%s'); f.appendChild(m);", strtolower($method));
   }
 
   $function .= "f.submit();";
