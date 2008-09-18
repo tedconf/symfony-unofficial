@@ -33,3 +33,4 @@ $task = new sfCacheClearTask($dispatcher, $formatter);
 $task->run();
 
 $t->ok(!file_exists($file), 'The test file is removed by the cache:clear task');
+

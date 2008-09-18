@@ -333,9 +333,10 @@ class sfForm implements ArrayAccess
 
   /**
    * Merges current form widget and validator schemas with the ones from the
-   * sfForm object passed as parameter
+   * sfForm object passed as parameter. Please note it also merge defaults.
    *
    * @param  sfForm   $form      The sfForm instance to merge with current form
+   *
    * @throws LogicException      If one of the form has already been bound
    */
   public function mergeForm(sfForm $form)
@@ -359,6 +360,9 @@ class sfForm implements ArrayAccess
     {
       $this->validatorSchema[$field] = $validator;
     }
+
+    $this->getWidgetSchema()->setLabels(array_merge($this->getWidgetSchema()->getLabels(),
+                                                    $form->getWidgetSchema()->getLabels()));
 
     $this->mergePreValidator($form->getValidatorSchema()->getPreValidator());
     $this->mergePostValidator($form->getValidatorSchema()->getPostValidator());
