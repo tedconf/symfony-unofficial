@@ -542,6 +542,19 @@ The following two examples are equivalent:
     // symfony 1.2 only
     $v = new sfValidatorSchemaCompare('left', '==', 'right');
 
+`sfValidatorChoice` has now a `multiple` option to make it behave like a
+`sfValidatorChoiceMany`.
+
+`sfValidatorPropelChoice` has now a `multiple` option to make it behave like a
+`sfValidatorPropelChoiceMany`.
+
+symfony 1.2 comes with some more validators and widgets:
+
+  * sfValidatorDateRange
+  * sfWidgetFormDateRange
+  * sfWidgetFormFilterInput
+  * sfWidgetFormFilterDate
+
 Tests
 -----
 
@@ -1199,8 +1212,16 @@ Doctrine plugin and disable the Propel one:
     [php]
     public function setup()
     {
-      $this->enablePlugin('sfDoctrinePlugin');
-      $this->disablePlugin('sfPropelPlugin');
+      $this->enablePlugins('sfDoctrinePlugin');
+      $this->disablePlugins('sfPropelPlugin');
+    }
+
+You can add several plugins in one call by passing an array of plugin names:
+
+    [php]
+    public function setup()
+    {
+      $this->enablePlugins(array('sfDoctrinePlugin', 'sfGuardPlugin'));
     }
 
 You can also change the order in which plugins are loaded by using the `setPlugins`
@@ -1224,7 +1245,57 @@ configuration:
     [php]
     public function setup()
     {
-      $this->enablePlugin('sfCompat10Plugin');
+      $this->enablePlugins('sfCompat10Plugin');
     }
 
 By default, symfony only enables the Propel plugin.
+
+You can also enable all installed plugins:
+
+    [php]
+    public function setup()
+    {
+      $this->enableAllPluginsExcept('sfDoctrinePlugin');
+    }
+
+The previous example allows you to enable all plugins except the Doctrine one.
+If you upgrade from 1.0 or 1.1, this line will make symfony behave like in
+symfony 1.0 and 1.1.
+
+Filters
+-------
+
+symfony is now able to generate filters based on your model thanks to the
+`propel:build-filters` task:
+
+    $ php symfony propel:build-filters
+
+This task generates filter form classes in `lib/filter/` by default.
+
+To filter an `Article` model, here is the code you need in your actions:
+
+    [php]
+    $this->filters = new ArticleFormFilter();
+    if ($request->isMethod('post'))
+    {
+      $this->filters->bind($request->getParameter('article_filters'));
+      if ($this->filters->isValid())
+      {
+        $this->articles = ArticlePeer::doSelect($this->filters->getCriteria());
+      }
+    }
+
+And here is the related template code:
+
+    [php]
+    <form action="<?php echo url_for('@articles_filter') ?>" method="post">
+      <table>
+        <?php echo $filters ?>
+        <tr>
+          <td colspan="2">
+            &nbsp;<a href="<?php echo url_for('@articles') ?>">Reset</a>
+            <input type="submit" value="Filter" />
+          </td>
+        </tr>
+      </table>
+    </form>
