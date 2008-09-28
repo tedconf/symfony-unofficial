@@ -273,7 +273,7 @@ abstract class sfAction extends sfComponent
    */
   public function getPartial($templateName, $vars = null)
   {
-    sfLoader::loadHelpers('Partial');
+    $this->getContext()->getConfiguration()->loadHelpers('Partial');
 
     $vars = !is_null($vars) ? $vars : $this->varHolder->getAll();
 
@@ -316,7 +316,7 @@ abstract class sfAction extends sfComponent
    */
   public function getComponent($moduleName, $componentName, $vars = null)
   {
-    sfLoader::loadHelpers('Partial');
+    $this->getContext()->getConfiguration()->loadHelpers('Partial');
 
     $vars = !is_null($vars) ? $vars : $this->varHolder->getAll();
 
@@ -533,6 +533,11 @@ abstract class sfAction extends sfComponent
   public function setViewClass($class)
   {
     sfConfig::set('mod_'.strtolower($this->getModuleName()).'_view_class', $class);
+  }
+
+  public function getRoute()
+  {
+    return $this->getRequest()->getAttribute('sf_route');
   }
 
   /**

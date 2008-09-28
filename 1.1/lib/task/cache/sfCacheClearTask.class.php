@@ -102,6 +102,8 @@ EOF;
 
         $this->logSection('cache', sprintf('Clearing cache type "%s" for "%s" app and "%s" env', $options['type'], $app, $env));
 
+        $appConfiguration = ProjectConfiguration::getApplicationConfiguration($app, $env, true);
+
         $this->lock($app, $env);
 
         $event = $appConfiguration->getEventDispatcher()->notifyUntil(new sfEvent($this, 'task.cache.clear', array('app' => $appConfiguration, 'env' => $env, 'type' => $options['type'])));

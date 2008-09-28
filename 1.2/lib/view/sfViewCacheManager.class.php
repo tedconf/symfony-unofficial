@@ -434,7 +434,7 @@ class sfViewCacheManager
   protected function ignore()
   {
     // ignore cache parameter? (only available in debug mode)
-    if (sfConfig::get('sf_debug') && $this->context->getRequest()->getAttribute('_sf_ignore_cache'))
+    if (sfConfig::get('sf_debug') && $this->context->getRequest()->getAttribute('sf_ignore_cache'))
     {
       if (sfConfig::get('sf_logging_enabled'))
       {
@@ -859,7 +859,7 @@ class sfViewCacheManager
       return $content;
     }
 
-    sfLoader::loadHelpers(array('Helper', 'Url', 'Asset', 'Tag'));
+    $this->context->getConfiguration()->loadHelpers(array('Helper', 'Url', 'Asset', 'Tag'));
 
     $bgColor      = $event['new'] ? '#9ff' : '#ff9';
     $lastModified = $this->getLastModified($event['uri']);

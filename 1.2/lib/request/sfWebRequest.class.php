@@ -303,7 +303,7 @@ class sfWebRequest extends sfRequest
   {
     $pathArray = $this->getPathInfoArray();
 
-    return isset($pathArray['ORIG_SCRIPT_NAME']) ? $pathArray['ORIG_SCRIPT_NAME'] : (isset($pathArray['SCRIPT_NAME']) ? $pathArray['SCRIPT_NAME'] : '');
+    return isset($pathArray['SCRIPT_NAME']) ? $pathArray['SCRIPT_NAME'] : (isset($pathArray['ORIG_SCRIPT_NAME']) ? $pathArray['ORIG_SCRIPT_NAME'] : '');
   }
 
   /**
@@ -829,20 +829,13 @@ class sfWebRequest extends sfRequest
 
   protected function fixParameters()
   {
-    // arguments that come from the routing
-    if ($this->getParameter('_arguments'))
-    {
-      $this->getAttributeHolder()->add($this->getParameter('_arguments'));
-      $this->getParameterHolder()->remove('_arguments');
-    }
-
     // move symfony parameters to attributes (parameters prefixed with _sf_)
     foreach ($this->parameterHolder->getAll() as $key => $value)
     {
       if (0 === stripos($key, '_sf_'))
       {
         $this->parameterHolder->remove($key);
-        $this->setAttribute($key, $value);
+        $this->setAttribute(substr($key, 1), $value);
       }
     }
   }
