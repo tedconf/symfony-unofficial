@@ -363,12 +363,9 @@ The following two examples are equivalent:
 `sfValidatorPropelChoice` has now a `multiple` option to make it behave like a
 `sfValidatorPropelChoiceMany`.
 
-symfony 1.2 comes with some more validators and widgets:
+symfony 1.2 comes with some new validators:
 
-  * sfValidatorDateRange
-  * sfWidgetFormDateRange
-  * sfWidgetFormFilterInput
-  * sfWidgetFormFilterDate
+  * `sfValidatorDateRange`
 
 The `sfValidatedFile` class has been made a bit more flexible when it saves
 the file.
@@ -445,8 +442,13 @@ backward compatibility but you don't need to provide it anymore.
 Widgets
 -------
 
-There is a new `sfWidgetFormSelectCheckbox` widget which is similar to
-`sfWidgetFormSelectRadio`.
+symfony 1.2 comes with some new widgets:
+
+  * `sfWidgetFormDateRange`
+  * `sfWidgetFormFilterInput`
+  * `sfWidgetFormFilterDate`
+  * `sfWidgetFormI18nSelectCurrency`
+  * `sfWidgetFormSelectCheckbox`
 
 There are also a new `choice` widget family:
 
@@ -569,6 +571,14 @@ to the new directory.
 
 In addition some very basic javascript helpers that are reusable by any JS framework, have
 been extracted to a `JavascriptBaseHelper` which stays in core.
+
+As a new addition, `javascript_tag()` now can behave as `slot()`. This allows such usage
+
+    [php]
+    <?php javascript_tag() ?>
+    alert('All is good')
+    <?php end_javascript_tag() ?>
+
 
 >**CAUTION**
 >**Work in progress:** As plugins are normally installed via a task and this invokes the 
@@ -1390,6 +1400,25 @@ a new object directly, it is deprecated. By using the singleton, the performance
 are better as we only instantiate one culture info object per request and it
 also means that you can now override some culture information globally in your
 configuration classes.
+
+The `sfCultureInfo::getCountries()`, `sfCultureInfo::getCurrencies()`, and
+`sfCultureInfo::getLanguages()` methods now take an optional argument which allows
+to restrict the return value:
+
+    [php]
+    // will only return the FR and ES countries in english
+    $countries = sfCultureInfo::getInstance('en')->getCountries(array('FR', 'ES'));
+
+The `sfCultureInfo::getCurrencies()` method now returns an array of currency names.
+In previous symfony versions, it returned an array with the symbol and the name.
+To get the old behavior, just pass `true` as the second argument:
+
+    [php]
+    $currencies = sfCultureInfo::getInstance('en')->getCurrencies(null, true);
+
+To get the translation of a single country, language, or currency, you can now
+use the `getCountry()`, `getCurrency()`, and `getLanguage()` methods from the
+`sfCultureInfo` class.
 
 Exception Templates
 -------------------

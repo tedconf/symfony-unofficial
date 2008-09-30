@@ -67,7 +67,10 @@ class sfException extends Exception
       // clean current output buffer
       while (ob_get_level())
       {
-        ob_end_clean();
+        if (!ob_end_clean())
+        {
+          break;
+        }
       }
 
       ob_start(sfConfig::get('sf_compressed') ? 'ob_gzhandler' : '');
