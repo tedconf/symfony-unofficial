@@ -140,7 +140,7 @@ EOF;
     $this->clearRoutingCache($appConfiguration);
     $this->clearTemplateCache($appConfiguration);
     $this->clearConfigCache($appConfiguration);
-    $this->clearInternalCache($appConfiguration, $env);
+    $this->clearInternalCache($appConfiguration);
     $this->clearAutoloadCache();
   }
 
@@ -176,7 +176,7 @@ EOF;
     $this->cleanCacheFromFactoryConfig($config['view_cache']['class'], $config['view_cache']['param']);
   }
 
-  protected function clearInternalCache(sfApplicationConfiguration $appConfiguration, $env)
+  protected function clearInternalCache(sfApplicationConfiguration $appConfiguration)
   {
     $config = $this->getFactoriesConfiguration($appConfiguration);
 
