@@ -83,8 +83,10 @@ class sfWebResponse extends sfResponse
    *
    * Available options:
    *
-   *  * charset:      The charset to use (utf-8 by default)
-   *  * content_type: The content type (text/html by default)
+   *  * charset:           The charset to use (utf-8 by default)
+   *  * content_type:      The content type (text/html by default)
+   *  * send_http_headers: Whether to send HTTP headers or not (true by default)
+   *  * http_protocol:     The HTTP protocol to use for the response (HTTP/1.0 by default)
    *
    * @param  sfEventDispatcher $dispatcher  An sfEventDispatcher instance
    * @param  array             $options     An array of options
@@ -105,6 +107,11 @@ class sfWebResponse extends sfResponse
     if (!isset($this->options['charset']))
     {
       $this->options['charset'] = 'utf-8';
+    }
+
+    if (!isset($this->options['http_protocol']))
+    {
+      $this->options['http_protocol'] = 'HTTP/1.0';
     }
 
     $this->options['content_type'] = $this->fixContentType(isset($this->options['content_type']) ? $this->options['content_type'] : 'text/html');
@@ -293,7 +300,7 @@ class sfWebResponse extends sfResponse
     }
 
     // status
-    $status = 'HTTP/1.1 '.$this->statusCode.' '.$this->statusText;
+    $status = $this->options['http_protocol'].' '.$this->statusCode.' '.$this->statusText;
     header($status);
 
     if ($this->options['logging'])
