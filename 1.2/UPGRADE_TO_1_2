@@ -48,8 +48,8 @@ Due to the removal of Creole, the following classes are removed:
  `sfMessageSource_Creole` | `sfMessageSource_PDO`
  `sfCreoleSessionStorage` | `sfPDOSessionStorage`
  
-The `propel:build-db` task has been removed as this functionality is provided by
-`propel:insert-sql`.
+The `propel:build-db` task has been removed as this functionality is not yet
+provided by Propel 1.3.
 
 The first step to upgrading is changing from Creole to PDO syntax in the
 database configuration from the project `databases.yml` file.
@@ -327,7 +327,7 @@ the array of cleaned up values:
     }
 
 The `sfForm` class has a new `hasErrors()` method which returns true if the
-form has no errors and false otherwise. This methods returns `false` if the
+form has some errors and false otherwise. This methods returns `false` if the
 form is not bound. This method is quite useful in a template:
 
     [php]
@@ -504,6 +504,14 @@ Here are some example:
 
 These new widgets are now used by default for the Propel generated forms.
 
+All widgets have a new `label` option. This option sets the label for the widget
+when used in a widget schema context:
+
+    [php]
+    $widget = new sfWidgetFormInput(array('label' => 'Enter your name here'));
+    $widget->setLabel('Enter your name here');
+    echo $widget->getLabel();
+
 Response
 --------
 
@@ -573,13 +581,13 @@ positions. In symfony 1.1, they take the position as a second argument.
 Prototype and Scriptaculous
 ---------------------------
 
-symfony continues to decouple its bundled software. In 1.2 the bundled Prototype 
-and Scriptaculous libraries and helper (`JavascriptHelper`) have been moved to a 
-core-plugin. Core plugins behave like real plugins but are shipped by symfony platform.
-This will make the javscript and css files of the new `sfProtoculousPlugin` 
-(the more or less inofficial name of the often featured duo) behave like real plugin
-assets. They will be now in `web/sfProtoculousPlugin` rather than in `web/sf` 
-(as it has been in 1.0 and 1.1). The `prototype_web_dir` setting will also now point 
+symfony continues to decouple its bundled software. In 1.2 the bundled Prototype
+and Scriptaculous libraries and helpers (`JavascriptHelper`) have been moved to a
+core-plugin. Core plugins behave like any plugin but are shipped with symfony.
+This will make the JavaScript and CSS files of the new `sfProtoculousPlugin`
+(the more or less unofficial name of the often featured duo) behave like real plugin
+assets. They will be now in `web/sfProtoculousPlugin` rather than in `web/sf`
+(as it has been in 1.0 and 1.1). The `prototype_web_dir` setting will also now point
 to the new directory.
 
 In addition some very basic javascript helpers that are reusable by any JS framework, have
@@ -592,15 +600,14 @@ As a new addition, `javascript_tag()` now can behave as `slot()`. This allows su
     alert('All is good')
     <?php end_javascript_tag() ?>
 
-
 >**CAUTION**
->**Work in progress:** As plugins are normally installed via a task and this invokes the 
+>**Work in progress:** As plugins are normally installed via a task and this invokes the
 >creation of the symlink in the web directory this is required for core plugins as well.
 >To do this manually you need to invoke:
 >
-> ``symfony plugin:configure-core``
+> `symfony plugin:configure-core`
 >
-> The target is that the project creation and upgrade task do this for you
+> The target is that the project creation and upgrade task do this for you.
 
 Browser
 -------
@@ -874,6 +881,22 @@ You can also debug a form with the `debug()` method:
 
 It will output the submitted values and all the errors if any.
 
+## Coverage
+
+There is a new `test:coverage` task that output the code coverage for some given
+tests:
+
+    [php]
+    ./symfony test:coverage test/unit/model/ArticleTest.php lib/model/Article.php
+
+The first argument is a test file or a test directory. The second one is the
+file or directory you want to cover.
+
+If you want to know which lines are not covered, simply add the `--detailed` option:
+
+    [php]
+    ./symfony test:coverage --detailed test/unit/model/ArticleTest.php lib/model/Article.php
+
 YAML
 ----
 
@@ -1055,7 +1078,21 @@ as they call the `propel:insert-sql` task.
 If you want to use these tasks in a batch and want to avoid the confirmation question,
 pass the `no-confirmation` option:
 
-   $ php symfony propel:insert-sql --no-confirmation
+    $ php symfony propel:insert-sql --no-confirmation
+
+Before symfony 1.2, the `propel:insert-sql` task was the only task to read its
+database configuration information from `propel.ini`. As of symfony 1.2, it
+reads its information from `databases.yml`. So, if you use several different
+connections in your model, the task will take those into account.
+Thanks to this new feature, you can now use the `--connection` option
+if you want to only load SQL statements for a given connection:
+
+    $ php symfony propel:insert-sql --connection=propel
+
+You can also use the `--env` and the `--application` options to select a
+specific configuration to use:
+
+    $ php symfony propel:insert-sql --env=prod --application=frontend
 
 The `sfTask` base class now provides three new methods to use in your tasks:
 
@@ -1596,8 +1633,10 @@ your project or application `config/error` directory.
 
 For example, an uncaught exception during an XML request could render
 `config/error/exception.xml.php` when your application is in debug mode, or
-`config/error/error500.xml.php` when your application is not in debug mode.
+`config/error/error.xml.php` when your application is not in debug mode.
 
-Your symfony 1.1 project's `config/error500.php` file will also render, but
-your symfony 1.0 project's `web/errors/error500.php` file must be moved. This
-is done for you by the upgrade task.
+If you had customized the 500 error template in your project, you will
+need to manually move it to the new directory:
+
+  * For symfony 1.1: from `config/error500.php` to `config/error/error.html.php`
+  * For symfony 1.0: from `web/errors/error500.php` to `config/error/error.html.php`
