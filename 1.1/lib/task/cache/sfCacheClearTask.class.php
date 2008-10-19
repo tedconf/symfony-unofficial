@@ -61,7 +61,7 @@ To clear the [config|COMMENT] cache for all [prod|COMMENT] environments:
 
   [./symfony cache:clear --type=config --env=prod|INFO]
 
-The built-in types are: [config|COMMENT], [i18n|COMMENT], [routing|COMMENT], [template|COMMENT], [internal|COMMENT], and [autoload|COMMENT].
+The built-in types are: [config|COMMENT], [i18n|COMMENT], [routing|COMMENT], [module|COMMENT], [template|COMMENT], [internal|COMMENT], and [autoload|COMMENT].
 
 EOF;
   }
@@ -139,6 +139,7 @@ EOF;
     $this->clearI18NCache($appConfiguration);
     $this->clearRoutingCache($appConfiguration);
     $this->clearTemplateCache($appConfiguration);
+    $this->clearModuleCache($appConfiguration);
     $this->clearConfigCache($appConfiguration);
     $this->clearInternalCache($appConfiguration);
     $this->clearAutoloadCache();
@@ -189,6 +190,17 @@ EOF;
     foreach(sfFinder::type('file')->name('sf_autoload*')->maxdepth(0)->in(sfToolkit::getTmpDir()) as $file)
     {
       @unlink($file);
+    }
+  }
+
+  protected function clearModuleCache(sfApplicationConfiguration $appConfiguration)
+  {
+    $subDir = sfConfig::get('sf_cache_dir').'/'.$appConfiguration->getApplication().'/'.$appConfiguration->getEnvironment().'/modules';
+
+    if (is_dir($subDir))
+    {
+      // remove cache files
+      $this->getFilesystem()->remove(sfFinder::type('file')->discard('.sf')->in($subDir));
     }
   }
 

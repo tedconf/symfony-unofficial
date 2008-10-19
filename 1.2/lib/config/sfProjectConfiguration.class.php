@@ -165,7 +165,9 @@ class sfProjectConfiguration
   {
     return array_merge(
       array(sfConfig::get('sf_data_dir').'/generator/'.$class.'/'.$theme.'/template'), // project
-      $this->getPluginSubPaths('/data/generator/'.$class.'/'.$theme.'/template')       //plugins
+      $this->getPluginSubPaths('/data/generator/'.$class.'/'.$theme.'/template'),      // plugins
+      array(sfConfig::get('sf_data_dir').'/generator/'.$class.'/default/template'),    // project (default theme)
+      $this->getPluginSubPaths('/data/generator/'.$class.'/default/template')          // plugins (default theme)
     );
   }
 
@@ -181,7 +183,9 @@ class sfProjectConfiguration
   {
     return array_merge(
       array(sfConfig::get('sf_data_dir').'/generator/'.$class.'/'.$theme.'/skeleton'), // project
-      $this->getPluginSubPaths('/data/generator/'.$class.'/'.$theme.'/skeleton')       // plugins
+      $this->getPluginSubPaths('/data/generator/'.$class.'/'.$theme.'/skeleton'),      // plugins
+      array(sfConfig::get('sf_data_dir').'/generator/'.$class.'/default/skeleton'),    // project (default theme)
+      $this->getPluginSubPaths('/data/generator/'.$class.'/default/skeleton')          // plugins (default theme)
     );
   }
 
@@ -208,6 +212,54 @@ class sfProjectConfiguration
     }
 
     throw new sfException(sprintf('Unable to load "%s" generator template in: %s.', $path, implode(', ', $dirs)));
+  }
+
+  /**
+   * Gets the configuration file paths for a given relative configuration path.
+   *
+   * @param string $configPath The configuration path
+   *
+   * @return array An array of paths
+   */
+  public function getConfigPaths($configPath)
+  {
+    $globalConfigPath = basename(dirname($configPath)).'/'.basename($configPath);
+
+    $files = array(
+      sfConfig::get('sf_symfony_lib_dir').'/config/'.$globalConfigPath,              // symfony
+    );
+
+    foreach ($this->getPluginPaths() as $path)
+    {
+      if (is_file($file = $path.'/'.$globalConfigPath))
+      {
+        $files[] = $file;                                                            // plugins
+      }
+    }
+
+    $files = array_merge($files, array(
+      sfConfig::get('sf_root_dir').'/'.$globalConfigPath,                            // project
+      sfConfig::get('sf_root_dir').'/'.$configPath,                                  // project
+    ));
+
+    foreach ($this->getPluginPaths() as $path)
+    {
+      if (is_file($file = $path.'/'.$configPath))
+      {
+        $files[] = $file;                                                            // plugins
+      }
+    }
+
+    $configs = array();
+    foreach (array_unique($files) as $file)
+    {
+      if (is_readable($file))
+      {
+        $configs[] = $file;
+      }
+    }
+
+    return $configs;
   }
 
   /**
