@@ -39,7 +39,10 @@ class sfForm implements ArrayAccess
     $taintedFiles    = array(),
     $values          = null,
     $defaults        = array(),
-    $options         = array();
+    $options         = array(),
+    $fieldNames      = array(),
+    $count           = 0,
+    $embeddedForms   = array();
 
   /**
    * Constructor.
@@ -348,6 +351,8 @@ class sfForm implements ArrayAccess
       throw new LogicException('A bound form cannot be embedded');
     }
 
+    $this->embeddedForms[$name] = $form;
+
     $form = clone $form;
     unset($form[self::$CSRFFieldName]);
 
@@ -408,6 +413,16 @@ class sfForm implements ArrayAccess
     $this->validatorSchema[$name] = new sfValidatorSchemaForEach($form->getValidatorSchema(), $n);
 
     $this->resetFormFields();
+  }
+
+  /**
+   * Gets the list of embedded forms.
+   *
+   * @return array An array of embedded forms
+   */
+  public function getEmbeddedForms()
+  {
+    return $this->embeddedForms;
   }
 
   /**
