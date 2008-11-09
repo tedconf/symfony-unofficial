@@ -75,7 +75,7 @@ class sfException extends Exception
 
       ob_start(sfConfig::get('sf_compressed') ? 'ob_gzhandler' : '');
 
-      header('HTTP/1.1 500 Internal Server Error');
+      header('HTTP/1.0 500 Internal Server Error');
     }
 
     $response = new sfWebResponse(sfContext::hasInstance() ? sfContext::getInstance()->getEventDispatcher() : new sfEventDispatcher());
