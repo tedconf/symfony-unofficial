@@ -72,7 +72,7 @@ class sfSymfonyPluginManager extends sfPluginManager
       $this->dispatcher->notify(new sfEvent($this, 'application.log', array('Installing web data for plugin')));
 
       $filesystem = new sfFilesystem();
-      $filesystem->symlink($webDir, $this->environment->getOption('web_dir').DIRECTORY_SEPARATOR.$plugin, true);
+      $filesystem->relativeSymlink($webDir, $this->environment->getOption('web_dir').DIRECTORY_SEPARATOR.$plugin, true);
     }
   }
 

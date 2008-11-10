@@ -23,14 +23,7 @@ class sfModelGeneratorConfiguration
 
   protected function compile()
   {
-    $config = array(
-      'default' => $this->getFieldsDefault(),
-      'list'    => $this->getFieldsList(),
-      'filter'  => $this->getFieldsFilter(),
-      'form'    => $this->getFieldsForm(),
-      'new'     => $this->getFieldsNew(),
-      'edit'    => $this->getFieldsEdit(),
-    );
+    $config = $this->getConfig();
 
     // inheritance rules:
     // new|edit < form < default
@@ -66,9 +59,8 @@ class sfModelGeneratorConfiguration
     {
       $formConfig = array_merge($config['default'][$field], $config['form'][$field]);
 
-      $this->configuration['list']['fields'][$field]   = new sfModelGeneratorConfigurationField($field, array_merge($config['default'][$field], $config['list'][$field]));
+      $this->configuration['list']['fields'][$field]   = new sfModelGeneratorConfigurationField($field, array_merge(array('label' => sfInflector::humanize(sfInflector::underscore($field))), $config['default'][$field], $config['list'][$field]));
       $this->configuration['filter']['fields'][$field] = new sfModelGeneratorConfigurationField($field, array_merge($config['default'][$field], $config['filter'][$field]));
-      $this->configuration['form']['fields'][$field]   = new sfModelGeneratorConfigurationField($field, $formConfig);
       $this->configuration['new']['fields'][$field]    = new sfModelGeneratorConfigurationField($field, array_merge($formConfig, $config['new'][$field]));
       $this->configuration['edit']['fields'][$field]   = new sfModelGeneratorConfigurationField($field, array_merge($formConfig, $config['edit'][$field]));
     }
@@ -84,6 +76,7 @@ class sfModelGeneratorConfiguration
       }
 
       $this->configuration['list']['fields'][$field] = new sfModelGeneratorConfigurationField($field, array_merge(
+        array('label' => sfInflector::humanize(sfInflector::underscore($field))),
         isset($config['default'][$field]) ? $config['default'][$field] : array(),
         isset($config['list'][$field]) ? $config['list'][$field] : array(),
         array('is_real' => false, 'type' => 'Text', 'flag' => $flag)
@@ -247,6 +240,8 @@ class sfModelGeneratorConfiguration
    */
   public function getFormFilterFields(sfForm $form)
   {
+    $config = $this->getConfig();
+
     if ($this->getFilterDisplay())
     {
       $fields = array();
@@ -292,6 +287,8 @@ class sfModelGeneratorConfiguration
    */
   public function getFormFields(sfForm $form, $context)
   {
+    $config = $this->getConfig();
+
     $method = sprintf('get%sDisplay', ucfirst($context));
     if (!$fieldsets = $this->$method())
     {
@@ -319,6 +316,7 @@ class sfModelGeneratorConfiguration
           {
             $this->configuration[$context]['fields'][$name] = new sfModelGeneratorConfigurationField($name, array_merge(
               isset($config['default'][$name]) ? $config['default'][$name] : array(),
+              isset($config['form'][$name]) ? $config['form'][$name] : array(),
               isset($config[$context][$name]) ? $config[$context][$name] : array(),
               array('is_real' => false, 'type' => 'Text', 'flag' => $flag)
             ));
@@ -338,6 +336,7 @@ class sfModelGeneratorConfiguration
     {
       $fields[$name] = new sfModelGeneratorConfigurationField($name, array_merge(
         isset($config['default'][$name]) ? $config['default'][$name] : array(),
+        isset($config['form'][$name]) ? $config['form'][$name] : array(),
         isset($config[$context][$name]) ? $config[$context][$name] : array(),
         array('is_real' => false, 'type' => 'Text')
       ));
@@ -421,5 +420,17 @@ class sfModelGeneratorConfiguration
     }
 
     $parameters['label'] = sfInflector::humanize($label);
+  }
+
+  protected function getConfig()
+  {
+    return array(
+      'default' => $this->getFieldsDefault(),
+      'list'    => $this->getFieldsList(),
+      'filter'  => $this->getFieldsFilter(),
+      'form'    => $this->getFieldsForm(),
+      'new'     => $this->getFieldsNew(),
+      'edit'    => $this->getFieldsEdit(),
+    );
   }
 }

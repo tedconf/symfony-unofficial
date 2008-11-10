@@ -626,6 +626,10 @@ abstract class sfBrowserBase
 
     // form attributes
     $url = $form->getAttribute('action');
+    if (!$url || '#' == $url)
+    {
+      $url = $this->stack[$this->stackPosition]['uri'];
+    }
     $method = strtolower(isset($options['method']) ? $options['method'] : ($form->getAttribute('method') ? $form->getAttribute('method') : 'get'));
 
     // merge form default values and arguments
