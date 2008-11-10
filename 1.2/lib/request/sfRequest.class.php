@@ -168,7 +168,7 @@ abstract class sfRequest implements ArrayAccess
   }
 
   /**
-   * Removes a request parameter.
+   * Unsets the request parameter associated with the offset (implements the ArrayAccess interface).
    *
    * @param string $offset The parameter name
    */

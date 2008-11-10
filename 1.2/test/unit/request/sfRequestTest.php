@@ -68,7 +68,6 @@ $t->is($request['foo2'], 'foo2', '->offsetSet() sets parameter by name');
 unset($request['foo2']);
 $t->is(isset($request['foo2']), false, '->offsetUnset() unsets parameter by name');
 
-
 $request = new myRequest($dispatcher);
 
 // parameter holder proxy
