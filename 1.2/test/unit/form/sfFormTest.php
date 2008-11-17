@@ -70,6 +70,15 @@ $f->setDefaults(array('first_name' => 'Fabien'));
 $t->is($f->getDefault('_csrf_token'), $f->getCSRFToken('*mygreatsecret*'), '->getDefaults() keeps the CSRF token default value');
 sfForm::disableCSRFProtection();
 
+// ->getName()
+$t->diag('->getName()');
+$f = new FormTest();
+$w = new sfWidgetFormSchema();
+$f->setWidgetSchema($w);
+$t->is($f->getName(), null, '->getName() returns null if the name format is not an array');
+$w->setNameFormat('foo[%s]');
+$t->is($f->getName(), 'foo', '->getName() returns the name under which user data can be retrieved');
+
 // ::enableCSRFProtection() ::disableCSRFProtection() ->isCSRFProtected()
 $t->diag('::enableCSRFProtection() ::disableCSRFProtection()');
 sfForm::enableCSRFProtection();
