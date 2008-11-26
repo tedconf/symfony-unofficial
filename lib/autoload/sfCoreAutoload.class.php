@@ -11,7 +11,7 @@
 /**
  * The current symfony version.
  */
-define('SYMFONY_VERSION', '1.2.0-DEV');
+define('SYMFONY_VERSION', '1.2.0-RC2');
 
 /**
  * sfCoreAutoload class.
