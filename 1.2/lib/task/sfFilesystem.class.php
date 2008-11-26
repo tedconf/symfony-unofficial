@@ -351,21 +351,21 @@ class sfFilesystem
    */ 
   protected function calculateRelativeDir($from, $to)
   {
-    $commonChars = 0;
+    $commonLength = 0;
     $minPathLength = min(strlen($from), strlen($to));
     // count how many chars the strings have in common
-    while ($commonChars < $minPathLength)
+    for ($i = 0; $i < $minPathLength; $i++)
     {
-      if ($from[$commonChars] != $to[$commonChars]) break;
-      $commonChars++;
+      if ($from[$i] != $to[$i]) break;
+      if ($from[$i] == DIRECTORY_SEPARATOR) $commonLength = $i + 1;
     }
-    if ($commonChars)
+    if ($commonLength)
     {
-      $levelUp = substr_count($from, DIRECTORY_SEPARATOR, $commonChars);
+      $levelUp = substr_count($from, DIRECTORY_SEPARATOR, $commonLength);
       // up that many level
       $relativeDir  = str_repeat("..".DIRECTORY_SEPARATOR, $levelUp);
       // down the remaining $to path
-      $relativeDir .= substr($to, $commonChars);
+      $relativeDir .= substr($to, $commonLength);
       return $relativeDir;
     }
     return $to;

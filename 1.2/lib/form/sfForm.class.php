@@ -405,6 +405,8 @@ class sfForm implements ArrayAccess
       throw new LogicException('A bound form cannot be embedded');
     }
 
+    $this->embeddedForms[$name] = new sfForm();
+
     $form = clone $form;
     unset($form[self::$CSRFFieldName]);
 
@@ -420,6 +422,8 @@ class sfForm implements ArrayAccess
       }
 
       $defaults[$i] = $form->getDefaults();
+
+      $this->embeddedForms[$name]->embedForm($i, $form);
     }
 
     $this->setDefault($name, $defaults);

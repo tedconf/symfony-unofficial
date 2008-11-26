@@ -63,6 +63,16 @@ class sfTesterForm extends sfTester
   }
 
   /**
+   * Returns the current form.
+   *
+   * @return sfForm The current sfForm form instance
+   */
+  public function getForm()
+  {
+    return $this->form;
+  }
+
+  /**
    * Tests if the submitted form has some error.
    *
    * @param  Boolean|integer $value Whether to check if the form has error or not, or the number of errors
@@ -78,7 +88,7 @@ class sfTesterForm extends sfTester
 
     if (is_int($value))
     {
-      $this->tester->is(count($this->form->hasErrors()), $value, sprintf('the submitted form has "%s" errors.', $value));
+      $this->tester->is(count($this->form->getErrorSchema()), $value, sprintf('the submitted form has "%s" errors.', $value));
     }
     else
     {
@@ -147,11 +157,11 @@ class sfTesterForm extends sfTester
       {
         if ($match[1] == '!')
         {
-          $this->tester->unlike($error->__toString(), substr($value, 1), sprintf('the submitted form has a "%s" error that does not match "%s".', $field, $value));
+          $this->tester->unlike($error->getCode(), substr($value, 1), sprintf('the submitted form has a "%s" error that does not match "%s".', $field, $value));
         }
         else
         {
-          $this->tester->like($error->__toString(), $value, sprintf('the submitted form has a "%s" error that matches "%s".', $field, $value));
+          $this->tester->like($error->getCode(), $value, sprintf('the submitted form has a "%s" error that matches "%s".', $field, $value));
         }
       }
     }
@@ -159,11 +169,11 @@ class sfTesterForm extends sfTester
     {
       if (!$error)
       {
-        $this->tester->fail(sprintf('the submitted form has a "%s" error.', $field));
+        $this->tester->fail(sprintf('the submitted form has a "%s" error (%s).', $field, $value));
       }
       else
       {
-        $this->tester->is($error->__toString(), $value, sprintf('the submitted form has a "%s" error (%s).', $field, $value));
+        $this->tester->is($error->getCode(), $value, sprintf('the submitted form has a "%s" error (%s).', $field, $value));
       }
     }
 
