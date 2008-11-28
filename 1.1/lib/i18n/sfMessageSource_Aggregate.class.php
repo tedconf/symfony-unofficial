@@ -119,30 +119,25 @@ class sfMessageSource_Aggregate extends sfMessageSource
 
   public function append($message)
   {
-    $retval = false;
-    foreach ($this->messageSources as $messageSource)
+    // Append to the first message source only
+    if (count($this->messageSources))
     {
-      if ($messageSource->append($message))
-      {
-        $retval = true;
-      }
+      $this->messageSources[0]->append($message);
     }
-
-    return $retval;
   }
 
   public function update($text, $target, $comments, $catalogue = 'messages')
   {
-    $retval = false;
+    // Only update one message source
     foreach ($this->messageSources as $messageSource)
     {
       if ($messageSource->update($text, $target, $comments, $catalogue))
       {
-        $retval = true;
+        return true;
       }
     }
 
-    return $retval;
+    return false;
   }
 
   public function delete($message, $catalogue = 'messages')
@@ -189,3 +184,4 @@ class sfMessageSource_Aggregate extends sfMessageSource
     throw new sfException('The "catalogues()" method is not implemented for this message source.');
   }
 }
+

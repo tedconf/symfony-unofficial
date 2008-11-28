@@ -40,9 +40,12 @@ EOF;
    */
   protected function execute($arguments = array(), $options = array())
   {
+    if (file_exists(sfConfig::get('sf_upload_dir')))
+    {
+      $this->getFilesystem()->chmod(sfConfig::get('sf_upload_dir'), 0777);
+    }
     $this->getFilesystem()->chmod(sfConfig::get('sf_cache_dir'), 0777);
     $this->getFilesystem()->chmod(sfConfig::get('sf_log_dir'), 0777);
-    $this->getFilesystem()->chmod(sfConfig::get('sf_upload_dir'), 0777);
     $this->getFilesystem()->chmod(sfConfig::get('sf_root_dir').DIRECTORY_SEPARATOR.sfConfig::get('sf_bin_dir_name'), 0755);
     $this->getFilesystem()->chmod(sfConfig::get('sf_root_dir').DIRECTORY_SEPARATOR.'symfony', 0755);
 
