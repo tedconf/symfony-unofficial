@@ -43,6 +43,20 @@ To upgrade a project:
 The remaining sections explain the main changes made in symfony 1.2 that need
 some kind of upgrade (automatic or not).
 
+Upgrade to 1.2 final
+--------------------
+
+If you have upgraded your 1.1 project before 1.2 final, you need to check the
+following things:
+
+  * If you have generated CRUD modules with the `--non-verbose-templates` options,
+    you need to remove the extra `$form->renderHiddenFields()` statement in the `_form.php`
+    template. If not, you can have erroneous "CSRF attack detected" error messages.
+
+  * For all generated CRUD modules, and if you have enabled CSRF protection, you need
+    to insert `$request->checkCSRFProtection()` at the beginning of the generated
+    `executeDelete()` method to be protected from CSRF attacks.
+
 Propel
 ------
 
@@ -691,6 +705,25 @@ default status code:
     $this->redirectUnless($condition, '@homepage', 301);
 
 The `redirect()` method already have this feature.
+
+Components
+----------
+
+If you have the output escaper enabled, there was a bug in symfony 1.0 and 1.1.
+When you passed some variables from an action to a component, these were escaped
+in the component. So, in some circumstances, you had to unescaped them:
+
+    [php]
+    public function executeInAComponent($request)
+    {
+      $this->foo = $this->foo->getRawValue();
+    }
+
+As of symfony 1.2, this has been fixed and all variables are now unescaped
+by default in a component method.
+
+For the above example, you will need to remove the `getRawValue()` step as
+the framework does this automatically for you.
 
 sfParameterHolder
 -----------------

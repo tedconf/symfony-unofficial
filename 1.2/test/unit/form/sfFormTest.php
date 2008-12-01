@@ -14,7 +14,7 @@ $t = new lime_test(118, new lime_output_color());
 
 class FormTest extends sfForm
 {
-  public function getCSRFToken($secret)
+  public function getCSRFToken($secret = null)
   {
     return "*$secret*";
   }
