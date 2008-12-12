@@ -64,21 +64,25 @@ class sfBasicSecurityFilter extends sfFilter
       return;
     }
 
-    // NOTE: the nice thing about the Action class is that getCredential()
-    //       is vague enough to describe any level of security and can be
-    //       used to retrieve such data and should never have to be altered
-    if (!$this->context->getUser()->isAuthenticated())
+    // does this action require security?
+    if($actionInstance->isSecure())
     {
-      // the user is not authenticated
-      $this->forwardToLoginAction();
-    }
+      // NOTE: the nice thing about the Action class is that getCredential()
+      //       is vague enough to describe any level of security and can be
+      //       used to retrieve such data and should never have to be altered
+      if (!$this->context->getUser()->isAuthenticated())
+      {
+        // the user is not authenticated
+        $this->forwardToLoginAction();
+      }
 
-    // the user is authenticated
-    $credential = $this->getUserCredential();
-    if (!is_null($credential) && !$this->context->getUser()->hasCredential($credential))
-    {
-      // the user doesn't have access
-      $this->forwardToSecureAction();
+      // the user is authenticated
+      $credential = $this->getUserCredential();
+      if (!is_null($credential) && !$this->context->getUser()->hasCredential($credential))
+      {
+        // the user doesn't have access
+        $this->forwardToSecureAction();
+      }
     }
 
     // the user has access, continue

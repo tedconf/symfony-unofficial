@@ -144,12 +144,7 @@ class sfFilterConfigHandler extends sfYamlConfigHandler
   protected function addSecurityFilter($category, $class, $parameters)
   {
     return <<<EOF
-
-// does this action require security?
-if (\$actionInstance->isSecure())
-{
   {$this->addFilter($category, $class, $parameters)}
-}
 EOF;
   }
 
