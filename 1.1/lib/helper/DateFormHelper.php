@@ -875,11 +875,11 @@ function select_timezone_tag($name, $selected = null, $options = array())
       break;
 
     case "timezone_dst_abbr":
-      $display_key = 3;
+      $display_key = 4;
       break;
 
     case "city":
-      $display_key = 4;
+      $display_key = 5;
       break;
 
     default:
@@ -900,10 +900,7 @@ function select_timezone_tag($name, $selected = null, $options = array())
       if ($tz_key == $display_key AND !empty($tz)) $timezones[$array_key] = $tz;
     }
   }
-
-  // Remove duplicate values
-  $timezones = array_unique($timezones);
-
+  
   if ($timezone_option = _get_option($options, 'timezones'))
   {
     $diff = array_diff_key($timezones, array_flip((array) $timezone_option));
@@ -912,6 +909,9 @@ function select_timezone_tag($name, $selected = null, $options = array())
       unset($timezones[$key]);
     }
   }
+
+  // Remove duplicate values
+  $timezones = array_unique($timezones);
 
   asort($timezones);
 
