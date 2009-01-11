@@ -44,6 +44,8 @@ class sfDebug
       'extensions' => get_loaded_extensions(),
     );
 
+    natcasesort($values['extensions']); 
+
     // assign extension version
     if ($values['extensions'])
     {
@@ -113,6 +115,7 @@ class sfDebug
     }
 
     return array(
+      'options'         => $request->getOptions(),
       'parameterHolder' => self::flattenParameterHolder($request->getParameterHolder(), true),
       'attributeHolder' => self::flattenParameterHolder($request->getAttributeHolder(), true),
     );

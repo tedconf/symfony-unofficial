@@ -64,9 +64,8 @@ class sfWebRequest extends sfRequest
     $this->parameterHolder->add($this->getParameters);
 
     // POST parameters
-    $this->postParameters = get_magic_quotes_gpc() ? sfToolkit::stripslashesDeep($_POST) : $_POST;
-    $this->parameterHolder->add($this->postParameters);
-
+    $postParameters = $_POST;
+    
     if (isset($_SERVER['REQUEST_METHOD']))
     {
       switch ($_SERVER['REQUEST_METHOD'])
@@ -81,6 +80,10 @@ class sfWebRequest extends sfRequest
           break;
 
         case 'PUT':
+          if ($_SERVER['CONTENT_TYPE'] === 'application/x-www-form-urlencoded')
+          {
+            parse_str(file_get_contents("php://input"), $postParameters);
+          }
           $this->setMethod(self::PUT);
           break;
 
@@ -101,6 +104,9 @@ class sfWebRequest extends sfRequest
       // set the default method
       $this->setMethod(self::GET);
     }
+    
+    $this->postParameters = get_magic_quotes_gpc() ? sfToolkit::stripslashesDeep($postParameters) : $postParameters;
+    $this->parameterHolder->add($this->postParameters);
 
     if (isset($this->options['formats']))
     {
