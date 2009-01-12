@@ -366,16 +366,6 @@ class sfContext implements ArrayAccess
   {
     return isset($this->factories['viewCacheManager']) ? $this->factories['viewCacheManager'] : null;
   }
-  
-  /**
-   * Retrieve the mailer
-   *
-   * @return sfMailer The current sfMailer implementation instance.
-   */
-  public function getMailer()
-  {
-    return isset($this->factories['mailer']) ? $this->factories['mailer'] : null;
-  }
 
   /**
    * Retrieve the i18n instance
