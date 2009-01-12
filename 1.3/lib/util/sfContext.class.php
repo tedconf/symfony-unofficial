@@ -20,7 +20,7 @@
  * @author     Sean Kerr <sean@code-box.org>
  * @version    SVN: $Id$
  */
-class sfContext
+class sfContext implements ArrayAccess
 {
   protected
     $dispatcher    = null,
@@ -366,6 +366,16 @@ class sfContext
   {
     return isset($this->factories['viewCacheManager']) ? $this->factories['viewCacheManager'] : null;
   }
+  
+  /**
+   * Retrieve the mailer
+   *
+   * @return sfMailer The current sfMailer implementation instance.
+   */
+  public function getMailer()
+  {
+    return isset($this->factories['mailer']) ? $this->factories['mailer'] : null;
+  }
 
   /**
    * Retrieve the i18n instance
@@ -410,6 +420,51 @@ class sfContext
   public function getConfigCache()
   {
     return $this->configuration->getConfigCache();
+  }
+  
+  /**
+   * Returns true if the context object exists (implements the ArrayAccess interface).
+   *
+   * @param  string $name The name of the context object
+   *
+   * @return Boolean true if the context object exists, false otherwise
+   */
+  public function offsetExists($name)
+  {
+    return $this->has($name);
+  }
+
+  /**
+   * Returns the context object associated with the name (implements the ArrayAccess interface).
+   *
+   * @param  string $name  The offset of the value to get
+   *
+   * @return mixed The context object if exists, null otherwise
+   */
+  public function offsetGet($name)
+  {
+    return $this->get($name);
+  }
+
+  /**
+   * Sets the context object associated with the offset (implements the ArrayAccess interface).
+   *
+   * @param string $offset The parameter name
+   * @param string $value The parameter value
+   */
+  public function offsetSet($offset, $value)
+  {
+    $this->set($offset, $value);
+  }
+
+  /**
+   * Unsets the context object associated with the offset (implements the ArrayAccess interface).
+   *
+   * @param string $offset The parameter name
+   */
+  public function offsetUnset($offset)
+  {
+    unset($this->factories[$offset]);
   }
 
   /**
@@ -469,6 +524,33 @@ class sfContext
     $parameters['sf_user']     = $this->factories['user'];
 
     return $parameters;
+  }
+  
+  /**
+   * Calls methods defined via context objects.
+   *
+   * @param  string $method     The method name
+   * @param  array  $arguments  The method arguments
+   *
+   * @return mixed The returned value of the called method
+   *
+   * @throws <b>sfException</b> if call fails
+   */
+  public function __call($method, $arguments)
+  {
+    $name = substr($method, 0, 3); // get | set
+    $factory = strtolower(substr($method, 3)); // factory name
+    
+    if($name == 'get' && $this->has($factory))
+    {    
+      return $this->factories[$factory];
+    }
+    else if($name == 'set' && isset($arguments[0]))
+    {    
+      return $this->set($factory, $arguments[0]);
+    }
+    
+    throw new sfException(sprintf('Call to undefined method %s::%s.', get_class($this), $method));
   }
 
   /**
