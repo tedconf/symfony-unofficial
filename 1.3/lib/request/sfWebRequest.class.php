@@ -64,7 +64,8 @@ class sfWebRequest extends sfRequest
     $this->parameterHolder->add($this->getParameters);
 
     // POST parameters
-    $postParameters = $_POST;
+    $this->postParameters = get_magic_quotes_gpc() ? sfToolkit::stripslashesDeep($_POST) : $_POST;
+    $this->parameterHolder->add($this->postParameters);
     
     if (isset($_SERVER['REQUEST_METHOD']))
     {
@@ -80,11 +81,12 @@ class sfWebRequest extends sfRequest
           break;
 
         case 'PUT':
-          if ($_SERVER['CONTENT_TYPE'] === 'application/x-www-form-urlencoded')
-          {
-            parse_str(file_get_contents("php://input"), $postParameters);
-          }
           $this->setMethod(self::PUT);
+          
+          $putParameters = array();
+          parse_str($this->getContent(), $putParameters);
+          $putParameters = get_magic_quotes_gpc() ? sfToolkit::stripslashesDeep($putParameters) : $putParameters;
+          $this->parameterHolder->add($putParameters);
           break;
 
         case 'DELETE':
@@ -104,9 +106,6 @@ class sfWebRequest extends sfRequest
       // set the default method
       $this->setMethod(self::GET);
     }
-    
-    $this->postParameters = get_magic_quotes_gpc() ? sfToolkit::stripslashesDeep($postParameters) : $postParameters;
-    $this->parameterHolder->add($this->postParameters);
 
     if (isset($this->options['formats']))
     {
@@ -186,7 +185,7 @@ class sfWebRequest extends sfRequest
       $protocol = 'http';
     }
 
-    $host = explode(":", $this->getHost());
+    $host = explode(':', $this->getHost());
     if (count($host) == 1)
     {
       $host[] = isset($pathArray['SERVER_PORT']) ? $pathArray['SERVER_PORT'] : '';
