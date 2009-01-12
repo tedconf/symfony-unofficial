@@ -51,12 +51,7 @@ class sfWebDebugLogger extends sfVarLogger
 
     return parent::initialize($dispatcher, $options);
   }
-  
-  protected function registerErrorHandler()
-  {    
-    set_error_handler(array($this,'handlePhpError'));     
-  }
-  
+
   /**
    * Registers logger with PHP error handler.
    */
