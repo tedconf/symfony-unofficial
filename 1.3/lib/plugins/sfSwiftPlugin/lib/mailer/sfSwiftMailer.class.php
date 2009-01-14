@@ -19,27 +19,6 @@
  * Swift_Connection_Sendmail uses a sendmail binary to send the mail. You can specify its path to the constructor.
  * Swift_Connection_Multi is the first special driver, that can be used to combine more than one connection driver. It provides redundancy in the event that a SMTP server is unavailable at the time of the request. The constructor takes an array of Swift_Connection object instances. (not supported yet)
  * Swift_Connection_Rotator is the last one, doing a bit more than Swift_Connection_Multi by keeping track of down servers, and managing rotation of "alive" servers. How to use it is beyond the scope of this cookbook recipe, and you should refer to the Swift Mailer documentation. (not supported yet)
- * 
- * factories.yml:
- *
- *  mailer:
- *    class:     sfSwiftMailer
- *    param:
- *      logging:      %SF_LOGGING_ENABLED%
- *      charset:      %SF_CHARSET%;
- *      culture:      %SF_DEFAULT_CULTURE%
- *      content-type: text/html
- *      from_email:   username@gmail.com
- *      cache:        memory     # memory | disk
- *      connection:
- *        class: Swift_Connection_SMTP
- *        param:
- *          host: smtp.gmail.com
- *          port: 465
- *          ssl:  true
- *          tls:  true
- *          username: username@gmail.com
- *          password: 1234
  *
  * @package    symfony
  * @subpackage mailer
@@ -78,7 +57,7 @@ class sfSwiftMailer extends sfMailer
    *  * from_email: The default from email address
    *
    * @param  sfEventDispatcher    $dispatcher      A sfEventDispatcher instance
-   * @param  Swift                $connection      A Swift mailer instance
+   * @param  Swift                $swift           A Swift mailer instance
    * @param  array                $options         An associative array of options
    *
    * @return bool true, if initialization completes successfully, otherwise false
