@@ -123,6 +123,8 @@ class sfDoctrinePager extends sfPager implements Serializable
       $method = $this->tableMethodName;
       $this->query = Doctrine::getTable($this->getClass())->$method($this->query);
       $this->tableMethodCalled = true;
+    } else if (!$this->query) {
+      $this->query = Doctrine::getTable($this->getClass())->createQuery();
     }
     return $this->query;
   }
