@@ -114,7 +114,9 @@ class sfYamlParser
             if (isset($values['value']) && $values['value'] !== '')
             {
               $value = $values['value'];
-            } else {
+            }
+            else
+            {
               $value = $this->getNextEmbedBlock();
             }
             $c = $this->getRealCurrentLineNb() + 1;
@@ -125,7 +127,7 @@ class sfYamlParser
             $merged = array();
             if (!is_array($parsed))
             {
-              throw new InvalidArgumentException(sprintf("YAML merge keys used with a scalar value instead of an array on line %s", $this->currentLine));
+              throw new InvalidArgumentException(sprintf("YAML merge keys used with a scalar value instead of an array at line %s (%s)", $this->getRealCurrentLineNb() + 1, $this->currentLine));
             }
             else if (isset($parsed[0]))
             {
@@ -134,7 +136,7 @@ class sfYamlParser
               {
                 if (!is_array($parsedItem))
                 {
-                  throw new InvalidArgumentException(sprintf("Merge items must be arrays on line %s.", $parsedItem));
+                  throw new InvalidArgumentException(sprintf("Merge items must be arrays at line %s (%s).", $this->getRealCurrentLineNb() + 1, $parsedItem));
                 }
                 $merged = array_merge($parsedItem, $merged);
               }
@@ -146,8 +148,6 @@ class sfYamlParser
             }
 
             $isProcessed = $merged;
-          
-            throw new InvalidArgumentException(sprintf('In place substitution must point to a reference at line %s (%s).', $this->getRealCurrentLineNb() + 1, $this->currentLine));
           }
         }
         else if (isset($values['value']) && preg_match('#^&(?P<ref>[^ ]+) *(?P<value>.*)#', $values['value'], $matches))
@@ -195,16 +195,20 @@ class sfYamlParser
         if (1 == count(explode("\n", rtrim($this->value, "\n"))))
         {
           $value = sfYamlInline::load($this->lines[0]);
-          if (is_array($value)) {
+          if (is_array($value))
+          {
             $first = reset($value);
-            if ('*' === substr($first, 0, 1)) {
+            if ('*' === substr($first, 0, 1))
+            {
               $data = array();
-              foreach ($value as $alias) {
+              foreach ($value as $alias)
+              {
                 $data[] = $this->refs[substr($alias, 1)];
               }
               $value = $data;
             }
           }
+
           return $value;
         }
 

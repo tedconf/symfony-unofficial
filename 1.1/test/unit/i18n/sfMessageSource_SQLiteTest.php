@@ -19,7 +19,7 @@ if (!extension_loaded('SQLite'))
   return;
 }
 
-$temp = tempnam('/tmp/sf_i18n_dir', 'tmp');
+$temp = dirname(__FILE__).'/'.rand(11111, 99999);
 
 function sf_test_shutdown()
 {

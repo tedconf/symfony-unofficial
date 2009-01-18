@@ -380,6 +380,15 @@ take a form object as an argument:
     <?php include_javascripts_for_form($form) ?>
     <?php include_stylesheets_for_form($form) ?>
 
+`sfForm` now implements the `Iterator` and the `Countable` interfaces:
+
+    [php]
+    <ul>
+      <?php foreach ($form as $field): ?>
+        <li><?php echo $field ?></li>
+      <?php endforeach; ?>
+    </ul>
+
 Validators
 ----------
 
@@ -482,6 +491,25 @@ the `getJavaScripts()` and `getStylesheets()` methods:
 
 The `getJavaScripts()` method must return an array of JavaScript files.
 The `getStylesheets()` method must return an array with files as keys and media as values.
+
+All widgets have a new `default` option. This option sets the default value
+for the widget:
+
+    [php]
+    $widget = new sfWidgetFormInput(array('default' => 'default value'));
+    $widget->setDefault('default value');
+    echo $widget->getDefault();
+
+You can also set default values for widget schemas:
+
+    [php]
+    $widget = new sfWidgetFormSchema(...);
+    $widget->setDefaults(array('name' => 'default value'));
+    $widget->setDefault('name', 'default value');
+    var_export($widget->getDefaults());
+
+These defaults are taken into account in the forms when you don't override them
+with form defaults.
 
 Response
 --------

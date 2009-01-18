@@ -45,15 +45,13 @@ class sfTesterDoctrine extends sfTester
   {
     if (is_null($query))
     {
-      $query = Doctrine::getTable($model)
-        ->createQuery('a');
+      $query = Doctrine::getTable($model)->createQuery('a');
     }
 
     if (is_array($query))
     {
       $conditions = $query;
-      $query = $query = Doctrine::getTable($model)
-        ->createQuery('a');
+      $query = $query = Doctrine::getTable($model)->createQuery('a');
       foreach ($conditions as $column => $condition)
       {
         $column = Doctrine::getTable($model)->getFieldName($column);

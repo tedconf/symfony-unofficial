@@ -10,7 +10,7 @@
 
 require_once(dirname(__FILE__).'/../../bootstrap/unit.php');
 
-$t = new lime_test(120, new lime_output_color());
+$t = new lime_test(142, new lime_output_color());
 
 class FormTest extends sfForm
 {
@@ -151,40 +151,115 @@ $t->ok($f->getWidget('name') == $w3, '->setWidget() sets a widget for a field');
 // ArrayAccess interface
 $t->diag('ArrayAccess interface');
 $f = new FormTest();
+$f->setDefaults(array('first_name' => 'Fabien', 'image' => 'default.gif'));
 $f->setWidgetSchema(new sfWidgetFormSchema(array(
-  'first_name' => new sfWidgetFormInput(),
+  'first_name' => new sfWidgetFormInput(array('default' => 'Fabien')),
   'last_name'  => new sfWidgetFormInput(),
   'image'      => new sfWidgetFormInputFile(),
 )));
 $f->setValidatorSchema(new sfValidatorSchema(array(
   'first_name' => new sfValidatorPass(),
+  'last_name'  => new sfValidatorPass(),
+  'image'      => new sfValidatorPass(),
 )));
-$t->ok($f['first_name'] instanceof sfFormField, 'sfForm implements the ArrayAccess interface');
+$f->embedForm('embedded', new sfForm());
+$t->ok($f['first_name'] instanceof sfFormField, '"sfForm" implements the ArrayAccess interface');
+$t->is($f['first_name']->render(), '<input type="text" name="first_name" value="Fabien" id="first_name" />', '"sfForm" implements the ArrayAccess interface');
+
+$t->is($f['first_name']->render(), '<input type="text" name="first_name" value="Fabien" id="first_name" />', 'sfForm implements the ArrayAccess interface');
+
 try
 {
-  $f['first_name'] = 'first_name';
-  $t->fail('sfForm ArrayAccess implementation does not permit to set a form field');
+  $f['image'] = 'image';
+  $t->fail('"sfForm" ArrayAccess implementation does not permit to set a form field');
 }
 catch (LogicException $e)
 {
-  $t->pass('sfForm ArrayAccess implementation does not permit to set a form field');
+  $t->pass('"sfForm" ArrayAccess implementation does not permit to set a form field');
 }
-$t->ok(isset($f['first_name']), 'sfForm implements the ArrayAccess interface');
-unset($f['first_name']);
-$t->ok(!isset($f['first_name']), 'sfForm implements the ArrayAccess interface');
+$t->ok(isset($f['image']), '"sfForm" implements the ArrayAccess interface');
+unset($f['image']);
+$t->ok(!isset($f['image']), '"sfForm" implements the ArrayAccess interface');
+$t->ok(!array_key_exists('image', $f->getDefaults()), '"sfForm" ArrayAccess implementation removes form defaults');
 $v = $f->getValidatorSchema();
-$t->ok(!isset($v['first_name']), 'sfForm ArrayAccess implementation removes the widget and the validator');
+$t->ok(!isset($v['image']), '"sfForm" ArrayAccess implementation removes the widget and the validator');
 $w = $f->getWidgetSchema();
-$t->ok(!isset($w['first_name']), 'sfForm ArrayAccess implementation removes the widget and the validator');
+$t->ok(!isset($w['image']), '"sfForm" ArrayAccess implementation removes the widget and the validator');
 try
 {
   $f['nonexistant'];
-  $t->fail('sfForm ArrayAccess implementation throws a LogicException if the form field does not exist');
+  $t->fail('"sfForm" ArrayAccess implementation throws a LogicException if the form field does not exist');
 }
 catch (LogicException $e)
 {
-  $t->pass('sfForm ArrayAccess implementation throws a LogicException if the form field does not exist');
+  $t->pass('"sfForm" ArrayAccess implementation throws a LogicException if the form field does not exist');
 }
+
+unset($f['embedded']);
+$t->ok(!array_key_exists('embedded', $f->getEmbeddedForms()), '"sfForm" ArrayAccess implementation removes embedded forms');
+
+$f->bind(array(
+  'first_name' => 'John',
+  'last_name'  => 'Doe',
+));
+unset($f['first_name']);
+$t->is_deeply($f->getValues(), array('last_name' => 'Doe'), '"sfForm" ArrayAccess implementation removes bound values');
+$w['first_name'] = new sfWidgetFormInput();
+$t->is($f['first_name']->getValue(), '', '"sfForm" ArrayAccess implementation removes tainted values');
+
+// Countable interface
+$t->diag('Countable interface');
+$f = new FormTest();
+$f->setWidgetSchema(new sfWidgetFormSchema(array(
+  'first_name' => new sfWidgetFormInput(array(), array('default' => 'Fabien')),
+  'last_name'  => new sfWidgetFormInput(),
+  'image'      => new sfWidgetFormInputFile(),
+)));
+$t->is(count($f), 3, '"sfForm" implements the Countable interface');
+
+// Iterator interface
+$t->diag('Iterator interface');
+$f = new FormTest();
+$f->setWidgetSchema(new sfWidgetFormSchema(array(
+  'first_name' => new sfWidgetFormInput(array(), array('default' => 'Fabien')),
+  'last_name'  => new sfWidgetFormInput(),
+  'image'      => new sfWidgetFormInputFile(),
+)));
+$values = array();
+foreach ($f as $name => $value)
+{
+  $values[$name] = $value;
+}
+$t->is(isset($values['first_name']), true, '"sfForm" implements the Iterator interface');
+$t->is(isset($values['last_name']), true, '"sfForm" implements the Iterator interface');
+$t->is_deeply(array_keys($values), array('first_name', 'last_name', 'image'), '"sfForm" implements the Iterator interface');
+
+// Countable interface
+$t->diag('Countable interface');
+$f = new FormTest();
+$f->setWidgetSchema(new sfWidgetFormSchema(array(
+  'first_name' => new sfWidgetFormInput(array('default' => 'Fabien')),
+  'last_name'  => new sfWidgetFormInput(),
+  'image'      => new sfWidgetFormInputFile(),
+)));
+$t->is(count($f), 3, 'sfForm implements the Countable interface');
+
+// Iterator interface
+$t->diag('Iterator interface');
+$f = new FormTest();
+$f->setWidgetSchema(new sfWidgetFormSchema(array(
+  'first_name' => new sfWidgetFormInput(array('default' => 'Fabien')),
+  'last_name'  => new sfWidgetFormInput(),
+  'image'      => new sfWidgetFormInputFile(),
+)));
+$values = array();
+foreach ($f as $name => $value)
+{
+  $values[$name] = $value;
+}
+$t->is(isset($values['first_name']), true, 'sfForm implements the Iterator interface');
+$t->is(isset($values['last_name']), true, 'sfForm implements the Iterator interface');
+$t->is(count($values), 3, 'sfForm implements the Iterator interface');
 
 // ->bind() ->isValid() ->hasErrors() ->getValues() ->getValue() ->isBound() ->getErrorSchema()
 $t->diag('->bind() ->isValid() ->getValues() ->isBound() ->getErrorSchema()');
@@ -292,17 +367,48 @@ $t->is($f->renderGlobalErrors(), $output, '->renderGlobalErrors() renders global
 
 // ->render()
 $t->diag('->render()');
-$f = new FormTest();
+$f = new FormTest(array('first_name' => 'Fabien', 'last_name' => 'Potencier'));
 $f->setValidators(array(
   'id'         => new sfValidatorInteger(),
   'first_name' => new sfValidatorString(array('min_length' => 2)),
   'last_name'  => new sfValidatorString(array('min_length' => 2)),
 ));
 $f->setWidgets(array(
-  'id'         => new sfWidgetFormInputHidden(),
-  'first_name' => new sfWidgetFormInput(),
+  'id'         => new sfWidgetFormInputHidden(array('default' => 3)),
+  'first_name' => new sfWidgetFormInput(array('default' => 'Thomas')),
   'last_name'  => new sfWidgetFormInput(),
 ));
+
+// unbound
+$output = <<<EOF
+<tr>
+  <th><label for="first_name">First name</label></th>
+  <td><input type="text" name="first_name" value="Fabien" id="first_name" /></td>
+</tr>
+<tr>
+  <th><label for="last_name">Last name</label></th>
+  <td><input type="text" name="last_name" value="Potencier" id="last_name" /><input type="hidden" name="id" value="3" id="id" /></td>
+</tr>
+
+EOF;
+$t->is($f->__toString(), $output, '->__toString() renders the form as HTML');
+$output = <<<EOF
+<tr>
+  <th><label for="first_name">First name</label></th>
+  <td><input type="text" name="first_name" value="Fabien" class="foo" id="first_name" /></td>
+</tr>
+<tr>
+  <th><label for="last_name">Last name</label></th>
+  <td><input type="text" name="last_name" value="Potencier" id="last_name" /><input type="hidden" name="id" value="3" id="id" /></td>
+</tr>
+
+EOF;
+$t->is($f->render(array('first_name' => array('class' => 'foo'))), $output, '->render() renders the form as HTML');
+$t->is((string) $f['id'], '<input type="hidden" name="id" value="3" id="id" />', '->offsetGet() returns a sfFormField');
+$t->is((string) $f['first_name'], '<input type="text" name="first_name" value="Fabien" id="first_name" />', '->offsetGet() returns a sfFormField');
+$t->is((string) $f['last_name'], '<input type="text" name="last_name" value="Potencier" id="last_name" />', '->offsetGet() returns a sfFormField');
+
+// bound
 $f->bind(array(
   'id'         => '1',
   'first_name' => 'Fabien',
@@ -332,6 +438,9 @@ $output = <<<EOF
 
 EOF;
 $t->is($f->render(array('first_name' => array('class' => 'foo'))), $output, '->render() renders the form as HTML');
+$t->is((string) $f['id'], '<input type="hidden" name="id" value="1" id="id" />', '->offsetGet() returns a sfFormField');
+$t->is((string) $f['first_name'], '<input type="text" name="first_name" value="Fabien" id="first_name" />', '->offsetGet() returns a sfFormField');
+$t->is((string) $f['last_name'], '<input type="text" name="last_name" value="Potencier" id="last_name" />', '->offsetGet() returns a sfFormField');
 
 // renderUsing()
 $t->diag('->renderUsing()');

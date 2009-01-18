@@ -20,7 +20,7 @@
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  * @version    SVN: $Id$
  */
-class sfForm implements ArrayAccess
+class sfForm implements ArrayAccess, Iterator, Countable
 {
   protected static
     $CSRFProtection    = false,
@@ -39,8 +39,8 @@ class sfForm implements ArrayAccess
     $taintedFiles    = array(),
     $values          = null,
     $defaults        = array(),
-    $options         = array(),
     $fieldNames      = array(),
+    $options         = array(),
     $count           = 0,
     $embeddedForms   = array();
 
@@ -405,15 +405,10 @@ class sfForm implements ArrayAccess
 
     $widgetSchema = $form->getWidgetSchema();
 
-    // generate labels and default values
+    // generate default values
     $defaults = array();
     for ($i = 0; $i < $n; $i++)
     {
-      if (!isset($labels[$i]))
-      {
-        $labels[$i] = sprintf('%s (%s)', $widgetSchema->getFormFormatter()->generateLabelName($name), $i);
-      }
-
       $defaults[$i] = $form->getDefaults();
 
       $this->embeddedForms[$name]->embedForm($i, $form);
@@ -423,8 +418,20 @@ class sfForm implements ArrayAccess
 
     $decorator = is_null($decorator) ? $widgetSchema->getFormFormatter()->getDecoratorFormat() : $decorator;
     $innerDecorator = is_null($innerDecorator) ? $widgetSchema->getFormFormatter()->getDecoratorFormat() : $innerDecorator;
+
     $this->widgetSchema[$name] = new sfWidgetFormSchemaDecorator(new sfWidgetFormSchemaForEach(new sfWidgetFormSchemaDecorator($widgetSchema, $innerDecorator), $n, $options, $attributes), $decorator);
     $this->validatorSchema[$name] = new sfValidatorSchemaForEach($form->getValidatorSchema(), $n);
+
+    // generate labels
+    for ($i = 0; $i < $n; $i++)
+    {
+      if (!isset($labels[$i]))
+      {
+        $labels[$i] = sprintf('%s (%s)', $this->widgetSchema->getFormFormatter()->generateLabelName($name), $i);
+      }
+    }
+
+    $this->widgetSchema[$name]->setLabels($labels);
 
     $this->resetFormFields();
   }
@@ -949,11 +956,22 @@ class sfForm implements ArrayAccess
         throw new InvalidArgumentException(sprintf('Widget "%s" does not exist.', $name));
       }
 
-      $values = $this->isBound ? $this->taintedValues : $this->defaults;
+      if ($this->isBound)
+      {
+        $value = isset($this->taintedValues[$name]) ? $this->taintedValues[$name] : null;
+      }
+      else if (isset($this->defaults[$name]))
+      {
+        $value = $this->defaults[$name];
+      }
+      else
+      {
+        $value = $widget instanceof sfWidgetFormSchema ? $widget->getDefaults() : $widget->getDefault();
+      }
 
       $class = $widget instanceof sfWidgetFormSchema ? 'sfFormFieldSchema' : 'sfFormField';
 
-      $this->formFields[$name] = new $class($widget, $this->getFormFieldSchema(), $name, isset($values[$name]) ? $values[$name] : null, $this->errorSchema[$name]);
+      $this->formFields[$name] = new $class($widget, $this->getFormFieldSchema(), $name, $value, $this->errorSchema[$name]);
     }
 
     return $this->formFields[$name];
@@ -981,7 +999,14 @@ class sfForm implements ArrayAccess
    */
   public function offsetUnset($offset)
   {
-    unset($this->widgetSchema[$offset], $this->validatorSchema[$offset]);
+    unset(
+      $this->widgetSchema[$offset],
+      $this->validatorSchema[$offset],
+      $this->defaults[$offset],
+      $this->taintedValues[$offset],
+      $this->values[$offset],
+      $this->embeddedForms[$offset]
+    );
 
     $this->resetFormFields();
   }
@@ -995,10 +1020,72 @@ class sfForm implements ArrayAccess
   {
     if (is_null($this->formFieldSchema))
     {
-      $this->formFieldSchema = new sfFormFieldSchema($this->widgetSchema, null, null, $this->isBound ? $this->taintedValues : $this->defaults, $this->errorSchema);
+      $values = $this->isBound ? $this->taintedValues : array_merge($this->widgetSchema->getDefaults(), $this->defaults);
+
+      $this->formFieldSchema = new sfFormFieldSchema($this->widgetSchema, null, null, $values, $this->errorSchema);
     }
 
     return $this->formFieldSchema;
+  }
+
+  /**
+   * Resets the field names array to the beginning (implements the Iterator interface).
+   */
+  public function rewind()
+  {
+    $this->fieldNames = array_keys($this->widgetSchema->getFields());
+
+    reset($this->fieldNames);
+    $this->count = count($this->fieldNames);
+  }
+
+  /**
+   * Gets the key associated with the current form field (implements the Iterator interface).
+   *
+   * @return string The key
+   */
+  public function key()
+  {
+    return current($this->fieldNames);
+  }
+
+  /**
+   * Returns the current form field (implements the Iterator interface).
+   *
+   * @return mixed The escaped value
+   */
+  public function current()
+  {
+    return $this[current($this->fieldNames)];
+  }
+
+  /**
+   * Moves to the next form field (implements the Iterator interface).
+   */
+  public function next()
+  {
+    next($this->fieldNames);
+    --$this->count;
+  }
+
+  /**
+   * Returns true if the current form field is valid (implements the Iterator interface).
+   *
+   * @return boolean The validity of the current element; true if it is valid
+   */
+  public function valid()
+  {
+    return $this->count > 0;
+  }
+
+  /**
+   * Returns the number of form fields (implements the Countable interface).
+   *
+   * @return integer The number of embedded form fields
+   */
+  public function count()
+  {
+    return count($this->getFormFieldSchema());
   }
 
   /**
