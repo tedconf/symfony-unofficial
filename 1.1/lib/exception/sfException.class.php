@@ -244,7 +244,7 @@ class sfException extends Exception
    */
   static protected function formatArrayAsHtml($values)
   {
-    return '<pre>'.@sfYaml::dump($values).'</pre>';
+    return '<pre>'.htmlspecialchars(@sfYaml::dump($values), ENT_QUOTES, sfConfig::get('sf_charset', 'UTF-8')).'</pre>';
   }
 
   /**
