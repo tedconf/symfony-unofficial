@@ -24,8 +24,6 @@ class sfPatternRouting extends sfRouting
     $currentRouteName   = null,
     $currentInternalUri = array(),
     $routes             = array(),
-    $cacheData          = array(),
-    $cacheChanged       = false,
     $routesFullyLoaded  = true;
 
   /**
@@ -63,11 +61,6 @@ class sfPatternRouting extends sfRouting
     }
 
     parent::initialize($dispatcher, $cache, $options);
-
-    if (!is_null($this->cache) && $cacheData = $this->cache->get('symfony.routing.data'))
-    {
-      $this->cacheData = unserialize($cacheData);
-    }
   }
 
   /**
@@ -396,9 +389,9 @@ class sfPatternRouting extends sfRouting
     if (!is_null($this->cache))
     {
       $cacheKey = 'generate_'.$name.'_'.md5(serialize(array_merge($this->defaultParameters, $params))).'_'.md5(serialize($this->options['context']));
-      if (isset($this->cacheData[$cacheKey]))
+      if ($url = $this->cache->get('symfony.routing.data.'.$cacheKey))
       {
-        return $this->fixGeneratedUrl($this->cacheData[$cacheKey], $absolute);
+        return $this->fixGeneratedUrl($url, $absolute);
       }
     }
 
@@ -431,8 +424,7 @@ class sfPatternRouting extends sfRouting
     // store in cache
     if (!is_null($this->cache))
     {
-      $this->cacheChanged = true;
-      $this->cacheData[$cacheKey] = $url;
+      $this->cache->set('symfony.routing.data.'.$cacheKey, $url);
     }
 
     return $this->fixGeneratedUrl($url, $absolute);
@@ -517,9 +509,9 @@ class sfPatternRouting extends sfRouting
     if (!is_null($this->cache))
     {
       $cacheKey = 'parse_'.$url.'_'.md5(serialize($this->options['context']));
-      if (isset($this->cacheData[$cacheKey]))
+      if ($info = $this->cache->get('symfony.routing.data.'.$cacheKey))
       {
-        return $this->cacheData[$cacheKey];
+        return unserialize($info);
       }
     }
 
@@ -528,8 +520,7 @@ class sfPatternRouting extends sfRouting
     // store in cache
     if (!is_null($this->cache))
     {
-      $this->cacheChanged = true;
-      $this->cacheData[$cacheKey] = $info;
+      $this->cache->set('symfony.routing.data.'.$cacheKey, serialize($info));
     }
 
     return $info;
@@ -609,17 +600,5 @@ class sfPatternRouting extends sfRouting
     $url = preg_replace('#/+#', '/', $url);
 
     return $url;
-  }
-
-  /**
-   * @see sfRouting
-   */
-  public function shutdown()
-  {
-    if (!is_null($this->cache) && $this->cacheChanged)
-    {
-      $this->cacheChanged = false;
-      $this->cache->set('symfony.routing.data', serialize($this->cacheData));
-    }
   }
 }
