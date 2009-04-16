@@ -138,6 +138,8 @@ class SfPeerBuilder extends PHP5PeerBuilder
    */
   public static function doSelectWithI18n(Criteria \$c, \$culture = null, PropelPDO \$con = null)
   {
+    // we're going to modify criteria, so copy it first
+    \$c = clone \$c;
     if (\$culture === null)
     {
       \$culture = sfPropel::getDefaultCulture();
