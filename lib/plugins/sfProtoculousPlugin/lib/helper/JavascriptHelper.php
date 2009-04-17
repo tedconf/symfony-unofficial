@@ -437,7 +437,7 @@ require_once dirname(__FILE__).'/../../../../helper/JavascriptBaseHelper.php';
     }
     if (isset($options['confirm']))
     {
-      $function = "if (confirm('".escape_javascript($options['confirm'])."')) { $function; }";
+      $function = "if (window.confirm('".escape_javascript($options['confirm'])."')) { $function; }";
       if (isset($options['cancel']))
       {
         $function = $function.' else { '.$options['cancel'].' }';
