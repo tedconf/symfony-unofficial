@@ -509,7 +509,7 @@ $rCached = new sfPatternRoutingTest($dispatcher, $cache, array_merge($options, a
 $rCached->parse('/first');
 $t->isnt($rCached->findRoute('/first'), false, '->findRoute() finds the route with lazy config cache activated');
 $t->is($rCached->isRouteLoaded('second'), false, '->isRouteLoaded() The second route is not loaded');
-$t->is($rCached->findRoute('/no/match/found2'), null, '->findRoute() returns null on non-matching route');
+$t->is($rCached->findRoute('/no/match/found'), null, '->findRoute() returns null on non-matching route');
 $t->is($rCached->findRoute('/no/match/found'), null, '->findRoute() returns null on non-matching route');
 $t->is($rCached->isRouteLoaded('second'), true, '->isRouteLoaded() The last route is loaded after a full routes scan');
 
