@@ -301,6 +301,7 @@ class sfCoreAutoload
   'sfStreamLogger' => 'log',
   'sfVarLogger' => 'log',
   'sfWebDebugLogger' => 'log',
+  'sfPearConfig' => 'plugin',
   'sfPearDownloader' => 'plugin',
   'sfPearEnvironment' => 'plugin',
   'sfPearFrontendPlugin' => 'plugin',
