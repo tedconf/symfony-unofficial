@@ -359,6 +359,46 @@ class sfPatternRouting extends sfRouting
   }
 
   /**
+   * Sets a default parameter.
+   *
+   * @param string $key    The key
+   * @param string $value  The value
+   */
+/*
+  public function setDefaultParameter($key, $value)
+  {
+    parent::setDefaultParameter($key, $value);
+    foreach ($this->routes as $name => $route)
+    {
+      if (is_string($route))
+      {
+        $route = $this->loadRoute($name);
+      }
+      $route->setDefaultParameters($this->defaultParameters);
+    }
+  }
+*/
+  /**
+   * Sets the default parameters for URL generation.
+   *
+   * @param array $parameters  An array of default parameters
+   */
+/*
+  public function setDefaultParameters($parameters)
+  {
+    parent::setDefaultParameters($parameters);
+    foreach ($this->routes as $name => $route)
+    {
+      if (is_string($route))
+      {
+        $route = $this->loadRoute($name);
+      }
+      $route->setDefaultParameters($this->defaultParameters);
+    }
+  }
+*/
+
+  /**
    * @see sfRouting
    */
   public function generate($name, $params = array(), $absolute = false)
@@ -391,6 +431,7 @@ class sfPatternRouting extends sfRouting
       {
         $route = $this->loadRoute($name);
       }
+      $route->setDefaultParameters($this->defaultParameters);
     }
     else
     {
@@ -447,6 +488,7 @@ class sfPatternRouting extends sfRouting
     {
       $route = $this->loadRoute($info['name']);
     }
+    $route->setDefaultParameters($this->defaultParameters);
 
     $route->bind($this->options['context'], $info['parameters']);
     $info['parameters']['_sf_route'] = $route;
@@ -554,6 +596,7 @@ class sfPatternRouting extends sfRouting
       {
         $route = $this->loadRoute($name);
       }
+      $route->setDefaultParameters($this->defaultParameters);
 
       if (false === $parameters = $route->matchesUrl($url, $this->options['context']))
       {
@@ -574,6 +617,7 @@ class sfPatternRouting extends sfRouting
       {
         $route = $this->loadRoute($name);
       }
+      $route->setDefaultParameters($this->defaultParameters);
 
       if ($route->matchesParameters($parameters, $this->options['context']))
       {
