@@ -387,10 +387,10 @@ class sfModelGeneratorConfiguration
    * fixUnusedFields - removes the form fields that are not displayed on the
    * edit/new form page, to avoid data injection while saving the object.
    *
-   * @param mixed $form
-   * @return void
+   * @param  sfForm $form
+   * @return sfForm
    */
-  protected function fixUnusedFields($form)
+  protected function fixUnusedFields(sfForm $form)
   {
     if (!$display = $form->getObject()->isNew() ? $this->getNewDisplay() : $this->getEditDisplay())
     {
