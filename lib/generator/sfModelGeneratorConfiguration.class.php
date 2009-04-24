@@ -392,6 +392,9 @@ class sfModelGeneratorConfiguration
    */
   protected function fixUnusedFields(sfForm $form)
   {
+    // do nothing, pending resolution of regression having to do with not flattening the display parameter
+    return $form;
+
     if (!$display = $form->getObject()->isNew() ? $this->getNewDisplay() : $this->getEditDisplay())
     {
       $display = $this->getFormDisplay();
