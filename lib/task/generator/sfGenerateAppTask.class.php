@@ -114,11 +114,16 @@ EOF;
       $indexName = $app;
     }
 
+    if (false === $options['csrf-secret'])
+    {
+      $options['csrf-secret'] = 'false';
+    }
+
     // Set no_script_name value in settings.yml for production environment
     $finder = sfFinder::type('file')->name('settings.yml');
     $this->getFilesystem()->replaceTokens($finder->in($appDir.'/config'), '##', '##', array(
       'NO_SCRIPT_NAME'    => $firstApp ? 'on' : 'off',
-      'CSRF_SECRET'       => sfYamlInline::dump($options['csrf-secret']),
+      'CSRF_SECRET'       => sfYamlInline::dump(sfYamlInline::parseScalar($options['csrf-secret'])),
       'ESCAPING_STRATEGY' => sfYamlInline::dump((boolean) sfYamlInline::parseScalar($options['escaping-strategy'])),
     ));
 
