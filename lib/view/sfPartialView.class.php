@@ -51,7 +51,7 @@ class sfPartialView extends sfPHPView
   }
 
   /**
-   * @param array $partialvars
+   * @param array $partialVars
    */
   public function setPartialVars(array $partialVars)
   {
