@@ -88,7 +88,7 @@ class sfCoreAutoload
   /**
    * Handles autoloading of classes.
    *
-   * @param  string  $class  A class name.
+   * @param string $class A class name.
    *
    * @return boolean Returns true if the class has been loaded
    */
@@ -109,10 +109,10 @@ class sfCoreAutoload
    *
    * @return base directory
    */
-   public function getBaseDir()
-   {
-     return $this->baseDir;
-   }
+  public function getBaseDir()
+  {
+    return $this->baseDir;
+  }
 
   /**
    * Rebuilds the association array between class names and paths.

@@ -43,9 +43,9 @@ class sfAnsiColorFormatter extends sfFormatter
   /**
    * Formats a text according to the given style or parameters.
    *
-   * @param  string   $text       The test to style
-   * @param  mixed    $parameters An array of options or a style name
-   * @param  resource $stream     The stream to format for
+   * @param string   $text       The test to style
+   * @param mixed    $parameters An array of options or a style name
+   * @param resource $stream     The stream to format for
    *
    * @return string The styled text
    */
@@ -89,7 +89,7 @@ class sfAnsiColorFormatter extends sfFormatter
   /**
    * Formats a message within a section.
    *
-   * @param string  $section  The section name
+   * @param string $section The section name
    * @param string  $text     The text message
    * @param integer $size     The maximum size allowed for a line (65 by default)
    * @param string  $style    The color scheme to apply to the section string (INFO, ERROR, or COMMAND)
@@ -136,7 +136,7 @@ class sfAnsiColorFormatter extends sfFormatter
    *  -  windows
    *  -  non tty consoles
    *
-   * @param  mixed  $stream  A stream
+   * @param mixed $stream A stream
    *
    * @return Boolean true if the stream supports colorization, false otherwise
    */

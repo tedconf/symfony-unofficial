@@ -33,8 +33,8 @@ class sfProjectConfiguration
   /**
    * Constructor.
    *
-   * @param string              $rootDir    The project root directory
-   * @param sfEventDispatcher   $dispatcher The event dispatcher
+   * @param string            $rootDir    The project root directory
+   * @param sfEventDispatcher $dispatcher The event dispatcher
    */
   public function __construct($rootDir = null, sfEventDispatcher $dispatcher = null)
   {
@@ -183,8 +183,8 @@ class sfProjectConfiguration
   /**
    * Gets directories where template files are stored for a generator class and a specific theme.
    *
-   * @param string $class  The generator class name
-   * @param string $theme  The theme name
+   * @param string $class The generator class name
+   * @param string $theme The theme name
    *
    * @return array An array of directories
    */
@@ -201,8 +201,8 @@ class sfProjectConfiguration
   /**
    * Gets directories where the skeleton is stored for a generator class and a specific theme.
    *
-   * @param string $class   The generator class name
-   * @param string $theme   The theme name
+   * @param string $class The generator class name
+   * @param string $theme The theme name
    *
    * @return array An array of directories
    */
@@ -219,9 +219,9 @@ class sfProjectConfiguration
   /**
    * Gets the template to use for a generator class.
    *
-   * @param string $class   The generator class name
-   * @param string $theme   The theme name
-   * @param string $path    The template path
+   * @param string $class The generator class name
+   * @param string $theme The theme name
+   * @param string $path  The template path
    *
    * @return string A template path
    *
@@ -388,7 +388,7 @@ class sfProjectConfiguration
   /**
    * Gets the paths plugin sub-directories, minding overloaded plugins.
    *
-   * @param  string $subPath The subdirectory to look for
+   * @param string $subPath The subdirectory to look for
    *
    * @return array The plugin paths.
    */
@@ -488,9 +488,9 @@ class sfProjectConfiguration
   /**
    * Returns the configuration for the requested plugin.
    * 
-   * @param   string $name
+   * @param string $name
    * 
-   * @return  sfPluginConfiguration
+   * @return sfPluginConfiguration
    */
   public function getPluginConfiguration($name)
   {
@@ -547,11 +547,11 @@ class sfProjectConfiguration
   /**
    * Returns a sfApplicationConfiguration configuration for a given application.
    *
-   * @param string            $application    An application name
-   * @param string            $environment    The environment name
-   * @param Boolean           $debug          true to enable debug mode
-   * @param string            $rootDir        The project root directory
-   * @param sfEventDispatcher $dispatcher     An event dispatcher
+   * @param string            $application An application name
+   * @param string            $environment The environment name
+   * @param Boolean           $debug       true to enable debug mode
+   * @param string            $rootDir     The project root directory
+   * @param sfEventDispatcher $dispatcher  An event dispatcher
    *
    * @return sfApplicationConfiguration A sfApplicationConfiguration instance
    */
