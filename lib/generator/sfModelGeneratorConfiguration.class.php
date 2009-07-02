@@ -384,28 +384,6 @@ class sfModelGeneratorConfiguration
     return $default;
   }
 
-  /**
-   * Removes visible fields not included for display.
-   *
-   * @param sfForm $form
-   */
-  protected function fixFormFields(sfForm $form)
-  {
-    $fieldsets = $this->getFormFields($form, $form->isNew() ? 'new' : 'edit');
-
-    // flatten fields and collect names
-    $fields = call_user_func_array('array_merge', array_values($fieldsets));
-    $names = array_map(array($this, 'mapFieldName'), $fields);
-
-    foreach ($form as $name => $field)
-    {
-      if (!$field->isHidden() && !in_array($name, $names))
-      {
-        unset($form[$name]);
-      }
-    }
-  }
-
   protected function mapFieldName(sfModelGeneratorConfigurationField $field)
   {
     return $field->getName();
