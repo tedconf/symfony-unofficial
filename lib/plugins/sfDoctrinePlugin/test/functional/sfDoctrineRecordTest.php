@@ -12,7 +12,7 @@ $app = 'frontend';
 $fixtures = 'fixtures/fixtures.yml';
 require_once(dirname(__FILE__).'/../bootstrap/functional.php');
 
-$t = new lime_test(17, new lime_output_color());
+$t = new lime_test(18, new lime_output_color());
 
 $authors = Doctrine::getTable('Author')->findAll();
 $t->is(count($authors), 2);
@@ -62,3 +62,6 @@ $t->is($camelCase->getTest_camel_case(), 'camel');
 $article->setAuthor($author);
 $t->is($article->Author, $author);
 $t->is($article->getAuthor(), $author);
+
+// Camel case with relationships
+$t->is($article->getCamelCase()->getTable()->getOption('name'), 'CamelCase');
