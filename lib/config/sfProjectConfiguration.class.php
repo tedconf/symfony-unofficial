@@ -537,6 +537,11 @@ class sfProjectConfiguration
     return sfProjectConfiguration::$active;
   }
 
+  /**
+   * Guesses the project root directory.
+   *
+   * @return string The project root directory
+   */
   static public function guessRootDir()
   {
     $r = new ReflectionClass('ProjectConfiguration');
