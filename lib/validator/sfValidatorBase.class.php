@@ -246,7 +246,7 @@ abstract class sfValidatorBase
   /**
    * Returns all required option names.
    *
-   * @param array An array of required option names
+   * @return array An array of required option names
    */
   public function getRequiredOptions()
   {
