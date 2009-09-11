@@ -789,11 +789,11 @@ class sfRoute implements Serializable
     // always serialize compiled routes
     $this->compile();
 
-    return serialize(array($this->tokens, $this->defaultParameters, $this->defaultOptions, $this->compiled, $this->options, $this->pattern, $this->regex, $this->variables, $this->defaults, $this->requirements));
+    return serialize(array($this->tokens, $this->defaultParameters, $this->defaultOptions, $this->compiled, $this->options, $this->pattern, $this->regex, $this->variables, $this->defaults, $this->requirements, $this->suffix));
   }
 
   public function unserialize($data)
   {
-    list($this->tokens, $this->defaultParameters, $this->defaultOptions, $this->compiled, $this->options, $this->pattern, $this->regex, $this->variables, $this->defaults, $this->requirements) = unserialize($data);
+    list($this->tokens, $this->defaultParameters, $this->defaultOptions, $this->compiled, $this->options, $this->pattern, $this->regex, $this->variables, $this->defaults, $this->requirements, $this->suffix) = unserialize($data);
   }
 }
