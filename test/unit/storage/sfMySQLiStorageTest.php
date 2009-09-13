@@ -44,7 +44,7 @@ catch (sfDatabaseException $e)
 {
   $t->diag($e->getMessage());
   $t->skip('Unable to connect to MySQL database, skipping', $plan);
-  exit(0);
+  return;
 }
 
 // Creates test database
