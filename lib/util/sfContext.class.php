@@ -381,7 +381,7 @@ class sfContext
   {
     if (!sfConfig::get('sf_i18n'))
     {
-      throw new sfConfigurationException('You must enabled i18n support in your settings.yml configuration file.');
+      throw new sfConfigurationException('You must enable i18n support in your settings.yml configuration file.');
     }
 
     return $this->factories['i18n'];
