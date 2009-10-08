@@ -772,7 +772,7 @@ class sfCultureInfo
       }
     }
 
-    $this->sortArray($allCurrencies);
+    asort($allCurrencies);
 
     return $allCurrencies;
   }
