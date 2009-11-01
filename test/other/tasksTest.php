@@ -65,11 +65,12 @@ class sf_test_project
   }
 }
 
-$t = new lime_test(40, new lime_output_color());
+$plan = 40;
+$t = new lime_test($plan, new lime_output_color());
 
-if (!extension_loaded('SQLite'))
+if (!extension_loaded('SQLite') && !extension_loaded('pdo_SQLite'))
 {
-  $t->skip('You need SQLite to run these tests', $t->plan);
+  $t->skip('You need SQLite to run these tests', $plan);
 
   return;
 }
