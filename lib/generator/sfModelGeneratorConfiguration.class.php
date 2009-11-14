@@ -36,6 +36,7 @@ class sfModelGeneratorConfiguration
         'title'          => $this->getListTitle(),
         'actions'        => $this->getListActions(),
         'object_actions' => $this->getListObjectActions(),
+        'params'         => $this->getListParams(),
       ),
       'filter' => array(
         'fields'  => array(),
@@ -124,28 +125,12 @@ class sfModelGeneratorConfiguration
       $this->configuration['list']['display'][$name] = $field;
     }
 
-    // list params configuration
-    $this->configuration['list']['params'] = $this->getListParams();
-    preg_match_all('/%%([^%]+)%%/', $this->getListParams(), $matches, PREG_PATTERN_ORDER);
-    foreach ($matches[1] as $name)
-    {
-      list($name, $flag) = sfModelGeneratorConfigurationField::splitFieldWithFlag($name);
-      if (!isset($this->configuration['list']['fields'][$name]))
-      {
-        $this->configuration['list']['fields'][$name] = new sfModelGeneratorConfigurationField($name, array_merge(
-          array('type' => 'Text', 'label' => sfInflector::humanize(sfInflector::underscore($name))),
-          isset($config['default'][$name]) ? $config['default'][$name] : array(),
-          isset($config['list'][$name]) ? $config['list'][$name] : array(),
-          array('flag' => $flag)
-        ));
-      }
-      else
-      {
-        $this->configuration['list']['fields'][$name]->setFlag($flag);
-      }
-
-      $this->configuration['list']['params'] = str_replace('%%'.$flag.$name.'%%', '%%'.$name.'%%', $this->configuration['list']['params']);
-    }
+    // parse the %%..%% variables, remove flags and add default fields where
+    // necessary (fixes #7578)
+    $this->parseVariables('list', 'params');
+    $this->parseVariables('edit', 'title');
+    $this->parseVariables('list', 'title');
+    $this->parseVariables('new', 'title');
 
     // action credentials
     $this->configuration['credentials'] = array(
@@ -168,6 +153,30 @@ class sfModelGeneratorConfiguration
     }
     $this->configuration['credentials']['create'] = $this->configuration['credentials']['new'];
     $this->configuration['credentials']['update'] = $this->configuration['credentials']['edit'];
+  }
+
+  protected function parseVariables($context, $key)
+  {
+    preg_match_all('/%%([^%]+)%%/', $this->configuration[$context][$key], $matches, PREG_PATTERN_ORDER);
+    foreach ($matches[1] as $name)
+    {
+      list($name, $flag) = sfModelGeneratorConfigurationField::splitFieldWithFlag($name);
+      if (!isset($this->configuration[$context]['fields'][$name]))
+      {
+        $this->configuration[$context]['fields'][$name] = new sfModelGeneratorConfigurationField($name, array_merge(
+          array('type' => 'Text', 'label' => sfInflector::humanize(sfInflector::underscore($name))),
+          isset($config['default'][$name]) ? $config['default'][$name] : array(),
+          isset($config[$context][$name]) ? $config[$context][$name] : array(),
+          array('flag' => $flag)
+        ));
+      }
+      else
+      {
+        $this->configuration[$context]['fields'][$name]->setFlag($flag);
+      }
+
+      $this->configuration[$context][$key] = str_replace('%%'.$flag.$name.'%%', '%%'.$name.'%%', $this->configuration[$context][$key]);
+    }
   }
 
   public function getContextConfiguration($context, $fields = null)
