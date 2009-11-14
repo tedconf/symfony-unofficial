@@ -500,6 +500,7 @@ abstract class sfBrowserBase
   public function resetCurrentException()
   {
     $this->currentException = null;
+    sfException::clearLastException();
   }
 
   /**
