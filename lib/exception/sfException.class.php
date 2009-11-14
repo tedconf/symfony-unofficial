@@ -51,14 +51,6 @@ class sfException extends Exception
   }
 
   /**
-   * Clears the $lastException property (added for #6342)
-   */
-  static public function clearLastException()
-  {
-  	self::$lastException = null;
-  }
-  
-  /**
    * Prints the stack trace for this exception.
    */
   public function printStackTrace()
