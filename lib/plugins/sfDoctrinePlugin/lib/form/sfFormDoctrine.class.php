@@ -456,7 +456,9 @@ abstract class sfFormDoctrine extends sfForm
 
     if (!$values[$field])
     {
-      return $this->object->$field;
+      $oldValues = $this->getObject()->getModified(true, false);
+
+      return isset($oldValues[$field]) ? $oldValues[$field] : '';
     }
 
     // we need the base directory
