@@ -1,0 +1,25 @@
+<?php
+
+namespace Symfony\Components\DependencyInjection\Loader;
+
+/*
+ * This file is part of the symfony framework.
+ *
+ * (c) Fabien Potencier <fabien.potencier@symfony-project.com>
+ *
+ * This source file is subject to the MIT license that is bundled
+ * with this source code in the file LICENSE.
+ */
+
+/**
+ * LoaderInterface is the interface implemented by service container loader classes.
+ *
+ * @package    symfony
+ * @subpackage dependency_injection
+ * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
+ * @version    SVN: $Id$
+ */
+interface LoaderInterface
+{
+  function load($resource);
+}
