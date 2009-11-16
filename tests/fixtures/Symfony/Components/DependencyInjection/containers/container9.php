@@ -1,6 +1,6 @@
 <?php
 
-require_once dirname(__FILE__).'/../includes/classes.php';
+require_once __DIR__.'/../includes/classes.php';
 
 use Symfony\Components\DependencyInjection\Builder;
 use Symfony\Components\DependencyInjection\Reference;
@@ -11,7 +11,7 @@ $container->
   register('foo', 'FooClass')->
   setConstructor('getInstance')->
   setArguments(array('foo', new Reference('foo.baz'), array('%foo%' => 'foo is %foo%'), true, new Reference('service_container')))->
-  setFile(realpath(dirname(__FILE__).'/../includes/foo.php'))->
+  setFile(realpath(__DIR__.'/../includes/foo.php'))->
   setShared(false)->
   addMethodCall('setBar', array('bar'))->
   addMethodCall('initialize')->

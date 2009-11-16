@@ -37,7 +37,7 @@ class ProjectTemplateRenderer extends Renderer
   }
 }
 
-$loader = new FilesystemLoader(array(dirname(__FILE__).'/fixtures/templates/%name%.%renderer%'));
+$loader = new FilesystemLoader(array(__DIR__.'/fixtures/templates/%name%.%renderer%'));
 $engine = new Engine($loader);
 $engine->set('foo', 'bar');
 $engine->getHelperSet()->set(new SimpleHelper('foo'), 'bar');
