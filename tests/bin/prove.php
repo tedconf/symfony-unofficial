@@ -8,9 +8,10 @@
  * file that was distributed with this source code.
  */
 
-require_once(__DIR__.'/../lib/vendor/lime/lime.php');
+require_once __DIR__.'/../lib/vendor/lime/LimeAutoloader.php';
+LimeAutoloader::register();
 
-$h = new lime_harness(array(
+$h = new LimeTestSuite(array(
   'force_colors' => isset($argv) && in_array('--color', $argv),
   'verbose'      => isset($argv) && in_array('--verbose', $argv),
 ));

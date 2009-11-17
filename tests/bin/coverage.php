@@ -8,10 +8,14 @@
  * file that was distributed with this source code.
  */
 
-require_once(__DIR__.'/../lib/vendor/lime/lime.php');
+require_once __DIR__.'/../lib/vendor/lime/LimeAutoloader.php';
+LimeAutoloader::register();
 
-$h = new lime_harness(new lime_output(isset($argv) && in_array('--color', $argv)));
-$h->base_dir = realpath(__DIR__.'/..');
+$h = new LimeTestSuite(array(
+  'force_colors' => isset($argv) && in_array('--color', $argv),
+  'verbose'      => isset($argv) && in_array('--verbose', $argv),
+  'base_dir'     => realpath(__DIR__.'/..'),
+));
 
 foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator(__DIR__.'/../unit'), RecursiveIteratorIterator::LEAVES_ONLY) as $file)
 {
@@ -21,10 +25,10 @@ foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator(__DIR__.'/
   }
 }
 
-$c = new lime_coverage($h);
-$c->extension = '.php';
-$c->verbose = true;
-$c->base_dir = realpath(__DIR__.'/../../lib');
+$c = new LimeCoverage($h, array(
+  'base_dir' => realpath(__DIR__.'/../../lib'),
+  'verbose'  => true,
+));
 
 foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator(__DIR__.'/../../lib'), RecursiveIteratorIterator::LEAVES_ONLY) as $file)
 {
