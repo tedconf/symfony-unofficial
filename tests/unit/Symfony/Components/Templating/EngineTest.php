@@ -152,13 +152,14 @@ $engine->start('bar');
 try
 {
   $engine->start('bar');
+  $engine->stop();
   $t->fail('->start() throws an InvalidArgumentException if a slot with the same name is already started');
 }
 catch (InvalidArgumentException $e)
 {
+  $engine->stop();
   $t->pass('->start() throws an InvalidArgumentException if a slot with the same name is already started');
 }
-$engine->stop();
 
 try
 {
