@@ -110,7 +110,7 @@ class Inline
     if (
       (1 == count($keys) && '0' == $keys[0])
       ||
-      (count($keys) > 1 && array_reduce($keys, create_function('$v,$w', 'return (integer) $v + $w;'), 0) == count($keys) * (count($keys) - 1) / 2))
+      (count($keys) > 1 && array_reduce($keys, function ($v, $w) { return (integer) $v + $w; }, 0) == count($keys) * (count($keys) - 1) / 2))
     {
       $output = array();
       foreach ($value as $val)
