@@ -214,7 +214,7 @@ class XmlFileLoader extends FileLoader
 
       $dom = new \DOMDocument();
       libxml_use_internal_errors(true);
-      if (!$dom->load($path))
+      if (!$dom->load(realpath($path), LIBXML_COMPACT))
       {
         throw new \InvalidArgumentException(implode("\n", $this->getXmlErrors()));
       }
