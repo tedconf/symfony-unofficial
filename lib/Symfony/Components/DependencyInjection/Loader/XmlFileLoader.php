@@ -258,7 +258,7 @@ class XmlFileLoader extends FileLoader
   protected function validate($dom)
   {
     libxml_use_internal_errors(true);
-    if (!$dom->schemaValidate(__DIR__.'/../services.xsd'))
+    if (!$dom->schemaValidate(__DIR__.'/services.xsd'))
     {
       throw new \InvalidArgumentException(implode("\n", $this->getXmlErrors()));
     }
