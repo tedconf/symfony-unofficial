@@ -74,8 +74,17 @@ class ClassLoader
         $fileName = str_replace('\\', DIRECTORY_SEPARATOR, $namespace).DIRECTORY_SEPARATOR;
       }
       $fileName .= str_replace('_', DIRECTORY_SEPARATOR, $className).'.php';
+      if ($this->includePath !== null)
+      {
+        $fileName = $this->includePath.DIRECTORY_SEPARATOR.$fileName;
+      }
 
-      require ($this->includePath !== null ? $this->includePath.DIRECTORY_SEPARATOR : '').$fileName;
+      // when the autoloading mechanism is triggered by class_exists(), avoid
+      // undesired error messages
+      if (is_file($fileName) && is_readable($fileName))
+      {
+        require $fileName;
+      }
     }
   }
 }
