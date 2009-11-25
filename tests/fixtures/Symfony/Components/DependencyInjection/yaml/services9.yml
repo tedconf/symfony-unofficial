@@ -25,4 +25,11 @@ services:
     configurator: ['%baz_class%', configureStatic1]
   foo_bar:
     class: FooClass
+  method_call1:
+    class: FooClass
+    calls:
+      - [setBar, ['@foo']]
+      - [setBar, ['@foo']]
+      - [setBar, ['@foo']]
+      
   alias_for_foo: @foo

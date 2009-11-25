@@ -64,6 +64,7 @@
     <xs:attribute name="type" type="parameter_type" />
     <xs:attribute name="id" type="xs:string" />
     <xs:attribute name="key" type="xs:string" />
+    <xs:attribute name="on-invalid" type="xs:string" />
   </xs:complexType>
 
   <xs:complexType name="argument" mixed="true">
@@ -74,6 +75,7 @@
     <xs:attribute name="type" type="argument_type" />
     <xs:attribute name="id" type="xs:string" />
     <xs:attribute name="key" type="xs:string" />
+    <xs:attribute name="on-invalid" type="xs:string" />
   </xs:complexType>
 
   <xs:complexType name="call" mixed="true">

@@ -2,6 +2,7 @@
 
 namespace Symfony\Components\DependencyInjection\Dumper;
 
+use Symfony\Components\DependencyInjection\Builder;
 use Symfony\Components\DependencyInjection\Container;
 use Symfony\Components\DependencyInjection\Reference;
 use Symfony\Components\DependencyInjection\Parameter;
@@ -133,7 +134,7 @@ EOF;
         $arguments[] = $this->dumpValue($value);
       }
 
-      $calls .= sprintf("    \$instance->%s(%s);\n", $call[0], implode(', ', $arguments));
+      $calls .= $this->wrapServiceConditionals($call[1], sprintf("    \$instance->%s(%s);\n", $call[0], implode(', ', $arguments)));
     }
 
     return $calls;
@@ -304,6 +305,25 @@ EOF;
 EOF;
   }
 
+  protected function wrapServiceConditionals($value, $code)
+  {
+    if (!$services = Builder::getServiceConditionals($value))
+    {
+      return $code;
+    }
+
+    $conditions = array();
+    foreach ($services as $service)
+    {
+      $conditions[] = sprintf("\$this->hasService('%s')", $service);
+    }
+
+    // re-indent the wrapped code
+    $code = implode("\n", array_map(function ($line) { return $line ? '  '.$line : $line; }, explode("\n", $code)));
+
+    return sprintf("    if (%s)\n    {\n%s    }\n", implode(' && ', $conditions), $code);
+  }
+
   protected function dumpValue($value)
   {
     if (is_array($value))
@@ -318,7 +338,7 @@ EOF;
     }
     elseif (is_object($value) && $value instanceof Reference)
     {
-      return $this->getServiceCall((string) $value);
+      return $this->getServiceCall((string) $value, $value);
     }
     elseif (is_object($value) && $value instanceof Parameter)
     {
@@ -357,13 +377,20 @@ EOF;
     return sprintf("'.\$this->getParameter('%s').'", strtolower($match[2]));
   }
 
-  protected function getServiceCall($id)
+  protected function getServiceCall($id, Reference $reference = null)
   {
     if ('service_container' == $id)
     {
       return '$this';
     }
 
-    return sprintf('$this->getService(\'%s\')', $id);
+    if (null !== $reference && Container::EXCEPTION_ON_INVALID_REFERENCE !== $reference->getInvalidBehavior())
+    {
+      return sprintf('$this->getService(\'%s\', Container::NULL_ON_INVALID_REFERENCE)', $id);
+    }
+    else
+    {
+      return sprintf('$this->getService(\'%s\')', $id);
+    }
   }
 }

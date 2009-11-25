@@ -54,18 +54,21 @@ class Builder extends Container
   /**
    * Gets a service.
    *
-   * @param  string $id The service identifier
+   * @param  string $id              The service identifier
+   * @param  int    $invalidBehavior The behavior when the service does not exist
    *
    * @return object The associated service
    *
-   * @throw \InvalidArgumentException if the service is not defined
-   * @throw \LogicException if the service has a circular reference to itself
+   * @throws \InvalidArgumentException if the service is not defined
+   * @throws \LogicException if the service has a circular reference to itself
+   *
+   * @see Reference
    */
-  public function getService($id)
+  public function getService($id, $invalidBehavior = Container::EXCEPTION_ON_INVALID_REFERENCE)
   {
     try
     {
-      return parent::getService($id);
+      return parent::getService($id, Container::EXCEPTION_ON_INVALID_REFERENCE);
     }
     catch (\InvalidArgumentException $e)
     {
@@ -79,7 +82,19 @@ class Builder extends Container
         return $this->getService($this->aliases[$id]);
       }
 
-      $definition = $this->getServiceDefinition($id);
+      try
+      {
+        $definition = $this->getServiceDefinition($id);
+      }
+      catch (\InvalidArgumentException $e)
+      {
+        if (Container::EXCEPTION_ON_INVALID_REFERENCE !== $invalidBehavior)
+        {
+          return null;
+        }
+
+        throw $e;
+      }
 
       $this->loading[$id] = true;
 
@@ -211,7 +226,7 @@ class Builder extends Container
    *
    * @return Definition A Definition instance
    *
-   * @throw \InvalidArgumentException if the service definition does not exist
+   * @throws \InvalidArgumentException if the service definition does not exist
    */
   public function getServiceDefinition($id)
   {
@@ -252,7 +267,22 @@ class Builder extends Container
 
     foreach ($definition->getMethodCalls() as $call)
     {
-      call_user_func_array(array($service, $call[0]), $this->resolveServices($this->resolveValue($call[1])));
+      $services = self::getServiceConditionals($call[1]);
+
+      $ok = true;
+      foreach ($services as $s)
+      {
+        if (!$this->hasService($s))
+        {
+          $ok = false;
+          break;
+        }
+      }
+
+      if ($ok)
+      {
+        call_user_func_array(array($service, $call[0]), $this->resolveServices($this->resolveValue($call[1])));
+      }
     }
 
     if ($callable = $definition->getConfigurator())
@@ -284,7 +314,7 @@ class Builder extends Container
    *
    * @return mixed The same value with all placeholders replaced by their values
    *
-   * @throw \RuntimeException if a placeholder references a parameter that does not exist
+   * @throws \RuntimeException if a placeholder references a parameter that does not exist
    */
   public function resolveValue($value)
   {
@@ -335,7 +365,7 @@ class Builder extends Container
     }
     else if (is_object($value) && $value instanceof Reference)
     {
-      $value = $this->getService((string) $value);
+      $value = $this->getService((string) $value, $value->getInvalidBehavior());
     }
 
     return $value;
@@ -349,5 +379,24 @@ class Builder extends Container
     }
 
     return $this->getParameter($name);
+  }
+
+  static public function getServiceConditionals($value)
+  {
+    $services = array();
+
+    if (is_array($value))
+    {
+      foreach ($value as $v)
+      {
+        $services = array_unique(array_merge($services, self::getServiceConditionals($v)));
+      }
+    }
+    elseif (is_object($value) && $value instanceof Reference && $value->getInvalidBehavior() === Container::IGNORE_ON_INVALID_REFERENCE)
+    {
+      $services[] = (string) $value;
+    }
+
+    return $services;
   }
 }

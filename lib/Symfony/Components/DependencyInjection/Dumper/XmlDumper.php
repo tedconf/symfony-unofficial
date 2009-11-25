@@ -2,6 +2,7 @@
 
 namespace Symfony\Components\DependencyInjection\Dumper;
 
+use Symfony\Components\DependencyInjection\Container;
 use Symfony\Components\DependencyInjection\Parameter;
 use Symfony\Components\DependencyInjection\Reference;
 
@@ -144,7 +145,7 @@ class XmlDumper extends Dumper
 
       if (is_object($value) && $value instanceof Reference)
       {
-        $xml .= sprintf("%s<%s%s type=\"service\" id=\"%s\" />\n", $white, $type, $key, (string) $value, $type);
+        $xml .= sprintf("%s<%s%s type=\"service\" id=\"%s\" %s/>\n", $white, $type, $key, (string) $value, $this->getXmlInvalidBehavior($value));
       }
       else
       {
@@ -173,6 +174,19 @@ EOF;
   protected function endXml()
   {
     return "</container>\n";
+  }
+
+  protected function getXmlInvalidBehavior(Reference $reference)
+  {
+    switch ($reference->getInvalidBehavior())
+    {
+      case Container::NULL_ON_INVALID_REFERENCE:
+        return 'on-invalid="null" ';
+      case Container::IGNORE_ON_INVALID_REFERENCE:
+        return 'on-invalid="ignore" ';
+      default:
+        return '';
+    }
   }
 
   protected function escape($arguments)

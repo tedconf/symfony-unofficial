@@ -21,17 +21,20 @@ namespace Symfony\Components\DependencyInjection;
  */
 class Reference
 {
-  protected
-    $id = null;
+  protected $id, $invalidBehavior;
 
   /**
    * Constructor.
    *
-   * @param string $id The service identifier
+   * @param string $id              The service identifier
+   * @param int    $invalidBehavior The behavior when the service does not exist
+   *
+   * @see Container
    */
-  public function __construct($id)
+  public function __construct($id, $invalidBehavior = Container::EXCEPTION_ON_INVALID_REFERENCE)
   {
     $this->id = $id;
+    $this->invalidBehavior = $invalidBehavior;
   }
 
   /**
@@ -42,5 +45,10 @@ class Reference
   public function __toString()
   {
     return (string) $this->id;
+  }
+
+  public function getInvalidBehavior()
+  {
+    return $this->invalidBehavior;
   }
 }

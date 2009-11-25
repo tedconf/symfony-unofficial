@@ -39,6 +39,13 @@ namespace Symfony\Components\DependencyInjection;
  *   <li>symfony.mysql_session_storage -> getSymfony_MysqlSessionStorageService()</li>
  * </ul>
  *
+ * The container can have three possible behaviors when a service does not exist:
+ *
+ *  * EXCEPTION_ON_INVALID_REFERENCE: Throws an exception (the default)
+ *  * NULL_ON_INVALID_REFERENCE:      Returns null
+ *  * IGNORE_ON_INVALID_REFERENCE:    Ignores the wrapping command asking for the reference
+ *                                    (for instance, ignore a setter if the service does not exist)
+ *
  * @package    symfony
  * @subpackage dependency_injection
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
@@ -51,6 +58,10 @@ class Container implements ContainerInterface, \ArrayAccess, \Iterator
     $parameters = array(),
     $services   = array(),
     $count      = 0;
+
+  const EXCEPTION_ON_INVALID_REFERENCE = 1;
+  const NULL_ON_INVALID_REFERENCE      = 2;
+  const IGNORE_ON_INVALID_REFERENCE    = 3;
 
   /**
    * Constructor.
@@ -104,7 +115,7 @@ class Container implements ContainerInterface, \ArrayAccess, \Iterator
    *
    * @return mixed  The parameter value
    *
-   * @throw  \InvalidArgumentException if the parameter is not defined
+   * @throws  \InvalidArgumentException if the parameter is not defined
    */
   public function getParameter($name)
   {
@@ -168,13 +179,16 @@ class Container implements ContainerInterface, \ArrayAccess, \Iterator
    * If a service is both defined through a setService() method and
    * with a set*Service() method, the former has always precedence.
    *
-   * @param  string $id The service identifier
+   * @param  string $id              The service identifier
+   * @param  int    $invalidBehavior The behavior when the service does not exist
    *
    * @return object The associated service
    *
-   * @throw \InvalidArgumentException if the service is not defined
+   * @throws \InvalidArgumentException if the service is not defined
+   *
+   * @see Reference
    */
-  public function getService($id)
+  public function getService($id, $invalidBehavior = self::EXCEPTION_ON_INVALID_REFERENCE)
   {
     if (isset($this->services[$id]))
     {
@@ -186,7 +200,14 @@ class Container implements ContainerInterface, \ArrayAccess, \Iterator
       return $this->$method();
     }
 
-    throw new \InvalidArgumentException(sprintf('The service "%s" does not exist.', $id));
+    if (self::EXCEPTION_ON_INVALID_REFERENCE === $invalidBehavior)
+    {
+      throw new \InvalidArgumentException(sprintf('The service "%s" does not exist.', $id));
+    }
+    else
+    {
+      return null;
+    }
   }
 
   /**

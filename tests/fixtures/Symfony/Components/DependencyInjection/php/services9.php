@@ -54,6 +54,21 @@ class ProjectServiceContainer extends Container
     return $this->shared['foo_bar'] = $instance;
   }
 
+  protected function getMethodCall1Service()
+  {
+    if (isset($this->shared['method_call1'])) return $this->shared['method_call1'];
+
+    $instance = new FooClass();
+    $instance->setBar($this->getService('foo'));
+    $instance->setBar($this->getService('foo', Container::NULL_ON_INVALID_REFERENCE));
+    if ($this->hasService('foo'))
+    {
+      $instance->setBar($this->getService('foo', Container::NULL_ON_INVALID_REFERENCE));
+    }
+
+    return $this->shared['method_call1'] = $instance;
+  }
+
   protected function getAliasForFooService()
   {
     return $this->getService('foo');
