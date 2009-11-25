@@ -167,9 +167,27 @@ EOF;
   protected function addService($id, $definition)
   {
     $name = Container::camelize($id);
+    $class = $definition->getClass();
+    $type = 0 === strpos($class, '%') ? 'Object' : $class;
+
+    $doc = '';
+    if ($definition->isShared())
+    {
+      $doc = <<<EOF
+
+   *
+   * This service is shared.
+   * This method always returns the same instance of the service.
+EOF;
+    }
 
     $code = <<<EOF
 
+  /**
+   * Gets the '$id' service.$doc
+   *
+   * @return $type A $class instance.
+   */
   protected function get{$name}Service()
   {
 
@@ -190,9 +208,21 @@ EOF;
   protected function addServiceAlias($alias, $id)
   {
     $name = Container::camelize($alias);
+    $type = 'Object';
+
+    if ($this->container->hasServiceDefinition($id))
+    {
+      $class = $this->container->getServiceDefinition($id)->getClass();
+      $type = 0 === strpos($class, '%') ? 'Object' : $class;
+    }
 
     return <<<EOF
 
+  /**
+   * Gets the $alias service alias.
+   *
+   * @return $type An instance of the $id service
+   */
   protected function get{$name}Service()
   {
     return {$this->getServiceCall($id)};
@@ -219,6 +249,30 @@ EOF;
 
   protected function startClass($class, $baseClass)
   {
+    $properties = array();
+    foreach ($this->container->getServiceDefinitions() as $id => $definition)
+    {
+      $type = 0 === strpos($definition->getClass(), '%') ? 'Object' : $definition->getClass();
+      $properties[] = sprintf(' * @property %s $%s', $type, $id);
+    }
+
+    foreach ($this->container->getAliases() as $alias => $id)
+    {
+      $type = 'Object';
+      if ($this->container->hasServiceDefinition($id))
+      {
+        $sclass = $this->container->getServiceDefinition($id)->getClass();
+        $type = 0 === strpos($sclass, '%') ? 'Object' : $sclass;
+      }
+
+      $properties[] = sprintf(' * @property %s $%s', $type, $alias);
+    }
+    $properties = implode("\n", $properties);
+    if ($properties)
+    {
+      $properties = "\n *\n".$properties;
+    }
+
     return <<<EOF
 <?php
 
@@ -226,6 +280,12 @@ use Symfony\Components\DependencyInjection\Container;
 use Symfony\Components\DependencyInjection\Reference;
 use Symfony\Components\DependencyInjection\Parameter;
 
+/**
+ * $class
+ *
+ * This class has been auto-generated
+ * by the Symfony Dependency Injection Component.$properties
+ */
 class $class extends $baseClass
 {
   protected \$shared = array();
@@ -242,6 +302,9 @@ EOF;
 
     return <<<EOF
 
+  /**
+   * Constructor.
+   */
   public function __construct()
   {
     parent::__construct(\$this->getDefaultParameters());
@@ -261,6 +324,11 @@ EOF;
 
     return <<<EOF
 
+  /**
+   * Gets the default parameters.
+   *
+   * @return array An array of the default parameters
+   */
   protected function getDefaultParameters()
   {
     return $parameters;

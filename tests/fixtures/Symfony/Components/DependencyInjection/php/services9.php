@@ -4,15 +4,36 @@ use Symfony\Components\DependencyInjection\Container;
 use Symfony\Components\DependencyInjection\Reference;
 use Symfony\Components\DependencyInjection\Parameter;
 
+/**
+ * ProjectServiceContainer
+ *
+ * This class has been auto-generated
+ * by the Symfony Dependency Injection Component.
+ *
+ * @property FooClass $foo
+ * @property FooClass $bar
+ * @property Object $foo.baz
+ * @property FooClass $foo_bar
+ * @property FooClass $method_call1
+ * @property FooClass $alias_for_foo
+ */
 class ProjectServiceContainer extends Container
 {
   protected $shared = array();
 
+  /**
+   * Constructor.
+   */
   public function __construct()
   {
     parent::__construct($this->getDefaultParameters());
   }
 
+  /**
+   * Gets the 'foo' service.
+   *
+   * @return FooClass A FooClass instance.
+   */
   protected function getFooService()
   {
     require_once '%path%/foo.php';
@@ -25,6 +46,14 @@ class ProjectServiceContainer extends Container
     return $instance;
   }
 
+  /**
+   * Gets the 'bar' service.
+   *
+   * This service is shared.
+   * This method always returns the same instance of the service.
+   *
+   * @return FooClass A FooClass instance.
+   */
   protected function getBarService()
   {
     if (isset($this->shared['bar'])) return $this->shared['bar'];
@@ -35,6 +64,14 @@ class ProjectServiceContainer extends Container
     return $this->shared['bar'] = $instance;
   }
 
+  /**
+   * Gets the 'foo.baz' service.
+   *
+   * This service is shared.
+   * This method always returns the same instance of the service.
+   *
+   * @return Object A %baz_class% instance.
+   */
   protected function getFoo_BazService()
   {
     if (isset($this->shared['foo.baz'])) return $this->shared['foo.baz'];
@@ -45,6 +82,14 @@ class ProjectServiceContainer extends Container
     return $this->shared['foo.baz'] = $instance;
   }
 
+  /**
+   * Gets the 'foo_bar' service.
+   *
+   * This service is shared.
+   * This method always returns the same instance of the service.
+   *
+   * @return FooClass A FooClass instance.
+   */
   protected function getFooBarService()
   {
     if (isset($this->shared['foo_bar'])) return $this->shared['foo_bar'];
@@ -54,6 +99,14 @@ class ProjectServiceContainer extends Container
     return $this->shared['foo_bar'] = $instance;
   }
 
+  /**
+   * Gets the 'method_call1' service.
+   *
+   * This service is shared.
+   * This method always returns the same instance of the service.
+   *
+   * @return FooClass A FooClass instance.
+   */
   protected function getMethodCall1Service()
   {
     if (isset($this->shared['method_call1'])) return $this->shared['method_call1'];
@@ -69,11 +122,21 @@ class ProjectServiceContainer extends Container
     return $this->shared['method_call1'] = $instance;
   }
 
+  /**
+   * Gets the alias_for_foo service alias.
+   *
+   * @return FooClass An instance of the foo service
+   */
   protected function getAliasForFooService()
   {
     return $this->getService('foo');
   }
 
+  /**
+   * Gets the default parameters.
+   *
+   * @return array An array of the default parameters
+   */
   protected function getDefaultParameters()
   {
     return array(
