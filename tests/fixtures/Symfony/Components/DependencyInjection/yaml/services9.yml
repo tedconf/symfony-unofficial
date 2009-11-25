@@ -29,7 +29,7 @@ services:
     class: FooClass
     calls:
       - [setBar, ['@foo']]
-      - [setBar, ['@foo']]
-      - [setBar, ['@foo']]
+      - [setBar, ['@@foo']]
+      - [setBar, ['@@foo']]
       
   alias_for_foo: @foo

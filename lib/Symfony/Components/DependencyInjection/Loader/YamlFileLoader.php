@@ -2,6 +2,7 @@
 
 namespace Symfony\Components\DependencyInjection\Loader;
 
+use Symfony\Components\DependencyInjection\Container;
 use Symfony\Components\DependencyInjection\Definition;
 use Symfony\Components\DependencyInjection\Reference;
 use Symfony\Components\YAML\YAML;
@@ -211,6 +212,10 @@ class YamlFileLoader extends FileLoader
     if (is_array($value))
     {
       $value = array_map(array($this, 'resolveServices'), $value);
+    }
+    else if (is_string($value) && 0 === strpos($value, '@@'))
+    {
+      $value = new Reference(substr($value, 2), Container::IGNORE_ON_INVALID_REFERENCE);
     }
     else if (is_string($value) && 0 === strpos($value, '@'))
     {

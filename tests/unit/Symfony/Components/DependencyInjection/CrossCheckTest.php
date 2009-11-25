@@ -22,7 +22,7 @@ $fixturesPath = realpath(__DIR__.'/../../../../fixtures/Symfony/Components/Depen
 require_once $fixturesPath.'/includes/classes.php';
 require_once $fixturesPath.'/includes/foo.php';
 
-$t = new LimeTest(24);
+$t = new LimeTest(30);
 
 // cross-check loaders/dumpers
 $t->diag('cross-check loaders/dumpers');
@@ -37,6 +37,8 @@ $fixtures = array(
   'services1.yml' => 'yaml',
   'services2.yml' => 'yaml',
   'services6.yml' => 'yaml',
+  'services8.yml' => 'yaml',
+  'services9.yml' => 'yaml',
 );
 
 foreach ($fixtures as $fixture => $type)
