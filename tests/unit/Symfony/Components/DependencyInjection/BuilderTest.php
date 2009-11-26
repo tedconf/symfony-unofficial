@@ -8,12 +8,7 @@
  * file that was distributed with this source code.
  */
 
-require_once __DIR__.'/../../../../lib/vendor/lime/LimeAutoloader.php';
-LimeAutoloader::register();
-
-require_once __DIR__.'/../../../../../lib/Symfony/Foundation/ClassLoader.php';
-$loader = new Symfony\Foundation\ClassLoader('Symfony', __DIR__.'/../../../../../lib');
-$loader->register();
+require_once __DIR__.'/../../../bootstrap.php';
 
 use Symfony\Components\DependencyInjection\Builder;
 use Symfony\Components\DependencyInjection\Definition;
