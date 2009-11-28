@@ -169,10 +169,11 @@ class sfViewCacheManager
 
         foreach ($varyHeaders as $header)
         {
-          $vary .= $request->getHttpHeader($header).'|';
+          $vary .= $header . '_' . $request->getHttpHeader($header) . '_';
         }
 
-        $vary = $vary;
+        $vary = preg_replace('/[^a-z0-9]/i', '_', $vary);
+        $vary = preg_replace('/_+/', '_', $vary);
       }
       else
       {
