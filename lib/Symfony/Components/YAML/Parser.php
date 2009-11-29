@@ -97,7 +97,7 @@ class Parser
           }
         }
       }
-      else if (preg_match('#^(?P<key>[^ ].*?) *\:(\s+(?P<value>.+?))?\s*$#', $this->currentLine, $values))
+      else if (preg_match('#^(?P<key>'.Inline::REGEX_QUOTED_STRING.'|[^ ].*?) *\:(\s+(?P<value>.+?))?\s*$#', $this->currentLine, $values))
       {
         $key = Inline::parseScalar($values['key']);
 

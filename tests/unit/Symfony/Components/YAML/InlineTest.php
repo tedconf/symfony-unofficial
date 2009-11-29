@@ -15,7 +15,7 @@ use Symfony\Components\YAML\Inline;
 
 YAML::setSpecVersion('1.1');
 
-$t = new LimeTest(118);
+$t = new LimeTest(124);
 
 // ::load()
 $t->diag('::load()');
@@ -56,6 +56,9 @@ $testsForLoad = array(
   '{foo:bar,bar:foo,false:false,null:null,integer:12}' => array('foo' => 'bar', 'bar' => 'foo', 'false' => false, 'null' => null, 'integer' => 12),
   '{ foo  : bar, bar : foo,  false  :   false,  null  :   null,  integer :  12  }' => array('foo' => 'bar', 'bar' => 'foo', 'false' => false, 'null' => null, 'integer' => 12),
   '{foo: \'bar\', bar: \'foo: bar\'}' => array('foo' => 'bar', 'bar' => 'foo: bar'),
+  '{\'foo\': \'bar\', "bar": \'foo: bar\'}' => array('foo' => 'bar', 'bar' => 'foo: bar'),
+  '{\'foo\'\'\': \'bar\', "bar\"": \'foo: bar\'}' => array('foo\'' => 'bar', "bar\"" => 'foo: bar'),
+  '{\'foo: \': \'bar\', "bar: ": \'foo: bar\'}' => array('foo: ' => 'bar', "bar: " => 'foo: bar'),
 
   // nested sequences and mappings
   '[foo, [bar, foo]]' => array('foo', array('bar', 'foo')),
