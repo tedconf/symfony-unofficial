@@ -15,7 +15,7 @@ use Symfony\Components\YAML\Parser;
 
 YAML::setSpecVersion('1.1');
 
-$t = new LimeTest(144);
+$t = new LimeTest(148);
 
 $parser = new Parser();
 
