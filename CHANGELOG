@@ -6,7 +6,7 @@ All the new features are documented in the What's new? tutorial (http://www.symf
 12/01/09: Version 1.2.10
 ------------------------
 
- * [x]: Updating Doctrine to 1.0.14
+ * [24643]: upgraded Doctrine to 1.0.14
  * [24622]: allowed `__()` and `sfI18N->__()` and `sfMessageFormat->format()` to take an object with a `__toString()` method. Test case for 1.2,1.3 and 1.4 (fixes #7559, #6763, refs #2161)
  * [24619]: fixed incorrect array access of lastModified header which only was an array pre 1.0. This was effectively preventing 304 Not Modified response from working correctly. Fixed phpdoc referring to array as return type of getHttpHeader() (fixes #6633, #7539)
  * [24613]: added project:validate task to symfony 1.2 to enable checking for deprecated code already before upgrading to 1.3. When upgrading to 1.3/1.4 it is still required to run the upgrade task even when all deprecations have been addressed
