@@ -3,6 +3,56 @@ See the UPGRADE_TO_1_2 file for more information about upgrading your projects f
 
 All the new features are documented in the What's new? tutorial (http://www.symfony-project.org/tutorial/1_2/en/whats-new)
 
+12/01/09: Version 1.2.10
+------------------------
+
+ * [x]: Updating Doctrine to 1.0.14
+ * [24622]: allowed `__()` and `sfI18N->__()` and `sfMessageFormat->format()` to take an object with a `__toString()` method. Test case for 1.2,1.3 and 1.4 (fixes #7559, #6763, refs #2161)
+ * [24619]: fixed incorrect array access of lastModified header which only was an array pre 1.0. This was effectively preventing 304 Not Modified response from working correctly. Fixed phpdoc referring to array as return type of getHttpHeader() (fixes #6633, #7539)
+ * [24613]: added project:validate task to symfony 1.2 to enable checking for deprecated code already before upgrading to 1.3. When upgrading to 1.3/1.4 it is still required to run the upgrade task even when all deprecations have been addressed
+ * [24607]: no longer adding duplicate entries in sfMemcacheCache.class metadata cache when key is already existing (fixes #7602)
+ * [24599]: backported #7554 to 1.2. Cache Session Storage correctly sets and regenerates session_id
+ * [24591]: added requirements to DELETE action of sfObjectRouteCollection.class.php (fixes #7634)
+ * [24590]: fixed obtaining error from mysqli session storage (fixes #7737)
+ * [24524]: fixed regression when cleaning a date string that includes a timezone in new `DateTime` implementation, added appropriate regression test to 1.2
+ * [24513]: fixed vary cache key again (fixes #7605)
+ * [24511]: correctly closing output buffering in case of exceptions while requiring a file in sfPHPView (fixes #7596)
+ * [24499]: fixed coding standards in javascript base helper (closes #7708)
+ * [24498]: fixed getObjectsForParameters() failing on second invocation on sfDoctrineRoute.class.php (fixes #7716)
+ * [24396]: reset the mb_internal_encoding in case it was changed in text helpers. added basic unit test for that (fixes #7641)
+ * [24269]: fixed sfWidgetFormInputFileEditable (closes #7621)
+ * [23984]: not setting status header for servers in cgi-sapi mode (fixes #3191)
+ * [23977]: fixed image saving for Doctrine
+ * [23973]: replaced last reference of $sf_symfony_lib_dir with sfConfig::get('sf_symfony_lib_dir') (refs #7403)
+ * [23951]: fixed file validator on certain mac os configurations (closes #6641)
+ * [23950]: fixed doctrine modules when dealing with multiple primary keys (closes #7571)
+ * [23949]: improved searching for symfony script file on windows (closes #6914)
+ * [23925]: fixed sfMemcacheCache delete() operation (closes #6220)
+ * [23915]: added unit test for sfSessionStorage (closes #7585, patch by Rubino)
+ * [23909]: updated SfObjectBuilder so that Propel objects do not query the I18N table when they are new (fixes #7513, patch by joostdj)
+ * [23899]: Default fields are created for %%variables%% in the title of the edit, list and new action, if possible. Closes #7578
+ * [23895]: switched phing external to 2.3.3 tag instead of its revision in the trunk
+ * [23734]: removed incorrect reference to ISO-639-1 (refs #7022)
+ * [23727]: added timestamps for the releases to the changelog. The information is in trac and svn tags, but indeed it is handy to have them in the changelog (closes #7512)
+ * [23601]: updated Doctrine to 1.0.13
+ * [23501]: checking for sqlite extended to checking for pdo_sqlite as well
+ * [23439]: fixed project:deploy task documentation (closes #7473)
+ * [23438]: fixed wrong variable used in JSON error page in a production environment (closes #7461)
+ * [23436]: fixed count() on escaped objects that implements the Countable interface
+ * [23409]: improved czech language for admin generator (fixes #7459 patch from jary)
+ * [23376]: added a check in _call_component() to avoid unnecessary unescaping when output escaping is disabled in the settings (fixes #7446)
+ * [23344]: made DateHelperTest more robust by using a single timestamp rather than letting date() obtain them on their own
+ * [23338]: updated phpDoc of sfFilter:initialize to correctly state that no exceptions are thrown and true is always returned (closes #7426)
+ * [23180]: fixed phpdoc return value for findRoute (closes #7380)
+ * [23079]: fixed wrong class name generated for filter if not specified in generator.yml (closes #7327)
+ * [23074]: added an exception in sfValidatorFile when file_uploads is disable in php.ini (refs #7345)
+ * [22878]: fixed previous commit on i18n currencies order (refs #7244)
+ * [22877]: fixed i18n currencies order (closes #7244)
+ * [22876]: fixed app.yml configuration cascade blocked by empty file (closes #7298)
+ * [22873]: fixed incorrect HTTP headers (closes #6966)
+ * [22869]: fixed typo in sfWidgetFormInputFileEditable.class.php
+ * [22691]: moved code hooking cleanup method to ensure directory has been set (closes #7260)
+
 09/27/09: Version 1.2.9
 -----------------------
 
