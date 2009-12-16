@@ -1,5 +1,6 @@
 parameters:
   baz_class: BazClass
+  foo_class: FooClass
   foo: bar
   foo_bar: '@foo_bar'
 
@@ -8,7 +9,7 @@ services:
     class: FooClass
     file: %path%/foo.php
     constructor: getInstance
-    arguments: [foo, '@foo.baz', { '%foo%': 'foo is %foo%' }, true, '@service_container']
+    arguments: [foo, '@foo.baz', { '%foo%': 'foo is %foo%', bar: '%foo%' }, true, '@service_container']
     calls:
       - [setBar, [bar]]
       - [initialize, {  }]
@@ -24,12 +25,13 @@ services:
     constructor: getInstance
     configurator: ['%baz_class%', configureStatic1]
   foo_bar:
-    class: FooClass
+    class: %foo_class%
   method_call1:
     class: FooClass
     calls:
       - [setBar, ['@foo']]
       - [setBar, ['@@foo']]
       - [setBar, ['@@foo']]
+      - [setBar, ['@@foobaz']]
       
   alias_for_foo: @foo

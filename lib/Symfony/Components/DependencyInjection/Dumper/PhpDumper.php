@@ -350,10 +350,6 @@ EOF;
       {
         $value = sprintf("new Reference('%s')", $value);
       }
-      elseif ($value instanceof Parameter)
-      {
-        $value = sprintf("\$this->getParameter('%s')", $value);
-      }
       else
       {
         $value = var_export($value, true);

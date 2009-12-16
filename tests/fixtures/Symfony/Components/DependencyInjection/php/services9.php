@@ -13,7 +13,7 @@ use Symfony\Components\DependencyInjection\Parameter;
  * @property FooClass $foo
  * @property FooClass $bar
  * @property Object $foo.baz
- * @property FooClass $foo_bar
+ * @property Object $foo_bar
  * @property FooClass $method_call1
  * @property FooClass $alias_for_foo
  */
@@ -38,7 +38,7 @@ class ProjectServiceContainer extends Container
   {
     require_once '%path%/foo.php';
 
-    $instance = call_user_func(array('FooClass', 'getInstance'), 'foo', $this->getService('foo.baz'), array($this->getParameter('foo') => 'foo is '.$this->getParameter('foo')), true, $this);
+    $instance = call_user_func(array('FooClass', 'getInstance'), 'foo', $this->getService('foo.baz'), array($this->getParameter('foo') => 'foo is '.$this->getParameter('foo'), 'bar' => $this->getParameter('foo')), true, $this);
     $instance->setBar('bar');
     $instance->initialize();
     sc_configure($instance);
@@ -88,13 +88,14 @@ class ProjectServiceContainer extends Container
    * This service is shared.
    * This method always returns the same instance of the service.
    *
-   * @return FooClass A FooClass instance.
+   * @return Object A %foo_class% instance.
    */
   protected function getFooBarService()
   {
     if (isset($this->shared['foo_bar'])) return $this->shared['foo_bar'];
 
-    $instance = new FooClass();
+    $class = $this->getParameter('foo_class');
+    $instance = new $class();
 
     return $this->shared['foo_bar'] = $instance;
   }
@@ -117,6 +118,10 @@ class ProjectServiceContainer extends Container
     if ($this->hasService('foo'))
     {
       $instance->setBar($this->getService('foo', Container::NULL_ON_INVALID_REFERENCE));
+    }
+    if ($this->hasService('foobaz'))
+    {
+      $instance->setBar($this->getService('foobaz', Container::NULL_ON_INVALID_REFERENCE));
     }
 
     return $this->shared['method_call1'] = $instance;
@@ -141,6 +146,7 @@ class ProjectServiceContainer extends Container
   {
     return array(
       'baz_class' => 'BazClass',
+      'foo_class' => 'FooClass',
       'foo' => 'bar',
       'foo_bar' => new Reference('foo_bar'),
     );
