@@ -73,7 +73,7 @@ $t->is(get_class(current($xmls)), 'Symfony\\Components\\DependencyInjection\\Sim
 $t->diag('->load() # parameters');
 $loader = new ProjectLoader(null, $fixturesPath.'/xml');
 list($services, $parameters) = $loader->doLoad(array('services2.xml'));
-$t->is($parameters, array('a string', 'foo' => 'bar', 'values' => array(0, 'integer' => 4, 100 => null, 'true', true, false, true, false, 'float' => 1.3, 1000.3, 'a string', array('foo', 'bar')), 'foo_bar' => new Reference('foo_bar')), '->load() converts XML values to PHP ones');
+$t->is($parameters, array('a string', 'foo' => 'bar', 'values' => array(0, 'integer' => 4, 100 => null, 'true', true, false, 'on', 'off', 'float' => 1.3, 1000.3, 'a string', array('foo', 'bar')), 'foo_bar' => new Reference('foo_bar')), '->load() converts XML values to PHP ones');
 
 $loader = new ProjectLoader(null, $fixturesPath.'/xml');
 list($services, $parameters) = $loader->doLoad(array('services2.xml', 'services3.xml'));

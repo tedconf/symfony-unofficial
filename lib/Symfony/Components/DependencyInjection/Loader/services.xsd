@@ -106,7 +106,7 @@
 
   <xs:simpleType name="boolean">
     <xs:restriction base="xs:string">
-      <xs:pattern value="(%.+%|true|false|1|0|off|on)" />
+      <xs:pattern value="(%.+%|true|false)" />
     </xs:restriction>
   </xs:simpleType>
 </xs:schema>

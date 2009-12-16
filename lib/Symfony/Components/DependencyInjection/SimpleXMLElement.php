@@ -72,9 +72,9 @@ class SimpleXMLElement extends \SimpleXMLElement
         return null;
       case ctype_digit($value):
         return '0' == $value[0] ? octdec($value) : intval($value);
-      case in_array(strtolower($value), array('true', 'on')):
+      case 'true' === strtolower($value):
         return true;
-      case in_array(strtolower($value), array('false', 'off')):
+      case 'false' === strtolower($value):
         return false;
       case is_numeric($value):
         return '0x' == $value[0].$value[1] ? hexdec($value) : floatval($value);
