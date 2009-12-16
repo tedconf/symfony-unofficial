@@ -13,7 +13,7 @@ require_once __DIR__.'/../../../bootstrap.php';
 
 use Symfony\Components\OutputEscaper\Escaper;
 
-$t = new LimeTest(10);
+$t = new LimeTest(11);
 
 $a = array('<strong>escaped!</strong>', 1, null, array(2, '<strong>escaped!</strong>'));
 $escaped = Escaper::escape('esc_entities', $a);
@@ -72,3 +72,7 @@ foreach ($escaped as $key => $value)
       $t->fail('The escaped object behaves like an array');
   }
 }
+
+// Coutable interface
+$t->diag('Countable interface');
+$t->is(count($escaped), 4, 'The escaped object implements the Countable interface');
