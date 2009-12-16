@@ -51,6 +51,9 @@ class SimpleXMLElement extends \SimpleXMLElement
         case 'string':
           $arguments[$key] = (string) $arg;
           break;
+        case 'constant':
+          $arguments[$key] = constant((string) $arg);
+          break;
         default:
           $arguments[$key] = self::phpize($arg);
       }
