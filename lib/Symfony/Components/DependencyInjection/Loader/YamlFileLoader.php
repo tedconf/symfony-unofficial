@@ -175,7 +175,7 @@ class YamlFileLoader extends FileLoader
 
       if (!file_exists($file))
       {
-        throw new \InvalidArgumentException(sprintf('The service file "%s" does not exist.', $file));
+        throw new \InvalidArgumentException(sprintf('The service file "%s" does not exist (in: %s).', $file, implode(', ', $this->paths)));
       }
 
       $yamls[$file] = $this->validate(YAML::load($file), $file);
