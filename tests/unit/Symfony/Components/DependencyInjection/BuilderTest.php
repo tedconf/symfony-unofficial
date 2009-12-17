@@ -18,41 +18,41 @@ $fixturesPath = __DIR__.'/../../../../fixtures/Symfony/Components/DependencyInje
 
 $t = new LimeTest(46);
 
-// ->setServiceDefinitions() ->addServiceDefinitions() ->getServiceDefinitions() ->setServiceDefinition() ->getServiceDefinition() ->hasServiceDefinition()
-$t->diag('->setServiceDefinitions() ->addServiceDefinitions() ->getServiceDefinitions() ->setServiceDefinition() ->getServiceDefinition() ->hasServiceDefinition()');
+// ->setDefinitions() ->addDefinitions() ->getDefinitions() ->setDefinition() ->getDefinition() ->hasDefinition()
+$t->diag('->setDefinitions() ->addDefinitions() ->getDefinitions() ->setDefinition() ->getDefinition() ->hasDefinition()');
 $builder = new Builder();
 $definitions = array(
   'foo' => new Definition('FooClass'),
   'bar' => new Definition('BarClass'),
 );
-$builder->setServiceDefinitions($definitions);
-$t->is($builder->getServiceDefinitions(), $definitions, '->setServiceDefinitions() sets the service definitions');
-$t->ok($builder->hasServiceDefinition('foo'), '->hasServiceDefinition() returns true if a service definition exists');
-$t->ok(!$builder->hasServiceDefinition('foobar'), '->hasServiceDefinition() returns false if a service definition does not exist');
+$builder->setDefinitions($definitions);
+$t->is($builder->getDefinitions(), $definitions, '->setDefinitions() sets the service definitions');
+$t->ok($builder->hasDefinition('foo'), '->hasDefinition() returns true if a service definition exists');
+$t->ok(!$builder->hasDefinition('foobar'), '->hasDefinition() returns false if a service definition does not exist');
 
-$builder->setServiceDefinition('foobar', $foo = new Definition('FooBarClass'));
-$t->is($builder->getServiceDefinition('foobar'), $foo, '->getServiceDefinition() returns a service definition if defined');
-$t->ok($builder->setServiceDefinition('foobar', $foo = new Definition('FooBarClass')) === $foo, '->setServiceDefinition() implements a fuild interface by returning the service reference');
+$builder->setDefinition('foobar', $foo = new Definition('FooBarClass'));
+$t->is($builder->getDefinition('foobar'), $foo, '->getDefinition() returns a service definition if defined');
+$t->ok($builder->setDefinition('foobar', $foo = new Definition('FooBarClass')) === $foo, '->setDefinition() implements a fuild interface by returning the service reference');
 
-$builder->addServiceDefinitions($defs = array('foobar' => new Definition('FooBarClass')));
-$t->is($builder->getServiceDefinitions(), array_merge($definitions, $defs), '->addServiceDefinitions() adds the service definitions');
+$builder->addDefinitions($defs = array('foobar' => new Definition('FooBarClass')));
+$t->is($builder->getDefinitions(), array_merge($definitions, $defs), '->addDefinitions() adds the service definitions');
 
 try
 {
-  $builder->getServiceDefinition('baz');
-  $t->fail('->getServiceDefinition() throws an InvalidArgumentException if the service definition does not exist');
+  $builder->getDefinition('baz');
+  $t->fail('->getDefinition() throws an InvalidArgumentException if the service definition does not exist');
 }
 catch (InvalidArgumentException $e)
 {
-  $t->pass('->getServiceDefinition() throws an InvalidArgumentException if the service definition does not exist');
+  $t->pass('->getDefinition() throws an InvalidArgumentException if the service definition does not exist');
 }
 
 // ->register()
 $t->diag('->register()');
 $builder = new Builder();
 $builder->register('foo', 'FooClass');
-$t->ok($builder->hasServiceDefinition('foo'), '->register() registers a new service definition');
-$t->ok($builder->getServiceDefinition('foo') instanceof Definition, '->register() returns the newly created Definition instance');
+$t->ok($builder->hasDefinition('foo'), '->register() registers a new service definition');
+$t->ok($builder->getDefinition('foo') instanceof Definition, '->register() returns the newly created Definition instance');
 
 // ->hasService()
 $t->diag('->hasService()');
