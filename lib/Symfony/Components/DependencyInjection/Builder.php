@@ -77,14 +77,14 @@ class Builder extends Container
         throw new \LogicException(sprintf('The service "%s" has a circular reference to itself.', $id));
       }
 
-      if (!$this->hasServiceDefinition($id) && isset($this->aliases[$id]))
+      if (!$this->hasDefinition($id) && isset($this->aliases[$id]))
       {
         return $this->getService($this->aliases[$id]);
       }
 
       try
       {
-        $definition = $this->getServiceDefinition($id);
+        $definition = $this->getDefinition($id);
       }
       catch (\InvalidArgumentException $e)
       {
@@ -161,7 +161,7 @@ class Builder extends Container
    */
   public function getServiceIds()
   {
-    return array_unique(array_merge(array_keys($this->getServiceDefinitions()), array_keys($this->aliases), parent::getServiceIds()));
+    return array_unique(array_merge(array_keys($this->getDefinitions()), array_keys($this->aliases), parent::getServiceIds()));
   }
 
   /**
@@ -198,7 +198,7 @@ class Builder extends Container
    */
   public function register($id, $class)
   {
-    return $this->setServiceDefinition($id, new Definition($class));
+    return $this->setDefinition($id, new Definition($class));
   }
 
   /**
@@ -206,11 +206,11 @@ class Builder extends Container
    *
    * @param array $definitions An array of service definitions
    */
-  public function addServiceDefinitions(array $definitions)
+  public function addDefinitions(array $definitions)
   {
     foreach ($definitions as $id => $definition)
     {
-      $this->setServiceDefinition($id, $definition);
+      $this->setDefinition($id, $definition);
     }
   }
 
@@ -219,10 +219,10 @@ class Builder extends Container
    *
    * @param array $definitions An array of service definitions
    */
-  public function setServiceDefinitions(array $definitions)
+  public function setDefinitions(array $definitions)
   {
     $this->definitions = array();
-    $this->addServiceDefinitions($definitions);
+    $this->addDefinitions($definitions);
   }
 
   /**
@@ -230,7 +230,7 @@ class Builder extends Container
    *
    * @return array An array of Definition instances
    */
-  public function getServiceDefinitions()
+  public function getDefinitions()
   {
     return $this->definitions;
   }
@@ -241,7 +241,7 @@ class Builder extends Container
    * @param  string              $id         The service identifier
    * @param  Definition $definition A Definition instance
    */
-  public function setServiceDefinition($id, Definition $definition)
+  public function setDefinition($id, Definition $definition)
   {
     unset($this->aliases[$id]);
 
@@ -255,7 +255,7 @@ class Builder extends Container
    *
    * @return Boolean true if the service definition exists, false otherwise
    */
-  public function hasServiceDefinition($id)
+  public function hasDefinition($id)
   {
     return array_key_exists($id, $this->definitions);
   }
@@ -269,9 +269,9 @@ class Builder extends Container
    *
    * @throws \InvalidArgumentException if the service definition does not exist
    */
-  public function getServiceDefinition($id)
+  public function getDefinition($id)
   {
-    if (!$this->hasServiceDefinition($id))
+    if (!$this->hasDefinition($id))
     {
       throw new \InvalidArgumentException(sprintf('The service definition "%s" does not exist.', $id));
     }

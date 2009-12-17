@@ -210,9 +210,9 @@ EOF;
     $name = Container::camelize($alias);
     $type = 'Object';
 
-    if ($this->container->hasServiceDefinition($id))
+    if ($this->container->hasDefinition($id))
     {
-      $class = $this->container->getServiceDefinition($id)->getClass();
+      $class = $this->container->getDefinition($id)->getClass();
       $type = 0 === strpos($class, '%') ? 'Object' : $class;
     }
 
@@ -234,7 +234,7 @@ EOF;
   protected function addServices()
   {
     $code = '';
-    foreach ($this->container->getServiceDefinitions() as $id => $definition)
+    foreach ($this->container->getDefinitions() as $id => $definition)
     {
       $code .= $this->addService($id, $definition);
     }
@@ -250,7 +250,7 @@ EOF;
   protected function startClass($class, $baseClass)
   {
     $properties = array();
-    foreach ($this->container->getServiceDefinitions() as $id => $definition)
+    foreach ($this->container->getDefinitions() as $id => $definition)
     {
       $type = 0 === strpos($definition->getClass(), '%') ? 'Object' : $definition->getClass();
       $properties[] = sprintf(' * @property %s $%s', $type, $id);
@@ -259,9 +259,9 @@ EOF;
     foreach ($this->container->getAliases() as $alias => $id)
     {
       $type = 'Object';
-      if ($this->container->hasServiceDefinition($id))
+      if ($this->container->hasDefinition($id))
       {
-        $sclass = $this->container->getServiceDefinition($id)->getClass();
+        $sclass = $this->container->getDefinition($id)->getClass();
         $type = 0 === strpos($sclass, '%') ? 'Object' : $sclass;
       }
 

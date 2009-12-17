@@ -109,13 +109,13 @@ class XmlDumper extends Dumper
 
   protected function addServices()
   {
-    if (!$this->container->getServiceDefinitions())
+    if (!$this->container->getDefinitions())
     {
       return '';
     }
 
     $code = '';
-    foreach ($this->container->getServiceDefinitions() as $id => $definition)
+    foreach ($this->container->getDefinitions() as $id => $definition)
     {
       $code .= $this->addService($id, $definition);
     }

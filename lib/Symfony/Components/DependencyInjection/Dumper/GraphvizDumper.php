@@ -70,7 +70,7 @@ class GraphvizDumper extends Dumper
     $this->nodes = $this->findNodes();
 
     $this->edges = array();
-    foreach ($this->container->getServiceDefinitions() as $id => $definition)
+    foreach ($this->container->getDefinitions() as $id => $definition)
     {
       $this->edges[$id] = $this->findEdges($id, $definition->getArguments(), true, '');
 
@@ -151,11 +151,11 @@ class GraphvizDumper extends Dumper
 
     $container = clone $this->container;
 
-    foreach ($container->getServiceDefinitions() as $id => $definition)
+    foreach ($container->getDefinitions() as $id => $definition)
     {
       $nodes[$id] = array('class' => str_replace('\\', '\\\\', $this->getValue($definition->getClass())), 'attributes' => array_merge($this->options['node.definition'], array('style' => $definition->isShared() ? 'filled' : 'dotted')));
 
-      $container->setServiceDefinition($id, new Definition('stdClass'));
+      $container->setDefinition($id, new Definition('stdClass'));
     }
 
     foreach ($container as $id => $service)
@@ -165,7 +165,7 @@ class GraphvizDumper extends Dumper
         continue;
       }
 
-      if (!$container->hasServiceDefinition($id))
+      if (!$container->hasDefinition($id))
       {
         $nodes[$id] = array('class' => str_replace('\\', '\\\\', get_class($service)), 'attributes' => $this->options['node.instance']);
       }
