@@ -114,6 +114,47 @@ class Builder extends Container
   }
 
   /**
+   * Merges a BuilderConfiguration with the current Builder configuration.
+   *
+   * Service definitions overrides the current defined ones.
+   *
+   * But for parameters, they are overridden by the current ones. It allows
+   * the parameters passed to the container constructor to have precedence
+   * over the loaded ones.
+   *
+   * $container = new Builder(array('foo' => 'bar'));
+   * $loader = new LoaderXXX($container);
+   * $loader->load('resource_name');
+   * $container->register('foo', new stdClass());
+   *
+   * In the above example, even if the loaded resource defines a foo
+   * parameter, the value will still be 'bar' as defined in the builder
+   * constructor.
+   */
+  public function merge(BuilderConfiguration $configuration = null)
+  {
+    if (null === $configuration)
+    {
+      return;
+    }
+
+    $this->aliases = array_merge($this->aliases, $configuration->getAliases());
+    $this->definitions = array_merge($this->definitions, $configuration->getDefinitions());
+
+    $currentParameters = $this->getParameters();
+    foreach ($configuration->getParameters() as $key => $value)
+    {
+      $this->setParameter($key, $value);
+    }
+    $this->addParameters($currentParameters);
+
+    foreach ($this->parameters as $key => $value)
+    {
+      $this->parameters[$key] = self::resolveValue($value, $this->parameters);
+    }
+  }
+
+  /**
    * Gets all service ids.
    *
    * @return array An array of all defined service ids
@@ -249,16 +290,16 @@ class Builder extends Container
   {
     if (null !== $definition->getFile())
     {
-      require_once $this->resolveValue($definition->getFile());
+      require_once self::resolveValue($definition->getFile(), $this->parameters);
     }
 
-    $r = new \ReflectionClass($this->resolveValue($definition->getClass()));
+    $r = new \ReflectionClass(self::resolveValue($definition->getClass(), $this->parameters));
 
-    $arguments = $this->resolveServices($this->resolveValue($definition->getArguments()));
+    $arguments = $this->resolveServices(self::resolveValue($definition->getArguments(), $this->parameters));
 
     if (null !== $definition->getConstructor())
     {
-      $service = call_user_func_array(array($this->resolveValue($definition->getClass()), $definition->getConstructor()), $arguments);
+      $service = call_user_func_array(array(self::resolveValue($definition->getClass(), $this->parameters), $definition->getConstructor()), $arguments);
     }
     else
     {
@@ -281,7 +322,7 @@ class Builder extends Container
 
       if ($ok)
       {
-        call_user_func_array(array($service, $call[0]), $this->resolveServices($this->resolveValue($call[1])));
+        call_user_func_array(array($service, $call[0]), $this->resolveServices(self::resolveValue($call[1], $this->parameters)));
       }
     }
 
@@ -293,7 +334,7 @@ class Builder extends Container
       }
       elseif (is_array($callable))
       {
-        $callable[0] = $this->resolveValue($callable[0]);
+        $callable[0] = self::resolveValue($callable[0], $this->parameters);
       }
 
       if (!is_callable($callable))
@@ -316,14 +357,14 @@ class Builder extends Container
    *
    * @throws \RuntimeException if a placeholder references a parameter that does not exist
    */
-  public function resolveValue($value)
+  static public function resolveValue($value, $parameters)
   {
     if (is_array($value))
     {
       $args = array();
       foreach ($value as $k => $v)
       {
-        $args[$this->resolveValue($k)] = $this->resolveValue($v);
+        $args[self::resolveValue($k, $parameters)] = self::resolveValue($v, $parameters);
       }
 
       $value = $args;
@@ -334,16 +375,26 @@ class Builder extends Container
       {
         // we do this to deal with non string values (boolean, integer, ...)
         // the preg_replace_callback converts them to strings
-        if (!$this->hasParameter($name = strtolower($match[1])))
+        if (!array_key_exists($name = strtolower($match[1]), $parameters))
         {
           throw new \RuntimeException(sprintf('The parameter "%s" must be defined.', $name));
         }
 
-        $value = $this->getParameter($name);
+        $value = $parameters[$name];
       }
       else
       {
-        $value = str_replace('%%', '%', preg_replace_callback('/(?<!%)(%)([^%]+)\1/', array($this, 'replaceParameter'), $value));
+        $replaceParameter = function ($match) use ($parameters)
+        {
+          if (!array_key_exists($name = strtolower($match[2]), $parameters))
+          {
+            throw new \RuntimeException(sprintf('The parameter "%s" must be defined.', $name));
+          }
+
+          return $parameters[$name];
+        };
+
+        $value = str_replace('%%', '%', preg_replace_callback('/(?<!%)(%)([^%]+)\1/', $replaceParameter, $value));
       }
     }
 
@@ -369,16 +420,6 @@ class Builder extends Container
     }
 
     return $value;
-  }
-
-  protected function replaceParameter($match)
-  {
-    if (!$this->hasParameter($name = strtolower($match[2])))
-    {
-      throw new \RuntimeException(sprintf('The parameter "%s" must be defined.', $name));
-    }
-
-    return $this->getParameter($name);
   }
 
   static public function getServiceConditionals($value)

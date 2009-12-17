@@ -4,6 +4,7 @@ namespace Symfony\Components\DependencyInjection\Loader;
 
 use Symfony\Components\DependencyInjection\Definition;
 use Symfony\Components\DependencyInjection\Reference;
+use Symfony\Components\DependencyInjection\BuilderConfiguration;
 
 /*
  * This file is part of the symfony framework.
@@ -27,90 +28,63 @@ class XmlFileLoader extends FileLoader
   /**
    * Loads an array of XML files.
    *
-   * If multiple files are loaded, the services and parameters are merged.
-   *
-   * Remember that services and parameters are simple key/pair stores.
-   *
-   * When overriding a value, the old one is totally replaced, even if it is
-   * a "complex" value (an array for instance):
-   *
-   * <pre>
-   *   file1.xml
-   *   <parameter key="complex" type="collection">
-   *     <parameter>true</parameter>
-   *     <parameter>false</parameter>
-   *   </parameter>
-   *
-   *   file2.xml
-   *   <parameter key="complex">foo</parameter>
-   * </pre>
-   *
-   * If you load file1.xml and file2.xml in this order, the value of complex
-   * will be "foo".
-   *
    * @param  array $files An array of XML files
    *
    * @return array An array of definitions and parameters
    */
-  public function doLoad($files)
+  public function load($files)
   {
+    if (!is_array($files))
+    {
+      $files = array($files);
+    }
+
     return $this->parse($this->getFilesAsXml($files));
   }
 
   protected function parse(array $xmls)
   {
-    $parameters = array();
-    $definitions = array();
+    $configuration = new BuilderConfiguration();
 
     foreach ($xmls as $file => $xml)
     {
-      // create all the anonymous services and give them unique names
-      list($anonymousDefinitions, $xml) = $this->processAnonymousServices($xml, $file);
-      $definitions = array_merge($definitions, $anonymousDefinitions);
+      // anonymous services
+      $xml = $this->processAnonymousServices($configuration, $xml, $file);
 
       // imports
-      list($importedDefinitions, $importedParameters) = $this->parseImports($xml, $file);
-      $definitions = array_merge($definitions, $importedDefinitions);
-      $parameters = array_merge($parameters, $importedParameters);
+      $this->parseImports($configuration, $xml, $file);
 
       // parameters
-      $parameters = array_merge($parameters, $this->parseParameters($xml, $file));
+      $this->parseParameters($configuration, $xml, $file);
 
       // services
-      $definitions = array_merge($definitions, $this->parseDefinitions($xml, $file));
+      $this->parseDefinitions($configuration, $xml, $file);
     }
 
-    return array($definitions, $parameters);
+    return $configuration;
   }
 
-  protected function parseParameters($xml, $file)
+  protected function parseParameters(BuilderConfiguration $configuration, $xml, $file)
   {
     if (!$xml->parameters)
     {
       return array();
     }
 
-    return $xml->parameters->getArgumentsAsPhp('parameter');
+    $configuration->addParameters($xml->parameters->getArgumentsAsPhp('parameter'));
   }
 
-  protected function parseImports($xml, $file)
+  protected function parseImports(BuilderConfiguration $configuration, $xml, $file)
   {
     if (!$xml->imports)
     {
-      return array(array(), array());
+      return;
     }
 
-    $definitions = array();
-    $parameters = array();
     foreach ($xml->imports->import as $import)
     {
-      list($importedDefinitions, $importedParameters) = $this->parseImport($import, $file);
-
-      $definitions = array_merge($definitions, $importedDefinitions);
-      $parameters = array_merge($parameters, $importedParameters);
+      $configuration->merge($this->parseImport($import, $file));
     }
-
-    return array($definitions, $parameters);
   }
 
   protected function parseImport($import, $file)
@@ -118,7 +92,7 @@ class XmlFileLoader extends FileLoader
     if (isset($import['class']) && $import['class'] != get_class($this))
     {
       $class = (string) $import['class'];
-      $loader = new $class($this->container, $this->paths);
+      $loader = new $class($this->paths);
     }
     else
     {
@@ -127,10 +101,10 @@ class XmlFileLoader extends FileLoader
 
     $importedFile = $this->getAbsolutePath((string) $import['resource'], dirname($file));
 
-    return call_user_func(array($loader, 'doLoad'), array($importedFile));
+    return $loader->load($importedFile);
   }
 
-  protected function parseDefinitions($xml, $file)
+  protected function parseDefinitions(BuilderConfiguration $configuration, $xml, $file)
   {
     if (!$xml->services)
     {
@@ -140,17 +114,17 @@ class XmlFileLoader extends FileLoader
     $definitions = array();
     foreach ($xml->services->service as $service)
     {
-      $definitions[(string) $service['id']] = $this->parseDefinition($service, $file);
+      $this->parseDefinition($configuration, (string) $service['id'], $service, $file);
     }
-
-    return $definitions;
   }
 
-  protected function parseDefinition($service, $file)
+  protected function parseDefinition(BuilderConfiguration $configuration, $id, $service, $file)
   {
     if ((string) $service['alias'])
     {
-      return (string) $service['alias'];
+      $configuration->setAlias($id, (string) $service['alias']);
+
+      return;
     }
 
     $definition = new Definition((string) $service['class']);
@@ -197,7 +171,7 @@ class XmlFileLoader extends FileLoader
       $definition->addMethodCall((string) $call['method'], $call->getArgumentsAsPhp('argument'));
     }
 
-    return $definition;
+    $configuration->setDefinition($id, $definition);
   }
 
   protected function getFilesAsXml(array $files)
@@ -227,7 +201,7 @@ class XmlFileLoader extends FileLoader
     return $xmls;
   }
 
-  protected function processAnonymousServices($xml, $file)
+  protected function processAnonymousServices(BuilderConfiguration $configuration, $xml, $file)
   {
     $definitions = array();
     $count = 0;
@@ -237,7 +211,9 @@ class XmlFileLoader extends FileLoader
     $nodes = $xml->xpath('//container:argument[@type="service"][not(@id)]');
     foreach ($nodes as $node)
     {
+      // give it a unique names
       $node['id'] = sprintf('_%s_%d', md5($file), ++$count);
+
       $definitions[(string) $node['id']] = array($node->service, $file);
       $node->service['id'] = (string) $node['id'];
     }
@@ -246,13 +222,13 @@ class XmlFileLoader extends FileLoader
     krsort($definitions);
     foreach ($definitions as $id => $def)
     {
-      $definitions[$id] = $this->parseDefinition($def[0], $def[1]);
+      $this->parseDefinition($configuration, $id, $def[0], $def[1]);
 
       $oNode = dom_import_simplexml($def[0]);
       $oNode->parentNode->removeChild($oNode);
     }
 
-    return array($definitions, $xml);
+    return $xml;
   }
 
   protected function validate($dom)

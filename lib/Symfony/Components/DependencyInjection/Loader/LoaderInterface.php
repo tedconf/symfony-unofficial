@@ -12,7 +12,13 @@ namespace Symfony\Components\DependencyInjection\Loader;
  */
 
 /**
- * LoaderInterface is the interface implemented by service container loader classes.
+ * LoaderInterface is the interface implemented by all loader classes.
+ *
+ * $loader = new XXXLoader();
+ * $config = $loader->load('resource_name');
+ *
+ * $container = new Builder();
+ * $container->merge($config);
  *
  * @package    symfony
  * @subpackage dependency_injection
@@ -21,5 +27,39 @@ namespace Symfony\Components\DependencyInjection\Loader;
  */
 interface LoaderInterface
 {
+  /**
+   * Loads a resource.
+   *
+   * A resource can be anything that can be converted to a
+   * BuilderConfiguration instance.
+   *
+   * Some loaders support an array of resources as an argument to the
+   * constructor.
+   *
+   * If multiple resources are loaded, the services and parameters are merged.
+   *
+   * Remember that services and parameters are simple key/pair stores.
+   *
+   * When overriding a value, the old one is totally replaced, even if it is
+   * a "complex" value (an array for instance):
+   *
+   * <pre>
+   *   file1.xml
+   *   <parameter key="complex" type="collection">
+   *     <parameter>true</parameter>
+   *     <parameter>false</parameter>
+   *   </parameter>
+   *
+   *   file2.xml
+   *   <parameter key="complex">foo</parameter>
+   * </pre>
+   *
+   * If you load file1.xml and file2.xml in this order, the value of complex
+   * will be "foo".
+   *
+   * @param mixed $resource The resource path
+   *
+   * @return BuilderConfiguration A BuilderConfiguration instance
+   */
   function load($resource);
 }

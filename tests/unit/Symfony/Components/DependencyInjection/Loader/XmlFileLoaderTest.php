@@ -30,7 +30,7 @@ class ProjectLoader extends XmlFileLoader
 // ->getFilesAsXml()
 $t->diag('->getFilesAsXml()');
 
-$loader = new ProjectLoader(null, $fixturesPath.'/ini');
+$loader = new ProjectLoader($fixturesPath.'/ini');
 
 try
 {
@@ -52,7 +52,7 @@ catch (InvalidArgumentException $e)
   $t->pass('->load() throws an InvalidArgumentException if the loaded file is not a valid XML file');
 }
 
-$loader = new ProjectLoader(null, $fixturesPath.'/xml');
+$loader = new ProjectLoader($fixturesPath.'/xml');
 
 try
 {
@@ -71,22 +71,23 @@ $t->is(get_class(current($xmls)), 'Symfony\\Components\\DependencyInjection\\Sim
 
 // ->load() # parameters
 $t->diag('->load() # parameters');
-$loader = new ProjectLoader(null, $fixturesPath.'/xml');
-list($services, $parameters) = $loader->doLoad(array('services2.xml'));
-$t->is($parameters, array('a string', 'foo' => 'bar', 'values' => array(0, 'integer' => 4, 100 => null, 'true', true, false, 'on', 'off', 'float' => 1.3, 1000.3, 'a string', array('foo', 'bar')), 'foo_bar' => new Reference('foo_bar')), '->load() converts XML values to PHP ones');
+$loader = new ProjectLoader($fixturesPath.'/xml');
+$config = $loader->load(array('services2.xml'));
+$t->is($config->getParameters(), array('a string', 'foo' => 'bar', 'values' => array(0, 'integer' => 4, 100 => null, 'true', true, false, 'on', 'off', 'float' => 1.3, 1000.3, 'a string', array('foo', 'bar')), 'foo_bar' => new Reference('foo_bar')), '->load() converts XML values to PHP ones');
 
-$loader = new ProjectLoader(null, $fixturesPath.'/xml');
-list($services, $parameters) = $loader->doLoad(array('services2.xml', 'services3.xml'));
-$t->is($parameters, array('a string', 'foo' => 'foo', 'values' => array(true, false), 'foo_bar' => new Reference('foo_bar')), '->load() merges the first level of arguments when multiple files are loaded');
+$loader = new ProjectLoader($fixturesPath.'/xml');
+$config = $loader->load(array('services2.xml', 'services3.xml'));
+$t->is($config->getParameters(), array('a string', 'foo' => 'foo', 'values' => array(true, false), 'foo_bar' => new Reference('foo_bar')), '->load() merges the first level of arguments when multiple files are loaded');
 
 // ->load() # imports
 $t->diag('->load() # imports');
-list($services, $parameters) = $loader->doLoad(array('services4.xml'));
-$t->is($parameters, array('a string', 'foo' => 'bar', 'bar' => '%foo%', 'values' => array(true, false), 'foo_bar' => new Reference('foo_bar')), '->load() imports and merges imported files');
+$config = $loader->load(array('services4.xml'));
+$t->is($config->getParameters(), array('a string', 'foo' => 'bar', 'bar' => '%foo%', 'values' => array(true, false), 'foo_bar' => new Reference('foo_bar')), '->load() imports and merges imported files');
 
 // ->load() # anonymous services
 $t->diag('->load() # anonymous services');
-list($services, $parameters) = $loader->doLoad(array('services5.xml'));
+$config = $loader->load(array('services5.xml'));
+$services = $config->getDefinitions();
 $t->is(count($services), 3, '->load() attributes unique ids to anonymous services');
 $args = $services['foo']->getArguments();
 $t->is(count($args), 1, '->load() references anonymous services as "normal" ones');
@@ -104,7 +105,8 @@ $t->is($inner->getClass(), 'BazClass', '->load() uses the same configuration as 
 
 // ->load() # services
 $t->diag('->load() # services');
-list($services, $parameters) = $loader->doLoad(array('services6.xml'));
+$config = $loader->load(array('services6.xml'));
+$services = $config->getDefinitions();
 $t->ok(isset($services['foo']), '->load() parses <service> elements');
 $t->is(get_class($services['foo']), 'Symfony\\Components\\DependencyInjection\\Definition', '->load() converts <service> element to Definition instances');
 $t->is($services['foo']->getClass(), 'FooClass', '->load() parses the class attribute');
@@ -118,8 +120,10 @@ $t->is($services['configurator2']->getConfigurator(), array(new Reference('baz')
 $t->is($services['configurator3']->getConfigurator(), array('BazClass', 'configureStatic'), '->load() parses the configurator tag');
 $t->is($services['method_call1']->getMethodCalls(), array(array('setBar', array())), '->load() parses the method_call tag');
 $t->is($services['method_call2']->getMethodCalls(), array(array('setBar', array('foo', new Reference('foo'), array(true, false)))), '->load() parses the method_call tag');
-$t->ok(isset($services['alias_for_foo']), '->load() parses <service> elements');
-$t->is($services['alias_for_foo'], 'foo', '->load() parses aliases');
+$aliases = $config->getAliases();
+$t->ok(isset($aliases['alias_for_foo']), '->load() parses <service> elements');
+$t->is($aliases['alias_for_foo'], 'foo', '->load() parses aliases');
 
-list($services, $parameters) = $loader->doLoad(array('services6.xml', 'services7.xml'));
+$config = $loader->load(array('services6.xml', 'services7.xml'));
+$services = $config->getDefinitions();
 $t->is($services['foo']->getClass(), 'BarClass', '->load() merges the services when multiple files are loaded');

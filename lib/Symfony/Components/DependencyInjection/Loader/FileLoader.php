@@ -21,7 +21,7 @@ use Symfony\Components\DependencyInjection\Builder;
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  * @version    SVN: $Id$
  */
-abstract class FileLoader extends Loader
+abstract class FileLoader implements LoaderInterface
 {
   protected
     $paths = array();
@@ -29,39 +29,16 @@ abstract class FileLoader extends Loader
   /**
    * Constructor.
    *
-   * @param Builder $container A Builder instance
-   * @param string|array              $paths     A path or an array of paths where to look for resources
+   * @param string|array $paths A path or an array of paths where to look for resources
    */
-  public function __construct(Builder $container = null, $paths = array())
+  public function __construct($paths = array())
   {
-    parent::__construct($container);
-
     if (!is_array($paths))
     {
       $paths = array($paths);
     }
 
     $this->paths = $paths;
-  }
-
-  /**
-   * Loads a resource.
-   *
-   * A resource is a file or an array of files.
-   *
-   * The concrete classes always have access to an array of files
-   * as this method converts single file argument to an array.
-   *
-   * @param mixed $resource The resource path
-   */
-  public function load($resource)
-  {
-    if (!is_array($resource))
-    {
-      $resource = array($resource);
-    }
-
-    return parent::load($resource);
   }
 
   protected function getAbsolutePath($file, $currentPath = null)

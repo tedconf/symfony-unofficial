@@ -418,7 +418,12 @@ EOF;
       }
       else
       {
-        $code = str_replace('%%', '%', preg_replace_callback('/(?<!%)(%)([^%]+)\1/', array($this, 'replaceParameter'), var_export($value, true)));
+        $replaceParameters = function ($match)
+        {
+          return sprintf("'.\$this->getParameter('%s').'", strtolower($match[2]));
+        };
+
+        $code = str_replace('%%', '%', preg_replace_callback('/(?<!%)(%)([^%]+)\1/', $replaceParameters, var_export($value, true)));
 
         // optimize string
         $code = preg_replace(array("/^''\./", "/\.''$/", "/\.''\./"), array('', '', '.'), $code);
@@ -434,11 +439,6 @@ EOF;
     {
       return var_export($value, true);
     }
-  }
-
-  public function replaceParameter($match)
-  {
-    return sprintf("'.\$this->getParameter('%s').'", strtolower($match[2]));
   }
 
   protected function getServiceCall($id, Reference $reference = null)

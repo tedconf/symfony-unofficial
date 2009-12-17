@@ -190,26 +190,22 @@ catch (InvalidArgumentException $e)
   $t->pass('->createService() throws an InvalidArgumentException if the configure callable is not a valid callable');
 }
 
-// ->resolveValue()
-$t->diag('->resolveValue()');
-$builder = new Builder();
-$t->is($builder->resolveValue('foo'), 'foo', '->resolveValue() returns its argument unmodified if no placeholders are found');
-$builder->setParameter('foo', 'bar');
-$t->is($builder->resolveValue('I\'m a %foo%'), 'I\'m a bar', '->resolveValue() replaces placeholders by their values');
-$builder->setParameter('foo', true);
-$t->ok($builder->resolveValue('%foo%') === true, '->resolveValue() replaces arguments that are just a placeholder by their value without casting them to strings');
+// ::resolveValue()
+$t->diag('::resolveValue()');
+$t->is(Builder::resolveValue('foo', array()), 'foo', '->resolveValue() returns its argument unmodified if no placeholders are found');
+$t->is(Builder::resolveValue('I\'m a %foo%', array('foo' => 'bar')), 'I\'m a bar', '->resolveValue() replaces placeholders by their values');
+$t->ok(Builder::resolveValue('%foo%', array('foo' => true)) === true, '->resolveValue() replaces arguments that are just a placeholder by their value without casting them to strings');
 
-$builder->setParameter('foo', 'bar');
-$t->is($builder->resolveValue(array('%foo%' => '%foo%')), array('bar' => 'bar'), '->resolveValue() replaces placeholders in keys and values of arrays');
+$t->is(Builder::resolveValue(array('%foo%' => '%foo%'), array('foo' => 'bar')), array('bar' => 'bar'), '->resolveValue() replaces placeholders in keys and values of arrays');
 
-$t->is($builder->resolveValue(array('%foo%' => array('%foo%' => array('%foo%' => '%foo%')))), array('bar' => array('bar' => array('bar' => 'bar'))), '->resolveValue() replaces placeholders in nested arrays');
+$t->is(Builder::resolveValue(array('%foo%' => array('%foo%' => array('%foo%' => '%foo%'))), array('foo' => 'bar')), array('bar' => array('bar' => array('bar' => 'bar'))), '->resolveValue() replaces placeholders in nested arrays');
 
-$t->is($builder->resolveValue('I\'m a %%foo%%'), 'I\'m a %foo%', '->resolveValue() supports % escaping by doubling it');
-$t->is($builder->resolveValue('I\'m a %foo% %%foo %foo%'), 'I\'m a bar %foo bar', '->resolveValue() supports % escaping by doubling it');
+$t->is(Builder::resolveValue('I\'m a %%foo%%', array('foo' => 'bar')), 'I\'m a %foo%', '->resolveValue() supports % escaping by doubling it');
+$t->is(Builder::resolveValue('I\'m a %foo% %%foo %foo%', array('foo' => 'bar')), 'I\'m a bar %foo bar', '->resolveValue() supports % escaping by doubling it');
 
 try
 {
-  $builder->resolveValue('%foobar%');
+  Builder::resolveValue('%foobar%', array());
   $t->fail('->resolveValue() throws a RuntimeException if a placeholder references a non-existant parameter');
 }
 catch (RuntimeException $e)
@@ -219,7 +215,7 @@ catch (RuntimeException $e)
 
 try
 {
-  $builder->resolveValue('foo %foobar% bar');
+  Builder::resolveValue('foo %foobar% bar', array());
   $t->fail('->resolveValue() throws a RuntimeException if a placeholder references a non-existant parameter');
 }
 catch (RuntimeException $e)

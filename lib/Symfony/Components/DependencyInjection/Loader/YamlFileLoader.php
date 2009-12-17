@@ -5,6 +5,7 @@ namespace Symfony\Components\DependencyInjection\Loader;
 use Symfony\Components\DependencyInjection\Container;
 use Symfony\Components\DependencyInjection\Definition;
 use Symfony\Components\DependencyInjection\Reference;
+use Symfony\Components\DependencyInjection\BuilderConfiguration;
 use Symfony\Components\YAML\YAML;
 
 /*
@@ -28,57 +29,59 @@ use Symfony\Components\YAML\YAML;
  */
 class YamlFileLoader extends FileLoader
 {
-  public function doLoad($files)
+  /**
+   * Loads an array of XML files.
+   *
+   * @param  array $files An array of XML files
+   *
+   * @return array An array of definitions and parameters
+   */
+  public function load($files)
   {
+    if (!is_array($files))
+    {
+      $files = array($files);
+    }
+
     return $this->parse($this->getFilesAsArray($files));
   }
 
   protected function parse($data)
   {
-    $parameters = array();
-    $definitions = array();
+    $configuration = new BuilderConfiguration();
 
     foreach ($data as $file => $content)
     {
       // imports
-      list($importedDefinitions, $importedParameters) = $this->parseImports($content, $file);
-      $definitions = array_merge($definitions, $importedDefinitions);
-      $parameters = array_merge($parameters, $importedParameters);
+      $this->parseImports($configuration, $content, $file);
 
       // parameters
       if (isset($content['parameters']))
       {
         foreach ($content['parameters'] as $key => $value)
         {
-          $parameters[strtolower($key)] = $this->resolveServices($value);
+          $configuration->setParameter(strtolower($key), $this->resolveServices($value));
         }
       }
 
       // services
-      $definitions = array_merge($definitions, $this->parseDefinitions($content, $file));
+      $this->parseDefinitions($configuration, $content, $file);
     }
 
-    return array($definitions, $parameters);
+    return $configuration;
   }
 
-  protected function parseImports($content, $file)
+  protected function parseImports(BuilderConfiguration $configuration, $content, $file)
   {
     if (!isset($content['imports']))
     {
-      return array(array(), array());
+      return;
     }
 
-    $definitions = array();
-    $parameters = array();
     foreach ($content['imports'] as $import)
     {
-      list($importedDefinitions, $importedParameters) = $this->parseImport($import, $file);
-
-      $definitions = array_merge($definitions, $importedDefinitions);
-      $parameters = array_merge($parameters, $importedParameters);
+      $configuration->merge($this->parseImport($import, $file));
     }
-
-    return array($definitions, $parameters);
   }
 
   protected function parseImport($import, $file)
@@ -86,7 +89,7 @@ class YamlFileLoader extends FileLoader
     if (isset($import['class']) && $import['class'] != get_class($this))
     {
       $class = $import['class'];
-      $loader = new $class($this->container, $this->paths);
+      $loader = new $class($this->paths);
     }
     else
     {
@@ -95,30 +98,29 @@ class YamlFileLoader extends FileLoader
 
     $importedFile = $this->getAbsolutePath($import['resource'], dirname($file));
 
-    return call_user_func(array($loader, 'doLoad'), array($importedFile));
+    return $loader->load($importedFile);
   }
 
-  protected function parseDefinitions($content, $file)
+  protected function parseDefinitions(BuilderConfiguration $configuration, $content, $file)
   {
     if (!isset($content['services']))
     {
-      return array();
+      return;
     }
 
-    $definitions = array();
     foreach ($content['services'] as $id => $service)
     {
-      $definitions[$id] = $this->parseDefinition($service, $file);
+      $this->parseDefinition($configuration, $id, $service, $file);
     }
-
-    return $definitions;
   }
 
-  protected function parseDefinition($service, $file)
+  protected function parseDefinition(BuilderConfiguration $configuration, $id, $service, $file)
   {
     if (is_string($service) && 0 === strpos($service, '@'))
     {
-      return substr($service, 1);
+      $configuration->setAlias($id, substr($service, 1));
+
+      return;
     }
 
     $definition = new Definition($service['class']);
@@ -163,7 +165,7 @@ class YamlFileLoader extends FileLoader
       }
     }
 
-    return $definition;
+    $configuration->setDefinition($id, $definition);
   }
 
   protected function getFilesAsArray(array $files)

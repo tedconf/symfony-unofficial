@@ -30,7 +30,7 @@ class ProjectLoader extends YamlFileLoader
 // ->getFilesAsArray()
 $t->diag('->getFilesAsArray()');
 
-$loader = new ProjectLoader(null, $fixturesPath.'/ini');
+$loader = new ProjectLoader($fixturesPath.'/ini');
 
 try
 {
@@ -52,7 +52,7 @@ catch (InvalidArgumentException $e)
   $t->pass('->load() throws an InvalidArgumentException if the loaded file is not a valid YAML file');
 }
 
-$loader = new ProjectLoader(null, $fixturesPath.'/yaml');
+$loader = new ProjectLoader($fixturesPath.'/yaml');
 
 foreach (array('nonvalid1', 'nonvalid2') as $fixture)
 {
@@ -73,22 +73,23 @@ $t->is(key($yamls), realpath($fixturesPath.'/yaml/services1.yml'), '->getFilesAs
 
 // ->load() # parameters
 $t->diag('->load() # parameters');
-$loader = new ProjectLoader(null, $fixturesPath.'/yaml');
-list($services, $parameters) = $loader->doLoad(array('services2.yml'));
-$t->is($parameters, array('foo' => 'bar', 'values' => array(true, false, 0, 1000.3), 'bar' => 'foo', 'foo_bar' => new Reference('foo_bar')), '->load() converts YAML keys to lowercase');
+$loader = new ProjectLoader($fixturesPath.'/yaml');
+$config = $loader->load(array('services2.yml'));
+$t->is($config->getParameters(), array('foo' => 'bar', 'values' => array(true, false, 0, 1000.3), 'bar' => 'foo', 'foo_bar' => new Reference('foo_bar')), '->load() converts YAML keys to lowercase');
 
-$loader = new ProjectLoader(null, $fixturesPath.'/yaml');
-list($services, $parameters) = $loader->doLoad(array('services2.yml', 'services3.yml'));
-$t->is($parameters, array('foo' => 'foo', 'values' => array(true, false), 'bar' => 'foo', 'foo_bar' => new Reference('foo_bar')), '->load() merges the first level of arguments when multiple files are loaded');
+$loader = new ProjectLoader($fixturesPath.'/yaml');
+$config = $loader->load(array('services2.yml', 'services3.yml'));
+$t->is($config->getParameters(), array('foo' => 'foo', 'values' => array(true, false), 'bar' => 'foo', 'foo_bar' => new Reference('foo_bar')), '->load() merges the first level of arguments when multiple files are loaded');
 
 // ->load() # imports
 $t->diag('->load() # imports');
-list($services, $parameters) = $loader->doLoad(array('services4.yml'));
-$t->is($parameters, array('foo' => 'bar', 'bar' => '%foo%', 'values' => array(true, false), 'foo_bar' => new Reference('foo_bar')), '->load() imports and merges imported files');
+$config = $loader->load(array('services4.yml'));
+$t->is($config->getParameters(), array('foo' => 'bar', 'bar' => '%foo%', 'values' => array(true, false), 'foo_bar' => new Reference('foo_bar')), '->load() imports and merges imported files');
 
 // ->load() # services
 $t->diag('->load() # services');
-list($services, $parameters) = $loader->doLoad(array('services6.yml'));
+$config = $loader->load(array('services6.yml'));
+$services = $config->getDefinitions();
 $t->ok(isset($services['foo']), '->load() parses service elements');
 $t->is(get_class($services['foo']), 'Symfony\\Components\\DependencyInjection\\Definition', '->load() converts service element to Definition instances');
 $t->is($services['foo']->getClass(), 'FooClass', '->load() parses the class attribute');
@@ -102,8 +103,10 @@ $t->is($services['configurator2']->getConfigurator(), array(new Reference('baz')
 $t->is($services['configurator3']->getConfigurator(), array('BazClass', 'configureStatic'), '->load() parses the configurator tag');
 $t->is($services['method_call1']->getMethodCalls(), array(array('setBar', array())), '->load() parses the method_call tag');
 $t->is($services['method_call2']->getMethodCalls(), array(array('setBar', array('foo', new Reference('foo'), array(true, false)))), '->load() parses the method_call tag');
-$t->ok(isset($services['alias_for_foo']), '->load() parses aliases');
-$t->is($services['alias_for_foo'], 'foo', '->load() parses aliases');
+$aliases = $config->getAliases();
+$t->ok(isset($aliases['alias_for_foo']), '->load() parses aliases');
+$t->is($aliases['alias_for_foo'], 'foo', '->load() parses aliases');
 
-list($services, $parameters) = $loader->doLoad(array('services6.yml', 'services7.yml'));
+$config = $loader->load(array('services6.yml', 'services7.yml'));
+$services = $config->getDefinitions();
 $t->is($services['foo']->getClass(), 'BarClass', '->load() merges the services when multiple files are loaded');

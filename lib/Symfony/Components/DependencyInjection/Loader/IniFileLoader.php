@@ -2,6 +2,8 @@
 
 namespace Symfony\Components\DependencyInjection\Loader;
 
+use Symfony\Components\DependencyInjection\BuilderConfiguration;
+
 /*
  * This file is part of the symfony framework.
  *
@@ -21,9 +23,15 @@ namespace Symfony\Components\DependencyInjection\Loader;
  */
 class IniFileLoader extends FileLoader
 {
-  public function doLoad($files)
+  public function load($files)
   {
-    $parameters = array();
+    if (!is_array($files))
+    {
+      $files = array($files);
+    }
+
+    $configuration = new BuilderConfiguration();
+
     foreach ($files as $file)
     {
       $path = $this->getAbsolutePath($file);
@@ -42,11 +50,11 @@ class IniFileLoader extends FileLoader
       {
         foreach ($result['parameters'] as $key => $value)
         {
-          $parameters[strtolower($key)] = $value;
+          $configuration->setParameter(strtolower($key), $value);
         }
       }
     }
 
-    return array(array(), $parameters);
+    return $configuration;
   }
 }

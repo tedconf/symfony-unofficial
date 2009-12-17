@@ -17,17 +17,17 @@ $t = new LimeTest(5);
 
 $fixturesPath = realpath(__DIR__.'/../../../../../fixtures/Symfony/Components/DependencyInjection/');
 
-$loader = new IniFileLoader($container = new Builder(), $fixturesPath.'/ini');
-$loader->load(array('parameters.ini'));
-$t->is($container->getParameters(), array('foo' => 'bar', 'bar' => 'bar'), '->load() takes an array of file names as its first argument');
+$loader = new IniFileLoader($fixturesPath.'/ini');
+$config = $loader->load(array('parameters.ini'));
+$t->is($config->getParameters(), array('foo' => 'bar', 'bar' => '%foo%'), '->load() takes an array of file names as its first argument');
 
-$loader = new IniFileLoader($container = new Builder(), $fixturesPath.'/ini');
-$loader->load('parameters.ini');
-$t->is($container->getParameters(), array('foo' => 'bar', 'bar' => 'bar'), '->load() takes a single file name as its first argument');
+$loader = new IniFileLoader($fixturesPath.'/ini');
+$config = $loader->load('parameters.ini');
+$t->is($config->getParameters(), array('foo' => 'bar', 'bar' => '%foo%'), '->load() takes a single file name as its first argument');
 
-$loader = new IniFileLoader($container = new Builder(), $fixturesPath.'/ini');
-$loader->load(array('parameters.ini', 'parameters1.ini'));
-$t->is($container->getParameters(), array('foo' => 'foo', 'bar' => 'foo', 'baz' => 'baz'), '->load() merges parameters from all given files');
+$loader = new IniFileLoader($fixturesPath.'/ini');
+$config = $loader->load(array('parameters.ini', 'parameters1.ini'));
+$t->is($config->getParameters(), array('foo' => 'foo', 'bar' => '%foo%', 'baz' => 'baz'), '->load() merges parameters from all given files');
 
 try
 {

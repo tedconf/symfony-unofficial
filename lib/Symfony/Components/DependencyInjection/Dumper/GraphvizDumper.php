@@ -5,6 +5,7 @@ namespace Symfony\Components\DependencyInjection\Dumper;
 use Symfony\Components\DependencyInjection\Definition;
 use Symfony\Components\DependencyInjection\Reference;
 use Symfony\Components\DependencyInjection\Parameter;
+use Symfony\Components\DependencyInjection\Builder;
 
 /*
  * This file is part of the symfony framework.
@@ -175,7 +176,7 @@ class GraphvizDumper extends Dumper
 
   protected function getValue($value, $default = '')
   {
-    return $this->container->resolveValue($value);
+    return Builder::resolveValue($value, $this->container->getParameters());
   }
 
   protected function startDot()

@@ -13,15 +13,14 @@ require_once __DIR__.'/../../../../bootstrap.php';
 use Symfony\Components\DependencyInjection\Builder;
 use Symfony\Components\DependencyInjection\Loader\FileLoader;
 
-$t = new LimeTest(12);
+$t = new LimeTest(9);
 
 class ProjectLoader extends FileLoader
 {
-  public $container, $paths;
+  public $paths;
 
-  public function doLoad($resource)
+  public function load($resource)
   {
-    return $resource;
   }
 
   public function getAbsolutePath($file, $currentPath = null)
@@ -32,18 +31,15 @@ class ProjectLoader extends FileLoader
 
 // __construct()
 $t->diag('__construct()');
-$loader = new ProjectLoader($container = new Builder());
-$t->is($loader->container, $container, '__construct() takes a container builder instance as its first argument');
-
-$loader = new ProjectLoader(null, __DIR__);
+$loader = new ProjectLoader(__DIR__);
 $t->is($loader->paths, array(__DIR__), '__construct() takes a path as its second argument');
 
-$loader = new ProjectLoader(null, array(__DIR__, __DIR__));
+$loader = new ProjectLoader(array(__DIR__, __DIR__));
 $t->is($loader->paths, array(__DIR__, __DIR__), '__construct() takes an array of paths as its second argument');
 
 // ->getAbsolutePath()
 $t->diag('->getAbsolutePath()');
-$loader = new ProjectLoader(null, array(__DIR__.'/../../../../../bin'));
+$loader = new ProjectLoader(array(__DIR__.'/../../../../../bin'));
 $t->is($loader->getAbsolutePath('/foo.xml'), '/foo.xml', '->getAbsolutePath() return the path unmodified if it is already an absolute path');
 $t->is($loader->getAbsolutePath('c:\\\\foo.xml'), 'c:\\\\foo.xml', '->getAbsolutePath() return the path unmodified if it is already an absolute path');
 $t->is($loader->getAbsolutePath('c:/foo.xml'), 'c:/foo.xml', '->getAbsolutePath() return the path unmodified if it is already an absolute path');
@@ -54,23 +50,3 @@ $t->is($loader->getAbsolutePath('FileLoaderTest.php', __DIR__), __DIR__.'/FileLo
 $t->is($loader->getAbsolutePath('prove.php', __DIR__), __DIR__.'/../../../../../bin/prove.php', '->getAbsolutePath() returns an absolute filename if the file exists in one of the paths given in the constructor');
 
 $t->is($loader->getAbsolutePath('foo.xml', __DIR__), 'foo.xml', '->getAbsolutePath() returns the path unmodified if it is unable to find it in the given paths');
-
-class ProjectLoader1 extends FileLoader
-{
-  public $resource;
-
-  public function doLoad($resource)
-  {
-    $this->resource = $resource;
-
-    return array(array(), array());
-  }
-}
-
-// ->load()
-$t->diag('->load()');
-$loader = new ProjectLoader1(new Builder());
-$loader->load('foo.txt');
-$t->is($loader->resource, array('foo.txt'), '->load() converts the resource to an array of paths');
-$loader->load(array('foo.txt'));
-$t->is($loader->resource, array('foo.txt'), '->load() keeps arrays as is');
