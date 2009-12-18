@@ -62,4 +62,6 @@ interface LoaderInterface
    * @return BuilderConfiguration A BuilderConfiguration instance
    */
   function load($resource);
+
+  static function registerExtension(LoaderExtensionInterface $extension);
 }

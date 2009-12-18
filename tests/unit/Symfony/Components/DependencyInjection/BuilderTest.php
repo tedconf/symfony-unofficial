@@ -11,12 +11,13 @@
 require_once __DIR__.'/../../../bootstrap.php';
 
 use Symfony\Components\DependencyInjection\Builder;
+use Symfony\Components\DependencyInjection\BuilderConfiguration;
 use Symfony\Components\DependencyInjection\Definition;
 use Symfony\Components\DependencyInjection\Reference;
 
 $fixturesPath = __DIR__.'/../../../../fixtures/Symfony/Components/DependencyInjection/';
 
-$t = new LimeTest(46);
+$t = new LimeTest(55);
 
 // ->setDefinitions() ->addDefinitions() ->getDefinitions() ->setDefinition() ->getDefinition() ->hasDefinition()
 $t->diag('->setDefinitions() ->addDefinitions() ->getDefinitions() ->setDefinition() ->getDefinition() ->hasDefinition()');
@@ -229,3 +230,50 @@ $builder = new Builder();
 $builder->register('foo', 'FooClass');
 $t->is($builder->resolveServices(new Reference('foo')), $builder->getService('foo'), '->resolveServices() resolves service references to service instances');
 $t->is($builder->resolveServices(array('foo' => array('foo', new Reference('foo')))), array('foo' => array('foo', $builder->getService('foo'))), '->resolveServices() resolves service references to service instances in nested arrays');
+
+// ->merge()
+$t->diag('->merge()');
+$container = new Builder();
+$container->merge(null);
+$t->is($container->getParameters(), array(), '->merge() accepts null as an argument');
+$t->is($container->getDefinitions(), array(), '->merge() accepts null as an argument');
+
+$container = new Builder(array('bar' => 'foo'));
+$config = new BuilderConfiguration();
+$config->setParameters(array('foo' => 'bar'));
+$container->merge($config);
+$t->is($container->getParameters(), array('bar' => 'foo', 'foo' => 'bar'), '->merge() merges current parameters with the loaded ones');
+
+$container = new Builder(array('bar' => 'foo', 'foo' => 'baz'));
+$config = new BuilderConfiguration();
+$config->setParameters(array('foo' => 'bar'));
+$container->merge($config);
+$t->is($container->getParameters(), array('bar' => 'foo', 'foo' => 'baz'), '->merge() does not change the already defined parameters');
+
+$container = new Builder(array('bar' => 'foo'));
+$config = new BuilderConfiguration();
+$config->setParameters(array('foo' => '%bar%'));
+$container->merge($config);
+$t->is($container->getParameters(), array('bar' => 'foo', 'foo' => 'foo'), '->merge() evaluates the values of the parameters towards already defined ones');
+
+$container = new Builder(array('bar' => 'foo'));
+$config = new BuilderConfiguration();
+$config->setParameters(array('foo' => '%bar%', 'baz' => '%foo%'));
+$container->merge($config);
+$t->is($container->getParameters(), array('bar' => 'foo', 'foo' => 'foo', 'baz' => 'foo'), '->merge() evaluates the values of the parameters towards already defined ones');
+
+$container = new Builder();
+$container->register('foo', 'FooClass');
+$container->register('bar', 'BarClass');
+$config = new BuilderConfiguration();
+$config->setDefinition('baz', new Definition('BazClass'));
+$config->setAlias('alias_for_foo', 'foo');
+$container->merge($config);
+$t->is(array_keys($container->getDefinitions()), array('foo', 'bar', 'baz'), '->load() merges definitions already defined ones');
+$t->is($container->getAliases(), array('alias_for_foo' => 'foo'), '->merge() registers defined aliases');
+
+$container = new Builder();
+$container->register('foo', 'FooClass');
+$config->setDefinition('foo', new Definition('BazClass'));
+$container->merge($config);
+$t->is($container->getDefinition('foo')->getClass(), 'BazClass', '->merge() overrides already defined services');

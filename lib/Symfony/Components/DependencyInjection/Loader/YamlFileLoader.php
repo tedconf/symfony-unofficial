@@ -52,6 +52,11 @@ class YamlFileLoader extends FileLoader
 
     foreach ($data as $file => $content)
     {
+      if (!$content)
+      {
+        continue;
+      }
+
       // imports
       $this->parseImports($configuration, $content, $file);
 
@@ -66,6 +71,9 @@ class YamlFileLoader extends FileLoader
 
       // services
       $this->parseDefinitions($configuration, $content, $file);
+
+      // extensions
+      $this->loadFromExtensions($configuration, $content);
     }
 
     return $configuration;
@@ -173,14 +181,14 @@ class YamlFileLoader extends FileLoader
     $yamls = array();
     foreach ($files as $file)
     {
-      $file = $this->getAbsolutePath($file);
+      $path = $this->getAbsolutePath($file);
 
-      if (!file_exists($file))
+      if (!file_exists($path))
       {
         throw new \InvalidArgumentException(sprintf('The service file "%s" does not exist (in: %s).', $file, implode(', ', $this->paths)));
       }
 
-      $yamls[$file] = $this->validate(YAML::load($file), $file);
+      $yamls[$path] = $this->validate(YAML::load($path), $path);
     }
 
     return $yamls;
@@ -200,10 +208,24 @@ class YamlFileLoader extends FileLoader
 
     foreach (array_keys($content) as $key)
     {
-      if (!in_array($key, array('imports', 'parameters', 'services')))
+      if (in_array($key, array('imports', 'parameters', 'services')))
       {
-        throw new \InvalidArgumentException(sprintf('The service file "%s" is not valid ("%s" is not recognized).', $file, $key));
+        continue;
       }
+
+      // can it be handled by an extension?
+      if (false !== strpos($key, '.'))
+      {
+        list($namespace, $tag) = explode('.', $key);
+        if (!static::getExtension($namespace))
+        {
+          throw new \InvalidArgumentException(sprintf('There is no extension able to load the configuration for "%s" (in %s).', $key, $file));
+        }
+
+        continue;
+      }
+
+      throw new \InvalidArgumentException(sprintf('The "%s" tag is not valid (in %s).', $key, $file));
     }
 
     return $content;
@@ -225,5 +247,25 @@ class YamlFileLoader extends FileLoader
     }
 
     return $value;
+  }
+
+  protected function loadFromExtensions(BuilderConfiguration $configuration, $content)
+  {
+    foreach ($content as $key => $config)
+    {
+      if (in_array($key, array('imports', 'parameters', 'services')))
+      {
+        continue;
+      }
+
+      list($namespace, $tag) = explode('.', $key);
+
+      if (!is_array($config))
+      {
+        $config = array();
+      }
+
+      $configuration->merge(static::getExtension($namespace)->load($tag, $config));
+    }
   }
 }

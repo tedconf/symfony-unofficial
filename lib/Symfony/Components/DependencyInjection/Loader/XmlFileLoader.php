@@ -5,6 +5,7 @@ namespace Symfony\Components\DependencyInjection\Loader;
 use Symfony\Components\DependencyInjection\Definition;
 use Symfony\Components\DependencyInjection\Reference;
 use Symfony\Components\DependencyInjection\BuilderConfiguration;
+use Symfony\Components\DependencyInjection\SimpleXMLElement;
 
 /*
  * This file is part of the symfony framework.
@@ -59,6 +60,9 @@ class XmlFileLoader extends FileLoader
 
       // services
       $this->parseDefinitions($configuration, $xml, $file);
+
+      // extensions
+      $this->loadFromExtensions($configuration, $xml);
     }
 
     return $configuration;
@@ -193,7 +197,7 @@ class XmlFileLoader extends FileLoader
         throw new \InvalidArgumentException(implode("\n", $this->getXmlErrors()));
       }
       libxml_use_internal_errors(false);
-      $this->validate($dom);
+      $this->validate($dom, $path);
 
       $xmls[$path] = simplexml_import_dom($dom, 'Symfony\Components\DependencyInjection\SimpleXMLElement');
     }
@@ -231,7 +235,7 @@ class XmlFileLoader extends FileLoader
     return $xml;
   }
 
-  protected function validate($dom)
+  protected function validate($dom, $file)
   {
     libxml_use_internal_errors(true);
     if (!$dom->schemaValidate(__DIR__.'/services.xsd'))
@@ -239,6 +243,29 @@ class XmlFileLoader extends FileLoader
       throw new \InvalidArgumentException(implode("\n", $this->getXmlErrors()));
     }
     libxml_use_internal_errors(false);
+
+    // validate extensions
+    foreach ($dom->documentElement->childNodes as $node)
+    {
+      if (!$node instanceof \DOMElement || in_array($node->tagName, array('imports', 'parameters', 'services')))
+      {
+        continue;
+      }
+
+      // can it be handled by an extension?
+      if (false !== strpos($node->tagName, ':'))
+      {
+        list($namespace, $tag) = explode(':', $node->tagName);
+        if (!static::getExtension($namespace))
+        {
+          throw new \InvalidArgumentException(sprintf('There is no extension able to load the configuration for "%s" (in %s).', $node->tagName, $file));
+        }
+
+        continue;
+      }
+
+      throw new \InvalidArgumentException(sprintf('The "%s" tag is not valid (in %s).', $node->tagName, $file));
+    }
   }
 
   protected function getXmlErrors()
@@ -259,5 +286,71 @@ class XmlFileLoader extends FileLoader
     libxml_clear_errors();
 
     return $errors;
+  }
+
+  protected function loadFromExtensions(BuilderConfiguration $configuration, $xml)
+  {
+    foreach (dom_import_simplexml($xml)->getElementsByTagNameNS('*', '*') as $element)
+    {
+      if (!$element->prefix)
+      {
+        continue;
+      }
+
+      $config = $this->getExtension($element->prefix)->load($element->localName, static::convertDomElementToArray($element));
+
+      $configuration->merge($config);
+    }
+  }
+
+  /**
+   * Converts a \DomElement object to a PHP array.
+   *
+   * The following rules applies during the conversion:
+   *
+   *  * Each tag is converted to an array
+   *
+   *  * The content of a tag is set under a "value" key (<foo>bar</foo>)
+   *
+   *  * The attributes are converted to keys (<foo value="bar"/>)
+   *
+   *  * The nested-tags are converted to keys (<foo><value>bar</value></foo>)
+   *
+   * @param \DomElement $element A \DomElement instance
+   *
+   * @return array A PHP array
+   */
+  static public function convertDomElementToArray(\DomElement $element)
+  {
+    $config = array();
+    foreach ($element->attributes as $name => $node)
+    {
+      $config[$name] = SimpleXMLElement::phpize($node->value);
+    }
+
+    foreach ($element->childNodes as $node)
+    {
+      if ($node instanceof \DOMText)
+      {
+        if (trim($node->nodeValue))
+        {
+          $config['value'] = SimpleXMLElement::phpize($node->nodeValue);
+        }
+      }
+      else
+      {
+        $value = static::convertDomElementToArray($node);
+        if ('value' == $node->tagName)
+        {
+          $config[$node->tagName] = $value['value'];
+        }
+        else
+        {
+          $config[$node->tagName] = $value;
+        }
+      }
+    }
+
+    return $config;
   }
 }

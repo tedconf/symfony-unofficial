@@ -13,11 +13,14 @@ require_once __DIR__.'/../../../../bootstrap.php';
 use Symfony\Components\DependencyInjection\Builder;
 use Symfony\Components\DependencyInjection\Reference;
 use Symfony\Components\DependencyInjection\Definition;
+use Symfony\Components\DependencyInjection\Loader\Loader;
 use Symfony\Components\DependencyInjection\Loader\YamlFileLoader;
 
-$t = new LimeTest(25);
+$t = new LimeTest(29);
 
 $fixturesPath = realpath(__DIR__.'/../../../../../fixtures/Symfony/Components/DependencyInjection/');
+
+require_once $fixturesPath.'/includes/ProjectExtension.php';
 
 class ProjectLoader extends YamlFileLoader
 {
@@ -110,3 +113,34 @@ $t->is($aliases['alias_for_foo'], 'foo', '->load() parses aliases');
 $config = $loader->load(array('services6.yml', 'services7.yml'));
 $services = $config->getDefinitions();
 $t->is($services['foo']->getClass(), 'BarClass', '->load() merges the services when multiple files are loaded');
+
+// extensions
+$t->diag('extensions');
+Loader::registerExtension(new ProjectExtension());
+$loader = new ProjectLoader($fixturesPath.'/yaml');
+
+$config = $loader->load('services10.yml');
+$services = $config->getDefinitions();
+$parameters = $config->getParameters();
+$t->ok(isset($services['project.service.bar']), '->load() parses extension elements');
+$t->ok(isset($parameters['project.parameter.bar']), '->load() parses extension elements');
+
+try
+{
+  $config = $loader->load('services11.yml');
+  $t->fail('->load() throws an InvalidArgumentException if the tag is not valid');
+}
+catch (InvalidArgumentException $e)
+{
+  $t->pass('->load() throws an InvalidArgumentException if the tag is not valid');
+}
+
+try
+{
+  $config = $loader->load('services12.yml');
+  $t->fail('->load() throws an InvalidArgumentException if an extension is not loaded');
+}
+catch (InvalidArgumentException $e)
+{
+  $t->pass('->load() throws an InvalidArgumentException if an extension is not loaded');
+}

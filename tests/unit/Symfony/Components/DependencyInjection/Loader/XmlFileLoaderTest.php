@@ -13,11 +13,14 @@ require_once __DIR__.'/../../../../bootstrap.php';
 use Symfony\Components\DependencyInjection\Builder;
 use Symfony\Components\DependencyInjection\Reference;
 use Symfony\Components\DependencyInjection\Definition;
+use Symfony\Components\DependencyInjection\Loader\Loader;
 use Symfony\Components\DependencyInjection\Loader\XmlFileLoader;
 
-$t = new LimeTest(34);
+$t = new LimeTest(42);
 
 $fixturesPath = realpath(__DIR__.'/../../../../../fixtures/Symfony/Components/DependencyInjection/');
+
+require_once $fixturesPath.'/includes/ProjectExtension.php';
 
 class ProjectLoader extends XmlFileLoader
 {
@@ -127,3 +130,58 @@ $t->is($aliases['alias_for_foo'], 'foo', '->load() parses aliases');
 $config = $loader->load(array('services6.xml', 'services7.xml'));
 $services = $config->getDefinitions();
 $t->is($services['foo']->getClass(), 'BarClass', '->load() merges the services when multiple files are loaded');
+
+// ::convertDomElementToArray()
+$t->diag('::convertDomElementToArray()');
+$element = new DOMElement('foo', 'bar');
+$t->is(ProjectLoader::convertDomElementToArray($element), array('value' => 'bar'), '::convertDomElementToArray() converts a \DomElement to an array');
+
+$doc = new DOMDocument("1.0");
+$element = $doc->createElement('foo');
+$element->setAttribute('value', 'bar');
+$t->is(ProjectLoader::convertDomElementToArray($element), array('value' => 'bar'), '::convertDomElementToArray() converts a \DomElement to an array');
+
+$doc = new DOMDocument("1.0");
+$element = $doc->createElement('foo');
+$doc->appendChild($element);
+$element1 = $doc->createElement('value', 'bar');
+$element->appendChild($element1);
+$t->is(ProjectLoader::convertDomElementToArray($element), array('value' => 'bar'), '::convertDomElementToArray() converts a \DomElement to an array');
+
+$doc = new DOMDocument("1.0");
+$element = $doc->createElement('foo');
+$doc->appendChild($element);
+$element1 = $doc->createElement('bar', 'bar');
+$element->appendChild($element1);
+$t->is(ProjectLoader::convertDomElementToArray($element), array('bar' => array('value' => 'bar')), '::convertDomElementToArray() converts a \DomElement to an array');
+
+// extensions
+$t->diag('extensions');
+Loader::registerExtension(new ProjectExtension());
+$loader = new ProjectLoader($fixturesPath.'/xml');
+
+$config = $loader->load('services10.xml');
+$services = $config->getDefinitions();
+$parameters = $config->getParameters();
+$t->ok(isset($services['project.service.bar']), '->load() parses extension elements');
+$t->ok(isset($parameters['project.parameter.bar']), '->load() parses extension elements');
+
+try
+{
+  $config = $loader->load('services11.xml');
+  $t->fail('->load() throws an InvalidArgumentException if the tag is not valid');
+}
+catch (InvalidArgumentException $e)
+{
+  $t->pass('->load() throws an InvalidArgumentException if the tag is not valid');
+}
+
+try
+{
+  $config = $loader->load('services12.xml');
+  $t->fail('->load() throws an InvalidArgumentException if an extension is not loaded');
+}
+catch (InvalidArgumentException $e)
+{
+  $t->pass('->load() throws an InvalidArgumentException if an extension is not loaded');
+}
