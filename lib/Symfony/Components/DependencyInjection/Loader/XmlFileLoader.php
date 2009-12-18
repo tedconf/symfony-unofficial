@@ -297,7 +297,8 @@ class XmlFileLoader extends FileLoader
         continue;
       }
 
-      $config = $this->getExtension($element->prefix)->load($element->localName, static::convertDomElementToArray($element));
+      $values = static::convertDomElementToArray($element);
+      $config = $this->getExtension($element->prefix)->load($element->localName, is_array($values) ? $values : array($values));
 
       $configuration->merge($config);
     }
@@ -308,13 +309,15 @@ class XmlFileLoader extends FileLoader
    *
    * The following rules applies during the conversion:
    *
-   *  * Each tag is converted to an array
+   *  * Each tag is converted to a key value or an array
+   *    if there is more than one "value"
    *
    *  * The content of a tag is set under a "value" key (<foo>bar</foo>)
+   *    if the tag also has some nested tags
    *
-   *  * The attributes are converted to keys (<foo value="bar"/>)
+   *  * The attributes are converted to keys (<foo foo="bar"/>)
    *
-   *  * The nested-tags are converted to keys (<foo><value>bar</value></foo>)
+   *  * The nested-tags are converted to keys (<foo><foo>bar</foo></foo>)
    *
    * @param \DomElement $element A \DomElement instance
    *
@@ -328,26 +331,32 @@ class XmlFileLoader extends FileLoader
       $config[$name] = SimpleXMLElement::phpize($node->value);
     }
 
+    $nodeValue = false;
     foreach ($element->childNodes as $node)
     {
       if ($node instanceof \DOMText)
       {
         if (trim($node->nodeValue))
         {
-          $config['value'] = SimpleXMLElement::phpize($node->nodeValue);
+          $nodeValue = trim($node->nodeValue);
         }
       }
       else
       {
-        $value = static::convertDomElementToArray($node);
-        if ('value' == $node->tagName)
-        {
-          $config[$node->tagName] = $value['value'];
-        }
-        else
-        {
-          $config[$node->tagName] = $value;
-        }
+        $config[$node->tagName] = static::convertDomElementToArray($node);
+      }
+    }
+
+    if (false !== $nodeValue)
+    {
+      $value = SimpleXMLElement::phpize($nodeValue);
+      if (count($config))
+      {
+        $config['value'] = $value;
+      }
+      else
+      {
+        $config = $value;
       }
     }
 

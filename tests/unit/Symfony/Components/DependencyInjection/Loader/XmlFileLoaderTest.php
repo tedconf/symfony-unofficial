@@ -133,27 +133,21 @@ $t->is($services['foo']->getClass(), 'BarClass', '->load() merges the services w
 
 // ::convertDomElementToArray()
 $t->diag('::convertDomElementToArray()');
-$element = new DOMElement('foo', 'bar');
-$t->is(ProjectLoader::convertDomElementToArray($element), array('value' => 'bar'), '::convertDomElementToArray() converts a \DomElement to an array');
+$doc = new DOMDocument("1.0");
+$doc->loadXML('<foo>bar</foo>');
+$t->is(ProjectLoader::convertDomElementToArray($doc->documentElement), 'bar', '::convertDomElementToArray() converts a \DomElement to an array');
 
 $doc = new DOMDocument("1.0");
-$element = $doc->createElement('foo');
-$element->setAttribute('value', 'bar');
-$t->is(ProjectLoader::convertDomElementToArray($element), array('value' => 'bar'), '::convertDomElementToArray() converts a \DomElement to an array');
+$doc->loadXML('<foo foo="bar" />');
+$t->is(ProjectLoader::convertDomElementToArray($doc->documentElement), array('foo' => 'bar'), '::convertDomElementToArray() converts a \DomElement to an array');
 
 $doc = new DOMDocument("1.0");
-$element = $doc->createElement('foo');
-$doc->appendChild($element);
-$element1 = $doc->createElement('value', 'bar');
-$element->appendChild($element1);
-$t->is(ProjectLoader::convertDomElementToArray($element), array('value' => 'bar'), '::convertDomElementToArray() converts a \DomElement to an array');
+$doc->loadXML('<foo><foo>bar</foo></foo>');
+$t->is(ProjectLoader::convertDomElementToArray($doc->documentElement), array('foo' => 'bar'), '::convertDomElementToArray() converts a \DomElement to an array');
 
 $doc = new DOMDocument("1.0");
-$element = $doc->createElement('foo');
-$doc->appendChild($element);
-$element1 = $doc->createElement('bar', 'bar');
-$element->appendChild($element1);
-$t->is(ProjectLoader::convertDomElementToArray($element), array('bar' => array('value' => 'bar')), '::convertDomElementToArray() converts a \DomElement to an array');
+$doc->loadXML('<foo><foo>bar<foo>bar</foo></foo></foo>');
+$t->is(ProjectLoader::convertDomElementToArray($doc->documentElement), array('foo' => array('value' => 'bar', 'foo' => 'bar')), '::convertDomElementToArray() converts a \DomElement to an array');
 
 // extensions
 $t->diag('extensions');
