@@ -344,7 +344,7 @@ class XmlFileLoader extends FileLoader
           $empty = false;
         }
       }
-      else
+      elseif (!$node instanceof \DOMComment)
       {
         $config[$node->tagName] = static::convertDomElementToArray($node);
         $empty = false;

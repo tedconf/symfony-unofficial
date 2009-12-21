@@ -16,7 +16,7 @@ use Symfony\Components\DependencyInjection\Definition;
 use Symfony\Components\DependencyInjection\Loader\Loader;
 use Symfony\Components\DependencyInjection\Loader\XmlFileLoader;
 
-$t = new LimeTest(43);
+$t = new LimeTest(44);
 
 $fixturesPath = realpath(__DIR__.'/../../../../../fixtures/Symfony/Components/DependencyInjection/');
 
@@ -151,6 +151,10 @@ $t->is(ProjectLoader::convertDomElementToArray($doc->documentElement), array('fo
 
 $doc = new DOMDocument("1.0");
 $doc->loadXML('<foo><foo></foo></foo>');
+$t->is(ProjectLoader::convertDomElementToArray($doc->documentElement), array('foo' => null), '::convertDomElementToArray() converts a \DomElement to an array');
+
+$doc = new DOMDocument("1.0");
+$doc->loadXML('<foo><foo><!-- foo --></foo></foo>');
 $t->is(ProjectLoader::convertDomElementToArray($doc->documentElement), array('foo' => null), '::convertDomElementToArray() converts a \DomElement to an array');
 
 // extensions
