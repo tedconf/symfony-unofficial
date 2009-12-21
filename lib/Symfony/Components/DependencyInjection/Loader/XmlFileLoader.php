@@ -325,10 +325,12 @@ class XmlFileLoader extends FileLoader
    */
   static public function convertDomElementToArray(\DomElement $element)
   {
+    $empty = true;
     $config = array();
     foreach ($element->attributes as $name => $node)
     {
       $config[$name] = SimpleXMLElement::phpize($node->value);
+      $empty = false;
     }
 
     $nodeValue = false;
@@ -339,11 +341,13 @@ class XmlFileLoader extends FileLoader
         if (trim($node->nodeValue))
         {
           $nodeValue = trim($node->nodeValue);
+          $empty = false;
         }
       }
       else
       {
         $config[$node->tagName] = static::convertDomElementToArray($node);
+        $empty = false;
       }
     }
 
@@ -360,6 +364,6 @@ class XmlFileLoader extends FileLoader
       }
     }
 
-    return $config;
+    return !$empty ? $config : null;
   }
 }
