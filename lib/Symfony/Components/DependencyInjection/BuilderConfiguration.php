@@ -83,6 +83,37 @@ class BuilderConfiguration
   }
 
   /**
+   * Returns true if a parameter name is defined.
+   *
+   * @param  string  $name       The parameter name
+   *
+   * @return Boolean true if the parameter name is defined, false otherwise
+   */
+  public function hasParameter($name)
+  {
+    return array_key_exists(strtolower($name), $this->parameters);
+  }
+
+  /**
+   * Gets a service container parameter.
+   *
+   * @param  string $name The parameter name
+   *
+   * @return mixed  The parameter value
+   *
+   * @throws  \InvalidArgumentException if the parameter is not defined
+   */
+  public function getParameter($name)
+  {
+    if (!$this->hasParameter($name))
+    {
+      throw new \InvalidArgumentException(sprintf('The parameter "%s" must be defined.', $name));
+    }
+
+    return $this->parameters[strtolower($name)];
+  }
+
+  /**
    * Sets a service container parameter.
    *
    * @param string $name       The parameter name
@@ -172,5 +203,36 @@ class BuilderConfiguration
   public function getDefinitions()
   {
     return $this->definitions;
+  }
+
+  /**
+   * Returns true if a service definition exists under the given identifier.
+   *
+   * @param  string  $id The service identifier
+   *
+   * @return Boolean true if the service definition exists, false otherwise
+   */
+  public function hasDefinition($id)
+  {
+    return array_key_exists($id, $this->definitions);
+  }
+
+  /**
+   * Gets a service definition.
+   *
+   * @param  string  $id The service identifier
+   *
+   * @return Definition A Definition instance
+   *
+   * @throws \InvalidArgumentException if the service definition does not exist
+   */
+  public function getDefinition($id)
+  {
+    if (!$this->hasDefinition($id))
+    {
+      throw new \InvalidArgumentException(sprintf('The service definition "%s" does not exist.', $id));
+    }
+
+    return $this->definitions[$id];
   }
 }
