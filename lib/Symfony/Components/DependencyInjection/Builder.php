@@ -412,7 +412,10 @@ class Builder extends Container
   {
     if (is_array($value))
     {
-      $value = array_map(array($this, 'resolveServices'), $value);
+      foreach ($value as &$v)
+      {
+        $v = $this->resolveServices($v);
+      }
     }
     else if (is_object($value) && $value instanceof Reference)
     {
