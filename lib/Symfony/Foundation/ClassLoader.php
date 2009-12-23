@@ -17,6 +17,13 @@ namespace Symfony\Foundation;
  *
  * Based on http://groups.google.com/group/php-standards/web/final-proposal
  *
+ * Example usage:
+ *
+ *     [php]
+ *     $loader = new ClassLoader();
+ *     $loader->registerNamespace('Symfony', __DIR__.'/..');
+ *     $loader->register();
+ *
  * @author Jonathan H. Wage <jonwage@gmail.com>
  * @author Roman S. Borschel <roman@code-factory.org>
  * @author Matthew Weier O'Phinney <matthew@zend.com>
@@ -25,8 +32,7 @@ namespace Symfony\Foundation;
  */
 class ClassLoader
 {
-  protected $namespace;
-  protected $includePath;
+  protected $namespaces = array();
 
   /**
    * Creates a new loader for classes of the specified namespace.
@@ -34,10 +40,21 @@ class ClassLoader
    * @param string $namespace   The namespace to use
    * @param string $includePath The path to the namespace
    */
-  public function __construct($namespace = null, $includePath = null)
+  public function registerNamespace($namespace, $includePath = null)
   {
-      $this->namespace = $namespace;
-      $this->includePath = $includePath;
+    if (!isset($this->namespaces[$namespace]))
+    {
+      $this->namespaces[$namespace] = $includePath;
+    }
+    else
+    {
+      if (!is_array($this->namespaces[$namespace]))
+      {
+        $this->namespaces[$namespace] = array($this->namespaces[$namespace]);
+      }
+
+      $this->namespaces[$namespace][] = $includePath;
+    }
   }
 
   /**
@@ -63,7 +80,8 @@ class ClassLoader
    */
   public function loadClass($className)
   {
-    if (null === $this->namespace || $this->namespace.'\\' === substr($className, 0, strlen($this->namespace.'\\')))
+    $vendor = substr($className, 0, stripos($className, '\\'));
+    if ($vendor || isset($this->namespaces['']))
     {
       $fileName = '';
       $namespace = '';
@@ -74,14 +92,29 @@ class ClassLoader
         $fileName = str_replace('\\', DIRECTORY_SEPARATOR, $namespace).DIRECTORY_SEPARATOR;
       }
       $fileName .= str_replace('_', DIRECTORY_SEPARATOR, $className).'.php';
-      if ($this->includePath !== null)
-      {
-        $fileName = $this->includePath.DIRECTORY_SEPARATOR.$fileName;
-      }
 
-      // when the autoloading mechanism is triggered by class_exists(), avoid
-      // undesired error messages
-      if (is_file($fileName) && is_readable($fileName))
+      if (null !== $this->namespaces[$vendor])
+      {
+        if (is_array($this->namespaces[$vendor]))
+        {
+          foreach ($this->namespaces[$vendor] as $dir)
+          {
+            if (!file_exists($dir.DIRECTORY_SEPARATOR.$fileName))
+            {
+              continue;
+            }
+
+            require $dir.DIRECTORY_SEPARATOR.$fileName;
+
+            break;
+          }
+        }
+        else
+        {
+          require $this->namespaces[$vendor].DIRECTORY_SEPARATOR.$fileName;
+        }
+      }
+      else
       {
         require $fileName;
       }
