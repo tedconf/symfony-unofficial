@@ -12,5 +12,6 @@ require_once __DIR__.'/../lib/vendor/lime/LimeAutoloader.php';
 LimeAutoloader::register();
 
 require_once __DIR__.'/../../lib/Symfony/Foundation/ClassLoader.php';
-$loader = new Symfony\Foundation\ClassLoader('Symfony', __DIR__.'/../../lib');
+$loader = new Symfony\Foundation\ClassLoader();
+$loader->registerNamespace('Symfony', __DIR__.'/../../lib');
 $loader->register();
