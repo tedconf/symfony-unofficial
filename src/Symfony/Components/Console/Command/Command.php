@@ -7,7 +7,6 @@ use Symfony\Components\Console\Input\InputOption;
 use Symfony\Components\Console\Input\InputArgument;
 use Symfony\Components\Console\Input\InputInterface;
 use Symfony\Components\Console\Output\OutputInterface;
-use Symfony\Components\Console\Output\Formatter;
 use Symfony\Components\Console\Application;
 
 /*
@@ -42,13 +41,14 @@ class Command
 
   /**
    * Constructor.
+   *
+   * @param string $name The name of the command
    */
   public function __construct($name = null)
   {
     $this->definition = new InputDefinition();
     $this->ignoreValidationErrors = false;
     $this->applicationDefinitionMerged = false;
-    $this->formatter = new Formatter();
     $this->aliases = array();
 
     if (null !== $name)
@@ -389,90 +389,17 @@ class Command
   }
 
   /**
-   * Asks a question to the user.
+   * Gets a helper instance by name.
    *
-   * @param OutputInterface $output
-   * @param string|array    $question The question to ask
-   * @param string          $default  The default answer if none is given by the user
+   * @param string $name The helper name
    *
-   * @param string The user answer
+   * @return mixed The helper value
+   *
+   * @throws \InvalidArgumentException if the helper is not defined
    */
-  static public function ask(OutputInterface $output, $question, $default = null)
+  protected function getHelper($name)
   {
-    // @codeCoverageIgnoreStart
-    $output->write($question);
-
-    $ret = trim(fgets(STDIN));
-
-    return $ret ? $ret : $default;
-    // @codeCoverageIgnoreEnd
-  }
-
-  /**
-   * Asks a confirmation to the user.
-   *
-   * The question will be asked until the user answer by nothing, yes, or no.
-   *
-   * @param OutputInterface $output
-   * @param string|array    $question The question to ask
-   * @param Boolean         $default  The default answer if the user enters nothing
-   *
-   * @param Boolean true if the user has confirmed, false otherwise
-   */
-  static public function askConfirmation(OutputInterface $output, $question, $default = true)
-  {
-    // @codeCoverageIgnoreStart
-    $answer = 'z';
-    while ($answer && !in_array(strtolower($answer[0]), array('y', 'n')))
-    {
-      $answer = static::ask($output, $question);
-    }
-
-    if (false === $default)
-    {
-      return $answer && 'y' == strtolower($answer[0]);
-    }
-    else
-    {
-      return !$answer || 'y' == strtolower($answer[0]);
-    }
-    // @codeCoverageIgnoreEnd
-  }
-
-  /**
-   * Asks for a value and validates the response.
-   *
-   * @param OutputInterface $output
-   * @param string|array    $question
-   * @param Closure         $validator
-   * @param integer         $attempts Max number of times to ask before giving up (false by default, which means infinite)
-   *
-   * @return mixed
-   */
-  static public function askAndValidate(OutputInterface $output, $question, \Closure $validator, $attempts = false)
-  {
-    // @codeCoverageIgnoreStart
-    $error = null;
-    while (false === $attempts || $attempts--)
-    {
-      if (null !== $error)
-      {
-        $output->write($this->formatter->formatBlock($error->getMessage(), 'error'));
-      }
-
-      $value = static::ask($output, $question, null);
-
-      try
-      {
-        return $validator($value);
-      }
-      catch (\Exception $error)
-      {
-      }
-    }
-
-    throw $error;
-    // @codeCoverageIgnoreEnd
+    return $this->application->getHelperSet()->get($name);
   }
 
   /**
