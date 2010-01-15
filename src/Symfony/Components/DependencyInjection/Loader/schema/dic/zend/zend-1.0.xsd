@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
-<xsd:schema xmlns="http://www.symfony-project.org/schema/zend"
+<xsd:schema xmlns="http://www.symfony-project.org/schema/dic/zend"
     xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-    targetNamespace="http://www.symfony-project.org/schema/zend"
+    targetNamespace="http://www.symfony-project.org/schema/dic/zend"
     elementFormDefault="qualified">
 
   <xsd:element name="logger" type="logger" />
