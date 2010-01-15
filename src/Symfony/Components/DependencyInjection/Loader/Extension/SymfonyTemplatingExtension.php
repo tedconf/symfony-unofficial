@@ -26,7 +26,15 @@ use Symfony\Components\DependencyInjection\Reference;
 class SymfonyTemplatingExtension extends LoaderExtension
 {
   /**
-   * Loads the template configuration.
+   * Loads the templating configuration.
+   *
+   * Usage example:
+   *
+   *      <symfony:templating path="/path/to/templates" cache="/path/to/cache">
+   *        <symfony:loader>symfony.templating.loader.filesystem</symfony:loader>
+   *        <symfony:helper>symfony.templating.helper.javascripts</symfony:helper>
+   *        <symfony:helper>symfony.templating.helper.stylesheets</symfony:helper>
+   *      </symfony:templating>
    *
    * @param array $config A configuration array
    *
@@ -89,8 +97,8 @@ class SymfonyTemplatingExtension extends LoaderExtension
     if (isset($config['cache']))
     {
       // wrap the loader with some cache
-      $configuration->setAlias('symfony.templating.loader.wrapped', $configuration->getAlias('symfony.templating.loader'));
-      $configuration->setAlias('symfony.templating.loader', 'symfony.templating.loader.cache');
+      $configuration->setDefinition('symfony.templating.loader.wrapped', $configuration->findDefinition('symfony.templating.loader'));
+      $configuration->setDefinition('symfony.templating.loader', $configuration->getDefinition('symfony.templating.loader.cache'));
       $configuration->setParameter('symfony.templating.loader.cache.path', $config['cache']);
     }
 
