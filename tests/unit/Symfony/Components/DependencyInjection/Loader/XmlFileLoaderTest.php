@@ -16,7 +16,7 @@ use Symfony\Components\DependencyInjection\Definition;
 use Symfony\Components\DependencyInjection\Loader\Loader;
 use Symfony\Components\DependencyInjection\Loader\XmlFileLoader;
 
-$t = new LimeTest(44);
+$t = new LimeTest(40);
 
 $fixturesPath = realpath(__DIR__.'/../../../../../fixtures/Symfony/Components/DependencyInjection/');
 
@@ -24,20 +24,20 @@ require_once $fixturesPath.'/includes/ProjectExtension.php';
 
 class ProjectLoader extends XmlFileLoader
 {
-  public function getFilesAsXml(array $files)
+  public function parseFile($file)
   {
-    return parent::getFilesAsXml($files);
+    return parent::parseFile($file);
   }
 }
 
-// ->getFilesAsXml()
-$t->diag('->getFilesAsXml()');
+// ->load()
+$t->diag('->load()');
 
 $loader = new ProjectLoader($fixturesPath.'/ini');
 
 try
 {
-  $loader->getFilesAsXml(array('foo.xml'));
+  $loader->load('foo.xml');
   $t->fail('->load() throws an InvalidArgumentException if the loaded file does not exist');
 }
 catch (InvalidArgumentException $e)
@@ -45,51 +45,48 @@ catch (InvalidArgumentException $e)
   $t->pass('->load() throws an InvalidArgumentException if the loaded file does not exist');
 }
 
+// ->parseFile()
+$t->diag('->parseFile()');
+
 try
 {
-  $loader->getFilesAsXml(array('parameters.ini'));
-  $t->fail('->load() throws an InvalidArgumentException if the loaded file is not a valid XML file');
+  $loader->parseFile($fixturesPath.'/ini/parameters.ini');
+  $t->fail('->parseFile() throws an InvalidArgumentException if the loaded file is not a valid XML file');
 }
 catch (InvalidArgumentException $e)
 {
-  $t->pass('->load() throws an InvalidArgumentException if the loaded file is not a valid XML file');
+  $t->pass('->parseFile() throws an InvalidArgumentException if the loaded file is not a valid XML file');
 }
 
 $loader = new ProjectLoader($fixturesPath.'/xml');
 
 try
 {
-  $loader->getFilesAsXml(array('nonvalid.xml'));
-  $t->fail('->load() throws an InvalidArgumentException if the loaded file does not validate the XSD');
+  $loader->parseFile($fixturesPath.'/xml/nonvalid.xml');
+  $t->fail('->parseFile() throws an InvalidArgumentException if the loaded file does not validate the XSD');
 }
 catch (InvalidArgumentException $e)
 {
-  $t->pass('->load() throws an InvalidArgumentException if the loaded file does not validate the XSD');
+  $t->pass('->parseFile() throws an InvalidArgumentException if the loaded file does not validate the XSD');
 }
 
-$xmls = $loader->getFilesAsXml(array('services1.xml'));
-$t->is(count($xmls), 1, '->getFilesAsXml() returns an array of simple xml objects');
-$t->is(key($xmls), realpath($fixturesPath.'/xml/services1.xml'), '->getFilesAsXml() returns an array where the keys are absolutes paths to the original XML file');
-$t->is(get_class(current($xmls)), 'Symfony\\Components\\DependencyInjection\\SimpleXMLElement', '->getFilesAsXml() returns an array where values are SimpleXMLElement objects');
+$xml = $loader->parseFile($fixturesPath.'/xml/services1.xml');
+$t->is(get_class($xml), 'Symfony\\Components\\DependencyInjection\\SimpleXMLElement', '->parseFile() returns an SimpleXMLElement object');
 
 // ->load() # parameters
 $t->diag('->load() # parameters');
 $loader = new ProjectLoader($fixturesPath.'/xml');
-$config = $loader->load(array('services2.xml'));
+$config = $loader->load('services2.xml');
 $t->is($config->getParameters(), array('a string', 'foo' => 'bar', 'values' => array(0, 'integer' => 4, 100 => null, 'true', true, false, 'on', 'off', 'float' => 1.3, 1000.3, 'a string', array('foo', 'bar')), 'foo_bar' => new Reference('foo_bar')), '->load() converts XML values to PHP ones');
-
-$loader = new ProjectLoader($fixturesPath.'/xml');
-$config = $loader->load(array('services2.xml', 'services3.xml'));
-$t->is($config->getParameters(), array('a string', 'foo' => 'foo', 'values' => array(true, false), 'foo_bar' => new Reference('foo_bar')), '->load() merges the first level of arguments when multiple files are loaded');
 
 // ->load() # imports
 $t->diag('->load() # imports');
-$config = $loader->load(array('services4.xml'));
-$t->is($config->getParameters(), array('a string', 'foo' => 'bar', 'bar' => '%foo%', 'values' => array(true, false), 'foo_bar' => new Reference('foo_bar')), '->load() imports and merges imported files');
+$config = $loader->load('services4.xml');
+$t->is($config->getParameters(), array('a string', 'foo' => 'bar', 'bar' => '%foo%', 'values' => array(true, false), 'foo_bar' => new Reference('foo_bar'), 'imported_from_yaml' => true, 'imported_from_ini' => true), '->load() imports and merges imported files');
 
 // ->load() # anonymous services
 $t->diag('->load() # anonymous services');
-$config = $loader->load(array('services5.xml'));
+$config = $loader->load('services5.xml');
 $services = $config->getDefinitions();
 $t->is(count($services), 3, '->load() attributes unique ids to anonymous services');
 $args = $services['foo']->getArguments();
@@ -108,7 +105,7 @@ $t->is($inner->getClass(), 'BazClass', '->load() uses the same configuration as 
 
 // ->load() # services
 $t->diag('->load() # services');
-$config = $loader->load(array('services6.xml'));
+$config = $loader->load('services6.xml');
 $services = $config->getDefinitions();
 $t->ok(isset($services['foo']), '->load() parses <service> elements');
 $t->is(get_class($services['foo']), 'Symfony\\Components\\DependencyInjection\\Definition', '->load() converts <service> element to Definition instances');
@@ -126,10 +123,6 @@ $t->is($services['method_call2']->getMethodCalls(), array(array('setBar', array(
 $aliases = $config->getAliases();
 $t->ok(isset($aliases['alias_for_foo']), '->load() parses <service> elements');
 $t->is($aliases['alias_for_foo'], 'foo', '->load() parses aliases');
-
-$config = $loader->load(array('services6.xml', 'services7.xml'));
-$services = $config->getDefinitions();
-$t->is($services['foo']->getClass(), 'BarClass', '->load() merges the services when multiple files are loaded');
 
 // ::convertDomElementToArray()
 $t->diag('::convertDomElementToArray()');

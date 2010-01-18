@@ -6,6 +6,7 @@ use Symfony\Components\DependencyInjection\Definition;
 use Symfony\Components\DependencyInjection\Reference;
 use Symfony\Components\DependencyInjection\BuilderConfiguration;
 use Symfony\Components\DependencyInjection\SimpleXMLElement;
+use Symfony\Components\DependencyInjection\FileResource;
 
 /*
  * This file is part of the symfony framework.
@@ -28,41 +29,34 @@ class XmlFileLoader extends FileLoader
   /**
    * Loads an array of XML files.
    *
-   * @param  array $files An array of XML files
+   * @param  string $file An XML file path
    *
    * @return BuilderConfiguration A BuilderConfiguration instance
    */
-  public function load($files)
+  public function load($file)
   {
-    if (!is_array($files))
-    {
-      $files = array($files);
-    }
+    $path = $this->findFile($file);
 
-    return $this->parse($this->getFilesAsXml($files));
-  }
+    $xml = $this->parseFile($path);
 
-  protected function parse(array $xmls)
-  {
     $configuration = new BuilderConfiguration();
 
-    foreach ($xmls as $file => $xml)
-    {
-      // anonymous services
-      $xml = $this->processAnonymousServices($configuration, $xml, $file);
+    $configuration->addResource(new FileResource($path));
 
-      // imports
-      $this->parseImports($configuration, $xml, $file);
+    // anonymous services
+    $xml = $this->processAnonymousServices($configuration, $xml, $file);
 
-      // parameters
-      $this->parseParameters($configuration, $xml, $file);
+    // imports
+    $this->parseImports($configuration, $xml, $file);
 
-      // services
-      $this->parseDefinitions($configuration, $xml, $file);
+    // parameters
+    $this->parseParameters($configuration, $xml, $file);
 
-      // extensions
-      $this->loadFromExtensions($configuration, $xml);
-    }
+    // services
+    $this->parseDefinitions($configuration, $xml, $file);
+
+    // extensions
+    $this->loadFromExtensions($configuration, $xml);
 
     return $configuration;
   }
@@ -92,15 +86,26 @@ class XmlFileLoader extends FileLoader
 
   protected function parseImport($import, $file)
   {
-    if (isset($import['class']) && $import['class'] != get_class($this))
+    $class = null;
+    if (isset($import['class']) && $import['class'] !== get_class($this))
     {
       $class = (string) $import['class'];
-      $loader = new $class($this->paths);
     }
     else
     {
-      $loader = $this;
+      // try to detect loader with the extension
+      switch (pathinfo((string) $import['resource'], PATHINFO_EXTENSION))
+      {
+        case 'yml':
+          $class = 'Symfony\\Components\\DependencyInjection\\Loader\\YamlFileLoader';
+          break;
+        case 'ini':
+          $class = 'Symfony\\Components\\DependencyInjection\\Loader\\IniFileLoader';
+          break;
+      }
     }
+
+    $loader = null === $class ? $this : new $class($this->paths);
 
     $importedFile = $this->getAbsolutePath((string) $import['resource'], dirname($file));
 
@@ -176,33 +181,20 @@ class XmlFileLoader extends FileLoader
     $configuration->setDefinition($id, $definition);
   }
 
-  protected function getFilesAsXml(array $files)
+  protected function parseFile($file)
   {
-    $xmls = array();
-    foreach ($files as $file)
+    $dom = new \DOMDocument();
+    libxml_use_internal_errors(true);
+    if (!$dom->load($file, LIBXML_COMPACT))
     {
-      $path = $this->getAbsolutePath($file);
-
-      if (!file_exists($path))
-      {
-        throw new \InvalidArgumentException(sprintf('The service file "%s" does not exist (in: %s).', $file, implode(', ', $this->paths)));
-      }
-
-      $dom = new \DOMDocument();
-      libxml_use_internal_errors(true);
-      if (!$dom->load(realpath($path), LIBXML_COMPACT))
-      {
-        throw new \InvalidArgumentException(implode("\n", $this->getXmlErrors()));
-      }
-      $dom->validateOnParse = true;
-      $dom->normalizeDocument();
-      libxml_use_internal_errors(false);
-      $this->validate($dom, $path);
-
-      $xmls[$path] = simplexml_import_dom($dom, 'Symfony\\Components\\DependencyInjection\\SimpleXMLElement');
+      throw new \InvalidArgumentException(implode("\n", $this->getXmlErrors()));
     }
+    $dom->validateOnParse = true;
+    $dom->normalizeDocument();
+    libxml_use_internal_errors(false);
+    $this->validate($dom, $file);
 
-    return $xmls;
+    return simplexml_import_dom($dom, 'Symfony\\Components\\DependencyInjection\\SimpleXMLElement');
   }
 
   protected function processAnonymousServices(BuilderConfiguration $configuration, $xml, $file)

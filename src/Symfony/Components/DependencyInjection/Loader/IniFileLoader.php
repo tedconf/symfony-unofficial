@@ -3,6 +3,7 @@
 namespace Symfony\Components\DependencyInjection\Loader;
 
 use Symfony\Components\DependencyInjection\BuilderConfiguration;
+use Symfony\Components\DependencyInjection\FileResource;
 
 /*
  * This file is part of the symfony framework.
@@ -25,39 +26,29 @@ class IniFileLoader extends FileLoader
   /**
    * Loads a resource.
    *
-   * @param mixed $resource The resource path
+   * @param  string $file An INI file path
    *
    * @return BuilderConfiguration A BuilderConfiguration instance
    */
-  public function load($files)
+  public function load($file)
   {
-    if (!is_array($files))
-    {
-      $files = array($files);
-    }
+    $path = $this->findFile($file);
 
     $configuration = new BuilderConfiguration();
 
-    foreach ($files as $file)
+    $configuration->addResource(new FileResource($path));
+
+    $result = parse_ini_file($path, true);
+    if (false === $result || array() === $result)
     {
-      $path = $this->getAbsolutePath($file);
-      if (!file_exists($path))
-      {
-        throw new \InvalidArgumentException(sprintf('The %s file does not exist.', $file));
-      }
+      throw new \InvalidArgumentException(sprintf('The %s file is not valid.', $file));
+    }
 
-      $result = parse_ini_file($path, true);
-      if (false === $result || array() === $result)
+    if (isset($result['parameters']) && is_array($result['parameters']))
+    {
+      foreach ($result['parameters'] as $key => $value)
       {
-        throw new \InvalidArgumentException(sprintf('The %s file is not valid.', $file));
-      }
-
-      if (isset($result['parameters']) && is_array($result['parameters']))
-      {
-        foreach ($result['parameters'] as $key => $value)
-        {
-          $configuration->setParameter(strtolower($key), $value);
-        }
+        $configuration->setParameter(strtolower($key), $value);
       }
     }
 

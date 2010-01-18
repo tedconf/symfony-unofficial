@@ -6,6 +6,7 @@ use Symfony\Components\DependencyInjection\Container;
 use Symfony\Components\DependencyInjection\Definition;
 use Symfony\Components\DependencyInjection\Reference;
 use Symfony\Components\DependencyInjection\BuilderConfiguration;
+use Symfony\Components\DependencyInjection\FileResource;
 use Symfony\Components\YAML\YAML;
 
 /*
@@ -31,49 +32,42 @@ class YamlFileLoader extends FileLoader
   /**
    * Loads an array of Yaml files.
    *
-   * @param  array $files An array of Yaml files
+   * @param  string $file A YAML file path
    *
    * @return BuilderConfiguration A BuilderConfiguration instance
    */
-  public function load($files)
+  public function load($file)
   {
-    if (!is_array($files))
-    {
-      $files = array($files);
-    }
+    $path = $this->findFile($file);
 
-    return $this->parse($this->getFilesAsArray($files));
-  }
+    $content = $this->loadFile($path);
 
-  protected function parse($data)
-  {
     $configuration = new BuilderConfiguration();
 
-    foreach ($data as $file => $content)
+    $configuration->addResource(new FileResource($path));
+
+    if (!$content)
     {
-      if (!$content)
-      {
-        continue;
-      }
-
-      // imports
-      $this->parseImports($configuration, $content, $file);
-
-      // parameters
-      if (isset($content['parameters']))
-      {
-        foreach ($content['parameters'] as $key => $value)
-        {
-          $configuration->setParameter(strtolower($key), $this->resolveServices($value));
-        }
-      }
-
-      // services
-      $this->parseDefinitions($configuration, $content, $file);
-
-      // extensions
-      $this->loadFromExtensions($configuration, $content);
+      return $configuration;
     }
+
+    // imports
+    $this->parseImports($configuration, $content, $file);
+
+    // parameters
+    if (isset($content['parameters']))
+    {
+      foreach ($content['parameters'] as $key => $value)
+      {
+        $configuration->setParameter(strtolower($key), $this->resolveServices($value));
+      }
+    }
+
+    // services
+    $this->parseDefinitions($configuration, $content, $file);
+
+    // extensions
+    $this->loadFromExtensions($configuration, $content);
 
     return $configuration;
   }
@@ -93,15 +87,26 @@ class YamlFileLoader extends FileLoader
 
   protected function parseImport($import, $file)
   {
-    if (isset($import['class']) && $import['class'] != get_class($this))
+    $class = null;
+    if (isset($import['class']) && $import['class'] !== get_class($this))
     {
       $class = $import['class'];
-      $loader = new $class($this->paths);
     }
     else
     {
-      $loader = $this;
+      // try to detect loader with the extension
+      switch (pathinfo((string) $import['resource'], PATHINFO_EXTENSION))
+      {
+        case 'xml':
+          $class = 'Symfony\\Components\\DependencyInjection\\Loader\\XmlFileLoader';
+          break;
+        case 'ini':
+          $class = 'Symfony\\Components\\DependencyInjection\\Loader\\IniFileLoader';
+          break;
+      }
     }
+
+    $loader = null === $class ? $this : new $class($this->paths);
 
     $importedFile = $this->getAbsolutePath($import['resource'], dirname($file));
 
@@ -175,22 +180,9 @@ class YamlFileLoader extends FileLoader
     $configuration->setDefinition($id, $definition);
   }
 
-  protected function getFilesAsArray(array $files)
+  protected function loadFile($file)
   {
-    $yamls = array();
-    foreach ($files as $file)
-    {
-      $path = $this->getAbsolutePath($file);
-
-      if (!file_exists($path))
-      {
-        throw new \InvalidArgumentException(sprintf('The service file "%s" does not exist (in: %s).', $file, implode(', ', $this->paths)));
-      }
-
-      $yamls[$path] = $this->validate(YAML::load($path), $path);
-    }
-
-    return $yamls;
+    return $this->validate(YAML::load($file), $file);
   }
 
   protected function validate($content, $file)
