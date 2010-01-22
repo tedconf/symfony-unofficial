@@ -442,7 +442,7 @@ EOF;
 
   protected function getServiceCall($id, Reference $reference = null)
   {
-    if ('service_container' == $id)
+    if ('service_container' === $id)
     {
       return '$this';
     }
@@ -453,6 +453,16 @@ EOF;
     }
     else
     {
+      if ($this->container->hasAlias($id))
+      {
+        $id = $this->container->getAlias($id);
+      }
+
+      if ($this->container->hasDefinition($id))
+      {
+        return sprintf('$this->get%sService()', Container::camelize($id));
+      }
+
       return sprintf('$this->getService(\'%s\')', $id);
     }
   }

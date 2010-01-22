@@ -70,8 +70,15 @@ class SymfonyTemplatingExtension extends LoaderExtension
       );
     }
 
-    $configuration->getDefinition('symfony.templating.loader.chain')->addArgument($loaders);
-    $configuration->setAlias('symfony.templating.loader', 'symfony.templating.loader.chain');
+    if (1 === count($loaders))
+    {
+      $configuration->setAlias('symfony.templating.loader', (string) $loaders[0]);
+    }
+    else
+    {
+      $configuration->getDefinition('symfony.templating.loader.chain')->addArgument($loaders);
+      $configuration->setAlias('symfony.templating.loader', 'symfony.templating.loader.chain');
+    }
 
     // helpers
     if (isset($config['helper']))
@@ -85,7 +92,7 @@ class SymfonyTemplatingExtension extends LoaderExtension
     }
     else
     {
-      $helpers = array(
+      $helpers = null === $config['helper'] ? array() : array(
         new Reference('symfony.templating.helper.javascripts'),
         new Reference('symfony.templating.helper.stylesheets'),
       );
