@@ -661,8 +661,8 @@ The old `post` option of `link_to` is still valid but deprecated:
     // and equivalent to
     <?php echo link_to('@some_route', array('method' => 'post')) ?>
 
-using link_to for non-symfony links is no longer possible in favour of the
-new functionality. In fact, link_to was never intended for cases like this:
+Using `link_to()` for non-symfony links is no longer possible in favour of the
+new functionality. In fact, `link_to()` was never intended for cases like this:
 
     [php]
     // does no longer work
