@@ -52,11 +52,10 @@ namespace Symfony\Components\DependencyInjection;
  */
 class Container implements ContainerInterface, \ArrayAccess, \Iterator
 {
-  protected
-    $serviceIds = array(),
-    $parameters = array(),
-    $services   = array(),
-    $count      = 0;
+  protected $serviceIds = array();
+  protected $parameters = array();
+  protected $services   = array();
+  protected $count      = 0;
 
   const EXCEPTION_ON_INVALID_REFERENCE = 1;
   const NULL_ON_INVALID_REFERENCE      = 2;
@@ -110,7 +109,7 @@ class Container implements ContainerInterface, \ArrayAccess, \Iterator
   /**
    * Gets a service container parameter.
    *
-   * @param  string $name The parameter name
+   * @param string $name The parameter name
    *
    * @return mixed  The parameter value
    *
@@ -118,12 +117,14 @@ class Container implements ContainerInterface, \ArrayAccess, \Iterator
    */
   public function getParameter($name)
   {
-    if (!$this->hasParameter($name))
+    $name = strtolower($name);
+
+    if (!array_key_exists($name, $this->parameters))
     {
       throw new \InvalidArgumentException(sprintf('The parameter "%s" must be defined.', $name));
     }
 
-    return $this->parameters[strtolower($name)];
+    return $this->parameters[$name];
   }
 
   /**
@@ -169,7 +170,7 @@ class Container implements ContainerInterface, \ArrayAccess, \Iterator
    */
   public function hasService($id)
   {
-    return isset($this->services[$id]) || method_exists($this, 'get'.self::camelize($id).'Service');
+    return isset($this->services[$id]) || method_exists($this, 'get'.strtr($id, array('_' => '', '.' => '_')).'Service');
   }
 
   /**
@@ -194,7 +195,7 @@ class Container implements ContainerInterface, \ArrayAccess, \Iterator
       throw new \InvalidArgumentException(sprintf('A service id should be a string (%s given).', str_replace("\n", '', var_export($id, true))));
     }
 
-    if (method_exists($this, $method = 'get'.self::camelize($id).'Service'))
+    if (method_exists($this, $method = 'get'.strtr($id, array('_' => '', '.' => '_')).'Service'))
     {
       return $this->$method();
     }
@@ -374,9 +375,27 @@ class Container implements ContainerInterface, \ArrayAccess, \Iterator
     return $this->count > 0;
   }
 
+  /**
+   * Catches unknown methods.
+   *
+   * @param string $method    The called method name
+   * @param array  $arguments The method arguments
+   *
+   * @return mixed
+   */
+  public function __call($method, $arguments)
+  {
+    if (!preg_match('/^get(.+)Service$/', $method, $match))
+    {
+      throw new \RuntimeException(sprintf('Call to undefined method %s::%s.', get_class($this), $method));
+    }
+
+    return $this->getService(self::underscore($match[1]));
+  }
+
   static public function camelize($id)
   {
-    return preg_replace(array('/(^|_|-)+(.)/e', '/\.(.)/e'), array("strtoupper('\\2')", "'_'.strtoupper('\\1')"), $id);
+    return preg_replace(array('/(^|_)+(.)/e', '/\.(.)/e'), array("strtoupper('\\2')", "'_'.strtoupper('\\1')"), $id);
   }
 
   static public function underscore($id)

@@ -10,22 +10,16 @@
  * with this source code in the file LICENSE.
  */
 
-class LimeOutputInspectable implements LimeOutputInterface
+class LimeOutputProxy implements LimeOutputInterface
 {
   private
     $output       = null,
-    $planned      = 0,
-    $passed       = 0,
-    $failed       = 0,
-    $skipped      = 0,
-    $todos        = 0,
-    $errors       = 0,
-    $warnings     = 0,
-    $failedFiles  = array();
+    $result       = null;
 
   public function __construct(LimeOutputInterface $output = null)
   {
     $this->output = is_null($output) ? new LimeOutputNone() : $output;
+    $this->result = new LimeOutputResult();
   }
 
   public function supportsThreading()
@@ -33,41 +27,17 @@ class LimeOutputInspectable implements LimeOutputInterface
     return $this->output->supportsThreading();
   }
 
-  public function getPlanned()
+  public function getResult()
   {
-    return $this->planned;
+    return $this->result;
   }
 
-  public function getPassed()
-  {
-    return $this->passed;
-  }
-
-  public function getFailed()
-  {
-    return $this->failed;
-  }
-
-  public function getSkipped()
-  {
-    return $this->skipped;
-  }
-
-  public function getTodos()
-  {
-    return $this->todos;
-  }
-
-  public function getErrors()
-  {
-    return $this->errors;
-  }
-
-  public function getWarnings()
-  {
-    return $this->warnings;
-  }
-
+  /**
+   * For BC with lime_harness.
+   *
+   * @deprecated
+   * @return array
+   */
   public function getFailedFiles()
   {
     return $this->failedFiles;
@@ -85,45 +55,45 @@ class LimeOutputInspectable implements LimeOutputInterface
 
   public function plan($amount)
   {
-    $this->planned += $amount;
+    $this->result->addPlan($amount);
     $this->output->plan($amount);
   }
 
   public function pass($message, $file, $line)
   {
-    $this->passed++;
+    $this->result->addPassed();
     $this->output->pass($message, $file, $line);
   }
 
   public function fail($message, $file, $line, $error = null)
   {
-    $this->failed++;
+    $this->result->addFailure(array($message, $file, $line, $error));
     $this->failedFiles[] = $file;
     $this->output->fail($message, $file, $line, $error);
   }
 
   public function skip($message, $file, $line)
   {
-    $this->skipped++;
+    $this->result->addSkipped();
     $this->output->skip($message, $file, $line);
   }
 
   public function todo($message, $file, $line)
   {
-    $this->todos++;
+    $this->result->addTodo($message);
     $this->output->todo($message, $file, $line);
   }
 
   public function warning($message, $file, $line)
   {
-    $this->warnings++;
+    $this->result->addWarning(array($message, $file, $line));
     $this->failedFiles[] = $file;
     $this->output->warning($message, $file, $line);
   }
 
   public function error(LimeError $error)
   {
-    $this->errors++;
+    $this->result->addError($error);
     $this->failedFiles[] = $error->getFile();
     $this->output->error($error);
   }
