@@ -22,8 +22,7 @@ use Symfony\Components\Templating\Storage;
  */
 class ChainLoader extends Loader
 {
-  protected
-    $loaders = array();
+  protected $loaders;
 
   /**
    * Constructor.
@@ -32,10 +31,13 @@ class ChainLoader extends Loader
    */
   public function __construct(array $loaders = array())
   {
+    $this->loaders = array();
     foreach ($loaders as $loader)
     {
       $this->addLoader($loader);
     }
+
+    parent::__construct();
   }
 
   /**
@@ -52,15 +54,15 @@ class ChainLoader extends Loader
    * Loads a template.
    *
    * @param string $template The logical template name
-   * @param string $renderer The renderer to use
+   * @param array  $options  An array of options
    *
    * @return Storage|Boolean false if the template cannot be loaded, a Storage instance otherwise
    */
-  public function load($template, $renderer = 'php')
+  public function load($template, array $options = array())
   {
     foreach ($this->loaders as $loader)
     {
-      if (false !== $ret = $loader->load($template, $renderer))
+      if (false !== $ret = $loader->load($template, $options))
       {
         return $ret;
       }

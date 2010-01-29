@@ -5,6 +5,7 @@ namespace Symfony\Components\Templating;
 use Symfony\Components\Templating\Loader\LoaderInterface;
 use Symfony\Components\Templating\Helper\HelperSet;
 use Symfony\Components\Templating\Renderer\PhpRenderer;
+use Symfony\Components\Templating\Renderer\RendererInterface;
 
 /*
  * This file is part of the symfony package.
@@ -24,28 +25,32 @@ use Symfony\Components\Templating\Renderer\PhpRenderer;
  */
 class Engine
 {
-  protected
-    $loader    = null,
-    $renderers = array(),
-    $current   = null,
-    $helperSet = array(),
-    $parents   = array(),
-    $stack     = array(),
-    $slots     = array(),
-    $openSlots = array(),
-    $charset   = 'UTF-8';
+  protected $loader;
+  protected $renderers;
+  protected $current;
+  protected $helperSet;
+  protected $parents;
+  protected $stack;
+  protected $slots;
+  protected $openSlots;
+  protected $charset;
 
   /**
    * Constructor.
    *
    * @param LoaderInterface $loader    A loader instance
-   * @param array                     $renderers An array of renderer instances
+   * @param array           $renderers An array of renderer instances
    * @param HelperSet       $helperSet A helper set instance
    */
   public function __construct(LoaderInterface $loader, array $renderers = array(), HelperSet $helperSet = null)
   {
     $this->loader    = $loader;
     $this->renderers = $renderers;
+    $this->parents   = array();
+    $this->stack     = array();
+    $this->slots     = array();
+    $this->openSlots = array();
+    $this->charset   = 'UTF-8';
 
     $this->setHelperSet(null === $helperSet ? new HelperSet() : $helperSet);
 
@@ -63,7 +68,13 @@ class Engine
   /**
    * Renders a template.
    *
-   * @param string $name       A template logical name
+   * The template name is composed of segments separated by a colon (:).
+   * By default, this engine knows how to parse templates with one or two segments:
+   *
+   *  * index:      The template logical name is index and the renderer is php
+   *  * index:twig: The template logical name is index and the renderer is twig
+   *
+   * @param string $name       A template name
    * @param array  $parameters An array of parameters to pass to the template
    *
    * @return string The evaluated template as a string
@@ -73,35 +84,23 @@ class Engine
    */
   public function render($name, array $parameters = array())
   {
-    // split renderer & template
-    if (false !== $pos = strpos($name, ':'))
-    {
-      $renderer = substr($name, 0, $pos);
-      $name = substr($name, $pos + 1);
-    }
-    else
-    {
-      $renderer = 'php';
-    }
+    list($name, $options) = $this->splitTemplateName($name);
 
     // load
-    $template = $this->loader->load($name, $renderer);
+    $template = $this->loader->load($name, $options);
 
     if (false === $template)
     {
-      throw new \InvalidArgumentException(sprintf('The template "%s" does not exist (renderer: %s).', $name, $renderer));
+      throw new \InvalidArgumentException(sprintf('The template "%s" does not exist (renderer: %s).', $name, $options['renderer']));
     }
 
     $this->current = $name;
     $this->parents[$name] = null;
 
     // renderer
-    if ($template->getRenderer())
-    {
-      $renderer = $template->getRenderer();
-    }
+    $renderer = $template->getRenderer() ? $template->getRenderer() : $options['renderer'];
 
-    if (!isset($this->renderers[$renderer]))
+    if (!isset($this->renderers[$options['renderer']]))
     {
       throw new \InvalidArgumentException(sprintf('The renderer "%s" is not registered.', $renderer));
     }
@@ -129,7 +128,7 @@ class Engine
   /**
    * Sets a helper value.
    *
-   * @param string                    $name  The helper name
+   * @param string          $name  The helper name
    * @param HelperInterface $value The helper value
    */
   public function setHelperSet(HelperSet $helperSet)
@@ -152,7 +151,7 @@ class Engine
   /**
    * Gets a helper value.
    *
-   * @param string $name  The helper name
+   * @param string $name The helper name
    *
    * @return mixed The helper value
    *
@@ -307,5 +306,42 @@ class Engine
   public function getCharset()
   {
     return $this->charset;
+  }
+
+  /**
+   * Gets the loader associated with this engine.
+   *
+   * @return LoaderInterface A LoaderInterface instance
+   */
+  public function getLoader()
+  {
+    return $this->loader;
+  }
+
+  /**
+   * Sets a template renderer.
+   *
+   * @param string            $name     The renderer name
+   * @param RendererInterface $renderer A RendererInterface instance
+   */
+  public function setRenderer($name, RendererInterface $renderer)
+  {
+    $this->renderers[$name] = $renderer;
+    $renderer->setEngine($this);
+  }
+
+  protected function splitTemplateName($name)
+  {
+    if (false !== $pos = strpos($name, ':'))
+    {
+      $renderer = substr($name, $pos + 1);
+      $name = substr($name, 0, $pos);
+    }
+    else
+    {
+      $renderer = 'php';
+    }
+
+    return array($name, array('renderer' => $renderer));
   }
 }
