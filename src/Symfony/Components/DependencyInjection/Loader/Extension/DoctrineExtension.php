@@ -24,6 +24,13 @@ use Symfony\Components\DependencyInjection\BuilderConfiguration;
  */
 class DoctrineExtension extends LoaderExtension
 {
+  protected $alias;
+
+  public function setAlias($alias)
+  {
+    $this->alias = $alias;
+  }
+
   /**
    * Loads the DBAL configuration.
    *
@@ -42,13 +49,48 @@ class DoctrineExtension extends LoaderExtension
     $loader = new XmlFileLoader(__DIR__.'/xml/doctrine');
     $configuration->merge($loader->load('dbal-1.0.xml'));
 
-    foreach (array('dbname', 'driverClass', 'host', 'username', 'password') as $key)
+    foreach (array('dbname', 'host', 'username', 'password', 'path', 'port') as $key)
     {
       if (isset($config[$key]))
       {
         $configuration->setParameter('doctrine.dbal.'.$key, $config[$key]);
       }
     }
+
+    if (isset($config['options']))
+    {
+      $configuration->setParameter('doctrine.dbal.driver.options', $config['options']);
+    }
+
+    if (isset($config['driver']))
+    {
+      $class = $config['driver'];
+      if (in_array($class, array('OCI8', 'PDOMsSql', 'PDOMySql', 'PDOOracle', 'PDOPgSql', 'PDOSqlite')))
+      {
+        $class = 'Doctrine\\DBAL\\Driver\\'.$class.'\\Driver';
+      }
+
+      $configuration->setParameter('doctrine.dbal.driver.class', $class);
+    }
+
+    $configuration->setAlias('connection', null !== $this->alias ? $this->alias : 'doctrine.dbal.connection');
+
+    return $configuration;
+  }
+
+  /**
+   * Loads the Doctrine ORM configuration.
+   *
+   * @param array $config A configuration array
+   *
+   * @return BuilderConfiguration A BuilderConfiguration instance
+   */
+  public function ormLoad($config)
+  {
+    $configuration = new BuilderConfiguration();
+
+    $loader = new XmlFileLoader(__DIR__.'/xml/doctrine');
+    $configuration->merge($loader->load('orm-1.0.xml'));
 
     return $configuration;
   }
