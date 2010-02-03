@@ -8,7 +8,6 @@ require_once(sfConfig::get('sf_lib_dir').'/filter/base/BaseFormFilterPropel.clas
  * @package    ##PROJECT_NAME##
  * @subpackage filter
  * @author     ##AUTHOR_NAME##
- * @version    SVN: $Id$
  */
 class Base<?php echo $this->table->getClassname() ?>FormFilter extends BaseFormFilterPropel
 {
