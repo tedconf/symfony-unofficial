@@ -34,7 +34,7 @@ class CacheLoader extends Loader
    * Constructor.
    *
    * @param Loader $loader A Loader instance
-   * @param string           $dir    The directory where to store the cache files
+   * @param string $dir    The directory where to store the cache files
    */
   public function __construct(Loader $loader, $dir)
   {
@@ -56,7 +56,10 @@ class CacheLoader extends Loader
   {
     $options = $this->mergeDefaultOptions($options);
 
-    $path = $this->dir.DIRECTORY_SEPARATOR.md5($template.$options['renderer']).'.tpl';
+    $tmp = md5($template.serialize($options)).'.tpl';
+    $dir = $this->dir.DIRECTORY_SEPARATOR.substr($tmp, 0, 2);
+    $file = substr($tmp, 2);
+    $path = $dir.DIRECTORY_SEPARATOR.$file;
 
     if ($this->loader instanceof CompilableLoaderInterface)
     {
@@ -65,7 +68,7 @@ class CacheLoader extends Loader
 
     if (file_exists($path))
     {
-      if ($this->debugger)
+      if (null !== $this->debugger)
       {
         $this->debugger->log(sprintf('Fetching template "%s" from cache', $template));
       }
@@ -73,19 +76,26 @@ class CacheLoader extends Loader
       return new FileStorage($path, $options['renderer']);
     }
 
-    if (false === $content = $this->loader->load($template, $options))
+    if (false === $storage = $this->loader->load($template, $options))
     {
       return false;
     }
+
+    $content = $storage->getContent();
 
     if ($this->loader instanceof CompilableLoaderInterface)
     {
       $content = $this->loader->compile($content);
     }
 
+    if (!file_exists($dir))
+    {
+      mkdir($dir, 0777, true);
+    }
+
     file_put_contents($path, $content);
 
-    if ($this->debugger)
+    if (null !== $this->debugger)
     {
       $this->debugger->log(sprintf('Storing template "%s" in cache', $template));
     }
