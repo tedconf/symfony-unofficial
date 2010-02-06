@@ -185,7 +185,7 @@ abstract class sfBrowserBase
    */
   public function get($uri, $parameters = array(), $changeStack = true)
   {
-    return $this->call($uri, 'get', $parameters);
+    return $this->call($uri, 'get', $parameters, $changeStack);
   }
 
   /**
@@ -199,7 +199,7 @@ abstract class sfBrowserBase
    */
   public function post($uri, $parameters = array(), $changeStack = true)
   {
-    return $this->call($uri, 'post', $parameters);
+    return $this->call($uri, 'post', $parameters, $changeStack);
   }
 
   /**
