@@ -37,7 +37,7 @@ class JavascriptsHelper extends Helper
    */
   public function add($javascript, $attributes = array())
   {
-    $this->javascripts[$this->helperSet->get('assets')->getUrl($javascript)] = $attributes;
+    $this->javascripts[$this->engine->get('assets')->getUrl($javascript)] = $attributes;
   }
 
   /**
@@ -57,19 +57,19 @@ class JavascriptsHelper extends Helper
    */
   public function __toString()
   {
-    $html = array();
+    $html = '';
     foreach ($this->javascripts as $path => $attributes)
     {
-      $atts = array();
+      $atts = '';
       foreach ($attributes as $key => $value)
       {
-        $atts[] = sprintf('%s="%s"', $key, $this->helperSet->getEngine()->escape($value));
+        $atts .= ' '.sprintf('%s="%s"', $key, $this->engine->escape($value));
       }
 
-      $html[] = sprintf('<script type="text/javascript" src="%s" %s></script>', $path, implode(' ', $atts));
+      $html .= sprintf('<script type="text/javascript" src="%s"%s></script>', $path, $atts)."\n";
     }
 
-    return implode("\n", $html);
+    return $html;
   }
 
   /**

@@ -28,7 +28,7 @@ class PhpRenderer extends Renderer
    * Evaluates a template.
    *
    * @param Storage $template   The template to render
-   * @param array             $parameters An array of parameters to pass to the template
+   * @param array   $parameters An array of parameters to pass to the template
    *
    * @return string|false The evaluated template, or false if the renderer is unable to render the template
    */
@@ -37,6 +37,7 @@ class PhpRenderer extends Renderer
     if ($template instanceof FileStorage)
     {
       extract($parameters);
+      $view = $this->engine;
       ob_start();
       require $template;
 
@@ -45,6 +46,7 @@ class PhpRenderer extends Renderer
     else if ($template instanceof StringStorage)
     {
       extract($parameters);
+      $view = $this->engine;
       ob_start();
       eval('; ?>'.$template.'<?php ;');
 
