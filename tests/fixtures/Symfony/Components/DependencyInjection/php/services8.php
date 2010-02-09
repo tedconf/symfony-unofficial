@@ -19,7 +19,24 @@ class ProjectServiceContainer extends Container
    */
   public function __construct()
   {
-    parent::__construct($this->getDefaultParameters());
+    parent::__construct();
+
+    $this->parameters = $this->getDefaultParameters();
+  }
+
+  /**
+   * Returns service ids for a given annotation.
+   *
+   * @param string $name The annotation name
+   *
+   * @return array An array of annotations
+   */
+  public function findAnnotatedServiceIds($name)
+  {
+    static $annotations = array (
+);
+
+    return isset($annotations[$name]) ? $annotations[$name] : array();
   }
 
   /**
