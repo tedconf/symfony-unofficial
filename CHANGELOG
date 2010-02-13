@@ -3,6 +3,31 @@ See the UPGRADE_TO_1_2 file for more information about upgrading your projects f
 
 All the new features are documented in the What's new? tutorial (http://www.symfony-project.org/tutorial/1_2/en/whats-new)
 
+02/13/10: Version 1.2.11
+------------------------
+
+ * [27989]: backported r27738 xss fix (closes #8176)
+ * [27816]: fixed invalid sprintf syntax in exception (closes #8256)
+ * [27616]: passed the changeStack option in ->get() and ->post() calls of sfBrowserBase to the delegated ->call() (fixes #4271)
+ * [27597]: fixed minor incompatibility of new link_to() behaviour with 1.0 behaviour (fixes #7933, #8231)
+ * [27479]: Removed svn version line from propel generated files showing them as modified even without changes each regeneration (backported r27472)
+ * [27415]: fixed sfFillInForm so that it doesn't loose encoding information (fixes #3943)
+ * [27191]: fixed missing variable declaration in sfProjectCOnfiguration (closes #7949)
+ * [27177]: added note about invalid link_to('#') usage to upgrade documentation (closes #8089)
+ * [26989]: fixed typo in getting Priorities from sfVarLogger (fixes #7938)
+ * [26982]: backported r21879 fix for doctrine debug panel not html-escaping (fixes #7972)
+ * [26968]: backport of r26957 fix for web debug toolbar handling svg elements
+ * [26681]: fixed format_currency is rounding bad (closes #6788)
+ * [26264]: fixed PHPDoc (closes #7983)
+ * [25459]: added the module name when including a partial in the admin generator
+ * [25458]: updated Turkish translations of the admin generator (closes #7928, patch by metoikos)
+ * [25411]: changed project:validate task to generate less false positive (closes #7852)
+ * [25410]: changed project:validate task to strip comments in PHP classes to avoid false positives (refs #7852)
+ * [25146]: backported r24971 (closes #7771)
+ * [24942]: updated japanese translation of the admin generator (closes #7814 patch by river.bright)
+ * [24780]: fixed warnings in project:validate task (closes #7770)
+ * [24706]: optimized project:validate task
+
 12/01/09: Version 1.2.10
 ------------------------
 
