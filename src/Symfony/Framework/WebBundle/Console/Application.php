@@ -38,7 +38,10 @@ class Application extends BaseApplication
 
     $this->definition->addOption(new InputOption('--shell', '-s', InputOption::PARAMETER_NONE, 'Launch the shell.'));
 
-    $this->kernel->boot();
+    if (!$this->kernel->isBooted())
+    {
+      $this->kernel->boot();
+    }
 
     $this->registerCommands();
   }
@@ -92,7 +95,7 @@ class Application extends BaseApplication
         // look for commands
         foreach (new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($commandDir), \RecursiveIteratorIterator::LEAVES_ONLY) as $file)
         {
-          if ($file->isDir())
+          if ($file->isDir() || strpos($file, -4) !== '.php')
           {
             continue;
           }

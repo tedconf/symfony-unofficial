@@ -4,7 +4,6 @@ namespace Symfony\Framework\WebBundle\DependencyInjection;
 
 use Symfony\Components\DependencyInjection\Loader\LoaderExtension;
 use Symfony\Components\DependencyInjection\Loader\XmlFileLoader;
-use Symfony\Components\DependencyInjection\Builder;
 use Symfony\Components\DependencyInjection\BuilderConfiguration;
 use Symfony\Components\DependencyInjection\Reference;
 
@@ -38,6 +37,11 @@ class WebExtension extends LoaderExtension
 
     $loader = new XmlFileLoader(__DIR__.'/../Resources/config');
     $configuration->merge($loader->load($this->resources['web']));
+
+    if (isset($config['ide']) && 'textmate' === $config['ide'])
+    {
+      $configuration->setParameter('debug.file_link_format', 'txmt://open?url=file://%%f&line=%%l');
+    }
 
     return $configuration;
   }
@@ -147,26 +151,12 @@ class WebExtension extends LoaderExtension
   {
     $configuration = new BuilderConfiguration();
 
-    $loader = new XmlFileLoader(__DIR__.'/../Resources/config');
-    $configuration->merge($loader->load($this->resources['debug']));
-
-    if (isset($config['exception']) && $config['exception'])
-    {
-      $configuration->merge($loader->load('debug_exception_handler.xml'));
-    }
-
     if (isset($config['toolbar']) && $config['toolbar'])
     {
+      $loader = new XmlFileLoader(__DIR__.'/../Resources/config');
       $configuration->merge($loader->load('debug_data_collector.xml'));
       $configuration->merge($loader->load('debug_web_debug_toolbar.xml'));
     }
-
-    if (isset($config['ide']) && 'textmate' === $config['ide'])
-    {
-      $configuration->setParameter('web_debug.file_link_format', 'txmt://open?url=file://%%f&line=%%l');
-    }
-
-    $configuration->setAlias('event_dispatcher', 'debug.event_dispatcher');
 
     return $configuration;
   }

@@ -41,6 +41,7 @@ class RunSqlDoctrineCommand extends DoctrineCommand
       ->addOption('sql', null, null, 'The SQL query to run.')
       ->addOption('file', null, null, 'Path to a SQL file to run.')
       ->addOption('depth', null, null, 'The depth to output the data to.')
+      ->addOption('connection', null, null, 'The connection to use.')
     ;
   }
 

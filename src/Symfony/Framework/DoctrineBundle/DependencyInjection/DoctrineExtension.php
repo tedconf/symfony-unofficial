@@ -5,6 +5,9 @@ namespace Symfony\Framework\DoctrineBundle\DependencyInjection;
 use Symfony\Components\DependencyInjection\Loader\LoaderExtension;
 use Symfony\Components\DependencyInjection\Loader\XmlFileLoader;
 use Symfony\Components\DependencyInjection\BuilderConfiguration;
+use Symfony\Components\DependencyInjection\Definition;
+use Symfony\Components\DependencyInjection\Reference;
+use Symfony\Components\DependencyInjection\Container;
 
 /*
  * This file is part of the symfony framework.
@@ -31,6 +34,11 @@ class DoctrineExtension extends LoaderExtension
 
   protected $alias;
 
+  public function __construct(Container $container)
+  {
+    $this->container = $container;
+  }
+
   public function setAlias($alias)
   {
     $this->alias = $alias;
@@ -54,31 +62,92 @@ class DoctrineExtension extends LoaderExtension
     $loader = new XmlFileLoader(__DIR__.'/../Resources/config');
     $configuration->merge($loader->load($this->resources['dbal']));
 
-    foreach (array('dbname', 'host', 'user', 'password', 'path', 'port') as $key)
+    $defaultConnection = array(
+      'driver'              => 'PDOMySQL',
+      'user'                => 'root',
+      'password'            => null,
+      'host'                => 'localhost',
+      'port'                => null,
+      'event_manager_class' => 'Doctrine\Common\EventManager',
+      'configuration_class' => 'Doctrine\DBAL\Configuration',
+      'wrapper_class'       => null,
+      'options'             => array()
+    );
+
+    $config['default_connection'] = isset($config['default_connection']) ? $config['default_connection'] : 'default';
+
+    $connections = array();
+    if (isset($config['connections']))
     {
-      if (isset($config[$key]))
+      foreach ($config['connections'] as $name => $connection)
       {
-        $configuration->setParameter('doctrine.dbal.'.$key, $config[$key]);
+        $connections[isset($connection['id']) ? $connection['id'] : $name] = $connection;
       }
     }
-
-    if (isset($config['options']))
+    else
     {
-      $configuration->setParameter('doctrine.dbal.driver.options', $config['options']);
+      $connections = array($config['default_connection'] => $config);
     }
 
-    if (isset($config['driver']))
+    foreach ($connections as $name => $connection)
     {
-      $class = $config['driver'];
-      if (in_array($class, array('OCI8', 'PDOMsSql', 'PDOMySql', 'PDOOracle', 'PDOPgSql', 'PDOSqlite')))
+      $connection = array_merge($defaultConnection, $connection);
+      $configurationClass = isset($connection['configuration_class']) ?
+        $connection['configuration_class'] : 'Doctrine\DBAL\Configuration';
+
+      $configurationDef = new Definition($configurationClass);
+      $configurationDef->addMethodCall('setSqlLogger', array(
+        new Reference('doctrine.dbal.logger')
+      ));
+      $configuration->setDefinition(
+        sprintf('doctrine.dbal.%s_connection.configuration', $name),
+        $configurationDef
+      );
+
+      $eventManagerDef = new Definition($connection['event_manager_class']);
+      $configuration->setDefinition(
+        sprintf('doctrine.dbal.%s_connection.event_manager', $name),
+        $eventManagerDef
+      );
+
+      $driverOptions = array();
+      if (isset($connection['driver']))
       {
-        $class = 'Doctrine\\DBAL\\Driver\\'.$class.'\\Driver';
+        $driverOptions['driverClass'] = sprintf(
+          'Doctrine\\DBAL\\Driver\\%s\\Driver',
+          $connection['driver']
+        );
       }
-
-      $configuration->setParameter('doctrine.dbal.driver.class', $class);
+      if (isset($connection['wrapper_class']))
+      {
+        $driverOptions['wrapperClass'] = $connection['wrapper_class'];
+      }
+      if (isset($connection['options']))
+      {
+        $driverOptions['driverOptions'] = $connection['options'];
+      }
+      foreach (array('dbname', 'host', 'user', 'password', 'path', 'port') as $key)
+      {
+        if (isset($connection[$key]))
+        {
+          $driverOptions[$key] = $connection[$key];
+        }
+      }
+      $driverArgs = array(
+        $driverOptions,
+        new Reference(sprintf('doctrine.dbal.%s_connection.configuration', $name)),
+        new Reference(sprintf('doctrine.dbal.%s_connection.event_manager', $name))
+      );
+      $driverDef = new Definition('Doctrine\DBAL\DriverManager', $driverArgs);
+      $driverDef->setConstructor('getConnection');
+      $configuration->setDefinition(sprintf('doctrine.dbal.%s_connection', $name), $driverDef);
     }
 
-    $configuration->setAlias('database_connection', null !== $this->alias ? $this->alias : 'doctrine.dbal.connection');
+    $configuration->setAlias('database_connection', 
+      null !== $this->alias ? $this->alias : sprintf(
+        'doctrine.dbal.%s_connection', $config['default_connection']
+      )
+    );
 
     return $configuration;
   }
@@ -97,7 +166,8 @@ class DoctrineExtension extends LoaderExtension
     $loader = new XmlFileLoader(__DIR__.'/../Resources/config');
     $configuration->merge($loader->load($this->resources['orm']));
 
-    foreach (array('entity_manager.class', 'metadata_driver_impl.class', 'cache.class') as $key)
+    $config['default_entity_manager'] = isset($config['default_entity_manager']) ? $config['default_entity_manager'] : 'default';
+    foreach (array('metadata_driver', 'cache_driver') as $key)
     {
       if (isset($config[$key]))
       {
@@ -105,7 +175,142 @@ class DoctrineExtension extends LoaderExtension
       }
     }
 
+    $config['entity_managers'] = isset($config['entity_managers']) ?
+      $config['entity_managers'] : array($config['default_entity_manager'] => array())
+    ;
+    foreach ($config['entity_managers'] as $name => $connection)
+    {
+      $ormConfigDef = new Definition('Doctrine\ORM\Configuration');
+      $configuration->setDefinition(
+        sprintf('doctrine.orm.%s_configuration', $name), $ormConfigDef
+      );
+
+      $drivers = array('metadata', 'query', 'result');
+      foreach ($drivers as $driver)
+      {
+        $definition = $configuration->getDefinition(sprintf('doctrine.orm.cache.%s', $configuration->getParameter('doctrine.orm.cache_driver')));
+        $clone = clone $definition;
+        $clone->addMethodCall('setNamespace', array(sprintf('doctrine_%s_', $driver)));
+        $configuration->setDefinition(sprintf('doctrine.orm.%s_cache', $driver), $clone);
+      }
+
+      // configure metadata driver for each bundle based on the type of mapping files found
+      $mappingDriverDef = new Definition('Doctrine\ORM\Mapping\Driver\DriverChain');
+      $bundleEntityMappings = array();
+      $bundleDirs = $this->container->getParameter('kernel.bundle_dirs');
+      foreach ($this->container->getParameter('kernel.bundles') as $className)
+      {
+        $tmp = dirname(str_replace('\\', '/', $className));
+        $namespace = str_replace('/', '\\', dirname($tmp));
+        $class = basename($tmp);
+
+        if (isset($bundleDirs[$namespace]))
+        {
+          if (is_dir($dir = $bundleDirs[$namespace].'/'.$class.'/Resources/config/doctrine/metadata'))
+          {
+            $type = $this->detectMappingType($dir);
+          }
+          elseif (is_dir($dir = $bundleDirs[$namespace].'/'.$class.'/Entities'))
+          {
+            $type = 'annotation';
+
+            $reader = new \Doctrine\Common\Annotations\AnnotationReader();
+            $reader->setDefaultAnnotationNamespace('Doctrine\\ORM\\Mapping\\');
+            $annotationDriver = new \Doctrine\ORM\Mapping\Driver\AnnotationDriver($reader, $dir);
+            $classNames = $annotationDriver->getAllClassNames();
+            foreach ($classNames as $className)
+            {
+              $alias = substr_replace($className, '', 0, strpos($className, '\\') + 1);
+              $alias = str_replace('\Entities\\', '\\', $alias);
+              $ormConfigDef->addMethodCall('addEntityAlias', array($className, $alias));
+            }
+          }
+          else
+          {
+            $type = false;
+          }
+
+          if (false !== $type)
+          {
+            $mappingDriverDef->addMethodCall('addDriver', array(
+                new Reference(sprintf('doctrine.orm.metadata_driver.%s', $type)),
+                $namespace.'\\'.$class.'\\Entities'
+              )
+            );
+          }
+        }
+      }
+
+      $configuration->setDefinition('doctrine.orm.metadata_driver', $mappingDriverDef);
+
+      $methods = array(
+        'setMetadataCacheImpl' => new Reference('doctrine.orm.metadata_cache'),
+        'setQueryCacheImpl' => new Reference('doctrine.orm.query_cache'),
+        'setResultCacheImpl' => new Reference('doctrine.orm.result_cache'),
+        'setMetadataDriverImpl' => new Reference('doctrine.orm.metadata_driver'),
+        'setProxyDir' => '%kernel.cache_dir%/doctrine/Proxies',
+        'setProxyNamespace' => 'Proxies',
+        'setAutoGenerateProxyClasses' => true
+      );
+
+      foreach ($methods as $method => $arg)
+      {
+        $ormConfigDef->addMethodCall($method, array($arg));
+      }
+
+      $ormEmArgs = array(
+        new Reference(
+          sprintf('doctrine.dbal.%s_connection',
+          isset($connection['connection']) ? $connection['connection'] : $name)
+        ),
+        new Reference(sprintf('doctrine.orm.%s_configuration', $name))
+      );
+      $ormEmDef = new Definition('Doctrine\ORM\EntityManager', $ormEmArgs);
+      $ormEmDef->setConstructor('create');
+
+      $configuration->setDefinition(
+        sprintf('doctrine.orm.%s_entity_manager', $name),
+        $ormEmDef
+      );
+
+      if ($name == $config['default_entity_manager'])
+      {
+        $configuration->setAlias(
+          'doctrine.orm.entity_manager',
+          sprintf('doctrine.orm.%s_entity_manager', $name)
+        );
+      }
+    }
+
+    $configuration->setAlias(
+      'doctrine.orm.cache',
+      sprintf(
+        'doctrine.orm.cache.%s',
+        $configuration->getParameter('doctrine.orm.cache_driver')
+      )
+    );
+
     return $configuration;
+  }
+
+  /**
+   * Detect the type of Doctrine 2 mapping files located in a given directory.
+   * Simply finds the first file in a directory and returns the extension. If no
+   * mapping files are found then the annotation type is returned.
+   *
+   * @param string $dir
+   * @return string $type
+   */
+  protected function detectMappingType($dir)
+  {
+    $files = glob($dir.'/*.*');
+    if (!$files)
+    {
+      return 'annotation';
+    }
+    $info = pathinfo($files[0]);
+
+    return $info['extension'];
   }
 
   /**

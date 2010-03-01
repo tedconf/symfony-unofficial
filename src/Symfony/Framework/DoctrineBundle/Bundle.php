@@ -28,7 +28,7 @@ class Bundle extends BaseBundle
 {
   public function buildContainer(ContainerInterface $container)
   {
-    Loader::registerExtension(new DoctrineExtension());
+    Loader::registerExtension(new DoctrineExtension($container));
 
     $metadataDirs = array();
     $entityDirs = array();
@@ -51,7 +51,7 @@ class Bundle extends BaseBundle
         }
       }
     }
-    $container->setParameter('doctrine.orm.metadata_driver_impl.dirs', $metadataDirs);
-    $container->setParameter('doctrine.entity_dirs', $entityDirs);
+    $container->setParameter('doctrine.orm.metadata_driver.mapping_dirs', $metadataDirs);
+    $container->setParameter('doctrine.orm.entity_dirs', $entityDirs);
   }
 }

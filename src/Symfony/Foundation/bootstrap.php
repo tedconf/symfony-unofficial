@@ -40,6 +40,8 @@ use Symfony\Foundation\Bundle\Bundle;
 use Symfony\Foundation\ClassCollectionLoader;
 use Symfony\Components\DependencyInjection\ContainerInterface;
 use Symfony\Components\DependencyInjection\Loader\Loader;
+use Symfony\Components\DependencyInjection\Loader\XmlFileLoader;
+use Symfony\Components\DependencyInjection\BuilderConfiguration;
 
 
 
@@ -49,6 +51,19 @@ class KernelBundle extends Bundle
   public function buildContainer(ContainerInterface $container)
   {
     Loader::registerExtension(new KernelExtension());
+
+    $configuration = new BuilderConfiguration();
+
+    $loader = new XmlFileLoader(array(__DIR__.'/../Resources/config', __DIR__.'/Resources/config'));
+    $configuration->merge($loader->load('services.xml'));
+
+    if ($container->getParameter('kernel.debug'))
+    {
+      $configuration->merge($loader->load('debug.xml'));
+      $configuration->setDefinition('event_dispatcher', $configuration->findDefinition('debug.event_dispatcher'));
+    }
+
+    return $configuration;
   }
 
   public function boot(ContainerInterface $container)
@@ -74,9 +89,6 @@ class KernelExtension extends LoaderExtension
   public function configLoad($config)
   {
     $configuration = new BuilderConfiguration();
-
-    $loader = new XmlFileLoader(array(__DIR__.'/../Resources/config', __DIR__.'/Resources/config'));
-    $configuration->merge($loader->load('services.xml'));
 
     if (isset($config['charset']))
     {
@@ -361,6 +373,12 @@ abstract class Kernel
   abstract public function registerRoutes();
 
   
+  public function isBooted()
+  {
+    return $this->booted;
+  }
+
+  
   public function boot()
   {
     if (true === $this->booted)
@@ -493,9 +511,9 @@ abstract class Kernel
     $parameters = array();
     foreach ($_SERVER as $key => $value)
     {
-      if ('SYMFONY__' === $key = substr($key, 0, 9))
+      if ('SYMFONY__' === substr($key, 0, 9))
       {
-        $parameters[strtolower(str_replace('__', '.', $key))] = $value;
+        $parameters[strtolower(str_replace('__', '.', substr($key, 9)))] = $value;
       }
     }
 
@@ -537,28 +555,20 @@ abstract class Kernel
     $container->merge($configuration);
     $this->optimizeContainer($container);
 
-        if (!is_dir($parameters['kernel.cache_dir']))
+    foreach (array('cache', 'logs') as $name)
     {
-      if (false === @mkdir($parameters['kernel.cache_dir'], 0777, true))
+      $key = sprintf('kernel.%s_dir', $name);
+      if (!is_dir($parameters[$key]))
       {
-        die(sprintf('Unable to create the cache directory (%s)', $parameters['kernel.cache_dir']));
+        if (false === @mkdir($parameters[$key], 0777, true))
+        {
+          die(sprintf('Unable to create the %s directory (%s)', $name, dirname($parameters['kernel.cache_dir'])));
+        }
       }
-    }
-    elseif (!is_writable($parameters['kernel.cache_dir']))
-    {
-      die(sprintf('Unable to write in the cache directory (%s)', $parameters['kernel.cache_dir']));
-    }
-
-        if (!is_dir($parameters['kernel.logs_dir']))
-    {
-      if (false === @mkdir($parameters['kernel.logs_dir'], 0777, true))
+      elseif (!is_writable($parameters[$key]))
       {
-        die(sprintf('Unable to create the logs directory (%s)', $parameters['kernel.logs_dir']));
+        die(sprintf('Unable to write in the %s directory (%s)', $name, $parameters['kernel.cache_dir']));
       }
-    }
-    elseif (!is_writable($parameters['kernel.logs_dir']))
-    {
-      die(sprintf('Unable to write in the logs directory (%s)', $parameters['kernel.logs_dir']));
     }
 
         $dumper = new PhpDumper($container);
