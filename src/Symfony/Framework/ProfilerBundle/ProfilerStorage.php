@@ -17,16 +17,16 @@ namespace Symfony\Framework\ProfilerBundle;
  * @package    symfony
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  */
-class RequestDebugData
+class ProfilerStorage
 {
   protected $token;
   protected $data;
   protected $store;
 
-  public function __construct($token, $store)
+  public function __construct($store, $token = null)
   {
-    $this->token = $token;
     $this->store = $store;
+    $this->token = null === $token ? uniqid() : $token;
     $this->data = null;
   }
 
@@ -58,14 +58,20 @@ class RequestDebugData
   protected function read()
   {
     $db = $this->initDb(SQLITE3_OPEN_CREATE | SQLITE3_OPEN_READ);
-    $this->data = $db->querySingle(sprintf("SELECT data FROM data WHERE token = '%s' LIMIT 1 ORDER BY created_at DESC", $db->escapeString($this->token)));
+    $data = $db->querySingle(sprintf("SELECT data FROM data WHERE token = '%s' LIMIT 1 ORDER BY created_at DESC", $db->escapeString($this->token)));
+
+    $this->data = unserialize(pack('H*', $data));
+
     $db->close();
   }
 
   public function write($data)
   {
+    $unpack = unpack('H*', serialize($data));
+    $data = $unpack[1];
+
     $db = $this->initDb(SQLITE3_OPEN_CREATE | SQLITE3_OPEN_READWRITE);
-    $db->exec(sprintf("INSERT INTO data (token, data, created_at) VALUES ('%s', '%s', %s)", $db->escapeString($this->token), $db->escapeString(serialize($data)), time()));
+    $db->exec(sprintf("INSERT INTO data (token, data, created_at) VALUES ('%s', '%s', %s)", $db->escapeString($this->token), $db->escapeString($data), time()));
     $db->close();
   }
 
