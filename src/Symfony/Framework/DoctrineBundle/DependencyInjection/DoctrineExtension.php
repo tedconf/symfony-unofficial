@@ -200,6 +200,7 @@ class DoctrineExtension extends LoaderExtension
       $mappingDriverDef = new Definition('Doctrine\ORM\Mapping\Driver\DriverChain');
       $bundleEntityMappings = array();
       $bundleDirs = $this->bundleDirs;
+      $aliasMap = array();
       foreach ($this->bundles as $className)
       {
         $tmp = dirname(str_replace('\\', '/', $className));
@@ -208,28 +209,17 @@ class DoctrineExtension extends LoaderExtension
 
         if (isset($bundleDirs[$namespace]))
         {
+          $type = false;
           if (is_dir($dir = $bundleDirs[$namespace].'/'.$class.'/Resources/config/doctrine/metadata'))
           {
             $type = $this->detectMappingType($dir);
           }
-          elseif (is_dir($dir = $bundleDirs[$namespace].'/'.$class.'/Entities'))
+
+          if (is_dir($dir = $bundleDirs[$namespace].'/'.$class.'/Entities'))
           {
             $type = 'annotation';
 
-            $reader = new \Doctrine\Common\Annotations\AnnotationReader();
-            $reader->setDefaultAnnotationNamespace('Doctrine\\ORM\\Mapping\\');
-            $annotationDriver = new \Doctrine\ORM\Mapping\Driver\AnnotationDriver($reader, $dir);
-            $classNames = $annotationDriver->getAllClassNames();
-            foreach ($classNames as $className)
-            {
-              $alias = substr_replace($className, '', 0, strpos($className, '\\') + 1);
-              $alias = str_replace('\Entities\\', '\\', $alias);
-              $ormConfigDef->addMethodCall('addEntityAlias', array($className, $alias));
-            }
-          }
-          else
-          {
-            $type = false;
+            $aliasMap[$class] = $namespace.'\\'.$class.'\\Entities';
           }
 
           if (false !== $type)
@@ -242,6 +232,7 @@ class DoctrineExtension extends LoaderExtension
           }
         }
       }
+      $ormConfigDef->addMethodCall('setEntityNamespaces', array($aliasMap));
 
       $configuration->setDefinition('doctrine.orm.metadata_driver', $mappingDriverDef);
 
