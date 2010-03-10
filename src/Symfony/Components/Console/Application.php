@@ -249,13 +249,13 @@ class Application
       $this->getLongVersion(),
       '',
       '<comment>Usage:</comment>',
-      sprintf("  %s [options] command [arguments]\n", $this->getName()),
+      sprintf("  [options] command [arguments]\n"),
       '<comment>Options:</comment>',
     );
 
     foreach ($this->definition->getOptions() as $option)
     {
-      $messages[] = sprintf('  %-24s %s  %s',
+      $messages[] = sprintf('  %-29s %s %s',
         '<info>--'.$option->getName().'</info>',
         $option->getShortcut() ? '<info>-'.$option->getShortcut().'</info>' : '  ',
         $option->getDescription()
