@@ -201,35 +201,37 @@ class DoctrineExtension extends LoaderExtension
       $bundleEntityMappings = array();
       $bundleDirs = $this->bundleDirs;
       $aliasMap = array();
-      foreach ($this->bundles as $className)
+      foreach (array_reverse($this->bundles) as $className)
       {
         $tmp = dirname(str_replace('\\', '/', $className));
         $namespace = str_replace('/', '\\', dirname($tmp));
         $class = basename($tmp);
 
-        if (isset($bundleDirs[$namespace]))
+        if (!isset($bundleDirs[$namespace]))
         {
-          $type = false;
-          if (is_dir($dir = $bundleDirs[$namespace].'/'.$class.'/Resources/config/doctrine/metadata'))
-          {
-            $type = $this->detectMappingType($dir);
-          }
+          continue;
+        }
 
-          if (is_dir($dir = $bundleDirs[$namespace].'/'.$class.'/Entities'))
-          {
-            $type = 'annotation';
+        $type = false;
+        if (is_dir($dir = $bundleDirs[$namespace].'/'.$class.'/Resources/config/doctrine/metadata'))
+        {
+          $type = $this->detectMappingType($dir);
+        }
 
-            $aliasMap[$class] = $namespace.'\\'.$class.'\\Entities';
-          }
+        if (is_dir($dir = $bundleDirs[$namespace].'/'.$class.'/Entities'))
+        {
+          $type = 'annotation';
 
-          if (false !== $type)
-          {
-            $mappingDriverDef->addMethodCall('addDriver', array(
-                new Reference(sprintf('doctrine.orm.metadata_driver.%s', $type)),
-                $namespace.'\\'.$class.'\\Entities'
-              )
-            );
-          }
+          $aliasMap[$class] = $namespace.'\\'.$class.'\\Entities';
+        }
+
+        if (false !== $type)
+        {
+          $mappingDriverDef->addMethodCall('addDriver', array(
+              new Reference(sprintf('doctrine.orm.metadata_driver.%s', $type)),
+              $namespace.'\\'.$class.'\\Entities'
+            )
+          );
         }
       }
       $ormConfigDef->addMethodCall('setEntityNamespaces', array($aliasMap));
