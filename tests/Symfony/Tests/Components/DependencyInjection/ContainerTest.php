@@ -10,8 +10,6 @@
 
 namespace Symfony\Tests\Components\DependencyInjection;
 
-require_once __DIR__.'/../../bootstrap.php';
-
 use Symfony\Components\DependencyInjection\Container;
 
 class ContainerTest extends \PHPUnit_Framework_TestCase
@@ -173,6 +171,20 @@ class ContainerTest extends \PHPUnit_Framework_TestCase
       $this->fail('__call() throws a \RuntimeException exception if the method is not a service method');
     }
     catch (\RuntimeException $e)
+    {
+    }
+  }
+
+  public function testGetService()
+  {
+    $sc = new Container();
+
+    try
+    {
+      $sc->getService('');
+      $this->fail('->getService() throws a \InvalidArgumentException exception if the service is empty');
+    }
+    catch (\InvalidArgumentException $e)
     {
     }
   }

@@ -11,14 +11,12 @@
 
 namespace Symfony\Tests\Components\RequestHandler;
 
-require_once __DIR__.'/../../bootstrap.php';
-
 use Symfony\Components\RequestHandler\Request;
 
 class RequestTest extends \PHPUnit_Framework_TestCase
 {
   /**
-   * @covers Request::__construct()
+   * @covers Symfony\Components\RequestHandler\Request::__construct
    */
   public function testConstructor()
   {
@@ -26,7 +24,7 @@ class RequestTest extends \PHPUnit_Framework_TestCase
   }
 
   /**
-   * @covers Request::setParameters()
+   * @covers Symfony\Components\RequestHandler\Request::setParameters
    */
   public function testSetParameters()
   {
@@ -46,7 +44,7 @@ class RequestTest extends \PHPUnit_Framework_TestCase
   }
 
   /**
-   * @covers Request::duplicate()
+   * @covers Symfony\Components\RequestHandler\Request::duplicate
    */
   public function testDuplicate()
   {
