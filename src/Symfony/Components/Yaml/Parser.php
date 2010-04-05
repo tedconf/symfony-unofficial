@@ -42,13 +42,19 @@ class Parser
    *
    * @return mixed  A PHP value
    *
-   * @throws \InvalidArgumentException If the YAML is not valid
+   * @throws ParserException If the YAML is not valid
    */
   public function parse($value)
   {
     $this->currentLineNb = -1;
     $this->currentLine = '';
     $this->lines = explode("\n", $this->cleanup($value));
+
+    if (function_exists('mb_internal_encoding') && ((int) ini_get('mbstring.func_overload')) & 2)
+    {
+      $mbEncoding = mb_internal_encoding();
+      mb_internal_encoding('ASCII');
+    }
 
     $data = array();
     while ($this->moveToNextLine())
@@ -220,6 +226,11 @@ class Parser
             }
           }
 
+          if (isset($mbEncoding))
+          {
+            mb_internal_encoding($mbEncoding);
+          }
+
           return $value;
         }
 
@@ -253,6 +264,11 @@ class Parser
       }
     }
 
+    if (isset($mbEncoding))
+    {
+      mb_internal_encoding($mbEncoding);
+    }
+
     return empty($data) ? null : $data;
   }
 
@@ -282,6 +298,8 @@ class Parser
    * @param integer $indentation The indent level at which the block is to be read, or null for default
    *
    * @return string A YAML string
+   *
+   * @throws ParserException When indentation problem are detected
    */
   protected function getNextEmbedBlock($indentation = null)
   {
@@ -370,6 +388,8 @@ class Parser
    * @param  string $value A YAML value
    *
    * @return mixed  A PHP value
+   *
+   * @throws ParserException When reference doesn't not exist
    */
   protected function parseValue($value)
   {

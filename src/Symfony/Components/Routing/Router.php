@@ -41,6 +41,8 @@ class Router implements RouterInterface
    * @param array $options  An array of options
    * @param array $context  The context
    * @param array $defaults The default values
+   *
+   * @throws \InvalidArgumentException When unsupported option is provided
    */
   public function __construct($loader, array $options = array(), array $context = array(), array $defaults = array())
   {
@@ -52,7 +54,7 @@ class Router implements RouterInterface
       'debug'                  => false,
       'generator_class'        => 'Symfony\\Components\\Routing\\Generator\\UrlGenerator',
       'generator_base_class'   => 'Symfony\\Components\\Routing\\Generator\\UrlGenerator',
-      'generator_dumper_class' => 'Symfony\Components\Routing\Generator\Dumper\PhpGeneratorDumper',
+      'generator_dumper_class' => 'Symfony\\Components\\Routing\\Generator\\Dumper\\PhpGeneratorDumper',
       'generator_cache_class'  => 'ProjectUrlGenerator',
       'matcher_class'          => 'Symfony\\Components\\Routing\\Matcher\\UrlMatcher',
       'matcher_base_class'     => 'Symfony\\Components\\Routing\\Matcher\\UrlMatcher',
@@ -249,6 +251,9 @@ class Router implements RouterInterface
     return $this->options['cache_dir'].'/'.$class.'.'.$extension;
   }
 
+  /**
+   * @throws \RuntimeException When cache file can't be wrote 
+   */
   protected function writeCacheFile($file, $content)
   {
     $tmpFile = tempnam(dirname($file), basename($file));

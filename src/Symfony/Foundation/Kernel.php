@@ -25,7 +25,7 @@ use Symfony\Components\RequestHandler\RequestInterface;
  * @package Symfony
  * @author  Fabien Potencier <fabien.potencier@symfony-project.org>
  */
-abstract class Kernel
+abstract class Kernel implements \Serializable
 {
   protected $bundles;
   protected $bundleDirs;
@@ -98,6 +98,8 @@ abstract class Kernel
    * the DI container.
    *
    * @return Kernel The current Kernel instance
+   *
+   * @throws \LogicException When the Kernel is already booted
    */
   public function boot()
   {
@@ -379,5 +381,17 @@ abstract class Kernel
 
     @rename($tmpFile, $file);
     chmod($file, 0644);
+  }
+
+  public function serialize()
+  {
+    return serialize(array($this->environment, $this->debug));
+  }
+
+  public function unserialize($data)
+  {
+    list($environment, $debug) = unserialize($data);
+
+    $this->__construct($environment, $debug);
   }
 }
