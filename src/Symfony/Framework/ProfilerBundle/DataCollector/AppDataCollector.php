@@ -3,7 +3,7 @@
 namespace Symfony\Framework\ProfilerBundle\DataCollector;
 
 /*
- * This file is part of the symfony framework.
+ * This file is part of the Symfony framework.
  *
  * (c) Fabien Potencier <fabien.potencier@symfony-project.com>
  *
@@ -12,9 +12,10 @@ namespace Symfony\Framework\ProfilerBundle\DataCollector;
  */
 
 /**
- * 
+ * AppDataCollector.
  *
- * @package    symfony
+ * @package    Symfony
+ * @subpackage Framework_ProfilerBundle
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  */
 class AppDataCollector extends DataCollector
@@ -24,7 +25,7 @@ class AppDataCollector extends DataCollector
     $request = $this->container->getRequestService();
 
     return array(
-      'route'        => $request->getPathParameter('_route') ? $request->getPathParameter('_route') : '<span style="color: #a33">NONE</span>',
+      'route'        => $request->path->get('_route') ? $request->path->get('_route') : '<span style="color: #a33">NONE</span>',
       'format'       => $request->getRequestFormat(),
       'content_type' => $this->manager->getResponse()->getHeader('Content-Type') ? $this->manager->getResponse()->getHeader('Content-Type') : 'text/html',
       'code'         => $this->manager->getResponse()->getStatusCode(),

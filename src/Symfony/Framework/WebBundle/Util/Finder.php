@@ -3,7 +3,7 @@
 namespace Symfony\Framework\WebBundle\Util;
 
 /*
- * This file is part of the symfony framework.
+ * This file is part of the Symfony framework.
  *
  * (c) Fabien Potencier <fabien.potencier@symfony-project.com>
  *
@@ -24,8 +24,9 @@ namespace Symfony\Framework\WebBundle\Util;
  *
  * Interface loosely based on perl File::Find::Rule module.
  *
- * @package symfony
- * @author  Fabien Potencier <fabien.potencier@symfony-project.com>
+ * @package    Symfony
+ * @subpackage Framework_WebBundle
+ * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  */
 class Finder
 {
@@ -241,7 +242,7 @@ class Finder
    *
    * Currently supports Subversion, CVS, DARCS, Gnu Arch, Monotone, Bazaar-NG, GIT, Mercurial
    *
-   * @param  bool   $ignore  falase when version control directories shall be included (default is true)
+   * @param  bool   $ignore  false when version control directories shall be included (default is true)
    *
    * @return Finder Current object
    */
@@ -279,7 +280,7 @@ class Finder
   /**
    * Executes function or method for each element.
    *
-   * Element match if functino or method returns true.
+   * Element match if function or method returns true.
    *
    * $finder->exec('myfunction');
    * $finder->exec(array($object, 'mymethod'));

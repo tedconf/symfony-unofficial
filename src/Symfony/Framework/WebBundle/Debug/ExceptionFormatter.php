@@ -5,7 +5,7 @@ namespace Symfony\Framework\WebBundle\Debug;
 use Symfony\Components\DependencyInjection\ContainerInterface;
 
 /*
- * This file is part of the symfony framework.
+ * This file is part of the Symfony framework.
  *
  * (c) Fabien Potencier <fabien.potencier@symfony-project.com>
  *
@@ -14,9 +14,10 @@ use Symfony\Components\DependencyInjection\ContainerInterface;
  */
 
 /**
- * 
+ * ExceptionFormatter.
  *
- * @package    symfony
+ * @package    Symfony
+ * @subpackage Framework_WebBundle
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  */
 class ExceptionFormatter
@@ -144,7 +145,7 @@ class ExceptionFormatter
       {
         $formattedValue = $value;
       }
-      
+
       $result[] = is_int($key) ? $formattedValue : sprintf("'%s' => %s", $this->escape($key), $formattedValue);
     }
 
@@ -153,12 +154,12 @@ class ExceptionFormatter
 
   /**
    * Formats a file path.
-   * 
+   *
    * @param  string  $file   An absolute file path
    * @param  integer $line   The line number
    * @param  string  $format The output format (txt or html)
    * @param  string  $text   Use this text for the link rather than the file path
-   * 
+   *
    * @return string
    */
   protected function formatFile($file, $line, $format = 'html', $text = null)

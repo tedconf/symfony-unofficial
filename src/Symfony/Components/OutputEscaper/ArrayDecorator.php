@@ -3,7 +3,7 @@
 namespace Symfony\Components\OutputEscaper;
 
 /*
- * This file is part of the symfony package.
+ * This file is part of the Symfony package.
  *
  * (c) Fabien Potencier <fabien.potencier@symfony-project.com>
  *
@@ -15,8 +15,8 @@ namespace Symfony\Components\OutputEscaper;
  * Output escaping decorator class for arrays.
  *
  * @see        Escaper
- * @package    symfony
- * @subpackage output_escaper
+ * @package    Symfony
+ * @subpackage Components_OutputEscaper
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  * @author     Mike Squire <mike@somosis.co.uk>
  */
@@ -89,7 +89,7 @@ class ArrayDecorator extends GetterDecorator implements \Iterator, \ArrayAccess,
   /**
    * Returns true if the supplied offset isset in the array (as required by the ArrayAccess interface).
    *
-   * @param  string $offset  The offset of the value to check existance of
+   * @param  string $offset  The offset of the value to check existence of
    *
    * @return bool true if the offset isset; false otherwise
    */

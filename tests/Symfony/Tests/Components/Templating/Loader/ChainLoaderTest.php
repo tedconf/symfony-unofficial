@@ -4,7 +4,7 @@
  * This file is part of the symfony package.
  *
  * (c) Fabien Potencier <fabien.potencier@symfony-project.com>
- * 
+ *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -44,9 +44,9 @@ class ChainLoaderTest extends \PHPUnit_Framework_TestCase
   public function testLoad()
   {
     $loader = new ProjectTemplateLoader1(array(self::$loader1, self::$loader2));
-    $this->assertTrue($loader->load('bar') === false, '->load() returns false if the template is not found');
-    $this->assertTrue($loader->load('foo', array('renderer' => 'xml')) === false, '->load() returns false if the template does not exists for the given renderer');
-    $this->assertTrue($loader->load('foo') instanceof FileStorage, '->load() returns a FileStorage if the template exists');
+    $this->assertFalse($loader->load('bar'), '->load() returns false if the template is not found');
+    $this->assertFalse($loader->load('foo', array('renderer' => 'xml')), '->load() returns false if the template does not exists for the given renderer');
+    $this->assertType('Symfony\Components\Templating\Storage\FileStorage', $loader->load('foo'), '->load() returns a FileStorage if the template exists');
   }
 }
 

@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 namespace Symfony\Foundation\Bundle;
 
@@ -77,11 +77,11 @@ class KernelBundle extends Bundle
 
 namespace Symfony\Foundation\Bundle;
 
-
-
 use Symfony\Components\DependencyInjection\Loader\LoaderExtension;
 use Symfony\Components\DependencyInjection\Loader\XmlFileLoader;
 use Symfony\Components\DependencyInjection\BuilderConfiguration;
+
+
 
 
 class KernelExtension extends LoaderExtension
@@ -145,7 +145,7 @@ class KernelExtension extends LoaderExtension
     return $configuration;
   }
 
-  
+
   public function getXsdValidationBasePath()
   {
     return false;
@@ -182,7 +182,7 @@ class ErrorHandler
 
   protected $level;
 
-  
+
   public function __construct($level = null)
   {
     $this->level = null === $level ? error_reporting() : $level;
@@ -192,6 +192,7 @@ class ErrorHandler
   {
     set_error_handler(array($this, 'handle'));
   }
+
 
   public function handle($level, $message, $file, $line, $context)
   {
@@ -217,6 +218,7 @@ namespace Symfony\Foundation;
 
 class ClassCollectionLoader
 {
+
   static public function load($classes, $cacheDir, $name, $autoReload)
   {
     $cache = $cacheDir.'/'.$name.'.php';
@@ -310,14 +312,14 @@ class ClassCollectionLoader
 
 namespace Symfony\Foundation;
 
-
-
 use Symfony\Components\DependencyInjection\ContainerInterface;
 use Symfony\Components\DependencyInjection\Builder;
 use Symfony\Components\DependencyInjection\BuilderConfiguration;
 use Symfony\Components\DependencyInjection\Dumper\PhpDumper;
 use Symfony\Components\DependencyInjection\FileResource;
 use Symfony\Components\RequestHandler\RequestInterface;
+
+
 
 
 abstract class Kernel implements \Serializable
@@ -334,7 +336,7 @@ abstract class Kernel implements \Serializable
 
   const VERSION = '2.0.0-DEV';
 
-  
+
   public function __construct($environment, $debug)
   {
     $this->debug = (Boolean) $debug;
@@ -371,13 +373,13 @@ abstract class Kernel implements \Serializable
 
   abstract public function registerRoutes();
 
-  
+
   public function isBooted()
   {
     return $this->booted;
   }
 
-  
+
   public function boot()
   {
     if (true === $this->booted)
@@ -413,6 +415,10 @@ abstract class Kernel implements \Serializable
     if (null === $request)
     {
       $request = $this->container->getRequestService();
+    }
+    else
+    {
+      $this->container->setService('request', $request);
     }
 
     return $this->container->getRequestHandlerService()->handle($request);
@@ -677,7 +683,7 @@ class EventDispatcher extends BaseEventDispatcher
 {
   protected $container;
 
-  
+
   public function __construct(ContainerInterface $container)
   {
     $this->container = $container;
@@ -694,7 +700,7 @@ class EventDispatcher extends BaseEventDispatcher
     }
   }
 
-  
+
   public function getListeners($name)
   {
     if (!isset($this->listeners[$name]))

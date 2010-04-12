@@ -7,7 +7,7 @@ use Symfony\Components\EventDispatcher\Event;
 use Symfony\Framework\WebBundle\Session\SessionInterface;
 
 /*
- * This file is part of the symfony framework.
+ * This file is part of the Symfony framework.
  *
  * (c) Fabien Potencier <fabien.potencier@symfony-project.com>
  *
@@ -16,9 +16,10 @@ use Symfony\Framework\WebBundle\Session\SessionInterface;
  */
 
 /**
+ * User.
  *
- *
- * @package    symfony
+ * @package    Symfony
+ * @subpackage Framework_WebBundle
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  */
 class User
@@ -53,7 +54,7 @@ class User
    * Returns a user attribute
    *
    * @param string $name    The attribute name
-   * @param mixed  $default The defaut value
+   * @param mixed  $default The default value
    *
    * @return mixed
    */
@@ -63,10 +64,10 @@ class User
   }
 
   /**
-   * Sets an user attribute
-   * 
+   * Sets an user attribute.
+   *
    * @param string $name
-   * @param mixed $value
+   * @param mixed  $value
    */
   public function setAttribute($name, $value)
   {
@@ -104,9 +105,9 @@ class User
   }
 
   /**
-   * Sets the user culture
-   * 
-   * @param string $culture 
+   * Sets the user culture.
+   *
+   * @param string $culture
    */
   public function setCulture($culture)
   {

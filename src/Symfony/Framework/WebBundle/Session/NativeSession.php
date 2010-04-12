@@ -3,7 +3,7 @@
 namespace Symfony\Framework\WebBundle\Session;
 
 /*
- * This file is part of the symfony framework.
+ * This file is part of the Symfony framework.
  *
  * (c) Fabien Potencier <fabien.potencier@symfony-project.com>
  *
@@ -12,9 +12,10 @@ namespace Symfony\Framework\WebBundle\Session;
  */
 
 /**
+ * NativeSession.
  *
- *
- * @package    symfony
+ * @package    Symfony
+ * @subpackage Framework_WebBundle
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  */
 class NativeSession implements SessionInterface
@@ -84,13 +85,13 @@ class NativeSession implements SessionInterface
       self::$sessionStarted = true;
     }
   }
-  
+
   /**
    * Reads data from this storage.
    *
    * The preferred format for a key is directory style so naming conflicts can be avoided.
    *
-   * @param  string $key  A unique key identifying your data
+   * @param string $key A unique key identifying your data
    *
    * @return mixed Data associated with the key
    */

@@ -3,7 +3,7 @@
 namespace Symfony\Framework\WebBundle\Util;
 
 /*
- * This file is part of the symfony framework.
+ * This file is part of the Symfony framework.
  *
  * (c) Fabien Potencier <fabien.potencier@symfony-project.com>
  *
@@ -14,8 +14,9 @@ namespace Symfony\Framework\WebBundle\Util;
 /**
  * Provides basic utility to manipulate the file system.
  *
- * @package symfony
- * @author  Fabien Potencier <fabien.potencier@symfony-project.com>
+ * @package    Symfony
+ * @subpackage Framework_WebBundle
+ * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  */
 class Filesystem
 {
@@ -24,7 +25,7 @@ class Filesystem
    *
    * This method only copies the file if the origin file is newer than the target file.
    *
-   * By default, if the target already exists, it is not overriden.
+   * By default, if the target already exists, it is not overridden.
    *
    * To override existing files, pass the "override" option.
    *

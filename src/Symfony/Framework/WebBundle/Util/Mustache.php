@@ -3,7 +3,7 @@
 namespace Symfony\Framework\WebBundle\Util;
 
 /*
- * This file is part of the symfony framework.
+ * This file is part of the Symfony framework.
  *
  * (c) Fabien Potencier <fabien.potencier@symfony-project.com>
  *
@@ -11,6 +11,13 @@ namespace Symfony\Framework\WebBundle\Util;
  * with this source code in the file LICENSE.
  */
 
+/**
+ * Mustache.
+ *
+ * @package    Symfony
+ * @subpackage Framework_WebBundle
+ * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
+ */
 class Mustache
 {
   static public function renderFile($file, $parameters)
@@ -27,6 +34,11 @@ class Mustache
   {
     foreach (new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($dir), \RecursiveIteratorIterator::LEAVES_ONLY) as $file)
     {
+      if ($file->isDot())
+      {
+        continue;
+      }
+
       static::renderFile((string) $file, $parameters);
     }
   }

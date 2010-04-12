@@ -6,9 +6,10 @@ use Symfony\Components\DependencyInjection\ContainerInterface;
 use Symfony\Components\EventDispatcher\Event;
 use Symfony\Components\RequestHandler\Response;
 use Symfony\Framework\ProfilerBundle\ProfilerStorage;
+use Symfony\Foundation\LoggerInterface;
 
 /*
- * This file is part of the symfony framework.
+ * This file is part of the Symfony framework.
  *
  * (c) Fabien Potencier <fabien.potencier@symfony-project.com>
  *
@@ -17,9 +18,10 @@ use Symfony\Framework\ProfilerBundle\ProfilerStorage;
  */
 
 /**
- * 
+ * DataCollectorManager.
  *
- * @package    symfony
+ * @package    Symfony
+ * @subpackage Framework_ProfilerBundle
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  */
 class DataCollectorManager
@@ -29,10 +31,12 @@ class DataCollectorManager
   protected $collectors;
   protected $response;
   protected $lifetime;
+  protected $logger;
 
-  public function __construct(ContainerInterface $container, ProfilerStorage $profilerStorage, $lifetime = 86400)
+  public function __construct(ContainerInterface $container, LoggerInterface $logger, ProfilerStorage $profilerStorage, $lifetime = 86400)
   {
     $this->container = $container;
+    $this->logger = $logger;
     $this->lifetime = $lifetime;
     $this->profilerStorage = $profilerStorage;
     $this->collectors = $this->initCollectors();
@@ -57,8 +61,16 @@ class DataCollectorManager
     {
       $data[$name] = $collector->getData();
     }
-    $this->profilerStorage->write($data);
-    $this->profilerStorage->purge($this->lifetime);
+
+    try
+    {
+      $this->profilerStorage->write($data);
+      $this->profilerStorage->purge($this->lifetime);
+    }
+    catch (\Exception $e)
+    {
+      $this->logger->err('Unable to store the profiler information.');
+    }
 
     return $response;
   }
@@ -82,7 +94,7 @@ class DataCollectorManager
   {
     $config = $this->container->findAnnotatedServiceIds('data_collector');
     $ids = array();
-    $coreColectors = array();
+    $coreCollectors = array();
     $userCollectors = array();
     foreach ($config as $id => $attributes)
     {
@@ -91,7 +103,7 @@ class DataCollectorManager
 
       if (isset($attributes[0]['core']) && $attributes[0]['core'])
       {
-        $coreColectors[$collector->getName()] = $collector;
+        $coreCollectors[$collector->getName()] = $collector;
       }
       else
       {
@@ -99,6 +111,6 @@ class DataCollectorManager
       }
     }
 
-    return $this->collectors = array_merge($coreColectors, $userCollectors);
+    return $this->collectors = array_merge($coreCollectors, $userCollectors);
   }
 }

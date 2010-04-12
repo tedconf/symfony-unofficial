@@ -3,7 +3,7 @@
 namespace Symfony\Components\CssSelector;
 
 /*
- * This file is part of the symfony package.
+ * This file is part of the Symfony package.
  *
  * (c) Fabien Potencier <fabien.potencier@symfony-project.com>
  *
@@ -17,8 +17,8 @@ namespace Symfony\Components\CssSelector;
  * This component is a port of the Python lxml library,
  * which is copyright Infrae and distributed under the BSD license.
  *
- * @package    symfony
- * @subpackage css_selector
+ * @package    Symfony
+ * @subpackage Components_CssSelector
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  */
 class XPathExpr
@@ -36,6 +36,21 @@ class XPathExpr
     $this->element = $element;
     $this->condition = $condition;
     $this->starPrefix = $starPrefix;
+  }
+
+  public function getPrefix()
+  {
+    return $this->prefix;
+  }
+
+  public function getPath()
+  {
+    return $this->path;
+  }
+
+  public function hasStarPrefix()
+  {
+    return $this->starPrefix;
   }
 
   public function getElement()
@@ -130,18 +145,18 @@ class XPathExpr
     $prefix = (string) $this;
 
     $prefix .= $combiner;
-    $path = $other->prefix.$other->path;
+    $path = $other->getPrefix().$other->getPath();
 
     /* We don't need a star prefix if we are joining to this other
        prefix; so we'll get rid of it */
-    if ($other->starPrefix && $path == '*/')
+    if ($other->hasStarPrefix() && $path == '*/')
     {
       $path = '';
     }
     $this->prefix = $prefix;
     $this->path = $path;
-    $this->element = $other->element;
-    $this->condition = $other->condition;
+    $this->element = $other->getElement();
+    $this->condition = $other->GetCondition();
   }
 
   static public function xpathLiteral($s)

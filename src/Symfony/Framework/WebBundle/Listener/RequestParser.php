@@ -8,7 +8,7 @@ use Symfony\Components\EventDispatcher\Event;
 use Symfony\Components\Routing\RouterInterface;
 
 /*
- * This file is part of the symfony framework.
+ * This file is part of the Symfony framework.
  *
  * (c) Fabien Potencier <fabien.potencier@symfony-project.com>
  *
@@ -17,9 +17,10 @@ use Symfony\Components\Routing\RouterInterface;
  */
 
 /**
- * 
+ * RequestParser.
  *
- * @package    symfony
+ * @package    Symfony
+ * @subpackage Framework_WebBundle
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  */
 class RequestParser
@@ -51,7 +52,7 @@ class RequestParser
 
     $this->container->setParameter('request.base_path', $request->getBasePath());
 
-    if ($request->getPathParameter('_bundle'))
+    if ($request->path->get('_bundle'))
     {
       return;
     }
@@ -70,7 +71,7 @@ class RequestParser
         $this->logger->info(sprintf('Matched route "%s" (parameters: %s)', $parameters['_route'], str_replace("\n", '', var_export($parameters, true))));
       }
 
-      $request->setPathParameters($parameters);
+      $request->path->replace($parameters);
     }
     elseif (null !== $this->logger)
     {

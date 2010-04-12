@@ -3,7 +3,7 @@
 /*
  * This file is part of the symfony package.
  * (c) Fabien Potencier <fabien.potencier@symfony-project.com>
- * 
+ *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -23,8 +23,10 @@ class LoaderExtensionTest extends \PHPUnit_Framework_TestCase
       $extension->load('foo', array());
       $this->fail('->load() throws an InvalidArgumentException if the tag does not exist');
     }
-    catch (\InvalidArgumentException $e)
+    catch (\Exception $e)
     {
+      $this->assertType('\InvalidArgumentException', $e, '->load() throws an InvalidArgumentException if the tag does not exist');
+      $this->assertEquals('The tag "foo" is not defined in the "http://www.example.com/schema/project" extension.', $e->getMessage(), '->load() throws an InvalidArgumentException if the tag does not exist');
     }
 
     $config = $extension->load('bar', array('foo' => 'bar'));

@@ -3,7 +3,7 @@
 /*
  * This file is part of the symfony package.
  * (c) Fabien Potencier <fabien.potencier@symfony-project.com>
- * 
+ *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -24,8 +24,10 @@ class DumperTest extends \PHPUnit_Framework_TestCase
       $dumper->dump();
       $this->fail('->dump() returns a LogicException if the dump() method has not been overriden by a children class');
     }
-    catch (\LogicException $e)
+    catch (\Exception $e)
     {
+      $this->assertType('\LogicException', $e, '->dump() returns a LogicException if the dump() method has not been overriden by a children class');
+      $this->assertEquals('You must extend this abstract class and implement the dump() method.', $e->getMessage(), '->dump() returns a LogicException if the dump() method has not been overriden by a children class');
     }
   }
 }

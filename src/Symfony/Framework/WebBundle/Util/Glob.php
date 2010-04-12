@@ -3,7 +3,7 @@
 namespace Symfony\Framework\WebBundle\Util;
 
 /*
- * This file is part of the symfony framework.
+ * This file is part of the Symfony framework.
  *
  * (c) Fabien Potencier <fabien.potencier@symfony-project.com>
  *
@@ -28,10 +28,11 @@ namespace Symfony\Framework\WebBundle\Util;
  *
  * based on perl Text::Glob module.
  *
- * @package    symfony
- * @author     Fabien Potencier <fabien.potencier@gmail.com> php port
+ * @package    Symfony
+ * @subpackage Framework_WebBundle
+ * @author     Fabien Potencier <fabien.potencier@symfony-project.com> php port
  * @author     Richard Clamp <richardc@unixbeard.net> perl version
- * @copyright  2004-2005 Fabien Potencier <fabien.potencier@gmail.com>
+ * @copyright  2004-2005 Fabien Potencier <fabien.potencier@symfony-project.com>
  * @copyright  2002 Richard Clamp <richardc@unixbeard.net>
  */
 class Glob
@@ -50,7 +51,7 @@ class Glob
   }
 
   /**
-   * Returns a compiled regex which is the equiavlent of the globbing pattern.
+   * Returns a compiled regex which is the equivalent of the globbing pattern.
    *
    * @param  string $glob  pattern
    * @return string regex

@@ -9,7 +9,7 @@ use Symfony\Components\DependencyInjection\Definition;
 use Symfony\Components\DependencyInjection\Reference;
 
 /*
- * This file is part of the symfony framework.
+ * This file is part of the Symfony framework.
  *
  * (c) Fabien Potencier <fabien.potencier@symfony-project.com>
  *
@@ -20,8 +20,8 @@ use Symfony\Components\DependencyInjection\Reference;
 /**
  * DoctrineExtension is an extension for the Doctrine DBAL and ORM library.
  *
- * @package    symfony
- * @subpackage dependency_injection
+ * @package    Symfony
+ * @subpackage Framework_DoctrineBundle
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  */
 class DoctrineExtension extends LoaderExtension
@@ -145,7 +145,7 @@ class DoctrineExtension extends LoaderExtension
       $configuration->setDefinition(sprintf('doctrine.dbal.%s_connection', $name), $driverDef);
     }
 
-    $configuration->setAlias('database_connection', 
+    $configuration->setAlias('database_connection',
       null !== $this->alias ? $this->alias : sprintf(
         'doctrine.dbal.%s_connection', $config['default_connection']
       )
@@ -329,7 +329,7 @@ class DoctrineExtension extends LoaderExtension
   }
 
   /**
-   * Returns the recommanded alias to use in XML.
+   * Returns the recommended alias to use in XML.
    *
    * This alias is also the mandatory prefix to use when using YAML.
    *

@@ -11,6 +11,7 @@
 namespace Symfony\Tests\Components\Console\Command;
 
 use Symfony\Components\Console\Command\Command;
+use Symfony\Components\Console\Helper\FormatterHelper;
 use Symfony\Components\Console\Application;
 use Symfony\Components\Console\Input\InputDefinition;
 use Symfony\Components\Console\Input\InputArgument;
@@ -40,8 +41,10 @@ class CommandTest extends \PHPUnit_Framework_TestCase
       $command = new Command();
       $this->fail('__construct() throws a \LogicException if the name is null');
     }
-    catch (\LogicException $e)
+    catch (\Exception $e)
     {
+      $this->assertType('\LogicException', $e, '__construct() throws a \LogicException if the name is null');
+      $this->assertEquals('The command name cannot be empty.', $e->getMessage(), '__construct() throws a \LogicException if the name is null');
     }
     $command = new Command('foo:bar');
     $this->assertEquals('foo:bar', $command->getFullName(), '__construct() takes the command name as its first argument');
@@ -83,7 +86,7 @@ class CommandTest extends \PHPUnit_Framework_TestCase
     $this->assertTrue($command->getDefinition()->hasOption('foo'), '->addOption() adds an option to the command');
   }
 
-  public function testgetNamespaceGetNameGetFullNameSetName()
+  public function testGetNamespaceGetNameGetFullNameSetName()
   {
     $command = new \TestCommand();
     $this->assertEquals('namespace', $command->getNamespace(), '->getNamespace() returns the command namespace');
@@ -106,8 +109,10 @@ class CommandTest extends \PHPUnit_Framework_TestCase
       $command->setName('');
       $this->fail('->setName() throws an \InvalidArgumentException if the name is empty');
     }
-    catch (\InvalidArgumentException $e)
+    catch (\Exception $e)
     {
+      $this->assertType('\InvalidArgumentException', $e, '->setName() throws an \InvalidArgumentException if the name is empty');
+      $this->assertEquals('A command name cannot be empty.', $e->getMessage(), '->setName() throws an \InvalidArgumentException if the name is empty');
     }
 
     try
@@ -115,8 +120,10 @@ class CommandTest extends \PHPUnit_Framework_TestCase
       $command->setName('foo:');
       $this->fail('->setName() throws an \InvalidArgumentException if the name is empty');
     }
-    catch (\InvalidArgumentException $e)
+    catch (\Exception $e)
     {
+      $this->assertType('\InvalidArgumentException', $e, '->setName() throws an \InvalidArgumentException if the name is empty');
+      $this->assertEquals('A command name cannot be empty.', $e->getMessage(), '->setName() throws an \InvalidArgumentException if the name is empty');
     }
   }
 
@@ -155,6 +162,24 @@ class CommandTest extends \PHPUnit_Framework_TestCase
     $this->assertEquals('namespace:name [--foo] [foo]', $command->getSynopsis(), '->getSynopsis() returns the synopsis');
   }
 
+  public function testGetHelper()
+  {
+    $application = new Application();
+    $command = new \TestCommand();
+    $command->setApplication($application);
+    $formatterHelper = new FormatterHelper();
+    $this->assertEquals($formatterHelper->getName(), $command->getHelper('formatter')->getName(), '->getHelper() returns the correct helper');
+  }
+
+  public function testGet()
+  {
+    $application = new Application();
+    $command = new \TestCommand();
+    $command->setApplication($application);
+    $formatterHelper = new FormatterHelper();
+    $this->assertEquals($formatterHelper->getName(), $command->formatter->getName(), '->__get() returns the correct helper');
+  }
+
   public function testMergeApplicationDefinition()
   {
     $application1 = new Application();
@@ -185,14 +210,16 @@ class CommandTest extends \PHPUnit_Framework_TestCase
     try
     {
       $tester->execute(array('--bar' => true));
-      $this->fail('->run() throws a \RuntimeException when the input does not validate the current InputDefinition');
+      $this->fail('->run() throws a \InvalidArgumentException when the input does not validate the current InputDefinition');
     }
-    catch (\RuntimeException $e)
+    catch (\Exception $e)
     {
+      $this->assertType('\InvalidArgumentException', $e, '->run() throws a \InvalidArgumentException when the input does not validate the current InputDefinition');
+      $this->assertEquals('The "--bar" option does not exist.', $e->getMessage(), '->run() throws a \InvalidArgumentException when the input does not validate the current InputDefinition');
     }
 
-    $this->assertEquals("interact called\nexecute called\n", $tester->execute(array(), array('interactive' => true)), '->run() calls the interact() method if the input is interactive');
-    $this->assertEquals("execute called\n", $tester->execute(array(), array('interactive' => false)), '->run() does not call the interact() method if the input is not interactive');
+    $this->assertEquals('interact called'.PHP_EOL.'execute called'.PHP_EOL, $tester->execute(array(), array('interactive' => true)), '->run() calls the interact() method if the input is interactive');
+    $this->assertEquals('execute called'.PHP_EOL, $tester->execute(array(), array('interactive' => false)), '->run() does not call the interact() method if the input is not interactive');
 
     $command = new Command('foo');
     try
@@ -200,8 +227,10 @@ class CommandTest extends \PHPUnit_Framework_TestCase
       $command->run(new StringInput(''), new NullOutput());
       $this->fail('->run() throws a \LogicException if the execute() method has not been overriden and no code has been provided');
     }
-    catch (\LogicException $e)
+    catch (\Exception $e)
     {
+      $this->assertType('\LogicException', $e, '->run() throws a \LogicException if the execute() method has not been overriden and no code has been provided');
+      $this->assertEquals('You must override the execute() method in the concrete command class.', $e->getMessage(), '->run() throws a \LogicException if the execute() method has not been overriden and no code has been provided');
     }
   }
 
@@ -217,7 +246,7 @@ class CommandTest extends \PHPUnit_Framework_TestCase
     $this->assertEquals($command, $ret, '->setCode() implements a fluent interface');
     $tester = new CommandTester($command);
     $tester->execute(array());
-    $this->assertEquals("interact called\nfrom the code...\n", $tester->getDisplay());
+    $this->assertEquals('interact called'.PHP_EOL.'from the code...'.PHP_EOL, $tester->getDisplay());
   }
 
   public function testAsText()
@@ -226,7 +255,7 @@ class CommandTest extends \PHPUnit_Framework_TestCase
     $command->setApplication(new Application());
     $tester = new CommandTester($command);
     $tester->execute(array());
-    $this->assertEquals(file_get_contents(self::$fixturesPath.'/command_astext.txt'), $command->asText(), '->asText() returns a text representation of the command');
+    $this->assertStringEqualsFile(self::$fixturesPath.'/command_astext.txt', $command->asText(), '->asText() returns a text representation of the command');
   }
 
   public function testAsXml()
@@ -235,6 +264,6 @@ class CommandTest extends \PHPUnit_Framework_TestCase
     $command->setApplication(new Application());
     $tester = new CommandTester($command);
     $tester->execute(array());
-    $this->assertEquals(file_get_contents(self::$fixturesPath.'/command_asxml.txt'), $command->asXml(), '->asXml() returns an XML representation of the command');
+    $this->assertXmlStringEqualsXmlFile(self::$fixturesPath.'/command_asxml.txt', $command->asXml(), '->asXml() returns an XML representation of the command');
   }
 }

@@ -3,7 +3,7 @@
 namespace Symfony\Components\DependencyInjection;
 
 /*
- * This file is part of the symfony framework.
+ * This file is part of the Symfony framework.
  *
  * (c) Fabien Potencier <fabien.potencier@symfony-project.com>
  *
@@ -46,8 +46,8 @@ namespace Symfony\Components\DependencyInjection;
  *  * IGNORE_ON_INVALID_REFERENCE:    Ignores the wrapping command asking for the reference
  *                                    (for instance, ignore a setter if the service does not exist)
  *
- * @package    symfony
- * @subpackage dependency_injection
+ * @package    Symfony
+ * @subpackage Components_DependencyInjection
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  */
 class Container implements ContainerInterface, \ArrayAccess
@@ -193,14 +193,14 @@ class Container implements ContainerInterface, \ArrayAccess
       throw new \InvalidArgumentException(sprintf('A service id should be a string (%s given).', str_replace("\n", '', var_export($id, true))));
     }
 
-    if (method_exists($this, $method = 'get'.strtr($id, array('_' => '', '.' => '_')).'Service') && 'getService' !== $method)
-    {
-      return $this->$method();
-    }
-
     if (isset($this->services[$id]))
     {
       return $this->services[$id];
+    }
+
+    if (method_exists($this, $method = 'get'.strtr($id, array('_' => '', '.' => '_')).'Service') && 'getService' !== $method)
+    {
+      return $this->$method();
     }
 
     if (self::EXCEPTION_ON_INVALID_REFERENCE === $invalidBehavior)
@@ -333,13 +333,13 @@ class Container implements ContainerInterface, \ArrayAccess
    *
    * @return mixed
    *
-   * @throws \RuntimeException When calling to an undefined method
+   * @throws \BadMethodCallException When calling to an undefined method
    */
   public function __call($method, $arguments)
   {
     if (!preg_match('/^get(.+)Service$/', $method, $match))
     {
-      throw new \RuntimeException(sprintf('Call to undefined method %s::%s.', get_class($this), $method));
+      throw new \BadMethodCallException(sprintf('Call to undefined method %s::%s.', get_class($this), $method));
     }
 
     return $this->getService(self::underscore($match[1]));

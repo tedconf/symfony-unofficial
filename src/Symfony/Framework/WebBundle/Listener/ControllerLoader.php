@@ -7,7 +7,7 @@ use Symfony\Components\DependencyInjection\ContainerInterface;
 use Symfony\Components\EventDispatcher\Event;
 
 /*
- * This file is part of the symfony framework.
+ * This file is part of the Symfony framework.
  *
  * (c) Fabien Potencier <fabien.potencier@symfony-project.com>
  *
@@ -19,7 +19,8 @@ use Symfony\Components\EventDispatcher\Event;
  * ControllerLoader listen to the core.load_controller and finds the controller
  * to execute based on the request parameters.
  *
- * @package    symfony
+ * @package    Symfony
+ * @subpackage Framework_WebBundle
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  */
 class ControllerLoader
@@ -54,7 +55,7 @@ class ControllerLoader
   {
     $request = $event->getParameter('request');
 
-    if (!($bundle = $request->getPathParameter('_bundle')) || !($controller = $request->getPathParameter('_controller')) || !($action = $request->getPathParameter('_action')))
+    if (!($bundle = $request->path->get('_bundle')) || !($controller = $request->path->get('_controller')) || !($action = $request->path->get('_action')))
     {
       if (null !== $this->logger)
       {
@@ -67,7 +68,7 @@ class ControllerLoader
     $controller = $this->findController($bundle, $controller, $action);
 
     $r = new \ReflectionObject($controller[0]);
-    $arguments = $this->getMethodArguments($r->getMethod($controller[1]), $event->getParameter('request')->getPathParameters(), sprintf('%s::%s()', get_class($controller[0]), $controller[1]));
+    $arguments = $this->getMethodArguments($r->getMethod($controller[1]), $event->getParameter('request')->path->all(), sprintf('%s::%s()', get_class($controller[0]), $controller[1]));
 
     $event->setReturnValue(array($controller, $arguments));
 

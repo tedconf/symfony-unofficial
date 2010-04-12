@@ -3,7 +3,7 @@
 namespace Symfony\Components\Routing;
 
 /*
- * This file is part of the symfony framework.
+ * This file is part of the Symfony framework.
  *
  * (c) Fabien Potencier <fabien.potencier@symfony-project.com>
  *
@@ -14,8 +14,8 @@ namespace Symfony\Components\Routing;
 /**
  * CompiledRoutes are returned by the RouteCompiler class.
  *
- * @package    symfony
- * @subpackage routing
+ * @package    Symfony
+ * @subpackage Components_Routing
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  */
 class CompiledRoute
@@ -31,7 +31,7 @@ class CompiledRoute
    *
    * @param Route  $route        A original Route instance
    * @param string $staticPrefix The static prefix of the compiled route
-   * @param string $regex        The regular expresion to use to match this route
+   * @param string $regex        The regular expression to use to match this route
    * @param array  $tokens       An array of tokens to use to generate URL for this route
    * @param array  $variables    An array of variables
    */
