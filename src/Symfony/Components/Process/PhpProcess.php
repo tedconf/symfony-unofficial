@@ -50,7 +50,7 @@ class PhpProcess extends Process
    *
    * @return integer The exit status code
    */
-  public function run($callback)
+  public function run($callback = null)
   {
     if (null === $this->commandline)
     {
@@ -63,7 +63,9 @@ class PhpProcess extends Process
   /**
    * Returns the PHP binary path.
    *
-   * return string The PHP binary path
+   * @return string The PHP binary path
+   *
+   * @throws \RuntimeException When defined PHP_PATH is not executable or not found
    */
   static public function getPhpBinary()
   {

@@ -29,6 +29,8 @@ class Process
   protected $options;
   protected $exitcode;
   protected $status;
+  protected $stdout;
+  protected $stderr;
 
   /**
    * Constructor.
@@ -39,6 +41,8 @@ class Process
    * @param string  $stdin       The STDIN content
    * @param integer $timeout     The timeout in seconds
    * @param array   $options     An array of options for proc_open
+   *
+   * @throws \RuntimeException When proc_open is not installed
    */
   public function __construct($commandline, $cwd, array $env = array(), $stdin = null, $timeout = 60, array $options = array())
   {
@@ -62,21 +66,48 @@ class Process
   /**
    * Forks and run the process.
    *
+   * The callback receives the type of output (out or err) and
+   * some bytes from the output in real-time. It allows to have feedback
+   * from the forked process during exection.
+   *
+   * If you don't provide a callback, the STDOUT and STDERR are available only after
+   * the process is finished via the getOutput() and getErrorOutput() methods.
+   *
    * @param Closure|string|array $callback A PHP callback to run whenever there is some
    *                                       output available on STDOUT or STDERR
    *
    * @return integer The exit status code
+   *
+   * @throws \RuntimeException When process can't be launch or is stopped
    */
-  public function run($callback)
+  public function run($callback = null)
   {
+    if (null === $callback)
+    {
+      $this->stdout = '';
+      $this->stderr = '';
+      $that = $this;
+      $callback = function ($type, $line) use ($that)
+      {
+        if ('out' == $type)
+        {
+          $that->addOutput($line);
+        }
+        else
+        {
+          $that->addErrorOutput($line);
+        }
+      };
+    }
+
     $descriptors = array(array('pipe', 'r'), array('pipe', 'w'), array('pipe', 'w'));
 
-    $proccess = proc_open($this->commandline, $descriptors, $pipes, $this->cwd, $this->env, $this->options);
+    $process = proc_open($this->commandline, $descriptors, $pipes, $this->cwd, $this->env, $this->options);
 
     stream_set_blocking($pipes[1], false);
     stream_set_blocking($pipes[2], false);
 
-    if (!is_resource($proccess))
+    if (!is_resource($process))
     {
       throw new \RuntimeException('Unable to launch a new process.');
     }
@@ -101,7 +132,7 @@ class Process
       }
       elseif ($n === 0)
       {
-        proc_terminate($proccess);
+        proc_terminate($process);
 
         throw new \RuntimeException('The process timed out.');
       }
@@ -137,9 +168,9 @@ class Process
       }
     }
 
-    $this->status = proc_get_status($proccess);
+    $this->status = proc_get_status($process);
 
-    proc_close($proccess);
+    proc_close($process);
 
     if ($this->status['signaled'])
     {
@@ -147,6 +178,32 @@ class Process
     }
 
     return $this->exitcode = $this->status['exitcode'];
+  }
+
+  /**
+   * Returns the output of the process (STDOUT).
+   *
+   * This only returns the output if you have not supplied a callback
+   * to the run() method.
+   *
+   * @return string The process output
+   */
+  public function getOutput()
+  {
+    return $this->stdout;
+  }
+
+  /**
+   * Returns the error output of the process (STDERR).
+   *
+   * This only returns the error output if you have not supplied a callback
+   * to the run() method.
+   *
+   * @return string The process error output
+   */
+  public function getErrorOutput()
+  {
+    return $this->stderr;
   }
 
   /**
@@ -205,5 +262,15 @@ class Process
   public function getStopSignal()
   {
     return $this->status['stopsig'];
+  }
+
+  public function addOutput($line)
+  {
+    $this->stdout .= $line;
+  }
+
+  public function addErrorOutput($line)
+  {
+    $this->stderr .= $line;
   }
 }

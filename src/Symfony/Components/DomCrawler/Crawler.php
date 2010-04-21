@@ -72,6 +72,35 @@ class Crawler extends \SplObjectStorage
     }
   }
 
+  public function addContent($content, $type = null)
+  {
+    if (empty($type))
+    {
+      $type = 'text/html';
+    }
+
+    // DOM only for HTML/XML content
+    if (!preg_match('/(x|ht)ml/i', $type, $matches))
+    {
+      return null;
+    }
+
+    $charset = 'ISO-8859-1';
+    if (false !== $pos = strpos($type, 'charset='))
+    {
+      $charset = substr($type, $pos + 8);
+    }
+
+    if ('x' === $matches[1])
+    {
+      $this->addXmlContent($content, $charset);
+    }
+    else
+    {
+      $this->addHtmlContent($content, $charset);
+    }
+  }
+
   /**
    * Adds an HTML content to the list of nodes.
    *
@@ -263,6 +292,8 @@ class Crawler extends \SplObjectStorage
    * Returns the siblings nodes of the current selection
    *
    * @return Crawler A Crawler instance with the sibling nodes
+   *
+   * @throws \InvalidArgumentException When current node is empty
    */
   public function siblings()
   {
@@ -278,6 +309,8 @@ class Crawler extends \SplObjectStorage
    * Returns the next siblings nodes of the current selection
    *
    * @return Crawler A Crawler instance with the next sibling nodes
+   *
+   * @throws \InvalidArgumentException When current node is empty
    */
   public function nextAll()
   {
@@ -308,6 +341,8 @@ class Crawler extends \SplObjectStorage
    * Returns the parents nodes of the current selection
    *
    * @return Crawler A Crawler instance with the parents nodes of the current selection
+   *
+   * @throws \InvalidArgumentException When current node is empty
    */
   public function parents()
   {
@@ -333,7 +368,9 @@ class Crawler extends \SplObjectStorage
   /**
    * Returns the children nodes of the current selection
    *
-   * @return Crawler A Crawler instance with the chidren nodes
+   * @return Crawler A Crawler instance with the children nodes
+   *
+   * @throws \InvalidArgumentException When current node is empty
    */
   public function children()
   {
@@ -351,6 +388,8 @@ class Crawler extends \SplObjectStorage
    * @param string $attribute The attribute name
    *
    * @return string The attribute value
+   *
+   * @throws \InvalidArgumentException When current node is empty
    */
   public function attr($attribute)
   {
@@ -366,6 +405,8 @@ class Crawler extends \SplObjectStorage
    * Returns the node value of the first node of the list.
    *
    * @return string The node value
+   *
+   * @throws \InvalidArgumentException When current node is empty
    */
   public function text()
   {
@@ -584,7 +625,7 @@ class Crawler extends \SplObjectStorage
 
     if ('/' !== substr($path, -1))
     {
-      $path = dirname($path);
+      $path = substr($path, 0, strrpos($path, '/') + 1);
     }
 
     return array(preg_replace('#^(.*?//[^/]+)\/.*$#', '$1', $uri), $path);
