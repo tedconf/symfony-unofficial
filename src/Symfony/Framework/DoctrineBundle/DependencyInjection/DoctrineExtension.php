@@ -220,8 +220,10 @@ class DoctrineExtension extends LoaderExtension
 
         if (is_dir($dir = $bundleDirs[$namespace].'/'.$class.'/Entities'))
         {
-          $type = 'annotation';
-
+          if ($type === false)
+          {
+            $type = 'annotation';
+          }
           $aliasMap[$class] = $namespace.'\\'.$class.'\\Entities';
         }
 
@@ -294,7 +296,8 @@ class DoctrineExtension extends LoaderExtension
    * mapping files are found then the annotation type is returned.
    *
    * @param string $dir
-   * @return string $type
+   *
+   * @return string
    */
   protected function detectMappingType($dir)
   {

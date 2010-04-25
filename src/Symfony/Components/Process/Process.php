@@ -3,7 +3,7 @@
 namespace Symfony\Components\Process;
 
 /*
- * This file is part of the symfony package.
+ * This file is part of the Symfony package.
  *
  * (c) Fabien Potencier <fabien.potencier@symfony-project.com>
  *
@@ -112,7 +112,7 @@ class Process
       throw new \RuntimeException('Unable to launch a new process.');
     }
 
-    if (!is_null($this->stdin))
+    if (null !== $this->stdin)
     {
       fwrite($pipes[0], (binary) $this->stdin);
     }

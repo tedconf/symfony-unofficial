@@ -7,9 +7,7 @@ use Symfony\Components\Console\Input\InputOption;
 use Symfony\Components\Console\Input\InputInterface;
 use Symfony\Components\Console\Output\OutputInterface;
 use Symfony\Components\Console\Output\Output;
-use Symfony\Framework\WebBundle\Util\Filesystem;
-use Doctrine\Common\Cli\Configuration;
-use Doctrine\Common\Cli\CliController as DoctrineCliController;
+use Doctrine\ORM\Tools\Console\Command\RunDqlCommand;
 
 /*
  * This file is part of the Symfony framework.
@@ -28,30 +26,35 @@ use Doctrine\Common\Cli\CliController as DoctrineCliController;
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  * @author     Jonathan H. Wage <jonwage@gmail.com>
  */
-class RunDqlDoctrineCommand extends DoctrineCommand
+class RunDqlDoctrineCommand extends RunDqlCommand
 {
-  /**
-   * @see Command
-   */
   protected function configure()
   {
+    parent::configure();
+
     $this
-      ->setName('doctrine:run-dql')
-      ->setDescription('Executes arbitrary DQL directly from the command line.')
-      ->addOption('dql', null, null, 'The DQL query to run.')
-      ->addOption('depth', null, null, 'The depth to output the data to.')
-      ->addOption('connection', null, null, 'The connection to use.')
-    ;
+      ->setName('doctrine:query:dql')
+      ->addOption('em', null, InputOption::PARAMETER_OPTIONAL, 'The entity manager to use for this command.')
+      ->setHelp(<<<EOT
+The <info>doctrine:query:dql</info> command executes the given DQL query and outputs the results:
+
+  <info>./symfony doctrine:query:dql "SELECT u FROM UserBundle:User u"</info>
+
+You can also optional specify some additional options like what type of hydration to use when executing the query:
+
+  <info>./symfony doctrine:query:dql "SELECT u FROM UserBundle:User u" --hydrate=array</info>
+
+Additionaly you can specify the first result and maximum amount of results to show:
+
+  <info>./symfony doctrine:query:dql "SELECT u FROM UserBundle:User u" --first-result=0 --max-result=30</info>
+EOT
+    );
   }
 
-  /**
-   * @see Command
-   */
   protected function execute(InputInterface $input, OutputInterface $output)
   {
-    $options = $this->buildDoctrineCliTaskOptions($input, array(
-      'dql', 'depth'
-    ));
-    $this->runDoctrineCliTask('orm:run-dql', $options);
+    DoctrineCommand::setApplicationEntityManager($this->application, $input->getOption('em'));
+
+    return parent::execute($input, $output);
   }
 }

@@ -1,6 +1,6 @@
 <?php
 
-namespace Symfony\Components\RequestHandler;
+namespace Symfony\Components\RequestHandler\Test;
 
 /*
  * This file is part of the Symfony package.
@@ -12,13 +12,18 @@ namespace Symfony\Components\RequestHandler;
  */
 
 /**
- * ResponseInterface is the interface that all server response classes must implement.
+ * TesterInterface.
  *
  * @package    Symfony
  * @subpackage Components_RequestHandler
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  */
-interface ResponseInterface
+interface TesterInterface
 {
-  function send();
+  /**
+   * Sets the TestCase instance associated with this tester object.
+   *
+   * @param \PHPUnit_Framework_TestCase $test A \PHPUnit_Framework_TestCase instance
+   */
+  public function setTestCase(\PHPUnit_Framework_TestCase $test);
 }

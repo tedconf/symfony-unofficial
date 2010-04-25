@@ -3,7 +3,7 @@
 namespace Symfony\Components\BrowserKit;
 
 /*
- * This file is part of the symfony package.
+ * This file is part of the Symfony package.
  *
  * (c) Fabien Potencier <fabien.potencier@symfony-project.com>
  *
@@ -39,6 +39,21 @@ class Response
     $this->status  = $status;
     $this->headers = $headers;
     $this->cookies = $cookies;
+  }
+
+  public function __toString()
+  {
+    $headers = '';
+    foreach ($this->headers as $name => $value)
+    {
+      $headers .= sprintf("%s: %s\n", $name, $value);
+    }
+    foreach ($this->cookies as $name => $cookie)
+    {
+      $headers .= sprintf("Set-Cookie: %s=%s\n", $name, $cookie['value']);
+    }
+
+    return $headers."\n".$this->content;
   }
 
   /**
@@ -87,8 +102,6 @@ class Response
         return $value;
       }
     }
-
-    return null;
   }
 
   /**

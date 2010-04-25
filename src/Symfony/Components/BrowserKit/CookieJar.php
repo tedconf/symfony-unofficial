@@ -3,7 +3,7 @@
 namespace Symfony\Components\BrowserKit;
 
 /*
- * This file is part of the symfony package.
+ * This file is part of the Symfony package.
  *
  * (c) Fabien Potencier <fabien.potencier@symfony-project.com>
  *
@@ -71,7 +71,6 @@ class CookieJar
    */
   public function updateFromResponse(Response $response)
   {
-    $this->clear();
     foreach ($response->getCookies() as $name => $cookie)
     {
       $this->set(new Cookie(

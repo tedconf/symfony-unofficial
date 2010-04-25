@@ -7,6 +7,12 @@ use Symfony\Components\Console\Input\InputOption;
 use Symfony\Components\Console\Input\InputInterface;
 use Symfony\Components\Console\Output\OutputInterface;
 use Symfony\Components\Console\Output\Output;
+use Doctrine\ORM\Tools\Console\Command\ConvertMappingCommand;
+use Doctrine\DBAL\Tools\Console\Helper\ConnectionHelper;
+use Doctrine\ORM\Tools\Console\Helper\EntityManagerHelper;
+use Doctrine\ORM\Mapping\Driver\DatabaseDriver;
+use Doctrine\ORM\Tools\DisconnectedClassMetadataFactory;
+use Doctrine\ORM\Tools\Export\ClassMetadataExporter;
 
 /*
  * This file is part of the Symfony framework.
@@ -18,8 +24,7 @@ use Symfony\Components\Console\Output\Output;
  */
 
 /**
- * Import the initial mapping information for entities from an existing database
- * into a bundle.
+ * Import Doctrine ORM metadata mapping information from an existing database.
  *
  * @package    Symfony
  * @subpackage Framework_DoctrineBundle
@@ -28,56 +33,95 @@ use Symfony\Components\Console\Output\Output;
  */
 class ImportMappingDoctrineCommand extends DoctrineCommand
 {
-  /**
-   * @see Command
-   */
   protected function configure()
   {
     $this
-      ->setName('doctrine:import-mapping')
-      ->setDescription('Import the initial mapping information for entities from an existing database.')
-      ->addOption('connection', null, InputOption::PARAMETER_REQUIRED, 'The connection import from.')
-      ->addOption('bundle', null, InputOption::PARAMETER_REQUIRED, 'The bundle to import the mapping information to.')
-      ->addOption('type', null, InputOption::PARAMETER_OPTIONAL, 'The mapping format type to generate (defaults to xml).', 'xml')
-    ;
+      ->setName('doctrine:mapping:import')
+      ->addArgument('bundle', InputArgument::REQUIRED, 'The bundle to import the mapping information to.')
+      ->addArgument('mapping-type', InputArgument::OPTIONAL, 'The mapping type to export the imported mapping information to.')
+      ->addOption('em', null, InputOption::PARAMETER_OPTIONAL, 'The entity manager to use for this command.')
+      ->setDescription('Import mapping information from an existing database.')
+      ->setHelp(<<<EOT
+The <info>doctrine:mapping:import</info> command imports mapping information from an existing database:
+
+  <info>./symfony doctrine:mapping:import "Bundle\MyCustomBundle" xml</info>
+
+You can also optionally specify which entity manager to import from with the <info>--em</info> option:
+
+  <info>./symfony doctrine:mapping:import "Bundle\MyCustomBundle" xml --em=default</info>
+EOT
+    );
   }
 
-  /**
-   * @see Command
-   *
-   * @throws \InvalidArgumentException When the bundle doesn't end with Bundle (Example: "Bundle\MySampleBundle")
-   */
   protected function execute(InputInterface $input, OutputInterface $output)
   {
-    if (!preg_match('/Bundle$/', $bundle = $input->getOption('bundle')))
+    $bundleClass = null;
+    $bundleDirs = $this->container->getKernelService()->getBundleDirs();
+    foreach ($this->container->getKernelService()->getBundles() as $bundle)
     {
-      throw new \InvalidArgumentException('The bundle must end with Bundle.');
+      if (strpos(get_class($bundle), $input->getArgument('bundle')) !== false)
+      {
+        $tmp = dirname(str_replace('\\', '/', get_class($bundle)));
+        $namespace = str_replace('/', '\\', dirname($tmp));
+        $class = basename($tmp);
+
+        if (isset($bundleDirs[$namespace]))
+        {
+          $destPath = realpath($bundleDirs[$namespace]).'/'.$class;
+          $bundleClass = $class;
+          break;
+        }
+      }
     }
 
-    $dirs = $this->container->getKernelService()->getBundleDirs();
-
-    $tmp = str_replace('\\', '/', $bundle);
-    $namespace = str_replace('/', '\\', dirname($tmp));
-    $bundle = basename($tmp);
-
-    if (!isset($dirs[$namespace]))
+    $type = $input->getArgument('mapping-type') ? $input->getArgument('mapping-type') : 'xml';
+    if ($type === 'annotation')
     {
-      throw new \InvalidArgumentException(sprintf('Could not find namespace "%s" for bundle "%s".', $namespace, $bundle));
+      $destPath .= '/Entities';
+    }
+    else
+    {
+      $destPath .= '/Resources/config/doctrine/metadata';
     }
 
-    $path = $dirs[$namespace].'/'.$bundle.'/Resources/config/doctrine/metadata';
+    $cme = new ClassMetadataExporter();
+    $exporter = $cme->getExporter($type);
 
-    if (!is_dir($path))
+    if ($type === 'annotation')
     {
-      mkdir($path, 0777, true);
+      $entityGenerator = $this->getEntityGenerator();
+      $exporter->setEntityGenerator($entityGenerator);
     }
 
-    $this->em = $this->container->getService(sprintf('doctrine.orm.%s_entity_manager', $input->getOption('connection')));
-    $this->runCommand('doctrine:convert-mapping', array(
-        '--from' => 'database',
-        '--to' => $input->getOption('type'),
-        '--dest' => $path
-      )
-    );
+    $emName = $input->getOption('em') ? $input->getOption('em') : 'default';
+    $emServiceName = sprintf('doctrine.orm.%s_entity_manager', $emName);
+    $em = $this->container->getService($emServiceName);
+    $databaseDriver = new DatabaseDriver($em->getConnection()->getSchemaManager());
+    $em->getConfiguration()->setMetadataDriverImpl($databaseDriver);
+
+    $cmf = new DisconnectedClassMetadataFactory($em);
+    $metadata = $cmf->getAllMetadata();
+    if ($metadata)
+    {
+      $output->writeln(sprintf('Importing mapping information from "<info>%s</info>" entity manager', $emName));
+      foreach ($metadata as $class)
+      {
+        $className = $class->name;
+        $class->name = $namespace.'\\'.$bundleClass.'\\Entities\\'.$className;
+        if ($type === 'annotation')
+        {
+          $path = $destPath.'/'.$className.'.php';
+        }
+        else
+        {
+          $path = $destPath.'/'.str_replace('\\', '.', $class->name).'.dcm.xml';
+        }
+        $output->writeln(sprintf('  > writing <comment>%s</comment>', $path));
+        $code = $exporter->exportClassMetadata($class);
+        file_put_contents($path, $code);
+      }
+    } else {
+      $output->writeln('Database does not have any mapping information.'.PHP_EOL, 'ERROR');
+    }
   }
 }

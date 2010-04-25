@@ -223,7 +223,7 @@ class Application
   /**
    * Get the helper set associated with the command
    *
-   * @return HelperSet The HelperSet isntance associated with this command
+   * @return HelperSet The HelperSet instance associated with this command
    */
   public function getHelperSet()
   {
@@ -359,7 +359,7 @@ class Application
   /**
    * Adds an array of command objects.
    *
-   * @param array  $commands  An array of commands
+   * @param Command[] $commands An array of commands
    */
   public function addCommands(array $commands)
   {
@@ -496,7 +496,7 @@ class Application
   {
     // namespace
     $namespace = '';
-    if (false !== $pos = strpos($name, ':'))
+    if (false !== $pos = strrpos($name, ':'))
     {
       $namespace = $this->findNamespace(substr($name, 0, $pos));
       $name = substr($name, $pos + 1);
@@ -743,7 +743,7 @@ class Application
     $output->writeln("\n");
     foreach ($messages as $message)
     {
-      $output->writeln("<error>$message</error>");
+      $output->writeln('<error>'.$message.'</error>');
     }
     $output->writeln("\n");
 

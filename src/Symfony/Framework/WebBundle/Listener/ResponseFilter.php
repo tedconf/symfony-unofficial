@@ -4,8 +4,8 @@ namespace Symfony\Framework\WebBundle\Listener;
 
 use Symfony\Components\EventDispatcher\EventDispatcher;
 use Symfony\Components\EventDispatcher\Event;
-use Symfony\Components\RequestHandler\RequestInterface;
-use Symfony\Components\RequestHandler\ResponseInterface;
+use Symfony\Components\RequestHandler\Request;
+use Symfony\Components\RequestHandler\Response;
 
 /*
  * This file is part of the Symfony framework.
@@ -26,12 +26,10 @@ use Symfony\Components\RequestHandler\ResponseInterface;
 class ResponseFilter
 {
   protected $dispatcher;
-  protected $request;
 
-  public function __construct(EventDispatcher $dispatcher, RequestInterface $request)
+  public function __construct(EventDispatcher $dispatcher)
   {
     $this->dispatcher = $dispatcher;
-    $this->request = $request;
   }
 
   public function register()
@@ -39,15 +37,16 @@ class ResponseFilter
     $this->dispatcher->connect('core.response', array($this, 'filter'));
   }
 
-  public function filter(Event $event, ResponseInterface $response)
+  public function filter(Event $event, Response $response)
   {
     if (!$event->getParameter('main_request') || $response->hasHeader('Content-Type'))
     {
       return $response;
     }
 
-    $format = $this->request->getRequestFormat();
-    if ((null !== $format) && $mimeType = $this->request->getMimeType($format))
+    $request = $event->getParameter('request');
+    $format = $request->getRequestFormat();
+    if ((null !== $format) && $mimeType = $request->getMimeType($format))
     {
       $response->setHeader('Content-Type', $mimeType);
     }

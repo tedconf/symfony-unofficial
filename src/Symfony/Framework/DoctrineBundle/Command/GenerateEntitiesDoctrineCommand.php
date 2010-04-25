@@ -7,9 +7,8 @@ use Symfony\Components\Console\Input\InputOption;
 use Symfony\Components\Console\Input\InputInterface;
 use Symfony\Components\Console\Output\OutputInterface;
 use Symfony\Components\Console\Output\Output;
-use Symfony\Framework\WebBundle\Util\Filesystem;
-use Doctrine\Common\Cli\Configuration;
-use Doctrine\Common\Cli\CliController as DoctrineCliController;
+use Symfony\Foundation\Bundle\Bundle;
+use Doctrine\ORM\Tools\EntityGenerator;
 
 /*
  * This file is part of the Symfony framework.
@@ -21,32 +20,31 @@ use Doctrine\Common\Cli\CliController as DoctrineCliController;
  */
 
 /**
- * Build all Bundle entity classes from mapping information.
+ * Generate entity classes from mapping information
  *
  * @package    Symfony
  * @subpackage Framework_DoctrineBundle
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  * @author     Jonathan H. Wage <jonwage@gmail.com>
  */
-class BuildEntitiesDoctrineCommand extends DoctrineCommand
+class GenerateEntitiesDoctrineCommand extends DoctrineCommand
 {
-  /**
-   * @see Command
-   */
   protected function configure()
   {
     $this
-      ->setName('doctrine:build-entities')
-      ->setDescription('Build all Bundle entity classes from mapping information.')
-    ;
+      ->setName('doctrine:generate:entities')
+      ->setDescription('Generate entity classes and method stubs from your mapping information.')
+      ->setHelp(<<<EOT
+The <info>doctrine:generate:entities</info> command generates entity classes and method stubs from your mapping information:
+
+  <info>./symfony doctrine:generate:entities</info>
+EOT
+    );
   }
 
-  /**
-   * @see Command
-   */
   protected function execute(InputInterface $input, OutputInterface $output)
   {
-    $dirs = array();
+    $entityGenerator = $this->getEntityGenerator();
     $bundleDirs = $this->container->getKernelService()->getBundleDirs();
     foreach ($this->container->getKernelService()->getBundles() as $bundle)
     {
@@ -56,24 +54,17 @@ class BuildEntitiesDoctrineCommand extends DoctrineCommand
 
       if (isset($bundleDirs[$namespace]))
       {
-        if (is_dir($dir = $bundleDirs[$namespace].'/'.$class.'/Resources/config/doctrine/metadata'))
+        $destination = realpath($bundleDirs[$namespace].'/..');
+        if ($metadatas = $this->getBundleMetadatas($bundle))
         {
-          $this->convertMapping($dir, $bundleDirs[$namespace].'/..');
-        }
-        else if (is_dir($dir = $bundleDirs[$namespace].'/'.$class.'/Entities'))
-        {
-          $this->convertMapping($dir, $bundleDirs[$namespace].'/..');
+          $output->writeln(sprintf('Generating entities for "<info>%s</info>"', $class));
+          foreach ($metadatas as $metadata)
+          {
+            $output->writeln(sprintf('  > generating <comment>%s</comment>', $metadata->name));
+            $entityGenerator->generate(array($metadata), $destination);
+          }
         }
       }
     }
-  }
-
-  protected function convertMapping($mappingPath, $dest)
-  {
-    $opts = array();
-    $opts['--from'] = $mappingPath;
-    $opts['--to'] = 'annotation';
-    $opts['--dest'] = realpath($dest);
-    $this->runCommand('doctrine:convert-mapping', $opts);
   }
 }

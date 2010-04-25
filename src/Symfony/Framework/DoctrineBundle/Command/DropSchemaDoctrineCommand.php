@@ -7,9 +7,7 @@ use Symfony\Components\Console\Input\InputOption;
 use Symfony\Components\Console\Input\InputInterface;
 use Symfony\Components\Console\Output\OutputInterface;
 use Symfony\Components\Console\Output\Output;
-use Symfony\Framework\WebBundle\Util\Filesystem;
-use Doctrine\Common\Cli\Configuration;
-use Doctrine\Common\Cli\CliController as DoctrineCliController;
+use Doctrine\ORM\Tools\Console\Command\SchemaTool\DropCommand;
 
 /*
  * This file is part of the Symfony framework.
@@ -21,31 +19,38 @@ use Doctrine\Common\Cli\CliController as DoctrineCliController;
  */
 
 /**
- * Check what version of the Doctrine ORM being used.
+ * Command to drop the database schema for a set of classes based on their mappings.
  *
  * @package    Symfony
  * @subpackage Framework_DoctrineBundle
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  * @author     Jonathan H. Wage <jonwage@gmail.com>
  */
-class VersionDoctrineCommand extends DoctrineCommand
+class DropSchemaDoctrineCommand extends DropCommand
 {
-  /**
-   * @see Command
-   */
   protected function configure()
   {
+    parent::configure();
+
     $this
-      ->setName('doctrine:version')
-      ->setDescription('Displays the current installed Doctrine version.')
-    ;
+      ->setName('doctrine:schema:drop')
+      ->addOption('em', null, InputOption::PARAMETER_OPTIONAL, 'The entity manager to use for this command.')
+      ->setHelp(<<<EOT
+The <info>doctrine:schema:drop</info> command drops the default entity managers schema:
+
+  <info>./symfony doctrine:schema:drop</info>
+
+You can also optionally specify the name of a entity manager to drop the schema for:
+
+  <info>./symfony doctrine:schema:drop --em=default</info>
+EOT
+    );
   }
 
-  /**
-   * @see Command
-   */
   protected function execute(InputInterface $input, OutputInterface $output)
   {
-    $this->runDoctrineCliTask('orm:version');
+    DoctrineCommand::setApplicationEntityManager($this->application, $input->getOption('em'));
+
+    parent::execute($input, $output);
   }
 }

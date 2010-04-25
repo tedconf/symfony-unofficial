@@ -23,7 +23,7 @@ namespace Symfony\Components\RequestHandler;
  * @subpackage Components_RequestHandler
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  */
-class Request implements RequestInterface
+class Request
 {
   public $path;
   public $request;
@@ -128,10 +128,10 @@ class Request implements RequestInterface
     }
 
     $server = array_replace(array(
-      'HTTP_HOST'            => 'localhost',
       'SERVER_NAME'          => 'localhost',
       'SERVER_PORT'          => 80,
-      'HTTP_USER_AGENT'      => 'SymfonyClient/1.0',
+      'HTTP_HOST'            => 'localhost',
+      'HTTP_USER_AGENT'      => 'Symfony/X.X',
       'HTTP_ACCEPT'          => 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
       'HTTP_ACCEPT_LANGUAGE' => 'en-us,en;q=0.5',
       'HTTP_ACCEPT_CHARSET'  => 'ISO-8859-1,utf-8;q=0.7,*;q=0.7',
@@ -170,6 +170,17 @@ class Request implements RequestInterface
     );
 
     return $dup;
+  }
+
+  public function __clone()
+  {
+    $this->query   = clone $this->query;
+    $this->request = clone $this->request;
+    $this->path    = clone $this->path;
+    $this->cookies = clone $this->cookies;
+    $this->files   = clone $this->files;
+    $this->server  = clone $this->server;
+    $this->headers = clone $this->headers;
   }
 
   // Order of precedence: GET, PATH, POST, COOKIE
@@ -227,6 +238,11 @@ class Request implements RequestInterface
     return ($this->server->get('HTTPS') == 'on') ? 'https' : 'http';
   }
 
+  public function getPort()
+  {
+    return $this->server->get('SERVER_PORT');
+  }
+
   public function getHttpHost()
   {
     $host = $this->headers->get('HOST');
@@ -264,9 +280,9 @@ class Request implements RequestInterface
     return (
       (strtolower($this->server->get('HTTPS')) == 'on' || $this->server->get('HTTPS') == 1)
       ||
-      (strtolower($this->server->get('HTTP_SSL_HTTPS')) == 'on' || $this->server->get('HTTP_SSL_HTTPS') == 1)
+      (strtolower($this->headers->get('SSL_HTTPS')) == 'on' || $this->headers->get('SSL_HTTPS') == 1)
       ||
-      (strtolower($this->server->get('HTTP_X_FORWARDED_PROTO')) == 'https')
+      (strtolower($this->headers->get('X_FORWARDED_PROTO')) == 'https')
     );
   }
 
@@ -277,7 +293,7 @@ class Request implements RequestInterface
    */
   public function getHost()
   {
-    if ($host = $this->server->get('HTTP_X_FORWARDED_HOST'))
+    if ($host = $this->headers->get('X_FORWARDED_HOST'))
     {
       $elements = implode(',', $host);
 
@@ -285,8 +301,14 @@ class Request implements RequestInterface
     }
     else
     {
-      return $this->server->get('HTTP_HOST', $this->server->get('SERVER_NAME', $this->server->get('SERVER_ADDR', '')));
+      return $this->headers->get('HOST', $this->server->get('SERVER_NAME', $this->server->get('SERVER_ADDR', '')));
     }
+  }
+
+  public function setMethod($method)
+  {
+    $this->method = null;
+    $this->server->set('REQUEST_METHOD', 'GET');
   }
 
   /**
@@ -759,7 +781,7 @@ class Request implements RequestInterface
     $headers = array();
     foreach ($this->server->all() as $key => $value)
     {
-      if ('HTTP_' === substr($key, 0, 5))
+      if ('http_' === strtolower(substr($key, 0, 5)))
       {
         $headers[strtoupper(strtr(substr($key, 5), '-', '_'))] = $value;
       }
