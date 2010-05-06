@@ -3,7 +3,6 @@
 namespace Symfony\Framework\WebBundle\Controller;
 
 use Symfony\Framework\WebBundle\Controller;
-use Symfony\Components\RequestHandler\Request;
 
 /*
  * This file is part of the Symfony framework.
@@ -23,8 +22,8 @@ use Symfony\Components\RequestHandler\Request;
  */
 class DefaultController extends Controller
 {
-  public function indexAction()
-  {
-    return $this->render('WebBundle:Default:index');
-  }
+    public function indexAction()
+    {
+        return $this->render('WebBundle:Default:index');
+    }
 }

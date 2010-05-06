@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the symfony package.
+ * This file is part of the Symfony package.
  * (c) Fabien Potencier <fabien.potencier@symfony-project.com>
  *
  * For the full copyright and license information, please view the LICENSE
@@ -14,9 +14,9 @@ use Symfony\Components\DependencyInjection\Reference;
 
 class ReferenceTest extends \PHPUnit_Framework_TestCase
 {
-  public function testConstructor()
-  {
-    $ref = new Reference('foo');
-    $this->assertEquals('foo', (string) $ref, '__construct() sets the id of the reference, which is used for the __toString() method');
-  }
+    public function testConstructor()
+    {
+        $ref = new Reference('foo');
+        $this->assertEquals('foo', (string) $ref, '__construct() sets the id of the reference, which is used for the __toString() method');
+    }
 }

@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the symfony package.
+ * This file is part of the Symfony package.
  * (c) Fabien Potencier <fabien.potencier@symfony-project.com>
  *
  * For the full copyright and license information, please view the LICENSE
@@ -16,16 +16,16 @@ use Symfony\Components\DependencyInjection\Loader\Loader;
 
 class ProjectLoader1 extends Loader
 {
-  public function load($resource)
-  {
-  }
+    public function load($resource)
+    {
+    }
 }
 
 class LoaderTest extends \PHPUnit_Framework_TestCase
 {
-  public function testExtension()
-  {
-    ProjectLoader1::registerExtension($extension = new \ProjectExtension());
-    $this->assertTrue(ProjectLoader1::getExtension('project') === $extension, '::registerExtension() registers an extension');
-  }
+    public function testExtension()
+    {
+        ProjectLoader1::registerExtension($extension = new \ProjectExtension());
+        $this->assertTrue(ProjectLoader1::getExtension('project') === $extension, '::registerExtension() registers an extension');
+    }
 }

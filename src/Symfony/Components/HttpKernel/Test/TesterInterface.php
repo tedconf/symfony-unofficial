@@ -1,6 +1,6 @@
 <?php
 
-namespace Symfony\Components\RequestHandler\Test;
+namespace Symfony\Components\HttpKernel\Test;
 
 /*
  * This file is part of the Symfony package.
@@ -15,15 +15,15 @@ namespace Symfony\Components\RequestHandler\Test;
  * TesterInterface.
  *
  * @package    Symfony
- * @subpackage Components_RequestHandler
+ * @subpackage Components_HttpKernel
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  */
 interface TesterInterface
 {
-  /**
-   * Sets the TestCase instance associated with this tester object.
-   *
-   * @param \PHPUnit_Framework_TestCase $test A \PHPUnit_Framework_TestCase instance
-   */
-  public function setTestCase(\PHPUnit_Framework_TestCase $test);
+    /**
+     * Sets the TestCase instance associated with this tester object.
+     *
+     * @param \PHPUnit_Framework_TestCase $test A \PHPUnit_Framework_TestCase instance
+     */
+    public function setTestCase(\PHPUnit_Framework_TestCase $test);
 }

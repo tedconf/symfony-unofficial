@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the symfony package.
+ * This file is part of the Symfony package.
  *
  * (c) Fabien Potencier <fabien.potencier@symfony-project.com>
  *
@@ -17,22 +17,22 @@ use Symfony\Components\Templating\Loader\Loader;
 
 class LoaderTest extends \PHPUnit_Framework_TestCase
 {
-  public function testGetSetDebugger()
-  {
-    $loader = new ProjectTemplateLoader4();
-    $loader->setDebugger($debugger = new \ProjectTemplateDebugger());
-    $this->assertTrue($loader->getDebugger() === $debugger, '->setDebugger() sets the debugger instance');
-  }
+    public function testGetSetDebugger()
+    {
+        $loader = new ProjectTemplateLoader4();
+        $loader->setDebugger($debugger = new \ProjectTemplateDebugger());
+        $this->assertTrue($loader->getDebugger() === $debugger, '->setDebugger() sets the debugger instance');
+    }
 }
 
 class ProjectTemplateLoader4 extends Loader
 {
-  public function load($template, array $options = array())
-  {
-  }
+    public function load($template, array $options = array())
+    {
+    }
 
-  public function getDebugger()
-  {
-    return $this->debugger;
-  }
+    public function getDebugger()
+    {
+        return $this->debugger;
+    }
 }

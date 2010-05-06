@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the symfony package.
+ * This file is part of the Symfony package.
  * (c) Fabien Potencier <fabien.potencier@symfony-project.com>
  *
  * For the full copyright and license information, please view the LICENSE
@@ -15,42 +15,42 @@ use Symfony\Components\Console\Output\StreamOutput;
 
 class StreamOutputTest extends \PHPUnit_Framework_TestCase
 {
-  protected $stream;
+    protected $stream;
 
-  public function setUp()
-  {
-    $this->stream = fopen('php://memory', 'a', false);
-  }
-
-  public function testConstructor()
-  {
-    try
+    public function setUp()
     {
-      $output = new StreamOutput('foo');
-      $this->fail('__construct() throws an \InvalidArgumentException if the first argument is not a stream');
-    }
-    catch (\Exception $e)
-    {
-      $this->assertType('\InvalidArgumentException', $e, '__construct() throws an \InvalidArgumentException if the first argument is not a stream');
-      $this->assertEquals('The StreamOutput class needs a stream as its first argument.', $e->getMessage());
+        $this->stream = fopen('php://memory', 'a', false);
     }
 
-    $output = new StreamOutput($this->stream, Output::VERBOSITY_QUIET, true);
-    $this->assertEquals(Output::VERBOSITY_QUIET, $output->getVerbosity(), '__construct() takes the verbosity as its first argument');
-    $this->assertTrue($output->isDecorated(), '__construct() takes the decorated flag as its second argument');
-  }
+    public function testConstructor()
+    {
+        try
+        {
+            $output = new StreamOutput('foo');
+            $this->fail('__construct() throws an \InvalidArgumentException if the first argument is not a stream');
+        }
+        catch (\Exception $e)
+        {
+            $this->assertInstanceOf('\InvalidArgumentException', $e, '__construct() throws an \InvalidArgumentException if the first argument is not a stream');
+            $this->assertEquals('The StreamOutput class needs a stream as its first argument.', $e->getMessage());
+        }
 
-  public function testGetStream()
-  {
-    $output = new StreamOutput($this->stream);
-    $this->assertEquals($this->stream, $output->getStream(), '->getStream() returns the current stream');
-  }
+        $output = new StreamOutput($this->stream, Output::VERBOSITY_QUIET, true);
+        $this->assertEquals(Output::VERBOSITY_QUIET, $output->getVerbosity(), '__construct() takes the verbosity as its first argument');
+        $this->assertTrue($output->isDecorated(), '__construct() takes the decorated flag as its second argument');
+    }
 
-  public function testDoWrite()
-  {
-    $output = new StreamOutput($this->stream);
-    $output->writeln('foo');
-    rewind($output->getStream());
-    $this->assertEquals('foo'.PHP_EOL, stream_get_contents($output->getStream()), '->doWrite() writes to the stream');
-  }
+    public function testGetStream()
+    {
+        $output = new StreamOutput($this->stream);
+        $this->assertEquals($this->stream, $output->getStream(), '->getStream() returns the current stream');
+    }
+
+    public function testDoWrite()
+    {
+        $output = new StreamOutput($this->stream);
+        $output->writeln('foo');
+        rewind($output->getStream());
+        $this->assertEquals('foo'.PHP_EOL, stream_get_contents($output->getStream()), '->doWrite() writes to the stream');
+    }
 }

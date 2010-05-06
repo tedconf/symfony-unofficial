@@ -20,48 +20,30 @@ namespace Symfony\Components\Finder\Iterator;
  */
 class LimitDepthFilterIterator extends \FilterIterator
 {
-  protected $minDepth = 0;
-  protected $maxDepth = INF;
-  protected $baseDir;
+    protected $minDepth = 0;
 
-  /**
-   * Constructor.
-   *
-   * @param \Iterator $iterator The Iterator to filter
-   * @param string    $baseDir  The base directory for the depth comparison
-   * @param integer   $minDepth The minimum depth
-   * @param integer   $maxDepth The maximum depth
-   */
-  public function __construct(\Iterator $iterator, $baseDir, $minDepth, $maxDepth)
-  {
-    $this->baseDir  = new \SplFileInfo($baseDir);
-    $this->minDepth = (integer) $minDepth;
-    $this->maxDepth = (double) $maxDepth;
-
-    parent::__construct($iterator);
-  }
-
-  /**
-   * Filters the iterator values.
-   *
-   * @return Boolean true if the value should be kept, false otherwise
-   */
-  public function accept()
-  {
-    $fileinfo = $this->getInnerIterator()->current();
-
-    $depth = substr_count($fileinfo->getPath(), DIRECTORY_SEPARATOR) - substr_count($this->baseDir->getPathname(), DIRECTORY_SEPARATOR);
-
-    if ($depth > $this->maxDepth)
+    /**
+     * Constructor.
+     *
+     * @param \Iterator $iterator The Iterator to filter
+     * @param integer   $minDepth The minimum depth
+     */
+    public function __construct(\RecursiveIteratorIterator $iterator, $minDepth, $maxDepth)
     {
-      return false;
+        $this->minDepth = (integer) $minDepth;
+
+        $iterator->setMaxDepth(INF === $maxDepth ? -1 : $maxDepth);
+
+        parent::__construct($iterator);
     }
 
-    if ($depth < $this->minDepth)
+    /**
+     * Filters the iterator values.
+     *
+     * @return Boolean true if the value should be kept, false otherwise
+     */
+    public function accept()
     {
-      return false;
+        return $this->getInnerIterator()->getDepth() >= $this->minDepth;
     }
-
-    return true;
-  }
 }

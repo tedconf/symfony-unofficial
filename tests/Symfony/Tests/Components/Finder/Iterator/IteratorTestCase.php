@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the symfony package.
+ * This file is part of the Symfony package.
  *
  * (c) Fabien Potencier <fabien.potencier@symfony-project.com>
  *
@@ -15,10 +15,10 @@ require_once __DIR__.'/Iterator.php';
 
 class IteratorTestCase extends \PHPUnit_Framework_TestCase
 {
-  protected function assertIterator($expected, \Iterator $iterator)
-  {
-    $values = array_map(function (\SplFileInfo $fileinfo) { return $fileinfo->getPathname(); }, iterator_to_array($iterator));
+    protected function assertIterator($expected, \Iterator $iterator)
+    {
+        $values = array_map(function (\SplFileInfo $fileinfo) { return $fileinfo->getPathname(); }, iterator_to_array($iterator));
 
-    $this->assertEquals($expected, array_values($values));
-  }
+        $this->assertEquals($expected, array_values($values));
+    }
 }

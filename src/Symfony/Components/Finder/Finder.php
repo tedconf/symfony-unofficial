@@ -29,333 +29,363 @@ namespace Symfony\Components\Finder;
  * @subpackage Components_Finder
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  */
-class Finder
+class Finder implements \IteratorAggregate
 {
-  protected $mode        = 0;
-  protected $names       = array();
-  protected $notNames    = array();
-  protected $exclude     = array();
-  protected $filters     = array();
-  protected $mindepth    = 0;
-  protected $maxdepth    = INF;
-  protected $sizes       = array();
-  protected $followLinks = false;
-  protected $sort        = false;
-  protected $ignoreVCS   = true;
+    protected $mode        = 0;
+    protected $names       = array();
+    protected $notNames    = array();
+    protected $exclude     = array();
+    protected $filters     = array();
+    protected $mindepth    = 0;
+    protected $maxdepth    = INF;
+    protected $sizes       = array();
+    protected $followLinks = false;
+    protected $sort        = false;
+    protected $ignoreVCS   = true;
+    protected $dirs        = array();
 
-  /**
-   * Restricts the matching to directories only.
-   *
-   * @return Symfony\Components\Finder The current Finder instance
-   */
-  public function directories()
-  {
-    $this->mode = Iterator\FileTypeFilterIterator::ONLY_DIRECTORIES;
-
-    return $this;
-  }
-
-  /**
-   * Restricts the matching to files only.
-   *
-   * @return Symfony\Components\Finder The current Finder instance
-   */
-  public function files()
-  {
-    $this->mode = Iterator\FileTypeFilterIterator::ONLY_FILES;
-
-    return $this;
-  }
-
-  /**
-   * Sets the maximum directory depth.
-   *
-   * The Finder will descend at most $level levels of directories below the starting point.
-   *
-   * @param  int $level The max depth
-   *
-   * @return Symfony\Components\Finder The current Finder instance
-   *
-   * @see Symfony\Components\Finder\Iterator\LimitDepthFilterIterator
-   */
-  public function maxDepth($level)
-  {
-    $this->maxdepth = (double) $level;
-
-    return $this;
-  }
-
-  /**
-   * Sets the minimum directory depth.
-   *
-   * The Finder will start matching at level $level.
-   *
-   * @param  int $level The min depth
-   *
-   * @return Symfony\Components\Finder The current Finder instance
-   *
-   * @see Symfony\Components\Finder\Iterator\LimitDepthFilterIterator
-   */
-  public function minDepth($level)
-  {
-    $this->mindepth = (integer) $level;
-
-    return $this;
-  }
-
-  /**
-   * Adds rules that files must match.
-   *
-   * You can use patterns (delimited with / sign), globs or simple strings.
-   *
-   * $finder->name('*.php')
-   * $finder->name('/\.php$/') // same as above
-   * $finder->name('test.php')
-   *
-   * @param  string $pattern A pattern (a regexp, a glob, or a string)
-   *
-   * @return Symfony\Components\Finder The current Finder instance
-   *
-   * @see Symfony\Components\Finder\Iterator\FilenameFilterIterator
-   */
-  public function name($pattern)
-  {
-    $this->names[] = $pattern;
-
-    return $this;
-  }
-
-  /**
-   * Adds rules that files must not match.
-   *
-   * @param  string $pattern A pattern (a regexp, a glob, or a string)
-   *
-   * @return Symfony\Components\Finder The current Finder instance
-   *
-   * @see Symfony\Components\Finder\Iterator\FilenameFilterIterator
-   */
-  public function notName($pattern)
-  {
-    $this->notNames[] = $pattern;
-
-    return $this;
-  }
-
-  /**
-   * Adds tests for file sizes.
-   *
-   * $finder->size('> 10K');
-   * $finder->size('<= 1Ki');
-   * $finder->size(4);
-   *
-   * @param string $size A size range string
-   *
-   * @return Symfony\Components\Finder The current Finder instance
-   *
-   * @see Symfony\Components\Finder\Iterator\SizeRangeFilterIterator
-   * @see Symfony\Components\Finder\NumberCompare
-   */
-  public function size($size)
-  {
-    $this->sizes[] = new NumberCompare($size);
-
-    return $this;
-  }
-
-  /**
-   * Excludes directories.
-   *
-   * @param  string $dir A directory to exclude
-   *
-   * @return Symfony\Components\Finder The current Finder instance
-   *
-   * @see Symfony\Components\Finder\Iterator\ExcludeDirectoryFilterIterator
-   */
-  public function exclude($dir)
-  {
-    $this->exclude[] = $dir;
-
-    return $this;
-  }
-
-  /**
-   * Forces the finder to ignore version control directories.
-   *
-   * @return Symfony\Components\Finder The current Finder instance
-   *
-   * @see Symfony\Components\Finder\Iterator\IgnoreVcsFilterIterator
-   */
-  public function ignoreVCS($ignoreVCS)
-  {
-    $this->ignoreVCS = (Boolean) $ignoreVCS;
-
-    return $this;
-  }
-
-  /**
-   * Sorts files and directories by an anonymous function.
-   *
-   * The anonymous function receives two \SplFileInfo instances to compare.
-   *
-   * This can be slow as all the matching files and directories must be retrieved for comparison.
-   *
-   * @param  Closure $closure An anonymous function
-   *
-   * @return Symfony\Components\Finder The current Finder instance
-   *
-   * @see Symfony\Components\Finder\Iterator\SortableIterator
-   */
-  public function sort(\Closure $closure)
-  {
-    $this->sort = $closure;
-
-    return $this;
-  }
-
-  /**
-   * Sorts files and directories by name.
-   *
-   * This can be slow as all the matching files and directories must be retrieved for comparison.
-   *
-   * @return Symfony\Components\Finder The current Finder instance
-   *
-   * @see Symfony\Components\Finder\Iterator\SortableIterator
-   */
-  public function sortByName()
-  {
-    $this->sort = Iterator\SortableIterator::SORT_BY_NAME;
-
-    return $this;
-  }
-
-  /**
-   * Sorts files and directories by type (directories before files), then by name.
-   *
-   * This can be slow as all the matching files and directories must be retrieved for comparison.
-   *
-   * @return Symfony\Components\Finder The current Finder instance
-   *
-   * @see Symfony\Components\Finder\Iterator\SortableIterator
-   */
-  public function sortByType()
-  {
-    $this->sort = Iterator\SortableIterator::SORT_BY_TYPE;
-
-    return $this;
-  }
-
-  /**
-   * Filters the iterator with an anonymous function.
-   *
-   * The anonymous function receives a \SplFileInfo and must return false
-   * to remove files.
-   *
-   * @param  Closure $closure An anonymous function
-   *
-   * @return Symfony\Components\Finder The current Finder instance
-   *
-   * @see Symfony\Components\Finder\Iterator\CustomFilterIterator
-   */
-  public function filter(\Closure $closure)
-  {
-    $this->filters[] = $closure;
-
-    return $this;
-  }
-
-  /**
-   * Forces the following of symlinks.
-   *
-   * @return Symfony\Components\Finder The current Finder instance
-   */
-  public function followLinks()
-  {
-    $this->followLinks = true;
-
-    return $this;
-  }
-
-  /**
-   * Searches files and directories which match defined rules.
-   *
-   * @param  string $dir A directory path
-   *
-   * @return \Iterator An iterator
-   *
-   * @throws \InvalidArgumentException if the directory does not exist
-   */
-  public function in($dir)
-  {
-    if (is_array($dir))
+    /**
+     * Restricts the matching to directories only.
+     *
+     * @return Symfony\Components\Finder The current Finder instance
+     */
+    public function directories()
     {
-      $iterator = new Iterator\ChainIterator();
-      foreach ($dir as $d)
-      {
-        $iterator->attach($this->searchInDirectory($d));
-      }
+        $this->mode = Iterator\FileTypeFilterIterator::ONLY_DIRECTORIES;
 
-      return $iterator;
+        return $this;
     }
 
-    return $this->searchInDirectory($dir);
-  }
-
-  protected function searchInDirectory($dir)
-  {
-    if (!is_dir($dir))
+    /**
+     * Restricts the matching to files only.
+     *
+     * @return Symfony\Components\Finder The current Finder instance
+     */
+    public function files()
     {
-      throw new \InvalidArgumentException(sprintf('The "%s" directory does not exist.', $dir));
+        $this->mode = Iterator\FileTypeFilterIterator::ONLY_FILES;
+
+        return $this;
     }
 
-    $flags = \FilesystemIterator::SKIP_DOTS;
-
-    if ($this->followLinks)
+    /**
+     * Sets the maximum directory depth.
+     *
+     * The Finder will descend at most $level levels of directories below the starting point.
+     *
+     * @param  int $level The max depth
+     *
+     * @return Symfony\Components\Finder The current Finder instance
+     *
+     * @see Symfony\Components\Finder\Iterator\LimitDepthFilterIterator
+     */
+    public function maxDepth($level)
     {
-      $flags |= \FilesystemIterator::FOLLOW_SYMLINKS;
+        $this->maxdepth = (double) $level;
+
+        return $this;
     }
 
-    $iterator = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($dir, $flags), \RecursiveIteratorIterator::SELF_FIRST);
-
-    if ($this->mode)
+    /**
+     * Sets the minimum directory depth.
+     *
+     * The Finder will start matching at level $level.
+     *
+     * @param  int $level The min depth
+     *
+     * @return Symfony\Components\Finder The current Finder instance
+     *
+     * @see Symfony\Components\Finder\Iterator\LimitDepthFilterIterator
+     */
+    public function minDepth($level)
     {
-      $iterator = new Iterator\FileTypeFilterIterator($iterator, $this->mode);
+        $this->mindepth = (integer) $level;
+
+        return $this;
     }
 
-    if ($this->mindepth > 0 || $this->maxdepth < INF)
+    /**
+     * Adds rules that files must match.
+     *
+     * You can use patterns (delimited with / sign), globs or simple strings.
+     *
+     * $finder->name('*.php')
+     * $finder->name('/\.php$/') // same as above
+     * $finder->name('test.php')
+     *
+     * @param  string $pattern A pattern (a regexp, a glob, or a string)
+     *
+     * @return Symfony\Components\Finder The current Finder instance
+     *
+     * @see Symfony\Components\Finder\Iterator\FilenameFilterIterator
+     */
+    public function name($pattern)
     {
-      $iterator = new Iterator\LimitDepthFilterIterator($iterator, $dir, $this->mindepth, $this->maxdepth);
+        $this->names[] = $pattern;
+
+        return $this;
     }
 
-    if ($this->exclude)
+    /**
+     * Adds rules that files must not match.
+     *
+     * @param  string $pattern A pattern (a regexp, a glob, or a string)
+     *
+     * @return Symfony\Components\Finder The current Finder instance
+     *
+     * @see Symfony\Components\Finder\Iterator\FilenameFilterIterator
+     */
+    public function notName($pattern)
     {
-      $iterator = new Iterator\ExcludeDirectoryFilterIterator($iterator, $this->exclude);
+        $this->notNames[] = $pattern;
+
+        return $this;
     }
 
-    if ($this->ignoreVCS)
+    /**
+     * Adds tests for file sizes.
+     *
+     * $finder->size('> 10K');
+     * $finder->size('<= 1Ki');
+     * $finder->size(4);
+     *
+     * @param string $size A size range string
+     *
+     * @return Symfony\Components\Finder The current Finder instance
+     *
+     * @see Symfony\Components\Finder\Iterator\SizeRangeFilterIterator
+     * @see Symfony\Components\Finder\NumberCompare
+     */
+    public function size($size)
     {
-      $iterator = new Iterator\IgnoreVcsFilterIterator($iterator);
+        $this->sizes[] = new NumberCompare($size);
+
+        return $this;
     }
 
-    if ($this->names || $this->notNames)
+    /**
+     * Excludes directories.
+     *
+     * @param  string $dir A directory to exclude
+     *
+     * @return Symfony\Components\Finder The current Finder instance
+     *
+     * @see Symfony\Components\Finder\Iterator\ExcludeDirectoryFilterIterator
+     */
+    public function exclude($dir)
     {
-      $iterator = new Iterator\FilenameFilterIterator($iterator, $this->names, $this->notNames);
+        $this->exclude[] = $dir;
+
+        return $this;
     }
 
-    if ($this->sizes)
+    /**
+     * Forces the finder to ignore version control directories.
+     *
+     * @return Symfony\Components\Finder The current Finder instance
+     *
+     * @see Symfony\Components\Finder\Iterator\IgnoreVcsFilterIterator
+     */
+    public function ignoreVCS($ignoreVCS)
     {
-      $iterator = new Iterator\SizeRangeFilterIterator($iterator, $this->sizes);
+        $this->ignoreVCS = (Boolean) $ignoreVCS;
+
+        return $this;
     }
 
-    if ($this->filters)
+    /**
+     * Sorts files and directories by an anonymous function.
+     *
+     * The anonymous function receives two \SplFileInfo instances to compare.
+     *
+     * This can be slow as all the matching files and directories must be retrieved for comparison.
+     *
+     * @param  Closure $closure An anonymous function
+     *
+     * @return Symfony\Components\Finder The current Finder instance
+     *
+     * @see Symfony\Components\Finder\Iterator\SortableIterator
+     */
+    public function sort(\Closure $closure)
     {
-      $iterator = new Iterator\CustomFilterIterator($iterator, $this->filters);
+        $this->sort = $closure;
+
+        return $this;
     }
 
-    if ($this->sort)
+    /**
+     * Sorts files and directories by name.
+     *
+     * This can be slow as all the matching files and directories must be retrieved for comparison.
+     *
+     * @return Symfony\Components\Finder The current Finder instance
+     *
+     * @see Symfony\Components\Finder\Iterator\SortableIterator
+     */
+    public function sortByName()
     {
-      $iterator = new Iterator\SortableIterator($iterator, $this->sort);
+        $this->sort = Iterator\SortableIterator::SORT_BY_NAME;
+
+        return $this;
     }
 
-    return $iterator;
-  }
+    /**
+     * Sorts files and directories by type (directories before files), then by name.
+     *
+     * This can be slow as all the matching files and directories must be retrieved for comparison.
+     *
+     * @return Symfony\Components\Finder The current Finder instance
+     *
+     * @see Symfony\Components\Finder\Iterator\SortableIterator
+     */
+    public function sortByType()
+    {
+        $this->sort = Iterator\SortableIterator::SORT_BY_TYPE;
+
+        return $this;
+    }
+
+    /**
+     * Filters the iterator with an anonymous function.
+     *
+     * The anonymous function receives a \SplFileInfo and must return false
+     * to remove files.
+     *
+     * @param  Closure $closure An anonymous function
+     *
+     * @return Symfony\Components\Finder The current Finder instance
+     *
+     * @see Symfony\Components\Finder\Iterator\CustomFilterIterator
+     */
+    public function filter(\Closure $closure)
+    {
+        $this->filters[] = $closure;
+
+        return $this;
+    }
+
+    /**
+     * Forces the following of symlinks.
+     *
+     * @return Symfony\Components\Finder The current Finder instance
+     */
+    public function followLinks()
+    {
+        $this->followLinks = true;
+
+        return $this;
+    }
+
+    /**
+     * Searches files and directories which match defined rules.
+     *
+     * @param  string|array $dirs A directory path or an array of directories
+     *
+     * @return Symfony\Components\Finder The current Finder instance
+     *
+     * @throws \InvalidArgumentException if one of the directory does not exist
+     */
+    public function in($dirs)
+    {
+        if (!is_array($dirs))
+        {
+            $dirs = array($dirs);
+        }
+
+        foreach ($dirs as $dir)
+        {
+            if (!is_dir($dir))
+            {
+                throw new \InvalidArgumentException(sprintf('The "%s" directory does not exist.', $dir));
+            }
+        }
+
+        $this->dirs = array_merge($this->dirs, $dirs);
+
+        return $this;
+    }
+
+    /**
+     * Returns an Iterator for the current Finder configuration.
+     *
+     * This method implements the IteratorAggregate interface.
+     *
+     * @return \Iterator An iterator
+     *
+     * @throws \LogicException if the in() method has not been called
+     */
+    public function getIterator()
+    {
+        if (0 === count($this->dirs))
+        {
+            throw new \LogicException('You must call the in() method before iterating over a Finder.');
+        }
+
+        if (1 === count($this->dirs))
+        {
+            return $this->searchInDirectory($this->dirs[0]);
+        }
+
+        $iterator = new \AppendIterator();
+        foreach ($this->dirs as $dir)
+        {
+            $iterator->append($this->searchInDirectory($dir));
+        }
+
+        return $iterator;
+    }
+
+    protected function searchInDirectory($dir)
+    {
+        $flags = \FilesystemIterator::SKIP_DOTS;
+
+        if ($this->followLinks)
+        {
+            $flags |= \FilesystemIterator::FOLLOW_SYMLINKS;
+        }
+
+        $iterator = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($dir, $flags), \RecursiveIteratorIterator::SELF_FIRST);
+
+        if ($this->mindepth > 0 || $this->maxdepth < INF)
+        {
+            $iterator = new Iterator\LimitDepthFilterIterator($iterator, $this->mindepth, $this->maxdepth);
+        }
+
+        if ($this->mode)
+        {
+            $iterator = new Iterator\FileTypeFilterIterator($iterator, $this->mode);
+        }
+
+        if ($this->exclude)
+        {
+            $iterator = new Iterator\ExcludeDirectoryFilterIterator($iterator, $this->exclude);
+        }
+
+        if ($this->ignoreVCS)
+        {
+            $iterator = new Iterator\IgnoreVcsFilterIterator($iterator);
+        }
+
+        if ($this->names || $this->notNames)
+        {
+            $iterator = new Iterator\FilenameFilterIterator($iterator, $this->names, $this->notNames);
+        }
+
+        if ($this->sizes)
+        {
+            $iterator = new Iterator\SizeRangeFilterIterator($iterator, $this->sizes);
+        }
+
+        if ($this->filters)
+        {
+            $iterator = new Iterator\CustomFilterIterator($iterator, $this->filters);
+        }
+
+        if ($this->sort)
+        {
+            $iterator = new Iterator\SortableIterator($iterator, $this->sort);
+        }
+
+        return $iterator;
+    }
 }

@@ -1,6 +1,6 @@
 <?php
 
-namespace Symfony\Components\RequestHandler\Exception;
+namespace Symfony\Components\HttpKernel\Exception;
 
 /*
  * This file is part of the Symfony package.
@@ -12,21 +12,21 @@ namespace Symfony\Components\RequestHandler\Exception;
  */
 
 /**
- * NotFoundHttpException.
+ * ForbiddenHttpException.
  *
  * @package    Symfony
- * @subpackage Components_RequestHandler
+ * @subpackage Components_HttpKernel
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  */
-class NotFoundHttpException extends HttpException
+class ForbiddenHttpException extends HttpException
 {
-  public function __construct($message = '')
-  {
-    if (!$message)
+    public function __construct($message = '')
     {
-      $message = 'Not Found';
-    }
+        if (!$message)
+        {
+            $message = 'Forbidden';
+        }
 
-    parent::__construct($message, 404);
-  }
+        parent::__construct($message, 403);
+    }
 }

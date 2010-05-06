@@ -1,6 +1,6 @@
 <?php
 
-namespace Symfony\Components\RequestHandler\Exception;
+namespace Symfony\Components\HttpKernel\Exception;
 
 /*
  * This file is part of the Symfony package.
@@ -17,7 +17,7 @@ namespace Symfony\Components\RequestHandler\Exception;
  * By convention, exception code == response status code.
  *
  * @package    Symfony
- * @subpackage Components_RequestHandler
+ * @subpackage Components_HttpKernel
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  */
 class HttpException extends \Exception
