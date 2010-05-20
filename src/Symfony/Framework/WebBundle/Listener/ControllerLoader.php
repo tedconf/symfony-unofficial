@@ -2,8 +2,9 @@
 
 namespace Symfony\Framework\WebBundle\Listener;
 
+use Symfony\Framework\WebBundle\Controller\ControllerManager;
 use Symfony\Foundation\LoggerInterface;
-use Symfony\Components\DependencyInjection\ContainerInterface;
+use Symfony\Components\EventDispatcher\EventDispatcher;
 use Symfony\Components\EventDispatcher\Event;
 
 /*
@@ -25,141 +26,51 @@ use Symfony\Components\EventDispatcher\Event;
  */
 class ControllerLoader
 {
-    protected $container;
+    protected $manager;
     protected $logger;
 
-    public function __construct(ContainerInterface $container, LoggerInterface $logger = null)
+    public function __construct(ControllerManager $manager, LoggerInterface $logger = null)
     {
-        $this->container = $container;
+        $this->manager = $manager;
         $this->logger = $logger;
     }
 
-    public function register()
+    /**
+     * Registers a core.load_controller listener.
+     *
+     * @param Symfony\Components\EventDispatcher\EventDispatcher $dispatcher An EventDispatcher instance
+     */
+    public function register(EventDispatcher $dispatcher)
     {
-        $this->container->getEventDispatcherService()->connect('core.load_controller', array($this, 'resolve'));
+        $dispatcher->connect('core.load_controller', array($this, 'resolve'));
     }
 
-    public function run($controller, array $path = array(), array $query = array())
-    {
-        $request = $this->container->getRequestService();
-
-        list($path['_bundle'], $path['_controller'], $path['_action']) = explode(':', $controller);
-
-        $subRequest = $request->duplicate($query, null, $path);
-
-        $response = $this->container->getKernelService()->handle($subRequest, false, true);
-
-        $this->container->setService('request', $request);
-
-        return $response;
-    }
-
+    /**
+     * Creates the Controller associated with the given Request.
+     *
+     * @param Event $event An Event instance
+     *
+     * @return Boolean true if the controller has been found, false otherwise
+     */
     public function resolve(Event $event)
     {
         $request = $event->getParameter('request');
 
-        if (!($bundle = $request->path->get('_bundle')) || !($controller = $request->path->get('_controller')) || !($action = $request->path->get('_action')))
-        {
-            if (null !== $this->logger)
-            {
-                $this->logger->err(sprintf('Unable to look for the controller as some mandatory parameters are missing (_bundle: %s, _controller: %s, _action: %s)', isset($bundle) ? var_export($bundle, true) : 'NULL', isset($controller) ? var_export($controller, true) : 'NULL', isset($action) ? var_export($action, true) : 'NULL'));
+        if (!$controller = $request->path->get('_controller')) {
+            if (null !== $this->logger) {
+                $this->logger->err('Unable to look for the controller as the "_controller" parameter is missing');
             }
 
             return false;
         }
 
-        $controller = $this->findController($bundle, $controller, $action);
-        $controller[0]->setRequest($request);
+        list($controller, $method) = $this->manager->findController($controller);
+        $controller->setRequest($request);
 
-        $r = new \ReflectionObject($controller[0]);
-        $arguments = $this->getMethodArguments($r->getMethod($controller[1]), $request->path->all(), sprintf('%s::%s()', get_class($controller[0]), $controller[1]));
+        $arguments = $this->manager->getMethodArguments($request->path->all(), $controller, $method);
 
-        $event->setReturnValue(array($controller, $arguments));
+        $event->setReturnValue(array(array($controller, $method), $arguments));
 
         return true;
-    }
-
-    /**
-     * @throws \InvalidArgumentException|\LogicException If controller can't be found
-     */
-    public function findController($bundle, $controller, $action)
-    {
-        $class = null;
-        $logs = array();
-        foreach (array_keys($this->container->getParameter('kernel.bundle_dirs')) as $namespace)
-        {
-            $try = $namespace.'\\'.$bundle.'\\Controller\\'.$controller.'Controller';
-            if (!class_exists($try))
-            {
-                if (null !== $this->logger)
-                {
-                    $logs[] = sprintf('Failed finding controller "%s:%s" from namespace "%s" (%s)', $bundle, $controller, $namespace, $try);
-                }
-            }
-            else
-            {
-                if (!in_array($namespace.'\\'.$bundle.'\\Bundle', array_map(function ($bundle) { return get_class($bundle); }, $this->container->getKernelService()->getBundles())))
-                {
-                    throw new \LogicException(sprintf('To use the "%s" controller, you first need to enable the Bundle "%s" in your Kernel class.', $try, $namespace.'\\'.$bundle));
-                }
-
-                $class = $try;
-
-                break;
-            }
-        }
-
-        if (null === $class)
-        {
-            if (null !== $this->logger)
-            {
-                foreach ($logs as $log)
-                {
-                    $this->logger->info($log);
-                }
-            }
-
-            throw new \InvalidArgumentException(sprintf('Unable to find controller "%s:%s".', $bundle, $controller));
-        }
-
-        $controller = new $class($this->container);
-
-        $method = $action.'Action';
-        if (!method_exists($controller, $method))
-        {
-            throw new \InvalidArgumentException(sprintf('Method "%s::%s" does not exist.', $class, $method));
-        }
-
-        if (null !== $this->logger)
-        {
-            $this->logger->info(sprintf('Using controller "%s::%s"%s', $class, $method, isset($file) ? sprintf(' from file "%s"', $file) : ''));
-        }
-
-        return array($controller, $method);
-    }
-
-    /**
-     * @throws \RuntimeException When value for argument given is not provided
-     */
-    public function getMethodArguments(\ReflectionFunctionAbstract $r, array $parameters, $controller)
-    {
-        $arguments = array();
-        foreach ($r->getParameters() as $param)
-        {
-            if (array_key_exists($param->getName(), $parameters))
-            {
-                $arguments[] = $parameters[$param->getName()];
-            }
-            elseif ($param->isDefaultValueAvailable())
-            {
-                $arguments[] = $param->getDefaultValue();
-            }
-            else
-            {
-                throw new \RuntimeException(sprintf('Controller "%s" requires that you provide a value for the "$%s" argument (because there is no default value or because there is a non optional argument after this one).', $controller, $param->getName()));
-            }
-        }
-
-        return $arguments;
     }
 }

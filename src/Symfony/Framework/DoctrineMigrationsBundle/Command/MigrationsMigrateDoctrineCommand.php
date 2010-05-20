@@ -5,7 +5,7 @@ namespace Symfony\Framework\DoctrineBundle\Command;
 use Symfony\Components\Console\Input\InputInterface;
 use Symfony\Components\Console\Output\OutputInterface;
 use Symfony\Components\Console\Input\InputOption;
-use DoctrineExtensions\Migrations\Tools\Console\Command\DiffCommand;
+use Doctrine\DBAL\Migrations\Tools\Console\Command\MigrateCommand;
 
 /*
  * This file is part of the Symfony framework.
@@ -17,22 +17,21 @@ use DoctrineExtensions\Migrations\Tools\Console\Command\DiffCommand;
  */
 
 /**
- * Command for generate migration classes by comparing your current database schema
- * to your mapping information.
+ * Command for executing a migration to a specified version or the latest available version.
  *
  * @package    Symfony
  * @subpackage Framework_DoctrineBundle
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  * @author     Jonathan H. Wage <jonwage@gmail.com>
  */
-class MigrationsDiffDoctrineCommand extends DiffCommand
+class MigrationsMigrateDoctrineCommand extends MigrateCommand
 {
     protected function configure()
     {
         parent::configure();
 
         $this
-            ->setName('doctrine:migrations:diff')
+            ->setName('doctrine:migrations:migrate')
             ->addOption('bundle', null, InputOption::PARAMETER_REQUIRED, 'The bundle to load migrations configuration from.')
             ->addOption('em', null, InputOption::PARAMETER_OPTIONAL, 'The entity manager to use for this command.')
         ;

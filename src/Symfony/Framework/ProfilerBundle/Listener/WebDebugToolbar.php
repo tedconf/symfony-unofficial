@@ -3,8 +3,10 @@
 namespace Symfony\Framework\ProfilerBundle\Listener;
 
 use Symfony\Components\DependencyInjection\ContainerInterface;
+use Symfony\Components\EventDispatcher\EventDispatcher;
 use Symfony\Components\EventDispatcher\Event;
 use Symfony\Components\HttpKernel\Response;
+use Symfony\Components\HttpKernel\HttpKernelInterface;
 use Symfony\Framework\ProfilerBundle\DataCollector\DataCollectorManager;
 
 /*
@@ -34,30 +36,29 @@ class WebDebugToolbar
         $this->collectorManager = $collectorManager;
     }
 
-    public function register()
+    /**
+     * Registers a core.response listener.
+     *
+     * @param Symfony\Components\EventDispatcher\EventDispatcher $dispatcher An EventDispatcher instance
+     */
+    public function register(EventDispatcher $dispatcher)
     {
-        $this->container->getEventDispatcherService()->connect('core.response', array($this, 'handle'));
+        $dispatcher->connect('core.response', array($this, 'handle'));
     }
 
     public function handle(Event $event, Response $response)
     {
-        if (!$event->getParameter('main_request'))
-        {
+        if (HttpKernelInterface::MASTER_REQUEST !== $event->getParameter('request_type')) {
             return $response;
         }
 
         $request = $this->container->getRequestService();
 
-        if (
-            '3' === substr($response->getStatusCode(), 0, 1)
-            ||
-            ($response->headers->has('Content-Type') && false === strpos($response->headers->get('Content-Type'), 'html'))
-            ||
-            'html' !== $request->getRequestFormat()
-            ||
-            $request->isXmlHttpRequest()
-        )
-        {
+        if ('3' === substr($response->getStatusCode(), 0, 1)
+            || ($response->headers->has('Content-Type') && false === strpos($response->headers->get('Content-Type'), 'html'))
+            || 'html' !== $request->getRequestFormat()
+            || $request->isXmlHttpRequest()
+        ) {
             return $response;
         }
 
@@ -76,8 +77,7 @@ class WebDebugToolbar
     protected function injectToolbar(Response $response)
     {
         $data = '';
-        foreach ($this->collectorManager->getCollectors() as $name => $collector)
-        {
+        foreach ($this->collectorManager->getCollectors() as $name => $collector) {
             $data .= $collector->getSummary();
         }
 
@@ -95,8 +95,7 @@ EOF;
         $toolbar = "\n".str_replace("\n", '', $toolbar)."\n";
         $count = 0;
         $content = str_ireplace('</body>', $toolbar.'</body>', $response->getContent(), $count);
-        if (!$count)
-        {
+        if (!$count) {
             $content .= $toolbar;
         }
 

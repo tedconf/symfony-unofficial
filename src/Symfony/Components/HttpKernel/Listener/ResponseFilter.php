@@ -1,11 +1,12 @@
 <?php
 
-namespace Symfony\Framework\WebBundle\Listener;
+namespace Symfony\Components\HttpKernel\Listener;
 
 use Symfony\Components\EventDispatcher\EventDispatcher;
 use Symfony\Components\EventDispatcher\Event;
 use Symfony\Components\HttpKernel\Request;
 use Symfony\Components\HttpKernel\Response;
+use Symfony\Components\HttpKernel\HttpKernelInterface;
 
 /*
  * This file is part of the Symfony framework.
@@ -25,29 +26,31 @@ use Symfony\Components\HttpKernel\Response;
  */
 class ResponseFilter
 {
-    protected $dispatcher;
-
-    public function __construct(EventDispatcher $dispatcher)
+    /**
+     * Registers a core.response listener to change the Content-Type header based on the Request format.
+     *
+     * @param Symfony\Components\EventDispatcher\EventDispatcher $dispatcher An EventDispatcher instance
+     */
+    public function register(EventDispatcher $dispatcher)
     {
-        $this->dispatcher = $dispatcher;
+        $dispatcher->connect('core.response', array($this, 'filter'));
     }
 
-    public function register()
-    {
-        $this->dispatcher->connect('core.response', array($this, 'filter'));
-    }
-
+    /**
+     * Filters the Response.
+     *
+     * @param Symfony\Components\EventDispatcher\Event $event    An Event instance
+     * @param Symfony\Components\HttpKernel\Response   $response A Response instance
+     */
     public function filter(Event $event, Response $response)
     {
-        if (!$event->getParameter('main_request') || $response->headers->has('Content-Type'))
-        {
+        if (HttpKernelInterface::MASTER_REQUEST !== $event->getParameter('request_type') || $response->headers->has('Content-Type')) {
             return $response;
         }
 
         $request = $event->getParameter('request');
         $format = $request->getRequestFormat();
-        if ((null !== $format) && $mimeType = $request->getMimeType($format))
-        {
+        if ((null !== $format) && $mimeType = $request->getMimeType($format)) {
             $response->headers->set('Content-Type', $mimeType);
         }
 

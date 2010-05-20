@@ -7,7 +7,6 @@ use Symfony\Components\DependencyInjection\ContainerInterface;
 use Symfony\Components\DependencyInjection\Loader\Loader;
 use Symfony\Components\DependencyInjection\Loader\XmlFileLoader;
 use Symfony\Framework\DoctrineBundle\DependencyInjection\DoctrineExtension;
-use Symfony\Components\Console\Application;
 
 /*
  * This file is part of the Symfony framework.
@@ -28,6 +27,13 @@ use Symfony\Components\Console\Application;
  */
 class Bundle extends BaseBundle
 {
+    /**
+     * Customizes the Container instance.
+     *
+     * @param Symfony\Components\DependencyInjection\ContainerInterface $container A ContainerInterface instance
+     *
+     * @return Symfony\Components\DependencyInjection\BuilderConfiguration A BuilderConfiguration instance
+     */
     public function buildContainer(ContainerInterface $container)
     {
         Loader::registerExtension(new DoctrineExtension($container->getParameter('kernel.bundle_dirs'), $container->getParameter('kernel.bundles')));
@@ -35,20 +41,16 @@ class Bundle extends BaseBundle
         $metadataDirs = array();
         $entityDirs = array();
         $bundleDirs = $container->getParameter('kernel.bundle_dirs');
-        foreach ($container->getParameter('kernel.bundles') as $className)
-        {
+        foreach ($container->getParameter('kernel.bundles') as $className) {
             $tmp = dirname(str_replace('\\', '/', $className));
             $namespace = str_replace('/', '\\', dirname($tmp));
             $class = basename($tmp);
 
-            if (isset($bundleDirs[$namespace]))
-            {
-                if (is_dir($dir = $bundleDirs[$namespace].'/'.$class.'/Resources/config/doctrine/metadata'))
-                {
+            if (isset($bundleDirs[$namespace])) {
+                if (is_dir($dir = $bundleDirs[$namespace].'/'.$class.'/Resources/config/doctrine/metadata')) {
                     $metadataDirs[] = realpath($dir);
                 }
-                if (is_dir($dir = $bundleDirs[$namespace].'/'.$class.'/Entities'))
-                {
+                if (is_dir($dir = $bundleDirs[$namespace].'/'.$class.'/Entities')) {
                     $entityDirs[] = realpath($dir);
                 }
             }

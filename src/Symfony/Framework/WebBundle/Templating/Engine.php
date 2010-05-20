@@ -40,17 +40,21 @@ class Engine extends BaseEngine
      */
     public function __construct(ContainerInterface $container, LoaderInterface $loader, array $renderers = array(), $escaper)
     {
-        parent::__construct($loader, $renderers);
-
         $this->level = 0;
         $this->container = $container;
         $this->escaper = $escaper;
 
+        foreach ($this->container->findAnnotatedServiceIds('templating.renderer') as $id => $attributes) {
+            if (isset($attributes[0]['alias'])) {
+                $renderers[$attributes[0]['alias']] = $this->container->getService($id);
+            }
+        }
+
+        parent::__construct($loader, $renderers);
+
         $this->helpers = array();
-        foreach ($this->container->findAnnotatedServiceIds('templating.helper') as $id => $attributes)
-        {
-            if (isset($attributes[0]['alias']))
-            {
+        foreach ($this->container->findAnnotatedServiceIds('templating.helper') as $id => $attributes) {
+            if (isset($attributes[0]['alias'])) {
                 $this->helpers[$attributes[0]['alias']] = $id;
             }
         }
@@ -60,10 +64,13 @@ class Engine extends BaseEngine
     {
         ++$this->level;
 
-        // escape only once
-        if (1 === $this->level && !isset($parameters['_data']))
+        list(, $options) = $this->splitTemplateName($name);
+        if ('php' === $options['renderer'])
         {
-            $parameters = $this->escapeParameters($parameters);
+            // escape only once
+            if (1 === $this->level && !isset($parameters['_data'])) {
+                $parameters = $this->escapeParameters($parameters);
+            }
         }
 
         $content = parent::render($name, $parameters);
@@ -83,13 +90,11 @@ class Engine extends BaseEngine
      */
     public function get($name)
     {
-        if (!isset($this->helpers[$name]))
-        {
+        if (!isset($this->helpers[$name])) {
             throw new \InvalidArgumentException(sprintf('The helper "%s" is not defined.', $name));
         }
 
-        if (is_string($this->helpers[$name]))
-        {
+        if (is_string($this->helpers[$name])) {
             $this->helpers[$name] = $this->container->getService('templating.helper.'.$name);
             $this->helpers[$name]->setCharset($this->charset);
         }
@@ -99,18 +104,14 @@ class Engine extends BaseEngine
 
     protected function escapeParameters(array $parameters)
     {
-        if (false !== $this->escaper)
-        {
+        if (false !== $this->escaper) {
             Escaper::setCharset($this->getCharset());
 
             $parameters['_data'] = Escaper::escape($this->escaper, $parameters);
-            foreach ($parameters['_data'] as $key => $value)
-            {
+            foreach ($parameters['_data'] as $key => $value) {
                 $parameters[$key] = $value;
             }
-        }
-        else
-        {
+        } else {
             $parameters['_data'] = Escaper::escape('raw', $parameters);
         }
 
@@ -118,20 +119,19 @@ class Engine extends BaseEngine
     }
 
     // Bundle:controller:action(:renderer)
-    protected function splitTemplateName($name)
+    public function splitTemplateName($name)
     {
         $parts = explode(':', $name, 4);
 
         $options = array(
             'bundle'     => str_replace('\\', '/', $parts[0]),
             'controller' => $parts[1],
-            'renderer'   => isset($parts[3]) ? $parts[3] : 'php',
+            'renderer'   => isset($parts[3]) && $parts[3] ? $parts[3] : 'php',
             'format'     => '',
         );
 
         $format = $this->container->getRequestService()->getRequestFormat();
-        if (null !== $format && 'html' !== $format)
-        {
+        if (null !== $format && 'html' !== $format) {
             $options['format'] = '.'.$format;
         }
 

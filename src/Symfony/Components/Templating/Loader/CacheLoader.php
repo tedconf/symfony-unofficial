@@ -61,45 +61,50 @@ class CacheLoader extends Loader
         $file = substr($tmp, 2);
         $path = $dir.DIRECTORY_SEPARATOR.$file;
 
-        if ($this->loader instanceof CompilableLoaderInterface)
-        {
+        if ($this->loader instanceof CompilableLoaderInterface) {
             $options['renderer'] = 'php';
         }
 
-        if (file_exists($path))
-        {
-            if (null !== $this->debugger)
-            {
+        if (file_exists($path)) {
+            if (null !== $this->debugger) {
                 $this->debugger->log(sprintf('Fetching template "%s" from cache', $template));
             }
 
             return new FileStorage($path, $options['renderer']);
         }
 
-        if (false === $storage = $this->loader->load($template, $options))
-        {
+        if (false === $storage = $this->loader->load($template, $options)) {
             return false;
         }
 
         $content = $storage->getContent();
 
-        if ($this->loader instanceof CompilableLoaderInterface)
-        {
+        if ($this->loader instanceof CompilableLoaderInterface) {
             $content = $this->loader->compile($content);
         }
 
-        if (!file_exists($dir))
-        {
+        if (!file_exists($dir)) {
             mkdir($dir, 0777, true);
         }
 
         file_put_contents($path, $content);
 
-        if (null !== $this->debugger)
-        {
+        if (null !== $this->debugger) {
             $this->debugger->log(sprintf('Storing template "%s" in cache', $template));
         }
 
         return new FileStorage($path, $options['renderer']);
+    }
+
+    /**
+     * Returns true if the template is still fresh.
+     *
+     * @param string    $template The template name
+     * @param array     $options  An array of options
+     * @param timestamp $time     The last modification time of the cached template
+     */
+    public function isFresh($template, array $options = array(), $time)
+    {
+        return $this->loader->isFresh($template, $options);
     }
 }

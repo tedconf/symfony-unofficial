@@ -35,7 +35,6 @@ class Command
     protected $application;
     protected $description;
     protected $ignoreValidationErrors;
-    protected $formatter;
     protected $applicationDefinitionMerged;
     protected $code;
 
@@ -53,15 +52,13 @@ class Command
         $this->applicationDefinitionMerged = false;
         $this->aliases = array();
 
-        if (null !== $name)
-        {
+        if (null !== $name) {
             $this->setName($name);
         }
 
         $this->configure();
 
-        if (!$this->name)
-        {
+        if (!$this->name) {
             throw new \LogicException('The command name cannot be empty.');
         }
     }
@@ -133,33 +130,25 @@ class Command
         $this->mergeApplicationDefinition();
 
         // bind the input against the command specific arguments/options
-        try
-        {
+        try {
             $input->bind($this->definition);
-        }
-        catch (\Exception $e)
-        {
-            if (!$this->ignoreValidationErrors)
-            {
+        } catch (\Exception $e) {
+            if (!$this->ignoreValidationErrors) {
                 throw $e;
             }
         }
 
         $this->initialize($input, $output);
 
-        if ($input->isInteractive())
-        {
+        if ($input->isInteractive()) {
             $this->interact($input, $output);
         }
 
         $input->validate();
 
-        if ($this->code)
-        {
+        if ($this->code) {
             return call_user_func($this->code, $input, $output);
-        }
-        else
-        {
+        } else {
             return $this->execute($input, $output);
         }
     }
@@ -183,8 +172,7 @@ class Command
      */
     protected function mergeApplicationDefinition()
     {
-        if (null === $this->application || true === $this->applicationDefinitionMerged)
-        {
+        if (null === $this->application || true === $this->applicationDefinitionMerged) {
             return;
         }
 
@@ -207,12 +195,9 @@ class Command
      */
     public function setDefinition($definition)
     {
-        if ($definition instanceof InputDefinition)
-        {
+        if ($definition instanceof InputDefinition) {
             $this->definition = $definition;
-        }
-        else
-        {
+        } else {
             $this->definition->setDefinition($definition);
         }
 
@@ -282,18 +267,14 @@ class Command
      */
     public function setName($name)
     {
-        if (false !== $pos = strrpos($name, ':'))
-        {
+        if (false !== $pos = strrpos($name, ':')) {
             $namespace = substr($name, 0, $pos);
             $name = substr($name, $pos + 1);
-        }
-        else
-        {
+        } else {
             $namespace = $this->namespace;
         }
 
-        if (!$name)
-        {
+        if (!$name) {
             throw new \InvalidArgumentException('A command name cannot be empty.');
         }
 
@@ -478,15 +459,13 @@ class Command
             '',
         );
 
-        if ($this->getAliases())
-        {
+        if ($this->getAliases()) {
             $messages[] = '<comment>Aliases:</comment> <info>'.implode(', ', $this->getAliases()).'</info>';
         }
 
         $messages[] = $this->definition->asText();
 
-        if ($help = $this->getProcessedHelp())
-        {
+        if ($help = $this->getProcessedHelp()) {
             $messages[] = '<comment>Help:</comment>';
             $messages[] = ' '.implode("\n ", explode("\n", $help))."\n";
         }
@@ -521,8 +500,7 @@ class Command
         $helpXML->appendChild($dom->createTextNode(implode("\n ", explode("\n", $help))));
 
         $commandXML->appendChild($aliasesXML = $dom->createElement('aliases'));
-        foreach ($this->getAliases() as $alias)
-        {
+        foreach ($this->getAliases() as $alias) {
             $aliasesXML->appendChild($aliasXML = $dom->createElement('alias'));
             $aliasXML->appendChild($dom->createTextNode($alias));
         }

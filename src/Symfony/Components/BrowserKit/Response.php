@@ -33,7 +33,7 @@ class Response
      * @param array   $headers An array of headers
      * @param array   $cookies An array of cookies
      */
-    public function __construct($content = '', $status = 200, $headers = array(), $cookies = array())
+    public function __construct($content = '', $status = 200, array $headers = array(), array $cookies = array())
     {
         $this->content = $content;
         $this->status  = $status;
@@ -44,12 +44,10 @@ class Response
     public function __toString()
     {
         $headers = '';
-        foreach ($this->headers as $name => $value)
-        {
+        foreach ($this->headers as $name => $value) {
             $headers .= sprintf("%s: %s\n", $name, $value);
         }
-        foreach ($this->cookies as $name => $cookie)
-        {
+        foreach ($this->cookies as $name => $cookie) {
             $headers .= sprintf("Set-Cookie: %s=%s\n", $name, $cookie['value']);
         }
 
@@ -95,10 +93,8 @@ class Response
      */
     public function getHeader($header)
     {
-        foreach ($this->headers as $key => $value)
-        {
-            if (str_replace('-', '_', strtolower($key)) == str_replace('-', '_', strtolower($header)))
-            {
+        foreach ($this->headers as $key => $value) {
+            if (str_replace('-', '_', strtolower($key)) == str_replace('-', '_', strtolower($header))) {
                 return $value;
             }
         }

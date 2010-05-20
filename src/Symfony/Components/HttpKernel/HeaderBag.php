@@ -33,8 +33,7 @@ class HeaderBag extends ParameterBag
     {
         $this->replace($parameters);
 
-        if (null !== $type && !in_array($type, array('request', 'response')))
-        {
+        if (null !== $type && !in_array($type, array('request', 'response'))) {
             throw new \InvalidArgumentException(sprintf('The "%s" type is not supported by the HeaderBag constructor.', $type));
         }
         $this->type = $type;
@@ -49,8 +48,7 @@ class HeaderBag extends ParameterBag
     {
         $this->cacheControl = null;
         $this->parameters = array();
-        foreach ($parameters as $key => $value)
-        {
+        foreach ($parameters as $key => $value) {
             $this->parameters[strtr(strtolower($key), '_', '-')] = $value;
         }
     }
@@ -79,8 +77,7 @@ class HeaderBag extends ParameterBag
     {
         $key = strtr(strtolower($key), '_', '-');
 
-        if (false === $replace)
-        {
+        if (false === $replace) {
             $current = $this->get($key, '');
             $value = ($current ? $current.', ' : '').$value;
         }
@@ -117,12 +114,32 @@ class HeaderBag extends ParameterBag
      */
     public function getCacheControl()
     {
-        if (null === $this->cacheControl)
-        {
+        if (null === $this->cacheControl) {
             $this->cacheControl = new CacheControl($this, $this->get('Cache-Control'), $this->type);
         }
 
         return $this->cacheControl;
+    }
+
+    /**
+     * Returns the HTTP header value converted to a date.
+     *
+     * @param string    $key     The parameter key
+     * @param \DateTime $default The default value
+     *
+     * @return \DateTime The filtered value
+     */
+    public function getDate($key, \DateTime $default = null)
+    {
+        if (null === $value = $this->get($key)) {
+            return $default;
+        }
+
+        if (false === $date = \DateTime::createFromFormat(DATE_RFC2822, $value)) {
+            throw new \RuntimeException(sprintf('The %s HTTP header is not parseable (%s).', $key, $value));
+        }
+
+        return $date;
     }
 
     /**

@@ -47,25 +47,17 @@ class AssetsInstallCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        if (!is_dir($input->getArgument('target')))
-        {
+        if (!is_dir($input->getArgument('target'))) {
             throw new \InvalidArgumentException(sprintf('The target directory "%s" does not exist.', $input->getArgument('target')));
         }
 
         $filesystem = new Filesystem();
 
-        $dirs = $this->container->getKernelService()->getBundleDirs();
-        foreach ($this->container->getKernelService()->getBundles() as $bundle)
-        {
-            $tmp = dirname(str_replace('\\', '/', get_class($bundle)));
-            $namespace = str_replace('/', '\\', dirname($tmp));
-            $class = basename($tmp);
+        foreach ($this->container->getKernelService()->getBundles() as $bundle) {
+            if (is_dir($originDir = $bundle->getPath().'/Resources/public')) {
+                $output->writeln(sprintf('Installing assets for <comment>%s\\%s</comment>', $bundle->getNamespacePrefix(), $bundle->getName()));
 
-            if (isset($dirs[$namespace]) && is_dir($originDir = $dirs[$namespace].'/'.$class.'/Resources/public'))
-            {
-                $output->writeln(sprintf('Installing assets for <comment>%s\\%s</comment>', $namespace, $class));
-
-                $targetDir = $input->getArgument('target').'/bundles/'.preg_replace('/bundle$/', '', strtolower($class));
+                $targetDir = $input->getArgument('target').'/bundles/'.preg_replace('/bundle$/', '', strtolower($bundle->getName()));
 
                 $filesystem->remove($targetDir);
                 mkdir($targetDir, 0755, true);

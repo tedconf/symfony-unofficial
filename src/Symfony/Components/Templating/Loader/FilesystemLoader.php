@@ -32,8 +32,7 @@ class FilesystemLoader extends Loader
      */
     public function __construct($templatePathPatterns)
     {
-        if (!is_array($templatePathPatterns))
-        {
+        if (!is_array($templatePathPatterns)) {
             $templatePathPatterns = array($templatePathPatterns);
         }
 
@@ -52,8 +51,7 @@ class FilesystemLoader extends Loader
      */
     public function load($template, array $options = array())
     {
-        if (self::isAbsolutePath($template) && file_exists($template))
-        {
+        if (self::isAbsolutePath($template) && file_exists($template)) {
             return new FileStorage($template);
         }
 
@@ -61,39 +59,49 @@ class FilesystemLoader extends Loader
         $options['name'] = $template;
 
         $replacements = array();
-        foreach ($options as $key => $value)
-        {
+        foreach ($options as $key => $value) {
             $replacements['%'.$key.'%'] = $value;
         }
 
         $logs = array();
-        foreach ($this->templatePathPatterns as $templatePathPattern)
-        {
-            if (is_file($file = strtr($templatePathPattern, $replacements)))
-            {
-                if (null !== $this->debugger)
-                {
+        foreach ($this->templatePathPatterns as $templatePathPattern) {
+            if (is_file($file = strtr($templatePathPattern, $replacements))) {
+                if (null !== $this->debugger) {
                     $this->debugger->log(sprintf('Loaded template file "%s" (renderer: %s)', $file, $options['renderer']));
                 }
 
                 return new FileStorage($file);
             }
 
-            if (null !== $this->debugger)
-            {
+            if (null !== $this->debugger) {
                 $logs[] = sprintf('Failed loading template file "%s" (renderer: %s)', $file, $options['renderer']);
             }
         }
 
-        if (null !== $this->debugger)
-        {
-            foreach ($logs as $log)
-            {
+        if (null !== $this->debugger) {
+            foreach ($logs as $log) {
                 $this->debugger->log($log);
             }
         }
 
         return false;
+    }
+
+    /**
+     * Returns true if the template is still fresh.
+     *
+     * @param string    $template The template name
+     * @param array     $options  An array of options
+     * @param timestamp $time     The last modification time of the cached template
+     */
+    public function isFresh($template, array $options = array(), $time)
+    {
+        if (false === $template = $this->load($template, $options))
+        {
+            return false;
+        }
+
+        return filemtime((string) $template) < $time;
     }
 
     /**
@@ -105,13 +113,12 @@ class FilesystemLoader extends Loader
      */
     static protected function isAbsolutePath($file)
     {
-        if ($file[0] == '/' || $file[0] == '\\' ||
-                (strlen($file) > 3 && ctype_alpha($file[0]) &&
-                 $file[1] == ':' &&
-                 ($file[2] == '\\' || $file[2] == '/')
-                )
-             )
-        {
+        if ($file[0] == '/' || $file[0] == '\\' 
+            || (strlen($file) > 3 && ctype_alpha($file[0]) 
+                && $file[1] == ':' 
+                && ($file[2] == '\\' || $file[2] == '/')
+            )
+        ) {
             return true;
         }
 

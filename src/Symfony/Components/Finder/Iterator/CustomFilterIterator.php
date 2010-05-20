@@ -47,10 +47,8 @@ class CustomFilterIterator extends \FilterIterator
     {
         $fileinfo = $this->getInnerIterator()->current();
 
-        foreach ($this->filters as $filter)
-        {
-            if (false === $filter($fileinfo))
-            {
+        foreach ($this->filters as $filter) {
+            if (false === $filter($fileinfo)) {
                 return false;
             }
         }

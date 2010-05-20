@@ -5,7 +5,7 @@ namespace Symfony\Framework\DoctrineBundle\Command;
 use Symfony\Components\Console\Input\InputInterface;
 use Symfony\Components\Console\Output\OutputInterface;
 use Symfony\Components\Console\Input\InputOption;
-use DoctrineExtensions\Migrations\Tools\Console\Command\MigrateCommand;
+use Doctrine\DBAL\Migrations\Tools\Console\Command\VersionCommand;
 
 /*
  * This file is part of the Symfony framework.
@@ -17,21 +17,21 @@ use DoctrineExtensions\Migrations\Tools\Console\Command\MigrateCommand;
  */
 
 /**
- * Command for executing a migration to a specified version or the latest available version.
+ * Command for manually adding and deleting migration versions from the version table.
  *
  * @package    Symfony
  * @subpackage Framework_DoctrineBundle
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  * @author     Jonathan H. Wage <jonwage@gmail.com>
  */
-class MigrationsMigrateDoctrineCommand extends MigrateCommand
+class MigrationsVersionDoctrineCommand extends VersionCommand
 {
     protected function configure()
     {
         parent::configure();
 
         $this
-            ->setName('doctrine:migrations:migrate')
+            ->setName('doctrine:migrations:version')
             ->addOption('bundle', null, InputOption::PARAMETER_REQUIRED, 'The bundle to load migrations configuration from.')
             ->addOption('em', null, InputOption::PARAMETER_OPTIONAL, 'The entity manager to use for this command.')
         ;
@@ -40,9 +40,6 @@ class MigrationsMigrateDoctrineCommand extends MigrateCommand
     public function execute(InputInterface $input, OutputInterface $output)
     {
         DoctrineCommand::setApplicationEntityManager($this->application, $input->getOption('em'));
-
-        $configuration = $this->_getMigrationConfiguration($input, $output);
-        DoctrineCommand::configureMigrationsForBundle($this->application, $input->getOption('bundle'), $configuration);
 
         parent::execute($input, $output);
     }

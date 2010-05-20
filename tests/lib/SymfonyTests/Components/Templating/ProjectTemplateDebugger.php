@@ -13,10 +13,8 @@ class ProjectTemplateDebugger implements DebuggerInterface
 
     public function hasMessage($regex)
     {
-        foreach ($this->messages as $message)
-        {
-            if (preg_match('#'.preg_quote($regex, '#').'#', $message))
-            {
+        foreach ($this->messages as $message) {
+            if (preg_match('#'.preg_quote($regex, '#').'#', $message)) {
                 return true;
             }
         }

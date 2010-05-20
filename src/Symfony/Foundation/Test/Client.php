@@ -75,8 +75,7 @@ class Client extends BaseClient
      */
     public function getTester($name)
     {
-        if (isset($this->testers[$name]) && !is_object($this->testers[$name]))
-        {
+        if (isset($this->testers[$name]) && !is_object($this->testers[$name])) {
             $this->container->setService('test.response', $this->getResponse());
 
             return $this->container->getService($this->testers[$name]);
@@ -130,10 +129,8 @@ EOF;
      */
     protected function addTestersFromContainer()
     {
-        foreach ($this->container->findAnnotatedServiceIds('test.tester') as $id => $config)
-        {
-            if (!isset($config[0]['alias']))
-            {
+        foreach ($this->container->findAnnotatedServiceIds('test.tester') as $id => $config) {
+            if (!isset($config[0]['alias'])) {
                 continue;
             }
 

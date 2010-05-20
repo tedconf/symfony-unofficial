@@ -5,6 +5,7 @@ namespace Symfony\Framework\WebBundle;
 use Symfony\Components\DependencyInjection\ContainerInterface;
 use Symfony\Components\HttpKernel\Request;
 use Symfony\Components\HttpKernel\Response;
+use Symfony\Components\HttpKernel\HttpKernelInterface;
 
 /*
  * This file is part of the Symfony framework.
@@ -34,8 +35,7 @@ class Controller
 
     public function getRequest()
     {
-        if (null === $this->request)
-        {
+        if (null === $this->request) {
             $this->request = $this->container->getRequestService();
         }
 
@@ -62,8 +62,7 @@ class Controller
         $response = $this->container->getResponseService();
         $response->setContent($content);
         $response->setStatusCode($status);
-        foreach ($headers as $name => $value)
-        {
+        foreach ($headers as $name => $value) {
             $response->headers->set($name, $value);
         }
 
@@ -84,9 +83,21 @@ class Controller
         return $this->container->getRouterService()->generate($route, $parameters);
     }
 
-    public function forward($controller, array $parameters = array())
+    /**
+     * Forwards the request to another controller.
+     *
+     * @param  string  $controller The controller name (a string like BlogBundle:Post:index)
+     * @param  array   $path       An array of path parameters
+     * @param  array   $query      An array of query parameters
+     *
+     * @return Response A Response instance
+     */
+    public function forward($controller, array $path = array(), array $query = array())
     {
-        return $this->container->getControllerLoaderService()->run($controller, $parameters);
+        $path['_controller'] = $controller;
+        $subRequest = $this->getRequest()->duplicate($query, null, $path);
+
+        return $this->container->getKernelService()->handle($subRequest, HttpKernelInterface::FORWARDED_REQUEST, true);
     }
 
     /**
@@ -117,8 +128,7 @@ class Controller
      */
     public function render($view, array $parameters = array(), Response $response = null)
     {
-        if (null === $response)
-        {
+        if (null === $response) {
             $response = $this->container->getResponseService();
         }
 

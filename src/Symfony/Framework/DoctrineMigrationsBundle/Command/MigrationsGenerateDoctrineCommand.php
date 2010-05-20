@@ -5,7 +5,7 @@ namespace Symfony\Framework\DoctrineBundle\Command;
 use Symfony\Components\Console\Input\InputInterface;
 use Symfony\Components\Console\Output\OutputInterface;
 use Symfony\Components\Console\Input\InputOption;
-use DoctrineExtensions\Migrations\Tools\Console\Command\ExecuteCommand;
+use Doctrine\DBAL\Migrations\Tools\Console\Command\GenerateCommand;
 
 /*
  * This file is part of the Symfony framework.
@@ -17,21 +17,21 @@ use DoctrineExtensions\Migrations\Tools\Console\Command\ExecuteCommand;
  */
 
 /**
- * Command for executing single migrations up or down manually.
+ * Command for generating new blank migration classes
  *
  * @package    Symfony
  * @subpackage Framework_DoctrineBundle
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  * @author     Jonathan H. Wage <jonwage@gmail.com>
  */
-class MigrationsExecuteDoctrineCommand extends ExecuteCommand
+class MigrationsGenerateDoctrineCommand extends GenerateCommand
 {
     protected function configure()
     {
         parent::configure();
 
         $this
-            ->setName('doctrine:migrations:execute')
+            ->setName('doctrine:migrations:generate')
             ->addOption('bundle', null, InputOption::PARAMETER_REQUIRED, 'The bundle to load migrations configuration from.')
             ->addOption('em', null, InputOption::PARAMETER_OPTIONAL, 'The entity manager to use for this command.')
         ;

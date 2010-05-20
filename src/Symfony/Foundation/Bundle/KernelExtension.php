@@ -39,13 +39,11 @@ class KernelExtension extends LoaderExtension
     {
         $configuration = new BuilderConfiguration();
 
-        if (isset($config['charset']))
-        {
+        if (isset($config['charset'])) {
             $configuration->setParameter('kernel.charset', $config['charset']);
         }
 
-        if (!array_key_exists('compilation', $config))
-        {
+        if (!array_key_exists('compilation', $config)) {
             $classes = array(
                 'Symfony\\Components\\Routing\\Router',
                 'Symfony\\Components\\Routing\\RouterInterface',
@@ -55,6 +53,7 @@ class KernelExtension extends LoaderExtension
                 'Symfony\\Components\\HttpKernel\\HttpKernel',
                 'Symfony\\Components\\HttpKernel\\Request',
                 'Symfony\\Components\\HttpKernel\\Response',
+                'Symfony\\Components\\HttpKernel\\Listener\\ResponseFilter',
                 'Symfony\\Components\\Templating\\Loader\\LoaderInterface',
                 'Symfony\\Components\\Templating\\Loader\\Loader',
                 'Symfony\\Components\\Templating\\Loader\\FilesystemLoader',
@@ -67,25 +66,19 @@ class KernelExtension extends LoaderExtension
                 'Symfony\\Framework\\WebBundle\\Controller',
                 'Symfony\\Framework\\WebBundle\\Listener\\RequestParser',
                 'Symfony\\Framework\\WebBundle\\Listener\\ControllerLoader',
-                'Symfony\\Framework\\WebBundle\\Listener\\ResponseFilter',
                 'Symfony\\Framework\\WebBundle\\Templating\\Engine',
             );
-        }
-        else
-        {
+        } else {
             $classes = array();
-            foreach (explode("\n", $config['compilation']) as $class)
-            {
-                if ($class)
-                {
+            foreach (explode("\n", $config['compilation']) as $class) {
+                if ($class) {
                     $classes[] = trim($class);
                 }
             }
         }
         $configuration->setParameter('kernel.compiled_classes', $classes);
 
-        if (array_key_exists('error_handler_level', $config))
-        {
+        if (array_key_exists('error_handler_level', $config)) {
             $configuration->setParameter('error_handler.level', $config['error_handler_level']);
         }
 
