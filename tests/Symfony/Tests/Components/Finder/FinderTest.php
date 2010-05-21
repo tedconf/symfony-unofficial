@@ -52,25 +52,22 @@ class FinderTest extends Iterator\RealIteratorTestCase
         $this->assertIterator($this->toAbsolute(array('foo/bar.tmp', 'test.php', 'test.py')), $finder->in(self::$tmpDir)->getIterator());
     }
 
-    public function testMaxDepth()
+    public function testDepth()
     {
         $finder = new Finder();
-        $this->assertSame($finder, $finder->maxDepth(0));
+        $this->assertSame($finder, $finder->depth('< 1'));
         $this->assertIterator($this->toAbsolute(array('foo', 'test.php', 'test.py', 'toto')), $finder->in(self::$tmpDir)->getIterator());
-    }
 
-    public function testMinDepth()
-    {
         $finder = new Finder();
-        $this->assertSame($finder, $finder->minDepth(1));
+        $this->assertSame($finder, $finder->depth('<= 0'));
+        $this->assertIterator($this->toAbsolute(array('foo', 'test.php', 'test.py', 'toto')), $finder->in(self::$tmpDir)->getIterator());
+
+        $finder = new Finder();
+        $this->assertSame($finder, $finder->depth('>= 1'));
         $this->assertIterator($this->toAbsolute(array('foo/bar.tmp')), $finder->in(self::$tmpDir)->getIterator());
-    }
 
-    public function testMinMaxDepth()
-    {
         $finder = new Finder();
-        $finder->maxDepth(0);
-        $finder->minDepth(1);
+        $finder->depth('< 1')->depth('>= 1');
         $this->assertIterator(array(), $finder->in(self::$tmpDir)->getIterator());
     }
 
@@ -110,6 +107,13 @@ class FinderTest extends Iterator\RealIteratorTestCase
         $finder = new Finder();
         $this->assertSame($finder, $finder->files()->size('< 1K')->size('> 500'));
         $this->assertIterator($this->toAbsolute(array('test.php')), $finder->in(self::$tmpDir)->getIterator());
+    }
+
+    public function testDate()
+    {
+        $finder = new Finder();
+        $this->assertSame($finder, $finder->files()->date('until last month'));
+        $this->assertIterator($this->toAbsolute(array('foo/bar.tmp', 'test.php')), $finder->in(self::$tmpDir)->getIterator());
     }
 
     public function testExclude()
@@ -180,9 +184,9 @@ class FinderTest extends Iterator\RealIteratorTestCase
         }
 
         $finder = new Finder();
-        $iterator = $finder->files()->name('*.php')->maxDepth(0)->in(array(self::$tmpDir, __DIR__))->getIterator();
+        $iterator = $finder->files()->name('*.php')->depth('< 1')->in(array(self::$tmpDir, __DIR__))->getIterator();
 
-        $this->assertIterator(array(self::$tmpDir.'test.php', __DIR__.'/FinderTest.php', __DIR__.'/GlobTest.php', __DIR__.'/NumberCompareTest.php'), $iterator);
+        $this->assertIterator(array(self::$tmpDir.'test.php', __DIR__.'/FinderTest.php', __DIR__.'/GlobTest.php'), $iterator);
     }
 
     public function testGetIterator()

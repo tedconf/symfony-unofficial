@@ -16,14 +16,12 @@ namespace Symfony\Components\Finder;
  *
  * It is a thin wrapper around several specialized iterator classes.
  *
- * All rules may be invoked several times, except for ->in() method.
- * Some rules are cumulative (->name() for example) whereas others are destructive
- * (most recent value is used, ->maxDepth() method for example).
+ * All rules may be invoked several times.
  *
  * All methods return the current Finder object to allow easy chaining:
  *
  * $finder = new Finder();
- * $iterator = $finder->files()->name('*.php')->in(__DIR__);
+ * $finder = $finder->files()->name('*.php')->in(__DIR__);
  *
  * @package    Symfony
  * @subpackage Components_Finder
@@ -36,15 +34,13 @@ class Finder implements \IteratorAggregate
     protected $notNames    = array();
     protected $exclude     = array();
     protected $filters     = array();
-    protected $minDepth    = 0;
-    protected $maxDepth    = INF;
+    protected $depths      = array();
     protected $sizes       = array();
     protected $followLinks = false;
     protected $sort        = false;
     protected $ignoreVCS   = true;
     protected $dirs        = array();
-    protected $minDate     = false;
-    protected $maxDate     = false;
+    protected $dates       = array();
 
     /**
      * Restricts the matching to directories only.
@@ -71,82 +67,48 @@ class Finder implements \IteratorAggregate
     }
 
     /**
-     * Sets the maximum directory depth.
+     * Adds tests for the directory depth.
      *
-     * The Finder will descend at most $level levels of directories below the starting point.
+     * Usage:
      *
-     * @param  int $level The max depth
+     *   $finder->depth('> 1') // the Finder will start matching at level 1.
+     *   $finder->depth('< 3') // the Finder will descend at most 3 levels of directories below the starting point.
+     *
+     * @param  int $level The depth level expression
      *
      * @return Symfony\Components\Finder The current Finder instance
      *
-     * @see Symfony\Components\Finder\Iterator\LimitDepthFilterIterator
+     * @see Symfony\Components\Finder\Iterator\DepthRangeFilterIterator
+     * @see Symfony\Components\Finder\Comparator\NumberComparator
      */
-    public function maxDepth($level)
+    public function depth($level)
     {
-        $this->maxDepth = (double) $level;
+        $this->depths[] = new Comparator\NumberComparator($level);
 
         return $this;
     }
 
     /**
-     * Sets the minimum directory depth.
-     *
-     * The Finder will start matching at level $level.
-     *
-     * @param  int $level The min depth
-     *
-     * @return Symfony\Components\Finder The current Finder instance
-     *
-     * @see Symfony\Components\Finder\Iterator\LimitDepthFilterIterator
-     */
-    public function minDepth($level)
-    {
-        $this->minDepth = (integer) $level;
-
-        return $this;
-    }
-
-    /**
-     * Sets the maximum date (last modified) for a file or directory.
+     * Adds tests for file dates (last modified).
      *
      * The date must be something that strtotime() is able to parse:
      *
-     *   $finder->maxDate('yesterday');
-     *   $finder->maxDate('2 days ago');
-     *   $finder->maxDate('now - 2 hours');
-     *   $finder->maxDate('2005-10-15');
+     *   $finder->date('since yesterday');
+     *   $finder->date('until 2 days ago');
+     *   $finder->date('> now - 2 hours');
+     *   $finder->date('>= 2005-10-15');
      *
-     * @param  string $date A date
-     *
-     * @return Symfony\Components\Finder The current Finder instance
-     *
-     * @see Symfony\Components\Finder\Iterator\DateRangeFilterIterator
-     */
-    public function maxDate($date)
-    {
-        if (false === $this->maxDate = @strtotime($date)) {
-            throw new \InvalidArgumentException(sprintf('"%s" is not a valid date'));
-        }
-
-        return $this;
-    }
-
-    /**
-     * Sets the minimum date (last modified) for a file or a directory.
-     *
-     * The date must be something that strtotime() is able to parse (@see maxDate()).
-     *
-     * @param  string $date A date
+     * @param  string $date A date rage string
      *
      * @return Symfony\Components\Finder The current Finder instance
      *
+     * @see strtotime
      * @see Symfony\Components\Finder\Iterator\DateRangeFilterIterator
+     * @see Symfony\Components\Finder\Comparator\DateComparator
      */
-    public function minDate($date)
+    public function date($date)
     {
-        if (false === $this->minDate = @strtotime($date)) {
-            throw new \InvalidArgumentException(sprintf('"%s" is not a valid date'));
-        }
+        $this->dates[] = new Comparator\DateComparator($date);
 
         return $this;
     }
@@ -201,11 +163,11 @@ class Finder implements \IteratorAggregate
      * @return Symfony\Components\Finder The current Finder instance
      *
      * @see Symfony\Components\Finder\Iterator\SizeRangeFilterIterator
-     * @see Symfony\Components\Finder\NumberCompare
+     * @see Symfony\Components\Finder\Comparator\NumberComparator
      */
     public function size($size)
     {
-        $this->sizes[] = new NumberCompare($size);
+        $this->sizes[] = new Comparator\NumberComparator($size);
 
         return $this;
     }
@@ -386,8 +348,8 @@ class Finder implements \IteratorAggregate
 
         $iterator = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($dir, $flags), \RecursiveIteratorIterator::SELF_FIRST);
 
-        if ($this->minDepth > 0 || $this->maxDepth < INF) {
-            $iterator = new Iterator\LimitDepthFilterIterator($iterator, $this->minDepth, $this->maxDepth);
+        if ($this->depths) {
+            $iterator = new Iterator\DepthRangeFilterIterator($iterator, $this->depths);
         }
 
         if ($this->mode) {
@@ -410,8 +372,8 @@ class Finder implements \IteratorAggregate
             $iterator = new Iterator\SizeRangeFilterIterator($iterator, $this->sizes);
         }
 
-        if (false !== $this->minDate || false !== $this->maxDate) {
-            $iterator = new Iterator\DateRangeFilterIterator($iterator, $this->minDate, $this->maxDate);
+        if ($this->dates) {
+            $iterator = new Iterator\DateRangeFilterIterator($iterator, $this->dates);
         }
 
         if ($this->filters) {

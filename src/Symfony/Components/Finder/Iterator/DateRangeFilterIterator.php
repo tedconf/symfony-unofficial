@@ -20,20 +20,17 @@ namespace Symfony\Components\Finder\Iterator;
  */
 class DateRangeFilterIterator extends \FilterIterator
 {
-    protected $minDate = false;
-    protected $maxDate = false;
+    protected $comparators = array();
 
     /**
      * Constructor.
      *
-     * @param \Iterator $iterator The Iterator to filter
-     * @param integer   $minDate  The minimum date
-     * @param integer   $maxDate  The maximum date
+     * @param \Iterator $iterator    The Iterator to filter
+     * @param array     $comparators An array of \DateCompare instances
      */
-    public function __construct(\Iterator $iterator, $minDate = false, $maxDate = false)
+    public function __construct(\Iterator $iterator, array $comparators)
     {
-        $this->minDate = $minDate;
-        $this->maxDate = $maxDate;
+        $this->comparators = $comparators;
 
         parent::__construct($iterator);
     }
@@ -52,13 +49,10 @@ class DateRangeFilterIterator extends \FilterIterator
         }
 
         $filedate = $fileinfo->getMTime();
-
-        if (
-            (false !== $this->minDate && $filedate < $this->minDate)
-            ||
-            (false !== $this->maxDate && $filedate > $this->maxDate)
-        ) {
-            return false;
+        foreach ($this->comparators as $compare) {
+            if (!$compare->test($filedate)) {
+                return false;
+            }
         }
 
         return true;
