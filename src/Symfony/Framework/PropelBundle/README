@@ -1,0 +1,48 @@
+Propel Bundle
+=============
+
+This is a (work in progress) implementation of Propel in Symfony 2.
+
+Currently supports:
+
+ * Generation of model classes based on an XML schema (not YAML) placed under `BundleName/Resources/*schema.xml`.
+ * Propel runtime initialization through `$container->getPropelService()`.
+
+Installation
+------------
+
+ * Checkout Propel and Phing in the src/vendor/ directory
+
+    > cd sandbox/src/vendor
+    > svn checkout http://svn.propelorm.org/branches/1.5 propel
+    > svn checkout http://phing.mirror.svn.symfony-project.com/tags/2.3.3/classes/phing phing
+    
+Sample Configuration
+--------------------
+
+### Project configuration
+
+    # in sandbox/hello/config/config.yml
+    propel.config:
+      path:       %kernel.root_dir%/../src/vendor/propel
+      phing_path: %kernel.root_dir%/../src/vendor/phing
+
+    propel.dbal:
+      driver:               mysql
+      user:                 root
+      password:             null
+      dsn:                  mysql:host=localhost;dbname=test
+      options:              {}
+    #  default_connection:       default
+    #  connections:
+    #    default:
+    #      driver:               mysql
+    #      user:                 root
+    #      password:             null
+    #      dsn:                  mysql:host=localhost;dbname=test
+    #      options:              {}
+
+Known Problems
+--------------
+
+Your application must not be in a path including dots in directory names (i.e. '/Users/me/symfony/2.0/sandbox/' fails).

@@ -31,7 +31,6 @@ class Request
     protected $languages;
     protected $charsets;
     protected $acceptableContentTypes;
-    protected $scriptName;
     protected $pathInfo;
     protected $requestUri;
     protected $baseUrl;
@@ -81,7 +80,6 @@ class Request
         $this->languages = null;
         $this->charsets = null;
         $this->acceptableContentTypes = null;
-        $this->scriptName = null;
         $this->pathInfo = null;
         $this->requestUri = null;
         $this->baseUrl = null;
@@ -145,7 +143,7 @@ class Request
             'QUERY_STRING'         => $queryString,
         ));
 
-        return new self($request, $query, array(), $cookies, $files, $server);
+        return new self($query, $request, array(), $cookies, $files, $server);
     }
 
     /**
@@ -182,6 +180,24 @@ class Request
         $this->files   = clone $this->files;
         $this->server  = clone $this->server;
         $this->headers = clone $this->headers;
+    }
+
+    /**
+     * Overrides the PHP global variables according to this request instance.
+     *
+     * It overrides $_GET, $_POST, $_REQUEST, $_SERVER, $_COOKIES, and $_FILES.
+     */
+    public function overrideGlobals()
+    {
+        $_GET = $this->query->all();
+        $_POST = $this->request->all();
+        $_SERVER = $this->server->all();
+        $_COOKIES = $this->cookies->all();
+        // FIXME: populate $_FILES
+
+        // FIXME: should read variables_order and request_order
+        // to know which globals to merge and in which order
+        $_REQUEST = array_merge($_GET, $_POST);
     }
 
     // Order of precedence: GET, PATH, POST, COOKIE
