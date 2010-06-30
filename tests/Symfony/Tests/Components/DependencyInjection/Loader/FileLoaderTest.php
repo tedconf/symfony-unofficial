@@ -14,8 +14,11 @@ use Symfony\Components\DependencyInjection\Builder;
 use Symfony\Components\DependencyInjection\BuilderConfiguration;
 use Symfony\Components\DependencyInjection\Loader\FileLoader;
 
-class XmlDumperTest extends \PHPUnit_Framework_TestCase
+class FileLoaderTest extends \PHPUnit_Framework_TestCase
 {
+    /**
+     * @covers Symfony\Components\DependencyInjection\Loader\FileLoader::__construct
+     */
     public function testConstructor()
     {
         $loader = new ProjectLoader(__DIR__);
@@ -25,9 +28,12 @@ class XmlDumperTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(array(__DIR__, __DIR__), $loader->paths, '__construct() takes an array of paths as its second argument');
     }
 
+    /**
+     * @covers Symfony\Components\DependencyInjection\Loader\FileLoader::GetAbsolutePath
+     */
     public function testGetAbsolutePath()
     {
-        $loader = new ProjectLoader(array(__DIR__.'/../../../../../fixtures/Symfony/Components/DependencyInjection/containers'));
+        $loader = new ProjectLoader(array(__DIR__.'/../Fixtures/containers'));
         $this->assertEquals('/foo.xml', $loader->getAbsolutePath('/foo.xml'), '->getAbsolutePath() return the path unmodified if it is already an absolute path');
         $this->assertEquals('c:\\\\foo.xml', $loader->getAbsolutePath('c:\\\\foo.xml'), '->getAbsolutePath() return the path unmodified if it is already an absolute path');
         $this->assertEquals('c:/foo.xml', $loader->getAbsolutePath('c:/foo.xml'), '->getAbsolutePath() return the path unmodified if it is already an absolute path');
@@ -35,7 +41,7 @@ class XmlDumperTest extends \PHPUnit_Framework_TestCase
 
         $this->assertEquals(__DIR__.DIRECTORY_SEPARATOR.'FileLoaderTest.php', $loader->getAbsolutePath('FileLoaderTest.php', __DIR__), '->getAbsolutePath() returns an absolute filename if the file exists in the current path');
 
-        $this->assertEquals(__DIR__.'/../../../../../fixtures/Symfony/Components/DependencyInjection/containers'.DIRECTORY_SEPARATOR.'container10.php', $loader->getAbsolutePath('container10.php', __DIR__), '->getAbsolutePath() returns an absolute filename if the file exists in one of the paths given in the constructor');
+        $this->assertEquals(__DIR__.'/../Fixtures/containers'.DIRECTORY_SEPARATOR.'container10.php', $loader->getAbsolutePath('container10.php', __DIR__), '->getAbsolutePath() returns an absolute filename if the file exists in one of the paths given in the constructor');
 
         $this->assertEquals('foo.xml', $loader->getAbsolutePath('foo.xml', __DIR__), '->getAbsolutePath() returns the path unmodified if it is unable to find it in the given paths');
     }

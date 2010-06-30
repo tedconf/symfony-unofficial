@@ -2,7 +2,6 @@
 
 namespace Symfony\Tests\Components\Validator;
 
-require_once __DIR__.'/../../../../bootstrap.php';
 require_once __DIR__.'/Fixtures/InvalidConstraint.php';
 require_once __DIR__.'/Fixtures/InvalidConstraintValidator.php';
 
@@ -45,7 +44,7 @@ class DependencyInjectionValidatorFactoryTest extends \PHPUnit_Framework_TestCas
 
     public function assertServiceExists($id)
     {
-        $this->assertTrue($this->container->hasService($id), 'Service ' . $id . ' doesn\'t exist on container');
+        $this->assertTrue($this->container->has($id), 'Service ' . $id . ' doesn\'t exist on container');
     }
 
     /**

@@ -13,20 +13,24 @@ namespace Symfony\Tests\Components\DependencyInjection\Loader;
 use Symfony\Components\DependencyInjection\Builder;
 use Symfony\Components\DependencyInjection\Loader\IniFileLoader;
 
-class IniLoaderTest extends \PHPUnit_Framework_TestCase
+class IniFileLoaderTest extends \PHPUnit_Framework_TestCase
 {
     static protected $fixturesPath;
 
     static public function setUpBeforeClass()
     {
-        self::$fixturesPath = realpath(__DIR__.'/../../../../../fixtures/Symfony/Components/DependencyInjection/');
+        self::$fixturesPath = realpath(__DIR__.'/../Fixtures/');
     }
 
+    /**
+     * @covers Symfony\Components\DependencyInjection\Loader\IniFileLoader::__construct
+     * @covers Symfony\Components\DependencyInjection\Loader\IniFileLoader::load
+     */
     public function testLoader()
     {
         $loader = new IniFileLoader(self::$fixturesPath.'/ini');
         $config = $loader->load('parameters.ini');
-        $this->assertEquals(array('foo' => 'bar', 'bar' => '%foo%'), $config->getParameters(), '->load() takes a single file name as its first argument');
+        $this->assertEquals(array('foo' => 'bar', 'bar' => '%foo%'), $config->getParameterBag()->all(), '->load() takes a single file name as its first argument');
 
         try {
             $loader->load('foo.ini');

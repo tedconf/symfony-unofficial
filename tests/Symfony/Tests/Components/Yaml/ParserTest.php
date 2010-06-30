@@ -8,7 +8,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Symfony\Tests\Components\OutputEscaper;
+namespace Symfony\Tests\Components\Yaml;
 
 use Symfony\Components\Yaml\Yaml;
 use Symfony\Components\Yaml\Parser;
@@ -27,14 +27,25 @@ class ParserTest extends \PHPUnit_Framework_TestCase
     public function setUp()
     {
         $this->parser = new Parser();
-        $this->path = __DIR__.'/../../../../fixtures/Symfony/Components/Yaml';
     }
 
-    public function testSpecifications()
+    /**
+     * @dataProvider getDataFormSpecifications
+     */
+    public function testSpecifications($expected, $yaml, $comment)
     {
-        $files = $this->parser->parse(file_get_contents($this->path.'/index.yml'));
+        $this->assertEquals($expected, var_export($this->parser->parse($yaml), true), $comment);
+    }
+
+    public function getDataFormSpecifications()
+    {
+        $parser = new Parser();
+        $path = __DIR__.'/Fixtures';
+
+        $tests = array();
+        $files = $parser->parse(file_get_contents($path.'/index.yml'));
         foreach ($files as $file) {
-            $yamls = file_get_contents($this->path.'/'.$file.'.yml');
+            $yamls = file_get_contents($path.'/'.$file.'.yml');
 
             // split YAMLs documents
             foreach (preg_split('/^---( %YAML\:1\.0)?/m', $yamls) as $yaml) {
@@ -42,16 +53,18 @@ class ParserTest extends \PHPUnit_Framework_TestCase
                     continue;
                 }
 
-                $test = $this->parser->parse($yaml);
+                $test = $parser->parse($yaml);
                 if (isset($test['todo']) && $test['todo']) {
                     // TODO
                 } else {
                     $expected = var_export(eval('return '.trim($test['php']).';'), true);
 
-                    $this->assertEquals($expected, var_export($this->parser->parse($test['yaml']), true), $test['test']);
+                    $tests[] = array($expected, $test['yaml'], $test['test']);
                 }
             }
         }
+
+        return $tests;
     }
 
     public function testTabsInYaml()
@@ -76,11 +89,22 @@ class ParserTest extends \PHPUnit_Framework_TestCase
         }
     }
 
+    public function testEndOfTheDocumentMarker()
+    {
+        $yaml = <<<EOF
+--- %YAML:1.0
+foo
+...
+EOF;
+
+        $this->assertEquals('foo', $this->parser->parse($yaml));
+    }
+
     public function testObjectsSupport()
     {
         $b = array('foo' => new B(), 'bar' => 1);
         $this->assertEquals($this->parser->parse(<<<EOF
-foo: !!php/object:O:40:"Symfony\Tests\Components\OutputEscaper\B":1:{s:1:"b";s:3:"foo";}
+foo: !!php/object:O:31:"Symfony\Tests\Components\Yaml\B":1:{s:1:"b";s:3:"foo";}
 bar: 1
 EOF
         ), $b, '->parse() is able to dump objects');

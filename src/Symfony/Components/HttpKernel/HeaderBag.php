@@ -204,21 +204,19 @@ class HeaderBag
             } else {
                 $expires = strtotime($expires);
                 if (false === $expires || -1 == $expires) {
-                    throw new \InvalidArgumentException(sprintf('The "expires" cookie parameter is not valid.', $expire));
+                    throw new \InvalidArgumentException(sprintf('The "expires" cookie parameter is not valid.', $expires));
                 }
             }
         }
 
-        if (null !== $this->expires) {
+        if (null !== $expires) {
             $cookie .= '; expires='.substr(\DateTime::createFromFormat('U', $expires, new \DateTimeZone('UTC'))->format('D, d-M-Y H:i:s T'), 0, -5);
         }
 
-        if ('/' !== $this->path) {
-            $cookie .= '; path='.$path;
-        }
+        $cookie .= '; domain='.$domain;
 
-        if ('' !== $this->domain) {
-            $cookie .= '; domain='.$domain;
+        if ('/' !== $path) {
+            $cookie .= '; path='.$path;
         }
 
         if ($secure) {

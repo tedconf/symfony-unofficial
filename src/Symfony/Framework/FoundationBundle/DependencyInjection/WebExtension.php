@@ -4,10 +4,10 @@ namespace Symfony\Framework\FoundationBundle\DependencyInjection;
 
 use Symfony\Components\DependencyInjection\Loader\LoaderExtension;
 use Symfony\Components\DependencyInjection\Loader\XmlFileLoader;
+use Symfony\Components\DependencyInjection\Resource\FileResource;
 use Symfony\Components\DependencyInjection\BuilderConfiguration;
 use Symfony\Components\DependencyInjection\Reference;
 use Symfony\Components\DependencyInjection\Definition;
-use Symfony\Components\DependencyInjection\FileResource;
 
 /*
  * This file is part of the Symfony framework.
@@ -73,6 +73,7 @@ class WebExtension extends LoaderExtension
                 if (!$configuration->hasDefinition('profiler')) {
                     $loader = new XmlFileLoader(__DIR__.'/../Resources/config');
                     $configuration->merge($loader->load('profiling.xml'));
+                    $configuration->merge($loader->load('collectors.xml'));
                 }
             } elseif ($configuration->hasDefinition('profiler')) {
                 $configuration->getDefinition('profiling')->clearAnnotations();
@@ -255,6 +256,7 @@ class WebExtension extends LoaderExtension
         }
 
         // cache?
+        $configuration->setParameter('templating.loader.cache.path', null);
         if (isset($config['cache'])) {
             // wrap the loader with some cache
             $configuration->setDefinition('templating.loader.wrapped', $configuration->findDefinition('templating.loader'));
@@ -272,7 +274,7 @@ class WebExtension extends LoaderExtension
      */
     public function getXsdValidationBasePath()
     {
-        return __DIR__.'/../Resources/config/';
+        return __DIR__.'/../Resources/config/schema';
     }
 
     public function getNamespace()

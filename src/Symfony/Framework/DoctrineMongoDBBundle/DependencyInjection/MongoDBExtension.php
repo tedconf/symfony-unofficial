@@ -7,7 +7,7 @@ use Symfony\Components\DependencyInjection\Loader\XmlFileLoader;
 use Symfony\Components\DependencyInjection\BuilderConfiguration;
 use Symfony\Components\DependencyInjection\Reference;
 use Symfony\Components\DependencyInjection\Definition;
-use Symfony\Components\DependencyInjection\FileResource;
+use Symfony\Components\DependencyInjection\Resource\FileResource;
 
 /**
  * Doctrine MongoDB ODM extension.
@@ -162,7 +162,7 @@ class MongoDBExtension extends LoaderExtension
      */
     public function getXsdValidationBasePath()
     {
-        return __DIR__.'/../Resources/config';
+        return __DIR__.'/../Resources/config/schema';
     }
 
     /**

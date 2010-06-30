@@ -19,7 +19,7 @@ class XmlDumperTest extends \PHPUnit_Framework_TestCase
 
     static public function setUpBeforeClass()
     {
-        self::$fixturesPath = realpath(__DIR__.'/../../../../../fixtures/Symfony/Components/DependencyInjection/');
+        self::$fixturesPath = realpath(__DIR__.'/../Fixtures/');
     }
 
     public function testDump()
@@ -30,6 +30,13 @@ class XmlDumperTest extends \PHPUnit_Framework_TestCase
 
         $container = new Builder();
         $dumper = new XmlDumper($container);
+    }
+
+    public function testExportParameters()
+    {
+        $container = include self::$fixturesPath.'//containers/container8.php';
+        $dumper = new XmlDumper($container);
+        $this->assertXmlStringEqualsXmlFile(self::$fixturesPath.'/xml/services8.xml', $dumper->dump(), '->dump() dumps parameters');
     }
 
     public function testAddParameters()
