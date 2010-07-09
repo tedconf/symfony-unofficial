@@ -86,7 +86,7 @@ class YamlFileLoaderTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals('FooClass', $services['foo']->getClass(), '->load() parses the class attribute');
         $this->assertTrue($services['shared']->isShared(), '->load() parses the shared attribute');
         $this->assertFalse($services['non_shared']->isShared(), '->load() parses the shared attribute');
-        $this->assertEquals('getInstance', $services['constructor']->getConstructor(), '->load() parses the constructor attribute');
+        $this->assertEquals('getInstance', $services['constructor']->getFactoryMethod(), '->load() parses the factory_method attribute');
         $this->assertEquals('%path%/foo.php', $services['file']->getFile(), '->load() parses the file tag');
         $this->assertEquals(array('foo', new Reference('foo'), array(true, false)), $services['arguments']->getArguments(), '->load() parses the argument tags');
         $this->assertEquals('sc_configure', $services['configurator1']->getConfigurator(), '->load() parses the configurator tag');
@@ -94,6 +94,8 @@ class YamlFileLoaderTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(array('BazClass', 'configureStatic'), $services['configurator3']->getConfigurator(), '->load() parses the configurator tag');
         $this->assertEquals(array(array('setBar', array())), $services['method_call1']->getMethodCalls(), '->load() parses the method_call tag');
         $this->assertEquals(array(array('setBar', array('foo', new Reference('foo'), array(true, false)))), $services['method_call2']->getMethodCalls(), '->load() parses the method_call tag');
+        $this->assertEquals('baz_factory', $services['factory_service']->getFactoryService());
+
         $aliases = $config->getAliases();
         $this->assertTrue(isset($aliases['alias_for_foo']), '->load() parses aliases');
         $this->assertEquals('foo', $aliases['alias_for_foo'], '->load() parses aliases');

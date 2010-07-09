@@ -134,9 +134,9 @@ class XmlFileLoader extends FileLoader
 
         $definition = new Definition((string) $service['class']);
 
-        foreach (array('shared', 'constructor') as $key) {
+        foreach (array('shared', 'factory-method', 'factory-service', 'factory-class') as $key) {
             if (isset($service[$key])) {
-                $method = 'set'.ucfirst($key);
+                $method = 'set'.str_replace('-', '', $key);
                 $definition->$method((string) $service->getAttributeAsPhp($key));
             }
         }
@@ -244,7 +244,7 @@ class XmlFileLoader extends FileLoader
         if ($element = $dom->documentElement->getAttributeNS('http://www.w3.org/2001/XMLSchema-instance', 'schemaLocation')) {
             $items = preg_split('/\s+/', $element);
             for ($i = 0, $nb = count($items); $i < $nb; $i += 2) {
-                if ($extension = static::getExtension($items[$i])) {
+                if (($extension = static::getExtension($items[$i])) && false !== $extension->getXsdValidationBasePath()) {
                     $path = str_replace($extension->getNamespace(), str_replace('\\', '/', $extension->getXsdValidationBasePath()).'/', $items[$i + 1]);
 
                     if (!file_exists($path)) {
@@ -293,10 +293,6 @@ EOF
         foreach ($dom->documentElement->childNodes as $node) {
             if (!$node instanceof \DOMElement || in_array($node->tagName, array('imports', 'parameters', 'services'))) {
                 continue;
-            }
-
-            if ($node->namespaceURI === 'http://www.symfony-project.org/schema/dic/services') {
-                throw new \InvalidArgumentException(sprintf('The "%s" tag is not valid (in %s).', $node->tagName, $file));
             }
 
             // can it be handled by an extension?
@@ -378,7 +374,7 @@ EOF
                 }
             } elseif (!$node instanceof \DOMComment) {
                 if (isset($config[$node->localName])) {
-                    if (!is_array($config[$node->localName])) {
+                    if (!is_array($config[$node->localName]) || !is_int(key($config[$node->localName]))) {
                         $config[$node->localName] = array($config[$node->localName]);
                     }
                     $config[$node->localName][] = static::convertDomElementToArray($node);

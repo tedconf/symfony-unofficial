@@ -40,7 +40,9 @@ class YamlDumper extends Dumper
     protected function addService($id, $definition)
     {
         $code = "  $id:\n";
-        $code .= sprintf("    class: %s\n", $definition->getClass());
+        if ($definition->getClass()) {
+            $code .= sprintf("    class: %s\n", $definition->getClass());
+        }
 
         $annotationsCode = '';
         foreach ($definition->getAnnotations() as $name => $annotations) {
@@ -62,8 +64,12 @@ class YamlDumper extends Dumper
             $code .= sprintf("    file: %s\n", $definition->getFile());
         }
 
-        if ($definition->getConstructor()) {
-            $code .= sprintf("    constructor: %s\n", $definition->getConstructor());
+        if ($definition->getFactoryMethod()) {
+            $code .= sprintf("    factory_method: %s\n", $definition->getFactoryMethod());
+        }
+
+        if ($definition->getFactoryService()) {
+            $code .= sprintf("    factory_service: %s\n", $definition->getFactoryService());
         }
 
         if ($definition->getArguments()) {

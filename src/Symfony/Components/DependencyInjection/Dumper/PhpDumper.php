@@ -92,8 +92,12 @@ EOF;
             $arguments[] = $this->dumpValue($value);
         }
 
-        if (null !== $definition->getConstructor()) {
-            $code = sprintf("        \$instance = call_user_func(array(%s, '%s')%s);\n", $class, $definition->getConstructor(), $arguments ? ', '.implode(', ', $arguments) : '');
+        if (null !== $definition->getFactoryMethod()) {
+            if (null !== $definition->getFactoryService()) {
+                $code = sprintf("        \$instance = %s->%s(%s);\n", $this->getServiceCall($definition->getFactoryService()), $definition->getFactoryMethod(), implode(', ', $arguments));
+            } else {
+                $code = sprintf("        \$instance = call_user_func(array(%s, '%s')%s);\n", $class, $definition->getFactoryMethod(), $arguments ? ', '.implode(', ', $arguments) : '');
+            }
         } elseif ($class != "'".str_replace('\\', '\\\\', $definition->getClass())."'") {
             $code = sprintf("        \$class = %s;\n        \$instance = new \$class(%s);\n", $class, implode(', ', $arguments));
         } else {
@@ -142,8 +146,13 @@ EOF;
     protected function addService($id, $definition)
     {
         $name = Container::camelize($id);
-        $class = $definition->getClass();
-        $type = 0 === strpos($class, '%') ? 'Object' : $class;
+
+        $return = '';
+        if ($class = $definition->getClass()) {
+            $return = sprintf("@return %s A %s instance.", 0 === strpos($class, '%') ? 'Object' : $class, $class);
+        } elseif ($definition->getFactoryService()) {
+            $return = sprintf('@return Object An instance returned by %s::%s().', $definition->getFactoryService(), $definition->getFactoryMethod());
+        }
 
         $doc = '';
         if ($definition->isShared()) {
@@ -160,7 +169,7 @@ EOF;
     /**
      * Gets the '$id' service.$doc
      *
-     * @return $type A $class instance.
+     * $return
      */
     protected function get{$name}Service()
     {
@@ -253,26 +262,6 @@ EOF;
 
     protected function startClass($class, $baseClass)
     {
-        $properties = array();
-        foreach ($this->container->getDefinitions() as $id => $definition) {
-            $type = 0 === strpos($definition->getClass(), '%') ? 'Object' : $definition->getClass();
-            $properties[] = sprintf(' * @property %s $%s', $type, $id);
-        }
-
-        foreach ($this->container->getAliases() as $alias => $id) {
-            $type = 'Object';
-            if ($this->container->hasDefinition($id)) {
-                $sclass = $this->container->getDefinition($id)->getClass();
-                $type = 0 === strpos($sclass, '%') ? 'Object' : $sclass;
-            }
-
-            $properties[] = sprintf(' * @property %s $%s', $type, $alias);
-        }
-        $properties = implode("\n", $properties);
-        if ($properties) {
-            $properties = "\n *\n".$properties;
-        }
-
         $bagClass = $this->container->isFrozen() ? 'FrozenParameterBag' : 'ParameterBag';
 
         return <<<EOF
@@ -288,7 +277,7 @@ use Symfony\Components\DependencyInjection\ParameterBag\\$bagClass;
  * $class
  *
  * This class has been auto-generated
- * by the Symfony Dependency Injection Component.$properties
+ * by the Symfony Dependency Injection Component.
  */
 class $class extends $baseClass
 {

@@ -11,13 +11,6 @@ use Symfony\Components\DependencyInjection\ParameterBag\ParameterBag;
  *
  * This class has been auto-generated
  * by the Symfony Dependency Injection Component.
- *
- * @property FooClass $foo
- * @property FooClass $bar
- * @property Object $foo.baz
- * @property Object $foo_bar
- * @property FooClass $method_call1
- * @property FooClass $alias_for_foo
  */
 class ProjectServiceContainer extends Container
 {
@@ -127,6 +120,24 @@ class ProjectServiceContainer extends Container
         if ($this->has('foobaz')) {
             $instance->setBar($this->get('foobaz', ContainerInterface::NULL_ON_INVALID_REFERENCE));
         }
+
+        return $instance;
+    }
+
+    /**
+     * Gets the 'factory_service' service.
+     *
+     * This service is shared.
+     * This method always returns the same instance of the service.
+     *
+     * @return Object An instance returned by foo.baz::getInstance().
+     */
+    protected function getFactoryServiceService()
+    {
+        if (isset($this->shared['factory_service'])) return $this->shared['factory_service'];
+
+        $instance = $this->getFoo_BazService()->getInstance();
+        $this->shared['factory_service'] = $instance;
 
         return $instance;
     }

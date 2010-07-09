@@ -24,6 +24,7 @@ class XmlFileLoaderTest extends \PHPUnit_Framework_TestCase
     {
         self::$fixturesPath = realpath(__DIR__.'/../Fixtures/');
         require_once self::$fixturesPath.'/includes/ProjectExtension.php';
+        require_once self::$fixturesPath.'/includes/ProjectWithXsdExtension.php';
     }
 
     public function testLoad()
@@ -118,7 +119,7 @@ class XmlFileLoaderTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals('FooClass', $services['foo']->getClass(), '->load() parses the class attribute');
         $this->assertTrue($services['shared']->isShared(), '->load() parses the shared attribute');
         $this->assertFalse($services['non_shared']->isShared(), '->load() parses the shared attribute');
-        $this->assertEquals('getInstance', $services['constructor']->getConstructor(), '->load() parses the constructor attribute');
+        $this->assertEquals('getInstance', $services['constructor']->getFactoryMethod(), '->load() parses the factory-method attribute');
         $this->assertEquals('%path%/foo.php', $services['file']->getFile(), '->load() parses the file tag');
         $this->assertEquals(array('foo', new Reference('foo'), array(true, false)), $services['arguments']->getArguments(), '->load() parses the argument tags');
         $this->assertEquals('sc_configure', $services['configurator1']->getConfigurator(), '->load() parses the configurator tag');
@@ -126,6 +127,8 @@ class XmlFileLoaderTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(array('BazClass', 'configureStatic'), $services['configurator3']->getConfigurator(), '->load() parses the configurator tag');
         $this->assertEquals(array(array('setBar', array())), $services['method_call1']->getMethodCalls(), '->load() parses the method_call tag');
         $this->assertEquals(array(array('setBar', array('foo', new Reference('foo'), array(true, false)))), $services['method_call2']->getMethodCalls(), '->load() parses the method_call tag');
+        $this->assertEquals('baz_factory', $services['factory_service']->getFactoryService());
+
         $aliases = $config->getAliases();
         $this->assertTrue(isset($aliases['alias_for_foo']), '->load() parses <service> elements');
         $this->assertEquals('foo', $aliases['alias_for_foo'], '->load() parses aliases');
@@ -156,14 +159,20 @@ class XmlFileLoaderTest extends \PHPUnit_Framework_TestCase
         $doc = new \DOMDocument("1.0");
         $doc->loadXML('<foo><foo><!-- foo --></foo></foo>');
         $this->assertEquals(array('foo' => null), ProjectLoader2::convertDomElementToArray($doc->documentElement), '::convertDomElementToArray() converts a \DomElement to an array');
+
+        $doc = new \DOMDocument("1.0");
+        $doc->loadXML('<foo><foo foo="bar"/><foo foo="bar"/></foo>');
+        $this->assertEquals(array('foo' => array(array('foo' => 'bar'), array('foo' => 'bar'))), ProjectLoader2::convertDomElementToArray($doc->documentElement), '::convertDomElementToArray() converts a \DomElement to an array');
     }
 
     public function testExtensions()
     {
         Loader::registerExtension(new \ProjectExtension());
+        Loader::registerExtension(new \ProjectWithXsdExtension());
         $loader = new ProjectLoader2(self::$fixturesPath.'/xml');
 
-        $config = $loader->load('services10.xml');
+        // extension without an XSD
+        $config = $loader->load('extensions/services1.xml');
         $services = $config->getDefinitions();
         $parameters = $config->getParameterBag()->all();
 
@@ -173,20 +182,42 @@ class XmlFileLoaderTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals('BAR', $services['project.service.foo']->getClass(), '->load() parses extension elements');
         $this->assertEquals('BAR', $parameters['project.parameter.foo'], '->load() parses extension elements');
 
+        // extension with an XSD
+        $config = $loader->load('extensions/services2.xml');
+        $services = $config->getDefinitions();
+        $parameters = $config->getParameterBag()->all();
+
+        $this->assertTrue(isset($services['project.service.bar']), '->load() parses extension elements');
+        $this->assertTrue(isset($parameters['project.parameter.bar']), '->load() parses extension elements');
+
+        $this->assertEquals('BAR', $services['project.service.foo']->getClass(), '->load() parses extension elements');
+        $this->assertEquals('BAR', $parameters['project.parameter.foo'], '->load() parses extension elements');
+
+        // extension with an XSD (does not validate)
         try {
-            $config = $loader->load('services11.xml');
+            $config = $loader->load('extensions/services3.xml');
+            $this->fail('->load() throws an InvalidArgumentException if the configuration does not validate the XSD');
+        } catch (\Exception $e) {
+            $this->assertInstanceOf('\InvalidArgumentException', $e, '->load() throws an InvalidArgumentException if the configuration does not validate the XSD');
+            $this->assertRegexp('/The attribute \'bar\' is not allowed/', $e->getMessage(), '->load() throws an InvalidArgumentException if the configuration does not validate the XSD');
+        }
+
+        // non-registered extension
+        try {
+            $config = $loader->load('extensions/services4.xml');
             $this->fail('->load() throws an InvalidArgumentException if the tag is not valid');
         } catch (\Exception $e) {
             $this->assertInstanceOf('\InvalidArgumentException', $e, '->load() throws an InvalidArgumentException if the tag is not valid');
-            $this->assertStringStartsWith('There is no extension able to load the configuration for "foobar:foobar" (in', $e->getMessage(), '->load() throws an InvalidArgumentException if the tag is not valid');
+            $this->assertStringStartsWith('There is no extension able to load the configuration for "project:bar" (in', $e->getMessage(), '->load() throws an InvalidArgumentException if the tag is not valid');
         }
 
+        // non-existent tag for a known extension
         try {
-            $config = $loader->load('services12.xml');
-            $this->fail('->load() throws an InvalidArgumentException if an extension is not loaded');
+            $config = $loader->load('extensions/services5.xml');
+            $this->fail('->load() throws an InvalidArgumentException if a tag is not valid for a given extension');
         } catch (\Exception $e) {
-            $this->assertInstanceOf('\InvalidArgumentException', $e, '->load() throws an InvalidArgumentException if an extension is not loaded');
-            $this->assertStringStartsWith('The "foobar" tag is not valid (in', $e->getMessage(), '->load() throws an InvalidArgumentException if an extension is not loaded');
+            $this->assertInstanceOf('\InvalidArgumentException', $e, '->load() throws an InvalidArgumentException if a tag is not valid for a given extension');
+            $this->assertStringStartsWith('The tag "projectwithxsd:foobar" is not defined in the "projectwithxsd" extension.', $e->getMessage(), '->load() throws an InvalidArgumentException if a tag is not valid for a given extension');
         }
     }
 }

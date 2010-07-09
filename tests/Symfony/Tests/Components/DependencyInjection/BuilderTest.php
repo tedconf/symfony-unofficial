@@ -17,15 +17,10 @@ use Symfony\Components\DependencyInjection\Definition;
 use Symfony\Components\DependencyInjection\Reference;
 use Symfony\Components\DependencyInjection\ParameterBag\ParameterBag;
 
+require_once __DIR__.'/Fixtures/includes/classes.php';
+
 class BuilderTest extends \PHPUnit_Framework_TestCase
 {
-    static protected $fixturesPath;
-
-    static public function setUpBeforeClass()
-    {
-        self::$fixturesPath = __DIR__.'/Fixtures/';
-    }
-
     /**
      * @covers Symfony\Components\DependencyInjection\Builder::setDefinitions
      * @covers Symfony\Components\DependencyInjection\Builder::getDefinitions
@@ -199,9 +194,9 @@ class BuilderTest extends \PHPUnit_Framework_TestCase
     public function testCreateService()
     {
         $builder = new Builder();
-        $builder->register('foo1', 'FooClass')->setFile(self::$fixturesPath.'/includes/foo.php');
+        $builder->register('foo1', 'FooClass')->setFile(__DIR__.'/Fixtures/includes/foo.php');
         $this->assertInstanceOf('\FooClass', $builder->get('foo1'), '->createService() requires the file defined by the service definition');
-        $builder->register('foo2', 'FooClass')->setFile(self::$fixturesPath.'/includes/%file%.php');
+        $builder->register('foo2', 'FooClass')->setFile(__DIR__.'/Fixtures/includes/%file%.php');
         $builder->setParameter('file', 'foo');
         $this->assertInstanceOf('\FooClass', $builder->get('foo2'), '->createService() replaces parameters in the file provided by the service definition');
     }
@@ -232,14 +227,26 @@ class BuilderTest extends \PHPUnit_Framework_TestCase
     /**
      * @covers Symfony\Components\DependencyInjection\Builder::createService
      */
-    public function testCreateServiceConstructor()
+    public function testCreateServiceFactoryMethod()
     {
         $builder = new Builder();
         $builder->register('bar', 'stdClass');
-        $builder->register('foo1', 'FooClass')->setConstructor('getInstance')->addArgument(array('foo' => '%value%', '%value%' => 'foo', new Reference('bar')));
+        $builder->register('foo1', 'FooClass')->setFactoryMethod('getInstance')->addArgument(array('foo' => '%value%', '%value%' => 'foo', new Reference('bar')));
         $builder->setParameter('value', 'bar');
-        $this->assertTrue($builder->get('foo1')->called, '->createService() calls the constructor to create the service instance');
-        $this->assertEquals(array('foo' => 'bar', 'bar' => 'foo', $builder->get('bar')), $builder->get('foo1')->arguments, '->createService() passes the arguments to the constructor');
+        $this->assertTrue($builder->get('foo1')->called, '->createService() calls the factory method to create the service instance');
+        $this->assertEquals(array('foo' => 'bar', 'bar' => 'foo', $builder->get('bar')), $builder->get('foo1')->arguments, '->createService() passes the arguments to the factory method');
+    }
+
+    /**
+     * @covers Symfony\Components\DependencyInjection\Builder::createService
+     */
+    public function testCreateServiceFactoryService()
+    {
+        $builder = new Builder();
+        $builder->register('baz_service')->setFactoryService('baz_factory')->setFactoryMethod('getInstance');
+        $builder->register('baz_factory', 'BazClass');
+
+        $this->assertType('BazClass', $builder->get('baz_service'));
     }
 
     /**
@@ -259,8 +266,6 @@ class BuilderTest extends \PHPUnit_Framework_TestCase
      */
     public function testCreateServiceConfigurator()
     {
-        require_once self::$fixturesPath.'/includes/classes.php';
-
         $builder = new Builder();
         $builder->register('foo1', 'FooClass')->setConfigurator('sc_configure');
         $this->assertTrue($builder->get('foo1')->configured, '->createService() calls the configurator');
