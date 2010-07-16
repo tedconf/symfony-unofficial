@@ -2,9 +2,9 @@
 
 namespace Symfony\Bundle\SwiftmailerBundle\DependencyInjection;
 
-use Symfony\Components\DependencyInjection\Loader\LoaderExtension;
+use Symfony\Components\DependencyInjection\Extension\Extension;
 use Symfony\Components\DependencyInjection\Loader\XmlFileLoader;
-use Symfony\Components\DependencyInjection\BuilderConfiguration;
+use Symfony\Components\DependencyInjection\ContainerBuilder;
 use Symfony\Components\DependencyInjection\Reference;
 
 /*
@@ -23,7 +23,7 @@ use Symfony\Components\DependencyInjection\Reference;
  * @subpackage Bundle_SwiftmailerBundle
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  */
-class SwiftMailerExtension extends LoaderExtension
+class SwiftMailerExtension extends Extension
 {
     protected $resources = array(
         'mailer' => 'swiftmailer.xml',
@@ -40,22 +40,21 @@ class SwiftMailerExtension extends LoaderExtension
      *        <swift:spool path="/path/to/spool/" />
      *      </swift:mailer>
      *
-     * @param array $config A configuration array
-     *
-     * @return BuilderConfiguration A BuilderConfiguration instance
+     * @param array                                                        $config        An array of configuration settings
+     * @param \Symfony\Components\DependencyInjection\ContainerBuilder $container A ContainerBuilder instance
      */
-    public function mailerLoad($config, BuilderConfiguration $configuration)
+    public function mailerLoad($config, ContainerBuilder $container)
     {
-        if (!$configuration->hasDefinition('swiftmailer.mailer')) {
-            $loader = new XmlFileLoader(__DIR__.'/../Resources/config');
-            $configuration->merge($loader->load($this->resources['mailer']));
-            $configuration->setAlias('mailer', 'swiftmailer.mailer');
+        if (!$container->hasDefinition('swiftmailer.mailer')) {
+            $loader = new XmlFileLoader($container, __DIR__.'/../Resources/config');
+            $loader->load($this->resources['mailer']);
+            $container->setAlias('mailer', 'swiftmailer.mailer');
         }
 
         $r = new \ReflectionClass('Swift_Message');
-        $configuration->setParameter('swiftmailer.base_dir', dirname(dirname(dirname($r->getFilename()))));
+        $container->setParameter('swiftmailer.base_dir', dirname(dirname(dirname($r->getFilename()))));
 
-        $transport = $configuration->getParameter('swiftmailer.transport.name');
+        $transport = $container->getParameter('swiftmailer.transport.name');
         if (array_key_exists('transport', $config)) {
             if (null === $config['transport']) {
                 $transport = 'null';
@@ -68,10 +67,10 @@ class SwiftMailerExtension extends LoaderExtension
                 $transport = $config['transport'];
             }
 
-            $configuration->setParameter('swiftmailer.transport.name', $transport);
+            $container->setParameter('swiftmailer.transport.name', $transport);
         }
 
-        $configuration->setAlias('swiftmailer.transport', 'swiftmailer.transport.'.$transport);
+        $container->setAlias('swiftmailer.transport', 'swiftmailer.transport.'.$transport);
 
         if (isset($config['encryption']) && 'ssl' === $config['encryption'] && !isset($config['port'])) {
             $config['port'] = 465;
@@ -79,7 +78,7 @@ class SwiftMailerExtension extends LoaderExtension
 
         foreach (array('encryption', 'port', 'host', 'username', 'password', 'auth_mode') as $key) {
             if (isset($config[$key])) {
-                $configuration->setParameter('swiftmailer.transport.'.$transport.'.'.$key, $config[$key]);
+                $container->setParameter('swiftmailer.transport.'.$transport.'.'.$key, $config[$key]);
             }
         }
 
@@ -87,27 +86,25 @@ class SwiftMailerExtension extends LoaderExtension
         if (isset($config['spool'])) {
             $type = isset($config['type']) ? $config['type'] : 'file';
 
-            $configuration->setAlias('swiftmailer.transport.real', 'swiftmailer.transport.'.$transport);
-            $configuration->setAlias('swiftmailer.transport', 'swiftmailer.transport.spool');
-            $configuration->setAlias('swiftmailer.spool', 'swiftmailer.spool.'.$type);
+            $container->setAlias('swiftmailer.transport.real', 'swiftmailer.transport.'.$transport);
+            $container->setAlias('swiftmailer.transport', 'swiftmailer.transport.spool');
+            $container->setAlias('swiftmailer.spool', 'swiftmailer.spool.'.$type);
 
             foreach (array('path') as $key) {
                 if (isset($config['spool'][$key])) {
-                    $configuration->setParameter('swiftmailer.spool.'.$type.'.'.$key, $config['spool'][$key]);
+                    $container->setParameter('swiftmailer.spool.'.$type.'.'.$key, $config['spool'][$key]);
                 }
             }
         }
 
         if (isset($config['delivery_address'])) {
-            $configuration->setParameter('swiftmailer.single_address', $config['delivery_address']);
-            $configuration->findDefinition('swiftmailer.transport')->addMethodCall('registerPlugin', array(new Reference('swiftmailer.plugin.redirecting')));
+            $container->setParameter('swiftmailer.single_address', $config['delivery_address']);
+            $container->findDefinition('swiftmailer.transport')->addMethodCall('registerPlugin', array(new Reference('swiftmailer.plugin.redirecting')));
         }
 
         if (isset($config['disable_delivery']) && $config['disable_delivery']) {
-            $configuration->findDefinition('swiftmailer.transport')->addMethodCall('registerPlugin', array(new Reference('swiftmailer.plugin.blackhole')));
+            $container->findDefinition('swiftmailer.transport')->addMethodCall('registerPlugin', array(new Reference('swiftmailer.plugin.blackhole')));
         }
-
-        return $configuration;
     }
 
     /**

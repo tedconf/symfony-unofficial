@@ -5,10 +5,11 @@ namespace Symfony\Framework;
 use Symfony\Framework\Bundle\Bundle;
 use Symfony\Framework\ClassCollectionLoader;
 use Symfony\Framework\DependencyInjection\KernelExtension;
+use Symfony\Components\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Components\DependencyInjection\ContainerInterface;
 use Symfony\Components\DependencyInjection\Loader\Loader;
 use Symfony\Components\DependencyInjection\Loader\XmlFileLoader;
-use Symfony\Components\DependencyInjection\BuilderConfiguration;
+use Symfony\Components\DependencyInjection\ContainerBuilder;
 
 /*
  * This file is part of the Symfony framework.
@@ -31,25 +32,25 @@ class KernelBundle extends Bundle
     /**
      * Customizes the Container instance.
      *
-     * @param Symfony\Components\DependencyInjection\ContainerInterface $container A ContainerInterface instance
+     * @param \Symfony\Components\DependencyInjection\ParameterBag\ParameterBagInterface $parameterBag A ParameterBagInterface instance
      *
-     * @return Symfony\Components\DependencyInjection\BuilderConfiguration A BuilderConfiguration instance
+     * @return \Symfony\Components\DependencyInjection\ContainerBuilder A ContainerBuilder instance
      */
-    public function buildContainer(ContainerInterface $container)
+    public function buildContainer(ParameterBagInterface $parameterBag)
     {
-        Loader::registerExtension(new KernelExtension());
+        ContainerBuilder::registerExtension(new KernelExtension());
 
-        $configuration = new BuilderConfiguration();
+        $container = new ContainerBuilder();
 
-        $loader = new XmlFileLoader(array(__DIR__.'/../Resources/config', __DIR__.'/Resources/config'));
-        $configuration->merge($loader->load('services.xml'));
+        $loader = new XmlFileLoader($container, array(__DIR__.'/../Resources/config', __DIR__.'/Resources/config'));
+        $loader->load('services.xml');
 
-        if ($container->getParameter('kernel.debug')) {
-            $configuration->merge($loader->load('debug.xml'));
-            $configuration->setDefinition('event_dispatcher', $configuration->findDefinition('debug.event_dispatcher'));
+        if ($parameterBag->get('kernel.debug')) {
+            $loader->load('debug.xml');
+            $container->setDefinition('event_dispatcher', $container->findDefinition('debug.event_dispatcher'));
         }
 
-        return $configuration;
+        return $container;
     }
 
     /**

@@ -3,8 +3,7 @@
 namespace Symfony\Framework;
 
 use Symfony\Components\DependencyInjection\ContainerInterface;
-use Symfony\Components\DependencyInjection\Builder;
-use Symfony\Components\DependencyInjection\BuilderConfiguration;
+use Symfony\Components\DependencyInjection\ContainerBuilder;
 use Symfony\Components\DependencyInjection\Dumper\PhpDumper;
 use Symfony\Components\DependencyInjection\Resource\FileResource;
 use Symfony\Components\DependencyInjection\ParameterBag\ParameterBag;
@@ -338,18 +337,19 @@ abstract class Kernel implements HttpKernelInterface, \Serializable
 
     protected function buildContainer($class, $file)
     {
-        $container = new Builder(new ParameterBag($this->getKernelParameters()));
+        $parameterBag = new ParameterBag($this->getKernelParameters());
 
-        $configuration = new BuilderConfiguration();
+        $container = new ContainerBuilder($parameterBag);
         foreach ($this->bundles as $bundle) {
-            $configuration->merge($bundle->buildContainer($container));
+            if (null !== $c = $bundle->buildContainer($parameterBag)) {
+                $container->merge($c);
+            }
 
             if ($this->debug) {
-                $configuration->addObjectResource($bundle);
+                $container->addObjectResource($bundle);
             }
         }
-        $configuration->merge($this->registerContainerConfiguration());
-        $container->merge($configuration);
+        $container->merge($this->registerContainerConfiguration());
         $container->freeze();
 
         foreach (array('cache', 'logs') as $name) {
@@ -372,10 +372,10 @@ abstract class Kernel implements HttpKernelInterface, \Serializable
         $this->writeCacheFile($file, $content);
 
         if ($this->debug) {
-            $configuration->addObjectResource($this);
+            $container->addObjectResource($this);
 
             // save the resources
-            $this->writeCacheFile($this->getCacheDir().'/'.$class.'.meta', serialize($configuration->getResources()));
+            $this->writeCacheFile($this->getCacheDir().'/'.$class.'.meta', serialize($container->getResources()));
         }
     }
 

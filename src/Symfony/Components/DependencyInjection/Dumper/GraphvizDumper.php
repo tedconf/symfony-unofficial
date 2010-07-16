@@ -5,7 +5,7 @@ namespace Symfony\Components\DependencyInjection\Dumper;
 use Symfony\Components\DependencyInjection\Definition;
 use Symfony\Components\DependencyInjection\Reference;
 use Symfony\Components\DependencyInjection\Parameter;
-use Symfony\Components\DependencyInjection\Builder;
+use Symfony\Components\DependencyInjection\ContainerBuilder;
 
 /*
  * This file is part of the Symfony framework.
@@ -137,7 +137,7 @@ class GraphvizDumper extends Dumper
         $container = clone $this->container;
 
         foreach ($container->getDefinitions() as $id => $definition) {
-            $nodes[$id] = array('class' => str_replace('\\', '\\\\', $this->getValue($definition->getClass())), 'attributes' => array_merge($this->options['node.definition'], array('style' => $definition->isShared() ? 'filled' : 'dotted')));
+            $nodes[$id] = array('class' => str_replace('\\', '\\\\', $this->container->getParameterBag()->resolveValue($definition->getClass())), 'attributes' => array_merge($this->options['node.definition'], array('style' => $definition->isShared() ? 'filled' : 'dotted')));
 
             $container->setDefinition($id, new Definition('stdClass'));
         }
@@ -155,11 +155,6 @@ class GraphvizDumper extends Dumper
         }
 
         return $nodes;
-    }
-
-    protected function getValue($value, $default = '')
-    {
-        return Builder::resolveValue($value, $this->container->getParameterBag()->all());
     }
 
     protected function startDot()

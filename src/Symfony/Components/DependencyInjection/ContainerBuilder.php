@@ -2,6 +2,10 @@
 
 namespace Symfony\Components\DependencyInjection;
 
+use Symfony\Components\DependencyInjection\Extension\ExtensionInterface;
+use Symfony\Components\DependencyInjection\Resource\ResourceInterface;
+use Symfony\Components\DependencyInjection\Resource\FileResource;
+
 /*
  * This file is part of the Symfony framework.
  *
@@ -12,17 +16,121 @@ namespace Symfony\Components\DependencyInjection;
  */
 
 /**
- * Builder is a DI container that provides an interface to build the services.
+ * ContainerBuilder is a DI container that provides an API to easily describe services.
  *
  * @package    Symfony
  * @subpackage Components_DependencyInjection
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  */
-class Builder extends Container implements AnnotatedContainerInterface
+class ContainerBuilder extends Container implements AnnotatedContainerInterface
 {
-    protected $definitions = array();
-    protected $aliases     = array();
-    protected $loading     = array();
+    static protected $extensions = array();
+
+    protected $definitions         = array();
+    protected $aliases             = array();
+    protected $loading             = array();
+    protected $resources           = array();
+    protected $extensionContainers = array();
+
+    /**
+     * Registers an extension.
+     *
+     * @param ExtensionInterface $extension An extension instance
+     */
+    static public function registerExtension(ExtensionInterface $extension)
+    {
+        static::$extensions[$extension->getAlias()] = static::$extensions[$extension->getNamespace()] = $extension;
+    }
+
+    /**
+     * Returns an extension by alias or namespace.
+     *
+     * @param string $name An alias or a namespace
+     *
+     * @return ExtensionInterface An extension instance
+     */
+    static public function getExtension($name)
+    {
+        if (!isset(static::$extensions[$name])) {
+            throw new \LogicException(sprintf('Container extension "%s" is not registered', $name));
+        }
+
+        return static::$extensions[$name];
+    }
+
+    static public function hasExtension($name)
+    {
+        return isset(static::$extensions[$name]);
+    }
+
+    /**
+     * Returns an array of resources loaded to build this configuration.
+     *
+     * @return ResourceInterface[] An array of resources
+     */
+    public function getResources()
+    {
+        return array_unique($this->resources);
+    }
+
+    /**
+     * Adds a resource for this configuration.
+     *
+     * @param ResourceInterface $resource A resource instance
+     *
+     * @return ContainerBuilder The current instance
+     */
+    public function addResource(ResourceInterface $resource)
+    {
+        $this->resources[] = $resource;
+
+        return $this;
+    }
+
+    /**
+     * Adds the object class hierarchy as resources.
+     *
+     * @param object $object An object instance
+     */
+    public function addObjectResource($object)
+    {
+        $parent = new \ReflectionObject($object);
+        $this->addResource(new FileResource($parent->getFileName()));
+        while ($parent = $parent->getParentClass()) {
+            $this->addResource(new FileResource($parent->getFileName()));
+        }
+    }
+
+    /**
+     * Loads the configuration for an extension.
+     *
+     * @param ExtensionInterface $extension A ExtensionInterface instance
+     * @param string                   $tag       The extension tag to load (without the namespace - namespace.tag)
+     * @param array                    $values    An array of values that customizes the extension
+     *
+     * @return ContainerBuilder The current instance
+     */
+    public function loadFromExtension(ExtensionInterface $extension, $tag, array $values = array())
+    {
+        if (true === $this->isFrozen()) {
+            throw new \LogicException('Cannot load from an extension on a frozen container.');
+        }
+
+        $namespace = $extension->getAlias();
+
+        $this->addObjectResource($extension);
+
+        if (!isset($this->extensionContainers[$namespace])) {
+            $this->extensionContainers[$namespace] = new self($this->parameterBag);
+
+            $r = new \ReflectionObject($extension);
+            $this->extensionContainers[$namespace]->addResource(new FileResource($r->getFileName()));
+        }
+
+        $extension->load($tag, $values, $this->extensionContainers[$namespace]);
+
+        return $this;
+    }
 
     /**
      * Sets a service.
@@ -97,7 +205,7 @@ class Builder extends Container implements AnnotatedContainerInterface
     }
 
     /**
-     * Merges a BuilderConfiguration with the current Builder configuration.
+     * Merges a ContainerBuilder with the current ContainerBuilder configuration.
      *
      * Service definitions overrides the current defined ones.
      *
@@ -105,34 +213,74 @@ class Builder extends Container implements AnnotatedContainerInterface
      * the parameters passed to the container constructor to have precedence
      * over the loaded ones.
      *
-     * $container = new Builder(array('foo' => 'bar'));
+     * $container = new ContainerBuilder(array('foo' => 'bar'));
      * $loader = new LoaderXXX($container);
      * $loader->load('resource_name');
      * $container->register('foo', new stdClass());
      *
      * In the above example, even if the loaded resource defines a foo
-     * parameter, the value will still be 'bar' as defined in the builder
+     * parameter, the value will still be 'bar' as defined in the ContainerBuilder
      * constructor.
      */
-    public function merge(BuilderConfiguration $configuration = null)
+    public function merge(ContainerBuilder $container)
     {
-        if (null === $configuration) {
-            return;
+        if (true === $this->isFrozen()) {
+            throw new \LogicException('Cannot merge on a frozen container.');
         }
 
-        $this->addDefinitions($configuration->getDefinitions());
-        $this->addAliases($configuration->getAliases());
+        $this->addDefinitions($container->getDefinitions());
+        $this->addAliases($container->getAliases());
+        $this->parameterBag->add($container->getParameterBag()->all());
 
-        $parameterBag = $this->getParameterBag();
-        $currentParameters = $parameterBag->all();
-        foreach ($configuration->getParameterBag()->all() as $key => $value) {
-            $parameterBag->set($key, $value);
+        foreach ($container->getResources() as $resource) {
+            $this->addResource($resource);
         }
-        $parameterBag->add($currentParameters);
 
-        foreach ($parameterBag->all() as $key => $value) {
-            $parameterBag->set($key, self::resolveValue($value, $this->getParameterBag()->all()));
+        foreach ($container->getExtensionContainers() as $name => $container) {
+            if (isset($this->extensionContainers[$name])) {
+                $this->extensionContainers[$name]->merge($container);
+            } else {
+                $this->extensionContainers[$name] = $container;
+            }
         }
+    }
+
+    /**
+     * Returns the containers for the registered extensions.
+     *
+     * @return ExtensionInterface[] An array of extension containers
+     */
+    public function getExtensionContainers()
+    {
+        return $this->extensionContainers;
+    }
+
+    /**
+     * Freezes the container.
+     *
+     * This method does four things:
+     *
+     *  * The extension configurations are merged;
+     *  * Parameter values are resolved;
+     *  * The parameter bag is freezed;
+     *  * Extension loading is disabled.
+     */
+    public function freeze()
+    {
+        $parameters = $this->parameterBag->all();
+        $definitions = $this->definitions;
+        $aliases = $this->aliases;
+
+        foreach ($this->extensionContainers as $container) {
+            $this->merge($container);
+        }
+        $this->extensionContainers = array();
+
+        $this->addDefinitions($definitions);
+        $this->addAliases($aliases);
+        $this->parameterBag->add($parameters);
+
+        parent::freeze();
     }
 
     /**
@@ -314,6 +462,26 @@ class Builder extends Container implements AnnotatedContainerInterface
     }
 
     /**
+     * Gets a service definition by id or alias.
+     *
+     * The method "unaliases" recursively to return a Definition instance.
+     *
+     * @param  string  $id The service identifier or alias
+     *
+     * @return Definition A Definition instance
+     *
+     * @throws \InvalidArgumentException if the service definition does not exist
+     */
+    public function findDefinition($id)
+    {
+        if ($this->hasAlias($id)) {
+            return $this->findDefinition($this->getAlias($id));
+        }
+
+        return $this->getDefinition($id);
+    }
+
+    /**
      * Creates a service for a service definition.
      *
      * @param  Definition $definition A service definition instance
@@ -326,21 +494,21 @@ class Builder extends Container implements AnnotatedContainerInterface
     protected function createService(Definition $definition, $id)
     {
         if (null !== $definition->getFile()) {
-            require_once self::resolveValue($definition->getFile(), $this->getParameterBag()->all());
+            require_once $this->getParameterBag()->resolveValue($definition->getFile());
         }
 
-        $arguments = $this->resolveServices(self::resolveValue($definition->getArguments(), $this->getParameterBag()->all()));
+        $arguments = $this->resolveServices($this->getParameterBag()->resolveValue($definition->getArguments()));
 
         if (null !== $definition->getFactoryMethod()) {
             if (null !== $definition->getFactoryService()) {
-                $factory = $this->get(self::resolveValue($definition->getFactoryService(), $this->getParameterBag()->all()));
+                $factory = $this->get($this->getParameterBag()->resolveValue($definition->getFactoryService()));
             } else {
-                $factory = self::resolveValue($definition->getClass(), $this->getParameterBag()->all());
+                $factory = $this->getParameterBag()->resolveValue($definition->getClass());
             }
 
             $service = call_user_func_array(array($factory, $definition->getFactoryMethod()), $arguments);
         } else {
-            $r = new \ReflectionClass(self::resolveValue($definition->getClass(), $this->getParameterBag()->all()));
+            $r = new \ReflectionClass($this->getParameterBag()->resolveValue($definition->getClass()));
 
             $service = null === $r->getConstructor() ? $r->newInstance() : $r->newInstanceArgs($arguments);
         }
@@ -361,7 +529,7 @@ class Builder extends Container implements AnnotatedContainerInterface
             }
 
             if ($ok) {
-                call_user_func_array(array($service, $call[0]), $this->resolveServices(self::resolveValue($call[1], $this->getParameterBag()->all())));
+                call_user_func_array(array($service, $call[0]), $this->resolveServices($this->getParameterBag()->resolveValue($call[1])));
             }
         }
 
@@ -369,7 +537,7 @@ class Builder extends Container implements AnnotatedContainerInterface
             if (is_array($callable) && is_object($callable[0]) && $callable[0] instanceof Reference) {
                 $callable[0] = $this->get((string) $callable[0]);
             } elseif (is_array($callable)) {
-                $callable[0] = self::resolveValue($callable[0], $this->getParameterBag()->all());
+                $callable[0] = $this->getParameterBag()->resolveValue($callable[0]);
             }
 
             if (!is_callable($callable)) {
@@ -380,50 +548,6 @@ class Builder extends Container implements AnnotatedContainerInterface
         }
 
         return $service;
-    }
-
-    /**
-     * Replaces parameter placeholders (%name%) by their values.
-     *
-     * @param  mixed $value A value
-     *
-     * @return mixed The same value with all placeholders replaced by their values
-     *
-     * @throws \RuntimeException if a placeholder references a parameter that does not exist
-     */
-    static public function resolveValue($value, $parameters)
-    {
-        if (is_array($value)) {
-            $args = array();
-            foreach ($value as $k => $v) {
-                $args[self::resolveValue($k, $parameters)] = self::resolveValue($v, $parameters);
-            }
-
-            $value = $args;
-        } else if (is_string($value)) {
-            if (preg_match('/^%([^%]+)%$/', $value, $match)) {
-                // we do this to deal with non string values (boolean, integer, ...)
-                // the preg_replace_callback converts them to strings
-                if (!array_key_exists($name = strtolower($match[1]), $parameters)) {
-                    throw new \RuntimeException(sprintf('The parameter "%s" must be defined.', $name));
-                }
-
-                $value = $parameters[$name];
-            } else {
-                $replaceParameter = function ($match) use ($parameters, $value)
-                {
-                    if (!array_key_exists($name = strtolower($match[2]), $parameters)) {
-                        throw new \RuntimeException(sprintf('The parameter "%s" must be defined (used in the following expression: "%s").', $name, $value));
-                    }
-
-                    return $parameters[$name];
-                };
-
-                $value = str_replace('%%', '%', preg_replace_callback('/(?<!%)(%)([^%]+)\1/', $replaceParameter, $value));
-            }
-        }
-
-        return $value;
     }
 
     /**

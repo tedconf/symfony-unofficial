@@ -3,7 +3,9 @@
 namespace Symfony\Framework\Bundle;
 
 use Symfony\Components\DependencyInjection\ContainerInterface;
+use Symfony\Components\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Components\Console\Application;
+use Symfony\Components\Finder\Finder;
 
 
 
@@ -16,7 +18,7 @@ abstract class Bundle implements BundleInterface
     protected $reflection;
 
     
-    public function buildContainer(ContainerInterface $container)
+    public function buildContainer(ParameterBagInterface $parameterBag)
     {
     }
 
@@ -73,25 +75,18 @@ abstract class Bundle implements BundleInterface
     
     public function registerCommands(Application $application)
     {
-        foreach ($application->getKernel()->getBundleDirs() as $dir) {
-            $bundleBase = dirname(str_replace('\\', '/', get_class($this)));
-            $commandDir = $dir.'/'.basename($bundleBase).'/Command';
-            if (!is_dir($commandDir)) {
-                continue;
-            }
+        if (!is_dir($dir = $this->getPath().'/Command')) {
+            return;
+        }
 
-                        foreach (new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($commandDir), \RecursiveIteratorIterator::LEAVES_ONLY) as $file) {
-                if ($file->isDir() || substr($file, -4) !== '.php') {
-                    continue;
-                }
+        $finder = new Finder();
+        $finder->files()->name('*Command.php')->in($dir);
 
-                $class = str_replace('/', '\\', $bundleBase).'\\Command\\'.str_replace(realpath($commandDir).'/', '', basename(realpath($file), '.php'));
-
-                $r = new \ReflectionClass($class);
-
-                if ($r->isSubclassOf('Symfony\\Components\\Console\\Command\\Command') && !$r->isAbstract()) {
-                    $application->addCommand(new $class());
-                }
+        $prefix = $this->namespacePrefix.'\\'.$this->name.'\\Command\\';
+        foreach ($finder as $file) {
+            $r = new \ReflectionClass($prefix.basename($file, '.php'));
+            if ($r->isSubclassOf('Symfony\\Components\\Console\\Command\\Command') && !$r->isAbstract()) {
+                $application->addCommand($r->newInstance());
             }
         }
     }
@@ -110,6 +105,7 @@ abstract class Bundle implements BundleInterface
 namespace Symfony\Framework\Bundle;
 
 use Symfony\Components\DependencyInjection\ContainerInterface;
+use Symfony\Components\DependencyInjection\ParameterBag\ParameterBagInterface;
 
 
 
@@ -117,7 +113,7 @@ use Symfony\Components\DependencyInjection\ContainerInterface;
 interface BundleInterface
 {
     
-    public function buildContainer(ContainerInterface $container);
+    public function buildContainer(ParameterBagInterface $parameterBag);
 
     
     public function boot(ContainerInterface $container);
@@ -132,10 +128,11 @@ namespace Symfony\Framework;
 use Symfony\Framework\Bundle\Bundle;
 use Symfony\Framework\ClassCollectionLoader;
 use Symfony\Framework\DependencyInjection\KernelExtension;
+use Symfony\Components\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Components\DependencyInjection\ContainerInterface;
 use Symfony\Components\DependencyInjection\Loader\Loader;
 use Symfony\Components\DependencyInjection\Loader\XmlFileLoader;
-use Symfony\Components\DependencyInjection\BuilderConfiguration;
+use Symfony\Components\DependencyInjection\ContainerBuilder;
 
 
 
@@ -143,21 +140,21 @@ use Symfony\Components\DependencyInjection\BuilderConfiguration;
 class KernelBundle extends Bundle
 {
     
-    public function buildContainer(ContainerInterface $container)
+    public function buildContainer(ParameterBagInterface $parameterBag)
     {
-        Loader::registerExtension(new KernelExtension());
+        ContainerBuilder::registerExtension(new KernelExtension());
 
-        $configuration = new BuilderConfiguration();
+        $container = new ContainerBuilder();
 
-        $loader = new XmlFileLoader(array(__DIR__.'/../Resources/config', __DIR__.'/Resources/config'));
-        $configuration->merge($loader->load('services.xml'));
+        $loader = new XmlFileLoader($container, array(__DIR__.'/../Resources/config', __DIR__.'/Resources/config'));
+        $loader->load('services.xml');
 
-        if ($container->getParameter('kernel.debug')) {
-            $configuration->merge($loader->load('debug.xml'));
-            $configuration->setDefinition('event_dispatcher', $configuration->findDefinition('debug.event_dispatcher'));
+        if ($parameterBag->get('kernel.debug')) {
+            $loader->load('debug.xml');
+            $container->setDefinition('event_dispatcher', $container->findDefinition('debug.event_dispatcher'));
         }
 
-        return $configuration;
+        return $container;
     }
 
     
@@ -174,45 +171,43 @@ class KernelBundle extends Bundle
 
 namespace Symfony\Framework\DependencyInjection;
 
-use Symfony\Components\DependencyInjection\Loader\LoaderExtension;
+use Symfony\Components\DependencyInjection\Extension\Extension;
 use Symfony\Components\DependencyInjection\Loader\XmlFileLoader;
-use Symfony\Components\DependencyInjection\BuilderConfiguration;
+use Symfony\Components\DependencyInjection\ContainerBuilder;
 
 
 
 
-class KernelExtension extends LoaderExtension
+class KernelExtension extends Extension
 {
-    public function testLoad($config)
+    public function testLoad($config, ContainerBuilder $container)
     {
-        $configuration = new BuilderConfiguration();
+        $loader = new XmlFileLoader($container, array(__DIR__.'/../Resources/config', __DIR__.'/Resources/config'));
+        $loader->load('test.xml');
+        $container->setParameter('kernel.include_core_classes', false);
 
-        $loader = new XmlFileLoader(array(__DIR__.'/../Resources/config', __DIR__.'/Resources/config'));
-        $configuration->merge($loader->load('test.xml'));
-        $configuration->setParameter('kernel.include_core_classes', false);
-
-        return $configuration;
+        return $container;
     }
 
     
-    public function sessionLoad($config, BuilderConfiguration $configuration)
+    public function sessionLoad($config, ContainerBuilder $container)
     {
-        if (!$configuration->hasDefinition('session')) {
-            $loader = new XmlFileLoader(array(__DIR__.'/../Resources/config', __DIR__.'/Resources/config'));
-            $configuration->merge($loader->load('session.xml'));
+        if (!$container->hasDefinition('session')) {
+            $loader = new XmlFileLoader($container, array(__DIR__.'/../Resources/config', __DIR__.'/Resources/config'));
+            $loader->load('session.xml');
         }
 
         if (isset($config['default_locale'])) {
-            $configuration->setParameter('session.default_locale', $config['default_locale']);
+            $container->setParameter('session.default_locale', $config['default_locale']);
         }
 
         if (isset($config['class'])) {
-            $configuration->setParameter('session.class', $config['class']);
+            $container->setParameter('session.class', $config['class']);
         }
 
         foreach (array('name', 'auto_start', 'lifetime', 'path', 'domain', 'secure', 'httponly', 'cache_limiter', 'pdo.db_table') as $name) {
             if (isset($config['session'][$name])) {
-                $configuration->setParameter('session.options.'.$name, $config['session'][$name]);
+                $container->setParameter('session.options.'.$name, $config['session'][$name]);
             }
         }
 
@@ -222,18 +217,16 @@ class KernelExtension extends LoaderExtension
                 $class = 'Symfony\\Framework\\FrameworkBundle\\SessionStorage\\'.$class.'SessionStorage';
             }
 
-            $configuration->setParameter('session.session', 'session.session.'.strtolower($class));
+            $container->setParameter('session.session', 'session.session.'.strtolower($class));
         }
 
-        return $configuration;
+        return $container;
     }
 
-    public function configLoad($config)
+    public function configLoad($config, ContainerBuilder $container)
     {
-        $configuration = new BuilderConfiguration();
-
         if (isset($config['charset'])) {
-            $configuration->setParameter('kernel.charset', $config['charset']);
+            $container->setParameter('kernel.charset', $config['charset']);
         }
 
         if (!array_key_exists('compilation', $config)) {
@@ -269,13 +262,13 @@ class KernelExtension extends LoaderExtension
                 }
             }
         }
-        $configuration->setParameter('kernel.compiled_classes', $classes);
+        $container->setParameter('kernel.compiled_classes', $classes);
 
         if (array_key_exists('error_handler_level', $config)) {
-            $configuration->setParameter('error_handler.level', $config['error_handler_level']);
+            $container->setParameter('error_handler.level', $config['error_handler_level']);
         }
 
-        return $configuration;
+        return $container;
     }
 
     

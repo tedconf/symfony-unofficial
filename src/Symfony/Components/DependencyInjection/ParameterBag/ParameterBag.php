@@ -104,4 +104,50 @@ class ParameterBag implements ParameterBagInterface
     {
         return array_key_exists(strtolower($name), $this->parameters);
     }
+
+    /**
+     * Replaces parameter placeholders (%name%) by their values for all parameters.
+     */
+    public function resolve()
+    {
+        foreach ($this->parameters as $key => $value) {
+            $this->parameters[$key] = $this->resolveValue($value);
+        }
+    }
+
+    /**
+     * Replaces parameter placeholders (%name%) by their values.
+     *
+     * @param  mixed $value A value
+     *
+     * @throws \RuntimeException if a placeholder references a parameter that does not exist
+     */
+    public function resolveValue($value)
+    {
+        if (is_array($value)) {
+            $args = array();
+            foreach ($value as $k => $v) {
+                $args[$this->resolveValue($k)] = $this->resolveValue($v);
+            }
+
+            return $args;
+        }
+
+        if (!is_string($value)) {
+            return $value;
+        }
+
+        if (preg_match('/^%([^%]+)%$/', $value, $match)) {
+            // we do this to deal with non string values (boolean, integer, ...)
+            // the preg_replace_callback converts them to strings
+            return $this->get(strtolower($match[1]));
+        }
+
+        return str_replace('%%', '%', preg_replace_callback(array('/(?<!%)%([^%]+)%/'), array($this, 'resolveValueCallback'), $value));
+    }
+
+    protected function resolveValueCallback($match)
+    {
+        return $this->get(strtolower($match[1]));
+    }
 }
