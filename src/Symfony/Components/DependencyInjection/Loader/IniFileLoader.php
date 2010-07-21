@@ -47,4 +47,16 @@ class IniFileLoader extends FileLoader
             }
         }
     }
+
+    /**
+     * Returns true if this class supports the given resource.
+     *
+     * @param  mixed $resource A resource
+     *
+     * @return Boolean true if this class supports the given resource, false otherwise
+     */
+    public function supports($resource)
+    {
+        return is_string($resource) && 'ini' === pathinfo($resource, PATHINFO_EXTENSION);
+    }
 }

@@ -3,11 +3,9 @@
 require_once __DIR__.'/../src/autoload.php';
 
 use Symfony\Framework\Kernel;
-use Symfony\Components\DependencyInjection\Loader\XmlFileLoader as ContainerLoader;
-use Symfony\Components\Routing\Loader\XmlFileLoader as RoutingLoader;
-use Symfony\Components\DependencyInjection\ContainerBuilder;
+use Symfony\Components\DependencyInjection\Loader\LoaderInterface;
 
-use Symfony\Framework\Bundle\KernelBundle;
+use Symfony\Framework\KernelBundle;
 use Symfony\Bundle\FrameworkBundle\FrameworkBundle;
 use Symfony\Bundle\ZendBundle\ZendBundle;
 use Symfony\Bundle\DoctrineBundle\DoctrineBundle;
@@ -49,19 +47,8 @@ class {{ class }}Kernel extends Kernel
         );
     }
 
-    public function registerContainerConfiguration()
+    public function registerContainerConfiguration(LoaderInterface $loader)
     {
-        $container = new ContainerBuilder();
-        $loader = new ContainerLoader($container, $this->getBundleDirs());
-        $loader->load(__DIR__.'/config/config_'.$this->getEnvironment().'.xml');
-
-        return $container;
-    }
-
-    public function registerRoutes()
-    {
-        $loader = new RoutingLoader($this->getBundleDirs());
-
-        return $loader->load(__DIR__.'/config/routing.xml');
+        $loader->load(__DIR__.'/config/config_'.$this->getEnvironment().'.{{ format }}');
     }
 }

@@ -80,6 +80,11 @@ EOT
             $destPath .= '/Resources/config/doctrine/metadata';
         }
 
+        // adjust so file naming works
+        if ($type === 'yaml') {
+            $type = 'yml';
+        }
+
         $cme = new ClassMetadataExporter();
         $exporter = $cme->getExporter($type);
 
@@ -99,10 +104,13 @@ EOT
                 if ($type === 'annotation') {
                     $path = $destPath.'/'.$className.'.php';
                 } else {
-                    $path = $destPath.'/'.str_replace('\\', '.', $class->name).'.dcm.xml';
+                    $path = $destPath.'/'.str_replace('\\', '.', $class->name).'.dcm.'.$type;
                 }
                 $output->writeln(sprintf('  > writing <comment>%s</comment>', $path));
                 $code = $exporter->exportClassMetadata($class);
+                if (!is_dir($dir = dirname($path))) {
+                    mkdir($dir, 0777, true);
+                }
                 file_put_contents($path, $code);
             }
         } else {
