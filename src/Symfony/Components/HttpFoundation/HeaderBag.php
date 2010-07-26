@@ -167,11 +167,11 @@ class HeaderBag
      * @param  string $expire   The time the cookie expires
      * @param  string $path     The path on the server in which the cookie will be available on
      * @param  bool   $secure   Indicates that the cookie should only be transmitted over a secure HTTPS connection from the client
-     * @param  bool   $httponly When TRUE the cookie will be made accessible only through the HTTP protocol
+     * @param  bool   $httponly When TRUE the cookie will not be made accessible to JavaScript, preventing XSS attacks from stealing cookies
      *
      * @throws \InvalidArgumentException When the cookie expire parameter is not valid
      */
-    public function setCookie($name, $value, $domain = null, $expires = null, $path = '/', $secure = false, $httponly = false)
+    public function setCookie($name, $value, $domain = null, $expires = null, $path = '/', $secure = false, $httponly = true)
     {
         // from PHP source code
         if (preg_match("/[=,; \t\r\n\013\014]/", $name)) {
@@ -192,10 +192,6 @@ class HeaderBag
             return $this->set('Cookie', $cookie);
         }
 
-        if (!$domain) {
-            throw new \InvalidArgumentException('The cookie domain cannot be empty');
-        }
-
         if (null !== $expires) {
             if (is_numeric($expires)) {
                 $expires = (int) $expires;
@@ -207,13 +203,13 @@ class HeaderBag
                     throw new \InvalidArgumentException(sprintf('The "expires" cookie parameter is not valid.', $expires));
                 }
             }
-        }
 
-        if (null !== $expires) {
             $cookie .= '; expires='.substr(\DateTime::createFromFormat('U', $expires, new \DateTimeZone('UTC'))->format('D, d-M-Y H:i:s T'), 0, -5);
         }
 
-        $cookie .= '; domain='.$domain;
+        if ($domain) {
+            $cookie .= '; domain='.$domain;
+        }
 
         if ('/' !== $path) {
             $cookie .= '; path='.$path;

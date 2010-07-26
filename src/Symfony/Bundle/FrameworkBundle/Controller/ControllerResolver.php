@@ -3,9 +3,10 @@
 namespace Symfony\Bundle\FrameworkBundle\Controller;
 
 use Symfony\Components\HttpKernel\LoggerInterface;
-use Symfony\Components\HttpKernel\Controller\ControllerManagerInterface;
+use Symfony\Components\HttpKernel\Controller\ControllerResolverInterface;
 use Symfony\Components\HttpKernel\HttpKernelInterface;
 use Symfony\Components\HttpFoundation\Request;
+use Symfony\Components\EventDispatcher\Event;
 use Symfony\Components\DependencyInjection\ContainerInterface;
 
 /*
@@ -18,13 +19,13 @@ use Symfony\Components\DependencyInjection\ContainerInterface;
  */
 
 /**
- * ControllerManager.
+ * ControllerResolver.
  *
  * @package    Symfony
  * @subpackage Bundle_FrameworkBundle
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  */
-class ControllerManager implements ControllerManagerInterface
+class ControllerResolver implements ControllerResolverInterface
 {
     protected $container;
     protected $logger;
@@ -121,13 +122,13 @@ class ControllerManager implements ControllerManagerInterface
      * @param \Symfony\Components\HttpFoundation\Request $request A Request instance
      *
      * @return mixed|Boolean A PHP callable representing the Controller,
-     *                       or false if this manager is not able to determine the controller
+     *                       or false if this resolver is not able to determine the controller
      *
      * @throws \InvalidArgumentException|\LogicException If the controller can't be found
      */
     public function getController(Request $request)
     {
-        if (!$controller = $request->path->get('_controller')) {
+        if (!$controller = $request->attributes->get('_controller')) {
             if (null !== $this->logger) {
                 $this->logger->err('Unable to look for the controller as the "_controller" parameter is missing');
             }
@@ -189,17 +190,17 @@ class ControllerManager implements ControllerManagerInterface
      *
      * @throws \RuntimeException When value for argument given is not provided
      */
-    public function getMethodArguments(Request $request, $controller)
+    public function getArguments(Request $request, $controller)
     {
-        $path = $request->path->all();
+        $attributes = $request->attributes->all();
 
         list($controller, $method) = $controller;
 
         $r = new \ReflectionObject($controller);
         $arguments = array();
         foreach ($r->getMethod($method)->getParameters() as $param) {
-            if (array_key_exists($param->getName(), $path)) {
-                $arguments[] = $path[$param->getName()];
+            if (array_key_exists($param->getName(), $attributes)) {
+                $arguments[] = $attributes[$param->getName()];
             } elseif ($param->isDefaultValueAvailable()) {
                 $arguments[] = $param->getDefaultValue();
             } else {
