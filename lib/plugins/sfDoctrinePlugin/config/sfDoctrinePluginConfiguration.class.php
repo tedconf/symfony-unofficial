@@ -50,7 +50,7 @@ class sfDoctrinePluginConfiguration extends sfPluginConfiguration
       }
     }
 
-    require_once sfConfig::get('sf_doctrine_dir').'/Doctrine.php';
+    require_once sfConfig::get('sf_doctrine_dir').'/Doctrine/Core.php';
     spl_autoload_register(array('Doctrine_Core', 'autoload'));
 
     $manager = Doctrine_Manager::getInstance();
