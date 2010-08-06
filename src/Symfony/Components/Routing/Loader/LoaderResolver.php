@@ -14,8 +14,6 @@ namespace Symfony\Components\Routing\Loader;
 /**
  * LoaderResolver selects a loader for a given resource..
  *
- * @package    Symfony
- * @subpackage Components_Routing
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  */
 class LoaderResolver implements LoaderResolverInterface
@@ -25,7 +23,7 @@ class LoaderResolver implements LoaderResolverInterface
     /**
      * Constructor.
      *
-     * @param \Symfony\Components\Routing\Loader\LoaderInterface[] $loaders An array of loaders
+     * @param LoaderInterface[] $loaders An array of loaders
      */
     public function __construct(array $loaders = array())
     {
@@ -40,7 +38,7 @@ class LoaderResolver implements LoaderResolverInterface
      *
      * @param mixed  $resource A resource
      *
-     * @return Symfony\Components\Routing\Loader\LoaderInterface A LoaderInterface instance
+     * @return LoaderInterface A LoaderInterface instance
      */
     public function resolve($resource)
     {
@@ -56,7 +54,7 @@ class LoaderResolver implements LoaderResolverInterface
     /**
      * Sets a loader.
      *
-     * @param \Symfony\Components\Routing\Loader\LoaderInterface $loader A LoaderInterface instance
+     * @param LoaderInterface $loader A LoaderInterface instance
      */
     public function addLoader(LoaderInterface $loader)
     {
@@ -67,7 +65,7 @@ class LoaderResolver implements LoaderResolverInterface
     /**
      * Returns the registered loaders.
      *
-     * @return \Symfony\Components\Routing\Loader\LoaderInterface[] A array of LoaderInterface instances
+     * @return LoaderInterface[] A array of LoaderInterface instances
      */
     public function getLoaders()
     {

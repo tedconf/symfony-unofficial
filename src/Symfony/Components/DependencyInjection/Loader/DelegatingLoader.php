@@ -14,8 +14,6 @@ namespace Symfony\Components\DependencyInjection\Loader;
 /**
  * DelegatingLoader delegates loading to other loaders using a loader resolver.
  *
- * @package    Symfony
- * @subpackage Components_DependencyInjection
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  */
 class DelegatingLoader extends Loader
@@ -25,7 +23,7 @@ class DelegatingLoader extends Loader
     /**
      * Constructor.
      *
-     * @param \Symfony\Components\DependencyInjection\Loader\LoaderResolverInterface $resolver A LoaderResolverInterface instance
+     * @param LoaderResolverInterface $resolver A LoaderResolverInterface instance
      */
     public function __construct(LoaderResolverInterface $resolver)
     {

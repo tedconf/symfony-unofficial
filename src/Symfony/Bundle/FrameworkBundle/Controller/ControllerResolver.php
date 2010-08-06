@@ -21,8 +21,6 @@ use Symfony\Components\DependencyInjection\ContainerInterface;
 /**
  * ControllerResolver.
  *
- * @package    Symfony
- * @subpackage Bundle_FrameworkBundle
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  */
 class ControllerResolver implements ControllerResolverInterface
@@ -119,7 +117,7 @@ class ControllerResolver implements ControllerResolverInterface
      * This method looks for a '_controller' request parameter that represents
      * the controller name (a string like BlogBundle:Post:index).
      *
-     * @param \Symfony\Components\HttpFoundation\Request $request A Request instance
+     * @param Request $request A Request instance
      *
      * @return mixed|Boolean A PHP callable representing the Controller,
      *                       or false if this resolver is not able to determine the controller
@@ -168,7 +166,6 @@ class ControllerResolver implements ControllerResolverInterface
         }
 
         $controller = new $class($this->container);
-        $controller->setRequest($request);
 
         $method = $action.'Action';
         if (!method_exists($controller, $method)) {
@@ -185,8 +182,8 @@ class ControllerResolver implements ControllerResolverInterface
     /**
      * Returns the arguments to pass to the controller.
      *
-     * @param \Symfony\Components\HttpFoundation\Request $request    A Request instance
-     * @param mixed                                      $controller A PHP callable
+     * @param Request $request    A Request instance
+     * @param mixed   $controller A PHP callable
      *
      * @throws \RuntimeException When value for argument given is not provided
      */

@@ -14,8 +14,6 @@ namespace Symfony\Components\Routing\Loader;
 /**
  * LoaderResolverInterface selects a loader for a given resource.
  *
- * @package    Symfony
- * @subpackage Components_Routing
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  */
 interface LoaderResolverInterface
@@ -25,7 +23,7 @@ interface LoaderResolverInterface
      *
      * @param mixed  $resource A resource
      *
-     * @return Symfony\Components\Routing\Loader\LoaderInterface A LoaderInterface instance
+     * @return LoaderInterface A LoaderInterface instance
      */
     function resolve($resource);
 }

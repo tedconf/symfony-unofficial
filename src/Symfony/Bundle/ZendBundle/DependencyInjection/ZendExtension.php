@@ -18,8 +18,6 @@ use Symfony\Components\DependencyInjection\ContainerBuilder;
 /**
  * ZendExtension is an extension for the Zend Framework libraries.
  *
- * @package    Symfony
- * @subpackage Bundle_ZendBundle
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  */
 class ZendExtension extends Extension
@@ -36,8 +34,8 @@ class ZendExtension extends Extension
      *
      *      <zend:logger priority="info" path="/path/to/some.log" />
      *
-     * @param array                                                        $config        An array of configuration settings
-     * @param \Symfony\Components\DependencyInjection\ContainerBuilder $container A ContainerBuilder instance
+     * @param array            $config    An array of configuration settings
+     * @param ContainerBuilder $container A ContainerBuilder instance
      */
     public function loggerLoad($config, ContainerBuilder $container)
     {
@@ -63,8 +61,8 @@ class ZendExtension extends Extension
      *
      *      <zend:i18n locale="en" adapter="xliff" data="/path/to/messages.xml" />
      *
-     * @param array $config An array of configuration settings
-     * @param \Symfony\Components\DependencyInjection\ContainerBuilder $container A ContainerBuilder instance
+     * @param array            $config    An array of configuration settings
+     * @param ContainerBuilder $container A ContainerBuilder instance
      */
     public function i18nLoad($config, ContainerBuilder $container)
     {

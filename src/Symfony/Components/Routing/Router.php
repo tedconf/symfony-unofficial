@@ -17,8 +17,6 @@ use Symfony\Components\Routing\Loader\LoaderInterface;
  * The Router class is an example of the integration of all pieces of the
  * routing system for easier use.
  *
- * @package    Symfony
- * @subpackage Components_Routing
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  */
 class Router implements RouterInterface
@@ -40,11 +38,11 @@ class Router implements RouterInterface
      *   * cache_dir: The cache directory (or null to disable caching)
      *   * debug:     Whether to enable debugging or not (false by default)
      *
-     * @param Symfony\Components\Routing\Loader\LoaderInterface $loader A LoaderInterface instance
-     * @param mixed $resource The main resource to load
-     * @param array $options  An array of options
-     * @param array $context  The context
-     * @param array $defaults The default values
+     * @param LoaderInterface $loader A LoaderInterface instance
+     * @param mixed           $resource The main resource to load
+     * @param array           $options  An array of options
+     * @param array           $context  The context
+     * @param array           $defaults The default values
      *
      * @throws \InvalidArgumentException When unsupported option is provided
      */

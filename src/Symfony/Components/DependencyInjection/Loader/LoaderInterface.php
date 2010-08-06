@@ -22,8 +22,6 @@ use Symfony\Components\DependencyInjection\ContainerBuilder;
  * $container = new ContainerBuilder();
  * $container->merge($config);
  *
- * @package    Symfony
- * @subpackage Components_DependencyInjection
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  */
 interface LoaderInterface
@@ -74,14 +72,14 @@ interface LoaderInterface
     /**
      * Gets the loader resolver.
      *
-     * @return \Symfony\Components\Routing\Loader\LoaderResolver A LoaderResolver instance
+     * @return LoaderResolver A LoaderResolver instance
      */
     function getResolver();
 
     /**
      * Sets the loader resolver.
      *
-     * @param \Symfony\Components\Routing\Loader\LoaderResolver $resolver A LoaderResolver instance
+     * @param LoaderResolver $resolver A LoaderResolver instance
      */
     function setResolver(LoaderResolver $resolver);
 }

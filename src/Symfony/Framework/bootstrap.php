@@ -3,6 +3,7 @@
 namespace Symfony\Framework\Bundle;
 
 use Symfony\Components\DependencyInjection\ContainerInterface;
+use Symfony\Components\DependencyInjection\ContainerBuilder;
 use Symfony\Components\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Components\Console\Application;
 use Symfony\Components\Finder\Finder;
@@ -105,6 +106,7 @@ abstract class Bundle implements BundleInterface
 namespace Symfony\Framework\Bundle;
 
 use Symfony\Components\DependencyInjection\ContainerInterface;
+use Symfony\Components\DependencyInjection\ContainerBuilder;
 use Symfony\Components\DependencyInjection\ParameterBag\ParameterBagInterface;
 
 
@@ -205,7 +207,7 @@ class KernelExtension extends Extension
             $container->setParameter('session.class', $config['class']);
         }
 
-        foreach (array('name', 'auto_start', 'lifetime', 'path', 'domain', 'secure', 'httponly', 'cache_limiter', 'pdo.db_table') as $name) {
+        foreach (array('name', 'lifetime', 'path', 'domain', 'secure', 'httponly', 'cache_limiter', 'pdo.db_table') as $name) {
             if (isset($config['session'][$name])) {
                 $container->setParameter('session.options.'.$name, $config['session'][$name]);
             }
@@ -231,8 +233,8 @@ class KernelExtension extends Extension
 
         if (!array_key_exists('compilation', $config)) {
             $classes = array(
-                'Symfony\\Components\\Routing\\Router',
                 'Symfony\\Components\\Routing\\RouterInterface',
+                'Symfony\\Components\\Routing\\Router',
                 'Symfony\\Components\\EventDispatcher\\Event',
                 'Symfony\\Components\\Routing\\Matcher\\UrlMatcherInterface',
                 'Symfony\\Components\\Routing\\Matcher\\UrlMatcher',
@@ -240,7 +242,6 @@ class KernelExtension extends Extension
                 'Symfony\\Components\\HttpFoundation\\Request',
                 'Symfony\\Components\\HttpFoundation\\Response',
                 'Symfony\\Components\\HttpKernel\\ResponseListener',
-                'Symfony\\Components\\HttpKernel\\Controller\\ControllerLoaderListener',
                 'Symfony\\Components\\Templating\\Loader\\LoaderInterface',
                 'Symfony\\Components\\Templating\\Loader\\Loader',
                 'Symfony\\Components\\Templating\\Loader\\FilesystemLoader',
@@ -437,7 +438,7 @@ class EventDispatcher extends BaseEventDispatcher
     
     public function __construct(ContainerInterface $container)
     {
-        foreach ($container->findAnnotatedServiceIds('kernel.listener') as $id => $attributes) {
+        foreach ($container->findTaggedServiceIds('kernel.listener') as $id => $attributes) {
             $container->get($id)->register($this);
         }
     }

@@ -2,6 +2,8 @@
 
 namespace Symfony\Components\Routing\Loader;
 
+use Symfony\Components\Routing\RouteCollection;
+
 /*
  * This file is part of the Symfony framework.
  *
@@ -14,8 +16,6 @@ namespace Symfony\Components\Routing\Loader;
 /**
  * DelegatingLoader delegates route loading to other loaders using a loader resolver.
  *
- * @package    Symfony
- * @subpackage Components_Routing
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  */
 class DelegatingLoader extends Loader
@@ -25,7 +25,7 @@ class DelegatingLoader extends Loader
     /**
      * Constructor.
      *
-     * @param \Symfony\Components\Routing\Loader\LoaderResolverInterface $resolver A LoaderResolverInterface instance
+     * @param LoaderResolverInterface $resolver A LoaderResolverInterface instance
      */
     public function __construct(LoaderResolverInterface $resolver)
     {
@@ -37,7 +37,7 @@ class DelegatingLoader extends Loader
      *
      * @param  mixed $resource A resource
      *
-     * @return \Symfony\Components\Routing\RouteCollection A RouteCollection instance
+     * @return RouteCollection A RouteCollection instance
      */
     public function load($resource)
     {

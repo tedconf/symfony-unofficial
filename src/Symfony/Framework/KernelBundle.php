@@ -23,8 +23,6 @@ use Symfony\Components\DependencyInjection\ContainerBuilder;
 /**
  * KernelBundle.
  *
- * @package    Symfony
- * @subpackage Framework
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  */
 class KernelBundle extends Bundle
@@ -32,9 +30,9 @@ class KernelBundle extends Bundle
     /**
      * Customizes the Container instance.
      *
-     * @param \Symfony\Components\DependencyInjection\ParameterBag\ParameterBagInterface $parameterBag A ParameterBagInterface instance
+     * @param ParameterBagInterface $parameterBag A ParameterBagInterface instance
      *
-     * @return \Symfony\Components\DependencyInjection\ContainerBuilder A ContainerBuilder instance
+     * @return ContainerBuilder A ContainerBuilder instance
      */
     public function buildContainer(ParameterBagInterface $parameterBag)
     {
@@ -56,7 +54,7 @@ class KernelBundle extends Bundle
     /**
      * Boots the Bundle.
      *
-     * @param Symfony\Components\DependencyInjection\ContainerInterface $container A ContainerInterface instance
+     * @param ContainerInterface $container A ContainerInterface instance
      */
     public function boot(ContainerInterface $container)
     {

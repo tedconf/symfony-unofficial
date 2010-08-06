@@ -5,7 +5,6 @@ namespace Symfony\Bundle\SwiftmailerBundle;
 use Symfony\Framework\Bundle\Bundle;
 use Symfony\Components\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Components\DependencyInjection\ContainerBuilder;
-use Symfony\Components\DependencyInjection\Loader\Loader;
 use Symfony\Bundle\SwiftmailerBundle\DependencyInjection\SwiftmailerExtension;
 
 /*
@@ -20,8 +19,6 @@ use Symfony\Bundle\SwiftmailerBundle\DependencyInjection\SwiftmailerExtension;
 /**
  * Bundle.
  *
- * @package    Symfony
- * @subpackage Bundle_SwiftmailerBundle
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  */
 class SwiftmailerBundle extends Bundle
@@ -29,9 +26,9 @@ class SwiftmailerBundle extends Bundle
     /**
      * Customizes the Container instance.
      *
-     * @param \Symfony\Components\DependencyInjection\ParameterBag\ParameterBagInterface $parameterBag A ParameterBagInterface instance
+     * @param ParameterBagInterface $parameterBag A ParameterBagInterface instance
      *
-     * @return \Symfony\Components\DependencyInjection\ContainerBuilder A ContainerBuilder instance
+     * @return ContainerBuilder A ContainerBuilder instance
      */
     public function buildContainer(ParameterBagInterface $parameterBag)
     {

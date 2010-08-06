@@ -4,8 +4,8 @@ namespace Symfony\Bundle\DoctrineMongoDBBundle;
 
 use Symfony\Framework\Bundle\Bundle;
 use Symfony\Components\DependencyInjection\ParameterBag\ParameterBagInterface;
-use Symfony\Components\DependencyInjection\Loader\Loader;
-use Symfony\Bundle\DoctrineMongoDBBundle\DependencyInjection\MongoDBExtension;
+use Symfony\Components\DependencyInjection\ContainerBuilder;
+use Symfony\Bundle\DoctrineMongoDBBundle\DependencyInjection\DoctrineMongoDBExtension;
 
 /**
  * Doctrine MongoDB ODM bundle.
@@ -19,13 +19,13 @@ class DoctrineMongoDBBundle extends Bundle
     /**
      * Customizes the Container instance.
      *
-     * @param \Symfony\Components\DependencyInjection\ParameterBag\ParameterBagInterface $parameterBag A ParameterBagInterface instance
+     * @param ParameterBagInterface $parameterBag A ParameterBagInterface instance
      *
-     * @return \Symfony\Components\DependencyInjection\ContainerBuilder A ContainerBuilder instance
+     * @return ContainerBuilder A ContainerBuilder instance
      */
     public function buildContainer(ParameterBagInterface $parameterBag)
     {
-        ContainerBuilder::registerExtension(new MongoDBExtension(
+        ContainerBuilder::registerExtension(new DoctrineMongoDBExtension(
             $parameterBag->get('kernel.bundle_dirs'),
             $parameterBag->get('kernel.bundles'),
             $parameterBag->get('kernel.cache_dir')

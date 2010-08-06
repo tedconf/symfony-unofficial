@@ -2,6 +2,8 @@
 
 namespace Symfony\Components\Routing\Loader;
 
+use Symfony\Components\Routing\RouteCollection;
+
 /*
  * This file is part of the Symfony framework.
  *
@@ -14,8 +16,6 @@ namespace Symfony\Components\Routing\Loader;
 /**
  * FileLoader is the abstract class used by all built-in loaders that are file based.
  *
- * @package    Symfony
- * @subpackage Components_Routing
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  */
 abstract class FileLoader extends Loader
@@ -39,9 +39,9 @@ abstract class FileLoader extends Loader
     /**
      * Adds routes from a resource.
      *
-     * @param mixed  $resource   A Resource
+     * @param mixed $resource A Resource
      *
-     * @return Symfony\Components\Routing\RouteCollection A RouteCollection instance
+     * @return RouteCollection A RouteCollection instance
      */
     public function import($resource)
     {

@@ -19,8 +19,6 @@ use Symfony\Components\HttpKernel\HttpKernelInterface;
 /**
  * FrameworkBundle Controller gives you convenient access to all commonly needed services.
  *
- * @package    Symfony
- * @subpackage Bundle_FrameworkBundle
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  */
 class Controller
@@ -28,33 +26,39 @@ class Controller
     protected $container;
     protected $request;
 
+    /**
+     * Constructor.
+     *
+     * @param ContainerInterface $container A ContainerInterface instance
+     */
     function __construct(ContainerInterface $container)
     {
         $this->container = $container;
+        $this->request = $this->container->get('request');
     }
 
+    /**
+     * Gets the Request.
+     *
+     * @return Request A Request instance
+     */
     public function getRequest()
     {
-        if (null === $this->request) {
-            $this->request = $this->container->getRequestService();
-        }
-
         return $this->request;
     }
 
-    public function setRequest(Request $request)
-    {
-        return $this->request = $request;
-    }
-
-    public function getMailer()
-    {
-        return $this->container->getMailerService();
-    }
-
+    /**
+     * Creates a Response instance.
+     *
+     * @param string  $content The Response body
+     * @param integer $status  The status code
+     * @param array   $headers An array of HTTP headers
+     *
+     * @return Response A Response instance
+     */
     public function createResponse($content = '', $status = 200, array $headers = array())
     {
-        $response = $this->container->getResponseService();
+        $response = $this->container->get('response');
         $response->setContent($content);
         $response->setStatusCode($status);
         foreach ($headers as $name => $value) {
@@ -75,7 +79,7 @@ class Controller
      */
     public function generateUrl($route, array $parameters = array(), $absolute = false)
     {
-        return $this->container->getRouterService()->generate($route, $parameters, $absolute);
+        return $this->container->get('router')->generate($route, $parameters, $absolute);
     }
 
     /**
@@ -92,42 +96,52 @@ class Controller
         $path['_controller'] = $controller;
         $subRequest = $this->getRequest()->duplicate($query, null, $path);
 
-        return $this->container->getKernelService()->handle($subRequest, HttpKernelInterface::FORWARDED_REQUEST, true);
+        return $this->container->get('kernel')->handle($subRequest, HttpKernelInterface::FORWARDED_REQUEST, true);
     }
 
     /**
-     * Sends an HTTP redirect response
+     * Returns an HTTP redirect Response.
+     *
+     * @return Response A Response instance
      */
     public function redirect($url, $status = 302)
     {
-        $response = $this->container->getResponseService();
+        $response = $this->container->get('response');
         $response->setStatusCode($status);
         $response->headers->set('Location', $url);
 
         return $response;
     }
 
+    /**
+     * Returns a rendered view.
+     *
+     * @param string $view       The view name
+     * @param array  $parameters An array of parameters to pass to the view
+     *
+     * @return string The renderer view
+     */
     public function renderView($view, array $parameters = array())
     {
-        return $this->container->getTemplatingService()->render($view, $parameters);
+        return $this->container->get('templating')->render($view, $parameters);
     }
 
     /**
      * Renders a view.
      *
-     * @param string   $view       The view name
+     * @param string   $view The view name
      * @param array    $parameters An array of parameters to pass to the view
-     * @param Response $response   A response instance
+     * @param Response $response A response instance
      *
      * @return Response A Response instance
      */
     public function render($view, array $parameters = array(), Response $response = null)
     {
         if (null === $response) {
-            $response = $this->container->getResponseService();
+            $response = $this->container->get('response');
         }
 
-        $response->setContent($this->container->getTemplatingService()->render($view, $parameters));
+        $response->setContent($this->container->get('templating')->render($view, $parameters));
 
         return $response;
     }

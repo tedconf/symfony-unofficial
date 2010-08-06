@@ -20,8 +20,6 @@ use Symfony\Components\HttpKernel\HttpKernelInterface;
 /**
  * WebDebugToolbarListener.
  *
- * @package    Symfony
- * @subpackage Components_HttpKernel
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  */
 class WebDebugToolbarListener
@@ -36,7 +34,7 @@ class WebDebugToolbarListener
     /**
      * Registers a core.response listener.
      *
-     * @param Symfony\Components\EventDispatcher\EventDispatcher $dispatcher An EventDispatcher instance
+     * @param EventDispatcher $dispatcher An EventDispatcher instance
      */
     public function register(EventDispatcher $dispatcher)
     {

@@ -20,8 +20,6 @@ use Symfony\Components\HttpKernel\HttpKernelInterface;
 /**
  * ExceptionListener.
  *
- * @package    Symfony
- * @subpackage Bundle_FrameworkBundle
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  */
 class ExceptionListener
@@ -41,7 +39,7 @@ class ExceptionListener
     /**
      * Registers a core.exception listener.
      *
-     * @param Symfony\Components\EventDispatcher\EventDispatcher $dispatcher An EventDispatcher instance
+     * @param EventDispatcher $dispatcher An EventDispatcher instance
      */
     public function register(EventDispatcher $dispatcher)
     {

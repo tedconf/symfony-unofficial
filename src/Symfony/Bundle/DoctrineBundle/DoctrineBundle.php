@@ -5,8 +5,6 @@ namespace Symfony\Bundle\DoctrineBundle;
 use Symfony\Framework\Bundle\Bundle;
 use Symfony\Components\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Components\DependencyInjection\ContainerBuilder;
-use Symfony\Components\DependencyInjection\Loader\Loader;
-use Symfony\Components\DependencyInjection\Loader\XmlFileLoader;
 use Symfony\Bundle\DoctrineBundle\DependencyInjection\DoctrineExtension;
 
 /*
@@ -21,8 +19,6 @@ use Symfony\Bundle\DoctrineBundle\DependencyInjection\DoctrineExtension;
 /**
  * Bundle.
  *
- * @package    Symfony
- * @subpackage Bundle_DoctrineBundle
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  * @author     Jonathan H. Wage <jonwage@gmail.com>
  */
@@ -31,9 +27,9 @@ class DoctrineBundle extends Bundle
     /**
      * Customizes the Container instance.
      *
-     * @param \Symfony\Components\DependencyInjection\ParameterBag\ParameterBagInterface $parameterBag A ParameterBagInterface instance
+     * @param ParameterBagInterface $parameterBag A ParameterBagInterface instance
      *
-     * @return \Symfony\Components\DependencyInjection\ContainerBuilder A ContainerBuilder instance
+     * @return ContainerBuilder A ContainerBuilder instance
      */
     public function buildContainer(ParameterBagInterface $parameterBag)
     {

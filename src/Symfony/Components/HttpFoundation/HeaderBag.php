@@ -14,8 +14,6 @@ namespace Symfony\Components\HttpFoundation;
 /**
  * HeaderBag is a container for HTTP headers.
  *
- * @package    Symfony
- * @subpackage Components_HttpFoundation
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  */
 class HeaderBag
@@ -147,7 +145,7 @@ class HeaderBag
     /**
      * Returns an instance able to manage the Cache-Control header.
      *
-     * @return \Symfony\Components\HttpFoundation\CacheControl A CacheControl instance
+     * @return CacheControl A CacheControl instance
      */
     public function getCacheControl()
     {

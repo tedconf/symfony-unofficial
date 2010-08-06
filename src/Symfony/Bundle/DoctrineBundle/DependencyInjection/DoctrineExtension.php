@@ -21,8 +21,6 @@ use Symfony\Components\DependencyInjection\Resource\FileResource;
 /**
  * DoctrineExtension is an extension for the Doctrine DBAL and ORM library.
  *
- * @package    Symfony
- * @subpackage Bundle_DoctrineBundle
  * @author     Jonathan H. Wage <jonwage@gmail.com>
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  */
@@ -219,8 +217,10 @@ class DoctrineExtension extends Extension
      */
     protected function loadOrmDefaults(array $config, ContainerBuilder $container)
     {
-        $loader = new XmlFileLoader($container, __DIR__.'/../Resources/config');
-        $loader->load($this->resources['orm']);
+        if (!$container->hasDefinition('doctrine.orm.metadata_driver.annotation')) {
+            $loader = new XmlFileLoader($container, __DIR__.'/../Resources/config');
+            $loader->load($this->resources['orm']);
+        }
 
         // Allow these application configuration options to override the defaults
         $options = array(

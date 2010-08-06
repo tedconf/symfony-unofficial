@@ -16,8 +16,6 @@ use Symfony\Components\HttpFoundation\SessionStorage\NativeSessionStorage;
 /**
  * Request represents an HTTP request.
  *
- * @package    Symfony
- * @subpackage Components_HttpFoundation
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  */
 class Request
@@ -224,6 +222,10 @@ class Request
         $_SERVER = $this->server->all();
         $_COOKIES = $this->cookies->all();
         // FIXME: populate $_FILES
+
+        foreach ($this->headers->all() as $key => $value) {
+            $_SERVER['HTTP_'.strtoupper(str_replace('-', '_', $key))] = implode(', ', $value);
+        }
 
         // FIXME: should read variables_order and request_order
         // to know which globals to merge and in which order

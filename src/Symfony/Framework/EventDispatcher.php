@@ -18,8 +18,6 @@ use Symfony\Components\DependencyInjection\ContainerInterface;
 /**
  * This EventDispatcher implementation uses a DependencyInjection container to load listeners.
  *
- * @package    Symfony
- * @subpackage Framework
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  */
 class EventDispatcher extends BaseEventDispatcher
@@ -30,7 +28,7 @@ class EventDispatcher extends BaseEventDispatcher
      */
     public function __construct(ContainerInterface $container)
     {
-        foreach ($container->findAnnotatedServiceIds('kernel.listener') as $id => $attributes) {
+        foreach ($container->findTaggedServiceIds('kernel.listener') as $id => $attributes) {
             $container->get($id)->register($this);
         }
     }

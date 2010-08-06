@@ -16,8 +16,6 @@ use Symfony\Components\DependencyInjection\ContainerBuilder;
 /**
  * Loader is the abstract class used by all built-in loaders.
  *
- * @package    Symfony
- * @subpackage Components_DependencyInjection
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  */
 abstract class Loader implements LoaderInterface
@@ -28,7 +26,7 @@ abstract class Loader implements LoaderInterface
     /**
      * Constructor.
      *
-     * @param \Symfony\Components\DependencyInjection\ContainerBuilder $container A ContainerBuilder instance
+     * @param ContainerBuilder $container A ContainerBuilder instance
      */
     public function __construct(ContainerBuilder $container)
     {
@@ -38,7 +36,7 @@ abstract class Loader implements LoaderInterface
     /**
      * Gets the loader resolver.
      *
-     * @return \Symfony\Components\DependencyInjection\Loader\LoaderResolver A LoaderResolver instance
+     * @return LoaderResolver A LoaderResolver instance
      */
     public function getResolver()
     {
@@ -48,7 +46,7 @@ abstract class Loader implements LoaderInterface
     /**
      * Sets the loader resolver.
      *
-     * @param \Symfony\Components\DependencyInjection\Loader\LoaderResolver $resolver A LoaderResolver instance
+     * @param LoaderResolver $resolver A LoaderResolver instance
      */
     public function setResolver(LoaderResolver $resolver)
     {
@@ -70,7 +68,7 @@ abstract class Loader implements LoaderInterface
      *
      * @param mixed $resource A Resource
      *
-     * @return Symfony\Components\DependencyInjection\Loader\LoaderInterface A LoaderInterface instance
+     * @return LoaderInterface A LoaderInterface instance
      *
      * @throws \InvalidArgumentException if no loader is found
      */

@@ -21,8 +21,6 @@ use Symfony\Components\DependencyInjection\Definition;
 /**
  * WebExtension.
  *
- * @package    Symfony
- * @subpackage Bundle_FrameworkBundle
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  */
 class WebExtension extends Extension
@@ -48,8 +46,8 @@ class WebExtension extends Extension
     /**
      * Loads the web configuration.
      *
-     * @param array                                                        $config        An array of configuration settings
-     * @param \Symfony\Components\DependencyInjection\ContainerBuilder $container A ContainerBuilder instance
+     * @param array            $config    An array of configuration settings
+     * @param ContainerBuilder $container A ContainerBuilder instance
      */
     public function configLoad($config, ContainerBuilder $container)
     {
@@ -83,7 +81,7 @@ class WebExtension extends Extension
                     $loader->load('collectors.xml');
                 }
             } elseif ($container->hasDefinition('profiler')) {
-                $container->getDefinition('profiling')->clearAnnotations();
+                $container->getDefinition('profiling')->clearTags();
             }
         }
 
@@ -95,7 +93,7 @@ class WebExtension extends Extension
                     $loader->load('toolbar.xml');
                 }
             } elseif ($container->hasDefinition('debug.toolbar')) {
-                $container->getDefinition('debug.toolbar')->clearAnnotations();
+                $container->getDefinition('debug.toolbar')->clearTags();
             }
         }
 
@@ -171,7 +169,7 @@ class WebExtension extends Extension
                     $loader->setArguments($arguments);
                 }
             } elseif ($container->hasDefinition('validator')) {
-                $container->getDefinition('validator')->clearAnnotations();
+                $container->getDefinition('validator')->clearTags();
             }
         }
     }
@@ -179,8 +177,8 @@ class WebExtension extends Extension
     /**
      * Loads the templating configuration.
      *
-     * @param array                                                        $config        An array of configuration settings
-     * @param \Symfony\Components\DependencyInjection\ContainerBuilder $container A ContainerBuilder instance
+     * @param array            $config        An array of configuration settings
+     * @param ContainerBuilder $container A ContainerBuilder instance
      */
     public function templatingLoad($config, ContainerBuilder $container)
     {

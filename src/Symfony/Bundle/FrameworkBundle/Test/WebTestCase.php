@@ -5,6 +5,7 @@ namespace Symfony\Bundle\FrameworkBundle\Test;
 use Symfony\Framework\Test\WebTestCase as BaseWebTestCase;
 use Symfony\Components\Finder\Finder;
 use Symfony\Components\HttpFoundation\Response;
+use Symfony\Components\HttpKernel\HttpKernelInterface;
 
 /*
  * This file is part of the Symfony package.
@@ -18,8 +19,6 @@ use Symfony\Components\HttpFoundation\Response;
 /**
  * WebTestCase is the base class for functional tests.
  *
- * @package    Symfony
- * @subpackage Bundle_FrameworkBundle
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  */
 abstract class WebTestCase extends BaseWebTestCase
@@ -37,7 +36,7 @@ abstract class WebTestCase extends BaseWebTestCase
      *
      * @param array $options An array of options
      *
-     * @return Symfony\Components\HttpKernel\HttpKernelInterface A HttpKernelInterface instance
+     * @return HttpKernelInterface A HttpKernelInterface instance
      */
     protected function createKernel(array $options = array())
     {

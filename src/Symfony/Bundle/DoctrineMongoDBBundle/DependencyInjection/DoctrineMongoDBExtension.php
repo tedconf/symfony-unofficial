@@ -16,7 +16,7 @@ use Symfony\Components\DependencyInjection\Resource\FileResource;
  * @author Kris Wallsmith <kris.wallsmith@symfony-project.com>
  * @author Jonathan H. Wage <jonwage@gmail.com>
  */
-class MongoDBExtension extends Extension
+class DoctrineMongoDBExtension extends Extension
 {
     protected $resources = array(
         'mongodb' => 'mongodb.xml',
@@ -74,9 +74,11 @@ class MongoDBExtension extends Extension
      */
     protected function loadDefaults(array $config, ContainerBuilder $container)
     {
-        // Load DoctrineMongoDBBundle/Resources/config/mongodb.xml
-        $loader = new XmlFileLoader($container, __DIR__.'/../Resources/config');
-        $loader->load($this->resources['mongodb']);
+        if (!$container->hasDefinition('doctrine.odm.mongodb.metadata.annotation')) {
+            // Load DoctrineMongoDBBundle/Resources/config/mongodb.xml
+            $loader = new XmlFileLoader($container, __DIR__.'/../Resources/config');
+            $loader->load($this->resources['mongodb']);
+        }
 
         // Allow these application configuration options to override the defaults
         $options = array(
@@ -85,7 +87,8 @@ class MongoDBExtension extends Extension
             'cache_driver',
             'metadata_cache_driver',
             'proxy_namespace',
-            'auto_generate_proxy_classes'
+            'auto_generate_proxy_classes',
+            'default_database',
         );
         foreach ($options as $key) {
             if (isset($config[$key])) {
@@ -120,6 +123,7 @@ class MongoDBExtension extends Extension
     protected function loadDocumentManager(array $documentManager, ContainerBuilder $container)
     {
         $defaultDocumentManager = $container->getParameter('doctrine.odm.mongodb.default_document_manager');
+        $defaultDatabase = isset($documentManager['default_database']) ? $documentManager['default_database'] : $container->getParameter('doctrine.odm.mongodb.default_database');
         $proxyCacheDir = $this->kernelCacheDir . '/doctrine/odm/mongodb/Proxies';
 
         $odmConfigDef = new Definition('%doctrine.odm.mongodb.configuration_class%');
@@ -130,10 +134,11 @@ class MongoDBExtension extends Extension
 
         $methods = array(
             'setMetadataCacheImpl' => new Reference(sprintf('doctrine.odm.mongodb.%s_metadata_cache', $documentManager['name'])),
-            'setMetadataDriverImpl' => new Reference('doctrine.odm.mongodb.metadata_driver'),
+            'setMetadataDriverImpl' => new Reference('doctrine.odm.mongodb.metadata'),
             'setProxyDir' => $proxyCacheDir,
             'setProxyNamespace' => $container->getParameter('doctrine.odm.mongodb.proxy_namespace'),
-            'setAutoGenerateProxyClasses' => $container->getParameter('doctrine.odm.mongodb.auto_generate_proxy_classes')
+            'setAutoGenerateProxyClasses' => $container->getParameter('doctrine.odm.mongodb.auto_generate_proxy_classes'),
+            'setDefaultDB' => $defaultDatabase,
         );
         foreach ($methods as $method => $arg) {
             $odmConfigDef->addMethodCall($method, array($arg));
@@ -214,7 +219,7 @@ class MongoDBExtension extends Extension
 
             if ($type !== null) {
                 $mappingDriverDef->addMethodCall('addDriver', array(
-                        new Reference(sprintf('doctrine.odm.mongodb.metadata_driver.%s', $type)),
+                        new Reference(sprintf('doctrine.odm.mongodb.metadata.%s', $type)),
                         $namespace.'\\'.$class.'\\Document'
                     )
                 );
@@ -222,7 +227,7 @@ class MongoDBExtension extends Extension
         }
         $odmConfigDef->addMethodCall('setDocumentNamespaces', array($aliasMap));
 
-        $container->setDefinition('doctrine.odm.mongodb.metadata_driver', $mappingDriverDef);
+        $container->setDefinition('doctrine.odm.mongodb.metadata', $mappingDriverDef);
     }
 
     /**
@@ -238,7 +243,7 @@ class MongoDBExtension extends Extension
         $type = is_array($dmMetadataCacheDriver) && isset($dmMetadataCacheDriver['type']) ? $dmMetadataCacheDriver['type'] : $dmMetadataCacheDriver;
 
         if ($type === 'memcache') {
-            $memcacheClass = isset($dmMetadataCacheDriver['class']) ? $dmMetadataCacheDriver['class'] : '%'.sprintf('doctrine.odm.mongodb.cache.%s_class', $type).'%';
+            $memcacheClass = isset($dmMetadataCacheDriver['class']) ? $dmMetadataCacheDriver['class'] : sprintf('%%doctrine.odm.mongodb.cache.%s_class%%', $type);
             $cacheDef = new Definition($memcacheClass);
             $memcacheHost = isset($dmMetadataCacheDriver['host']) ? $dmMetadataCacheDriver['host'] : '%doctrine.odm.mongodb.cache.memcache_host%';
             $memcachePort = isset($dmMetadataCacheDriver['port']) ? $dmMetadataCacheDriver['port'] : '%doctrine.odm.mongodb.cache.memcache_port%';
@@ -248,7 +253,7 @@ class MongoDBExtension extends Extension
             $container->setDefinition(sprintf('doctrine.odm.mongodb.%s_memcache_instance', $documentManager['name']), $memcacheInstance);
             $cacheDef->addMethodCall('setMemcache', array(new Reference(sprintf('doctrine.odm.mongodb.%s_memcache_instance', $documentManager['name']))));
         } else {
-             $cacheDef = new Definition('%'.sprintf('doctrine.odm.mongodb.cache.%s_class', $type).'%');
+             $cacheDef = new Definition(sprintf('%%doctrine.odm.mongodb.cache.%s_class%%', $type));
         }
         $container->setDefinition(sprintf('doctrine.odm.mongodb.%s_metadata_cache', $documentManager['name']), $cacheDef);
     }

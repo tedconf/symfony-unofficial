@@ -17,8 +17,6 @@ namespace Symfony\Components\HttpFoundation;
  * This class knows about allowed attributes
  * (and those that only apply to requests or responses).
  *
- * @package    Symfony
- * @subpackage Components_HttpFoundation
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  */
 class CacheControl
@@ -30,9 +28,9 @@ class CacheControl
     /**
      * Constructor.
      *
-     * @param \Symfony\Components\HttpFoundation\HeaderBag $bag    A HeaderBag instance
-     * @param string                                       $header The value of the Cache-Control HTTP header
-     * @param string                                       $type   The type (null, request, or response)
+     * @param HeaderBag $bag    A HeaderBag instance
+     * @param string    $header The value of the Cache-Control HTTP header
+     * @param string    $type   The type (null, request, or response)
      */
     public function __construct(HeaderBag $bag, $header, $type = null)
     {

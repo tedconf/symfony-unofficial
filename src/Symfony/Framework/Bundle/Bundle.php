@@ -3,6 +3,7 @@
 namespace Symfony\Framework\Bundle;
 
 use Symfony\Components\DependencyInjection\ContainerInterface;
+use Symfony\Components\DependencyInjection\ContainerBuilder;
 use Symfony\Components\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Components\Console\Application;
 use Symfony\Components\Finder\Finder;
@@ -19,8 +20,6 @@ use Symfony\Components\Finder\Finder;
 /**
  * Bundle.
  *
- * @package    Symfony
- * @subpackage Framework
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  */
 abstract class Bundle implements BundleInterface
@@ -33,9 +32,9 @@ abstract class Bundle implements BundleInterface
     /**
      * Customizes the Container instance.
      *
-     * @param \Symfony\Components\DependencyInjection\ParameterBag\ParameterBagInterface $parameterBag A ParameterBagInterface instance
+     * @param ParameterBagInterface $parameterBag A ParameterBagInterface instance
      *
-     * @return \Symfony\Components\DependencyInjection\ContainerBuilder A ContainerBuilder instance
+     * @return ContainerBuilder A ContainerBuilder instance
      */
     public function buildContainer(ParameterBagInterface $parameterBag)
     {
@@ -44,7 +43,7 @@ abstract class Bundle implements BundleInterface
     /**
      * Boots the Bundle.
      *
-     * @param \Symfony\Components\DependencyInjection\ContainerInterface $container A ContainerInterface instance
+     * @param ContainerInterface $container A ContainerInterface instance
      */
     public function boot(ContainerInterface $container)
     {
@@ -53,7 +52,7 @@ abstract class Bundle implements BundleInterface
     /**
      * Shutdowns the Bundle.
      *
-     * @param \Symfony\Components\DependencyInjection\ContainerInterface $container A ContainerInterface instance
+     * @param ContainerInterface $container A ContainerInterface instance
      */
     public function shutdown(ContainerInterface $container)
     {
@@ -118,7 +117,7 @@ abstract class Bundle implements BundleInterface
     /**
      * Finds and registers commands for the current bundle.
      *
-     * @param Symfony\Components\Console\Application $application An Application instance
+     * @param Application $application An Application instance
      */
     public function registerCommands(Application $application)
     {

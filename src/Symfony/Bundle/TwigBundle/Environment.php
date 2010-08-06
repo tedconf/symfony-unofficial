@@ -16,8 +16,6 @@ use Symfony\Components\DependencyInjection\ContainerInterface;
 /**
  * TwigExtension.
  *
- * @package    Symfony
- * @subpackage Bundle_TwigBundle
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  */
 class Environment extends \Twig_Environment
@@ -26,7 +24,7 @@ class Environment extends \Twig_Environment
     {
         parent::__construct($loader, $options);
 
-        foreach ($container->findAnnotatedServiceIds('twig.extension') as $id => $attributes) {
+        foreach ($container->findTaggedServiceIds('twig.extension') as $id => $attributes) {
             $this->addExtension($container->get($id));
         }
     }

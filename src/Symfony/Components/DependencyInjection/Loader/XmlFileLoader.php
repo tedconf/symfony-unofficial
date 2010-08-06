@@ -20,8 +20,6 @@ use Symfony\Components\DependencyInjection\Resource\FileResource;
 /**
  * XmlFileLoader loads XML files service definitions.
  *
- * @package    Symfony
- * @subpackage Components_DependencyInjection
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  */
 class XmlFileLoader extends FileLoader
@@ -140,9 +138,9 @@ class XmlFileLoader extends FileLoader
             $definition->addMethodCall((string) $call['method'], $call->getArgumentsAsPhp('argument'));
         }
 
-        foreach ($service->annotation as $annotation) {
+        foreach ($service->tag as $tag) {
             $parameters = array();
-            foreach ($annotation->attributes() as $name => $value) {
+            foreach ($tag->attributes() as $name => $value) {
                 if ('name' === $name) {
                     continue;
                 }
@@ -150,7 +148,7 @@ class XmlFileLoader extends FileLoader
                 $parameters[$name] = SimpleXMLElement::phpize($value);
             }
 
-            $definition->addAnnotation((string) $annotation['name'], $parameters);
+            $definition->addTag((string) $tag['name'], $parameters);
         }
 
         $this->container->setDefinition($id, $definition);
