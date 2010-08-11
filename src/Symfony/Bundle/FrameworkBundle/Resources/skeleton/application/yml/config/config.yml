@@ -1,9 +1,6 @@
-parameters:
-    kernel.include_core_classes: false
-
 kernel.config:
-    charset:             UTF-8
-    error_handler_level: null
+    charset:       UTF-8
+    error_handler: null
 
 web.config:
     router: { resource: "%kernel.root_dir%/config/routing.yml" }

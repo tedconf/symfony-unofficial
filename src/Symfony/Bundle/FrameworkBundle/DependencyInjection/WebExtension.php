@@ -34,15 +34,6 @@ class WebExtension extends Extension
         'validation' => 'validator.xml',
     );
 
-    protected $bundleDirs = array();
-    protected $bundles = array();
-
-    public function __construct(array $bundleDirs, array $bundles)
-    {
-        $this->bundleDirs = $bundleDirs;
-        $this->bundles = $bundles;
-    }
-
     /**
      * Loads the web configuration.
      *
@@ -113,12 +104,12 @@ class WebExtension extends Extension
                 $messageFiles[] = __DIR__ . '/../../../Components/Validator/Resources/i18n/messages.en.xml';
                 $messageFiles[] = __DIR__ . '/../../../Components/Form/Resources/i18n/messages.en.xml';
 
-                foreach ($this->bundles as $className) {
+                foreach ($container->getParameter('kernel.bundles') as $className) {
                     $tmp = dirname(str_replace('\\', '/', $className));
                     $namespace = str_replace('/', '\\', dirname($tmp));
                     $bundle = basename($tmp);
 
-                    foreach ($this->bundleDirs as $dir) {
+                    foreach ($container->getParameter('kernel.bundle_dirs') as $dir) {
                         if (file_exists($file = $dir.'/'.$bundle.'/Resources/config/validation.xml')) {
                             $xmlMappingFiles[] = realpath($file);
                         }
@@ -172,6 +163,21 @@ class WebExtension extends Extension
                 $container->getDefinition('validator')->clearTags();
             }
         }
+
+        $container->setParameter('kernel.compiled_classes', array_merge($container->getParameter('kernel.compiled_classes'), array(
+            'Symfony\\Components\\EventDispatcher\\Event',
+            'Symfony\\Components\\HttpKernel\\ResponseListener',
+            'Symfony\\Bundle\\FrameworkBundle\\Controller',
+
+            // routing
+            'Symfony\\Components\\Routing\\RouterInterface',
+            'Symfony\\Components\\Routing\\Router',
+            'Symfony\\Components\\Routing\\Matcher\\UrlMatcherInterface',
+            'Symfony\\Components\\Routing\\Matcher\\UrlMatcher',
+            'Symfony\\Components\\Routing\\Generator\\UrlGeneratorInterface',
+            'Symfony\\Components\\Routing\\Generator\\UrlGenerator',
+            'Symfony\\Bundle\\FrameworkBundle\\RequestListener',
+        )));
     }
 
     /**
@@ -185,6 +191,10 @@ class WebExtension extends Extension
         if (!$container->hasDefinition('templating')) {
             $loader = new XmlFileLoader($container, __DIR__.'/../Resources/config');
             $loader->load($this->resources['templating']);
+
+            if ($container->getParameter('kernel.debug')) {
+                $loader->load('templating_debug.xml');
+            }
         }
 
         if (array_key_exists('escaping', $config)) {
@@ -194,6 +204,13 @@ class WebExtension extends Extension
         if (array_key_exists('assets_version', $config)) {
             $container->setParameter('templating.assets.version', $config['assets_version']);
         }
+
+        // template paths
+        $dirs = array('%kernel.root_dir%/views/%%bundle%%/%%controller%%/%%name%%%%format%%.%%renderer%%');
+        foreach ($container->getParameter('kernel.bundle_dirs') as $dir) {
+            $dirs[] = $dir.'/%%bundle%%/Resources/views/%%controller%%/%%name%%%%format%%.%%renderer%%';
+        }
+        $container->setParameter('templating.loader.filesystem.path', $dirs);
 
         // path for the filesystem loader
         if (isset($config['path'])) {
@@ -224,6 +241,20 @@ class WebExtension extends Extension
             $container->setDefinition('templating.loader', $container->getDefinition('templating.loader.cache'));
             $container->setParameter('templating.loader.cache.path', $config['cache']);
         }
+
+        // compilation
+        $container->setParameter('kernel.compiled_classes', array_merge($container->getParameter('kernel.compiled_classes'), array(
+            'Symfony\\Components\\Templating\\Loader\\LoaderInterface',
+            'Symfony\\Components\\Templating\\Loader\\Loader',
+            'Symfony\\Components\\Templating\\Loader\\FilesystemLoader',
+            'Symfony\\Components\\Templating\\Engine',
+            'Symfony\\Components\\Templating\\Renderer\\RendererInterface',
+            'Symfony\\Components\\Templating\\Renderer\\Renderer',
+            'Symfony\\Components\\Templating\\Renderer\\PhpRenderer',
+            'Symfony\\Components\\Templating\\Storage\\Storage',
+            'Symfony\\Components\\Templating\\Storage\\FileStorage',
+            'Symfony\\Bundle\\FrameworkBundle\\Templating\\Engine',
+        )));
     }
 
     /**

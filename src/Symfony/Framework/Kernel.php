@@ -14,8 +14,10 @@ use Symfony\Components\DependencyInjection\Loader\XmlFileLoader;
 use Symfony\Components\DependencyInjection\Loader\YamlFileLoader;
 use Symfony\Components\DependencyInjection\Loader\IniFileLoader;
 use Symfony\Components\DependencyInjection\Loader\PhpFileLoader;
+use Symfony\Components\DependencyInjection\Loader\ClosureLoader;
 use Symfony\Components\HttpFoundation\Request;
 use Symfony\Components\HttpKernel\HttpKernelInterface;
+use Symfony\Framework\ClassCollectionLoader;
 
 /*
  * This file is part of the Symfony package.
@@ -34,6 +36,8 @@ use Symfony\Components\HttpKernel\HttpKernelInterface;
  */
 abstract class Kernel implements HttpKernelInterface, \Serializable
 {
+    static protected $loaded;
+
     protected $bundles;
     protected $bundleDirs;
     protected $container;
@@ -106,8 +110,6 @@ abstract class Kernel implements HttpKernelInterface, \Serializable
      * This method boots the bundles, which MUST set
      * the DI container.
      *
-     * @return Kernel The current Kernel instance
-     *
      * @throws \LogicException When the Kernel is already booted
      */
     public function boot()
@@ -116,23 +118,28 @@ abstract class Kernel implements HttpKernelInterface, \Serializable
             throw new \LogicException('The kernel is already booted.');
         }
 
-        require_once __DIR__.'/bootstrap.php';
+        if (!$this->isDebug()) {
+            require_once __DIR__.'/bootstrap.php';
+        }
 
         $this->bundles = $this->registerBundles();
         $this->bundleDirs = $this->registerBundleDirs();
-
-        // initialize the container
         $this->container = $this->initializeContainer();
-        $this->container->set('kernel', $this);
 
-        // boot bundles
+        // load core classes
+        ClassCollectionLoader::load(
+            $this->container->getParameter('kernel.compiled_classes'),
+            $this->container->getParameter('kernel.cache_dir'),
+            'classes',
+            $this->container->getParameter('kernel.debug')
+        );
+
         foreach ($this->bundles as $bundle) {
-            $bundle->boot($this->container);
+            $bundle->setContainer($this->container);
+            $bundle->boot();
         }
 
         $this->booted = true;
-
-        return $this;
     }
 
     /**
@@ -145,7 +152,8 @@ abstract class Kernel implements HttpKernelInterface, \Serializable
         $this->booted = false;
 
         foreach ($this->bundles as $bundle) {
-            $bundle->shutdown($this->container);
+            $bundle->shutdown();
+            $bundle->setContainer(null);
         }
 
         $this->container = null;
@@ -190,14 +198,14 @@ abstract class Kernel implements HttpKernelInterface, \Serializable
         }
 
         if (null === $request) {
-            $request = $this->container->getRequestService();
+            $request = $this->container->get('request');
+        } else {
+            $this->container->set('request', $request);
         }
 
         if (HttpKernelInterface::MASTER_REQUEST === $type) {
             $this->request = $request;
         }
-
-        $this->container->set('request', $request);
 
         $response = $this->container->getHttpKernelService()->handle($request, $type, $raw);
 
@@ -224,6 +232,25 @@ abstract class Kernel implements HttpKernelInterface, \Serializable
     public function getBundles()
     {
         return $this->bundles;
+    }
+
+    /**
+     * Checks if a given class name belongs to an active bundle.
+     *
+     * @param string $class A class name
+     *
+     * @return Boolean true if the class belongs to an active bundle, false otherwise
+     */
+    public function isClassInActiveBundle($class)
+    {
+        foreach ($this->bundles as $bundle) {
+            $bundleClass = get_class($bundle);
+            if (0 === strpos($class, substr($bundleClass, 0, strrpos($bundleClass, '\\')))) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public function getName()
@@ -283,7 +310,10 @@ abstract class Kernel implements HttpKernelInterface, \Serializable
 
         require_once $location.'.php';
 
-        return new $class();
+        $container = new $class();
+        $container->set('kernel', $this);
+
+        return $container;
     }
 
     public function getKernelParameters()
@@ -295,15 +325,16 @@ abstract class Kernel implements HttpKernelInterface, \Serializable
 
         return array_merge(
             array(
-                'kernel.root_dir'    => $this->rootDir,
-                'kernel.environment' => $this->environment,
-                'kernel.debug'       => $this->debug,
-                'kernel.name'        => $this->name,
-                'kernel.cache_dir'   => $this->getCacheDir(),
-                'kernel.logs_dir'    => $this->getLogDir(),
-                'kernel.bundle_dirs' => $this->bundleDirs,
-                'kernel.bundles'     => $bundles,
-                'kernel.charset'     => 'UTF-8',
+                'kernel.root_dir'         => $this->rootDir,
+                'kernel.environment'      => $this->environment,
+                'kernel.debug'            => $this->debug,
+                'kernel.name'             => $this->name,
+                'kernel.cache_dir'        => $this->getCacheDir(),
+                'kernel.logs_dir'         => $this->getLogDir(),
+                'kernel.bundle_dirs'      => $this->bundleDirs,
+                'kernel.bundles'          => $bundles,
+                'kernel.charset'          => 'UTF-8',
+                'kernel.compiled_classes' => array(),
             ),
             $this->getEnvParameters()
         );
@@ -344,9 +375,7 @@ abstract class Kernel implements HttpKernelInterface, \Serializable
 
         $container = new ContainerBuilder($parameterBag);
         foreach ($this->bundles as $bundle) {
-            if (null !== $c = $bundle->buildContainer($parameterBag)) {
-                $container->merge($c);
-            }
+            $bundle->registerExtensions($container);
 
             if ($this->debug) {
                 $container->addObjectResource($bundle);
@@ -392,32 +421,42 @@ abstract class Kernel implements HttpKernelInterface, \Serializable
             new YamlFileLoader($container, $this->getBundleDirs()),
             new IniFileLoader($container, $this->getBundleDirs()),
             new PhpFileLoader($container, $this->getBundleDirs()),
+            new ClosureLoader($container),
         ));
 
         return new DelegatingLoader($resolver);
     }
 
+    /**
+     * Removes comments from a PHP source string.
+     *
+     * We don't use the PHP php_strip_whitespace() function
+     * as we want the content to be readable and well-formatted.
+     *
+     * @param string $source A PHP string
+     *
+     * @return string The PHP string with the comments removed
+     */
     static public function stripComments($source)
     {
         if (!function_exists('token_get_all')) {
             return $source;
         }
 
-        $ignore = array(T_COMMENT => true, T_DOC_COMMENT => true);
         $output = '';
         foreach (token_get_all($source) as $token) {
-            // array
-            if (isset($token[1])) {
-                // no action on comments
-                if (!isset($ignore[$token[0]])) {
-                    // anything else -> output "as is"
-                    $output .= $token[1];
-                }
-            } else {
-                // simple 1-character token
+            if (is_string($token)) {
                 $output .= $token;
+            } elseif (!in_array($token[0], array(T_COMMENT, T_DOC_COMMENT))) {
+                $output .= $token[1];
             }
         }
+
+        // replace multiple new lines with a single newline
+        $output = preg_replace(array('/\s+$/Sm', '/\n+/S'), "\n", $output);
+
+        // reformat {} "a la python"
+        $output = preg_replace(array('/\n\s*\{/', '/\n\s*\}/'), array(' {', ' }'), $output);
 
         return $output;
     }

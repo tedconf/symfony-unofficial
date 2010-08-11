@@ -3,9 +3,6 @@
 namespace Symfony\Bundle\TwigBundle;
 
 use Symfony\Framework\Bundle\Bundle;
-use Symfony\Components\DependencyInjection\ParameterBag\ParameterBagInterface;
-use Symfony\Components\DependencyInjection\ContainerBuilder;
-use Symfony\Bundle\TwigBundle\DependencyInjection\TwigExtension;
 
 /*
  * This file is part of the Symfony package.
@@ -23,15 +20,4 @@ use Symfony\Bundle\TwigBundle\DependencyInjection\TwigExtension;
  */
 class TwigBundle extends Bundle
 {
-    /**
-     * Customizes the Container instance.
-     *
-     * @param ParameterBagInterface $parameterBag A ParameterBagInterface instance
-     *
-     * @return ContainerBuilder A ContainerBuilder instance
-     */
-    public function buildContainer(ParameterBagInterface $parameterBag)
-    {
-        ContainerBuilder::registerExtension(new TwigExtension());
-    }
 }

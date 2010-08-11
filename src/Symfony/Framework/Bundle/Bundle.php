@@ -24,37 +24,33 @@ use Symfony\Components\Finder\Finder;
  */
 abstract class Bundle implements BundleInterface
 {
+    protected $container;
     protected $name;
     protected $namespacePrefix;
     protected $path;
     protected $reflection;
 
     /**
-     * Customizes the Container instance.
+     * Sets the Container associated with this bundle.
      *
-     * @param ParameterBagInterface $parameterBag A ParameterBagInterface instance
-     *
-     * @return ContainerBuilder A ContainerBuilder instance
+     * @param ContainerInterface $container A ContainerInterface instance
      */
-    public function buildContainer(ParameterBagInterface $parameterBag)
+    public function setContainer(ContainerInterface $container = null)
     {
+        $this->container = $container;
     }
 
     /**
      * Boots the Bundle.
-     *
-     * @param ContainerInterface $container A ContainerInterface instance
      */
-    public function boot(ContainerInterface $container)
+    public function boot()
     {
     }
 
     /**
      * Shutdowns the Bundle.
-     *
-     * @param ContainerInterface $container A ContainerInterface instance
      */
-    public function shutdown(ContainerInterface $container)
+    public function shutdown()
     {
     }
 
@@ -115,7 +111,36 @@ abstract class Bundle implements BundleInterface
     }
 
     /**
-     * Finds and registers commands for the current bundle.
+     * Finds and registers Dependency Injection Container extensions.
+     *
+     * Override this method if your DIC extensions do not follow the conventions:
+     *
+     * * Extensions are in the 'DependencyInjection/' sub-directory
+     * * Extension class names ends with 'Extension'
+     *
+     * @param ContainerBuilder $container A ContainerBuilder instance
+     */
+    public function registerExtensions(ContainerBuilder $container)
+    {
+        if (!$dir = realpath($this->getPath().'/DependencyInjection')) {
+            return array();
+        }
+
+        $finder = new Finder();
+        $finder->files()->name('*Extension.php')->in($dir);
+
+        $prefix = $this->namespacePrefix.'\\'.$this->name.'\\DependencyInjection';
+        foreach ($finder as $file) {
+            $class = $prefix.strtr($file->getPath(), array($dir => '', '/' => '\\')).'\\'.basename($file, '.php');
+
+            if ('Extension' === substr($class, -9)) {
+                $container->registerExtension(new $class());
+            }
+        }
+    }
+
+    /**
+     * Finds and registers Commands.
      *
      * @param Application $application An Application instance
      */
