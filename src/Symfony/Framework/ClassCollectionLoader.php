@@ -18,11 +18,20 @@ namespace Symfony\Framework;
  */
 class ClassCollectionLoader
 {
+    static protected $loaded;
+
     /**
      * @throws \InvalidArgumentException When class can't be loaded
      */
     static public function load($classes, $cacheDir, $name, $autoReload)
     {
+        // each $name can only be loaded once per PHP process
+        if (isset(self::$loaded[$name])) {
+            return;
+        }
+
+        self::$loaded[$name] = true;
+
         $classes = array_unique($classes);
 
         $cache = $cacheDir.'/'.$name.'.php';
@@ -85,20 +94,12 @@ class ClassCollectionLoader
     static protected function writeCacheFile($file, $content)
     {
         $tmpFile = tempnam(dirname($file), basename($file));
-        if (!$fp = @fopen($tmpFile, 'wb')) {
-            die(sprintf('Failed to write cache file "%s".', $tmpFile));
-        }
-        @fwrite($fp, $content);
-        @fclose($fp);
+        if (false !== @file_put_contents($tmpFile, $content) && @rename($tmpFile, $file)) {
+            chmod($file, 0644);
 
-        if ($content != file_get_contents($tmpFile)) {
-            die(sprintf('Failed to write cache file "%s" (cache corrupted).', $tmpFile));
+            return;
         }
 
-        if (!@rename($tmpFile, $file)) {
-            throw new \RuntimeException(sprintf('Failed to write cache file "%s".', $file));
-        }
-
-        chmod($file, 0644);
+        throw new \RuntimeException(sprintf('Failed to write cache file "%s".', $file));
     }
 }

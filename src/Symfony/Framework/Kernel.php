@@ -36,8 +36,6 @@ use Symfony\Framework\ClassCollectionLoader;
  */
 abstract class Kernel implements HttpKernelInterface, \Serializable
 {
-    static protected $loaded;
-
     protected $bundles;
     protected $bundleDirs;
     protected $container;
@@ -186,7 +184,7 @@ abstract class Kernel implements HttpKernelInterface, \Serializable
      * Handles a request to convert it to a response by calling the HttpKernel service.
      *
      * @param  Request $request A Request instance
-     * @param  integer $type    The type of the request (one of HttpKernelInterface::MASTER_REQUEST, HttpKernelInterface::FORWARDED_REQUEST, or HttpKernelInterface::EMBEDDED_REQUEST)
+     * @param  integer $type    The type of the request (one of HttpKernelInterface::MASTER_REQUEST or HttpKernelInterface::SUB_REQUEST)
      * @param  Boolean $raw     Whether to catch exceptions or not
      *
      * @return Response $response A Response instance
@@ -464,21 +462,13 @@ abstract class Kernel implements HttpKernelInterface, \Serializable
     protected function writeCacheFile($file, $content)
     {
         $tmpFile = tempnam(dirname($file), basename($file));
-        if (!$fp = @fopen($tmpFile, 'wb')) {
-            die(sprintf('Failed to write cache file "%s".', $tmpFile));
-        }
-        @fwrite($fp, $content);
-        @fclose($fp);
+        if (false !== @file_put_contents($tmpFile, $content) && @rename($tmpFile, $file)) {
+            chmod($file, 0644);
 
-        if ($content != file_get_contents($tmpFile)) {
-            die(sprintf('Failed to write cache file "%s" (cache corrupted).', $tmpFile));
+            return;
         }
 
-        if (!@rename($tmpFile, $file)) {
-            throw new \RuntimeException(sprintf('Failed to write cache file "%s".', $file));
-        }
-
-        chmod($file, 0644);
+        throw new \RuntimeException(sprintf('Failed to write cache file "%s".', $file));
     }
 
     public function serialize()
