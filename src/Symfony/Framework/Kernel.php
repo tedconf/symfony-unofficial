@@ -2,21 +2,21 @@
 
 namespace Symfony\Framework;
 
-use Symfony\Components\DependencyInjection\ContainerInterface;
-use Symfony\Components\DependencyInjection\ContainerBuilder;
-use Symfony\Components\DependencyInjection\Dumper\PhpDumper;
-use Symfony\Components\DependencyInjection\Resource\FileResource;
-use Symfony\Components\DependencyInjection\ParameterBag\ParameterBag;
-use Symfony\Components\DependencyInjection\Loader\DelegatingLoader;
-use Symfony\Components\DependencyInjection\Loader\LoaderResolver;
-use Symfony\Components\DependencyInjection\Loader\LoaderInterface;
-use Symfony\Components\DependencyInjection\Loader\XmlFileLoader;
-use Symfony\Components\DependencyInjection\Loader\YamlFileLoader;
-use Symfony\Components\DependencyInjection\Loader\IniFileLoader;
-use Symfony\Components\DependencyInjection\Loader\PhpFileLoader;
-use Symfony\Components\DependencyInjection\Loader\ClosureLoader;
-use Symfony\Components\HttpFoundation\Request;
-use Symfony\Components\HttpKernel\HttpKernelInterface;
+use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Dumper\PhpDumper;
+use Symfony\Component\DependencyInjection\Resource\FileResource;
+use Symfony\Component\DependencyInjection\ParameterBag\ParameterBag;
+use Symfony\Component\DependencyInjection\Loader\DelegatingLoader;
+use Symfony\Component\DependencyInjection\Loader\LoaderResolver;
+use Symfony\Component\DependencyInjection\Loader\LoaderInterface;
+use Symfony\Component\DependencyInjection\Loader\XmlFileLoader;
+use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
+use Symfony\Component\DependencyInjection\Loader\IniFileLoader;
+use Symfony\Component\DependencyInjection\Loader\PhpFileLoader;
+use Symfony\Component\DependencyInjection\Loader\ClosureLoader;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Framework\ClassCollectionLoader;
 
 /*
@@ -129,7 +129,8 @@ abstract class Kernel implements HttpKernelInterface, \Serializable
             $this->container->getParameter('kernel.compiled_classes'),
             $this->container->getParameter('kernel.cache_dir'),
             'classes',
-            $this->container->getParameter('kernel.debug')
+            $this->container->getParameter('kernel.debug'),
+            true
         );
 
         foreach ($this->bundles as $bundle) {
@@ -249,6 +250,23 @@ abstract class Kernel implements HttpKernelInterface, \Serializable
         }
 
         return false;
+    }
+
+    /**
+     * Returns the Bundle name for a given class.
+     *
+     * @param string $class A class name
+     *
+     * @return string The Bundle name or null if the class does not belongs to a bundle
+     */
+    public function getBundleForClass($class)
+    {
+        $namespace = substr($class, 0, strrpos($class, '\\'));
+        foreach (array_keys($this->getBundleDirs()) as $prefix) {
+            if (0 === $pos = strpos($namespace, $prefix)) {
+                return substr($namespace, strlen($prefix) + 1, strpos($class, 'Bundle\\') + 7);
+            }
+        }
     }
 
     public function getName()
