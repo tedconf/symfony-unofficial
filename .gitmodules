@@ -1,9 +1,6 @@
 [submodule "lib/vendor/lime"]
 	path = lib/vendor/lime
 	url = git@github.com:tedconf/lime-unofficial.git
-[submodule "lib/plugins/sfPropelPlugin/lib/vendor/phing"]
-	path = lib/plugins/sfPropelPlugin/lib/vendor/phing
-	url = git@github.com:tedconf/phing-unofficial.git
 [submodule "propel"]
 	path = propel
 	url = git@github.com:tedconf/propel-unofficial.git
@@ -13,3 +10,6 @@
 [submodule "doctrine"]
 	path = doctrine
 	url = git@github.com:tedconf/doctrine-unofficial.git
+[submodule "phing"]
+	path = phing
+	url = git@github.com:tedconf/phing-unofficial.git
