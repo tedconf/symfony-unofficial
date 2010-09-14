@@ -1,6 +1,3 @@
-[submodule "lib/vendor/lime"]
-	path = lib/vendor/lime
-	url = git@github.com:tedconf/lime-unofficial.git
 [submodule "propel"]
 	path = propel
 	url = git@github.com:tedconf/propel-unofficial.git
