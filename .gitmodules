@@ -13,3 +13,6 @@
 [submodule "phing"]
 	path = phing
 	url = git@github.com:tedconf/phing-unofficial.git
+[submodule "externals/lime"]
+	path = externals/lime
+	url = git@github.com:tedconf/lime-unofficial.git
