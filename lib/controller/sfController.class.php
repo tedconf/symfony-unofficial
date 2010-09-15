@@ -203,7 +203,12 @@ abstract class sfController
     $this->getActionStack()->addEntry($moduleName, $actionName, $actionInstance);
 
     // include module configuration
+    $viewClass = sfConfig::get('mod_'.strtolower($moduleName).'_view_class', false);
     require($this->context->getConfigCache()->checkConfig('modules/'.$moduleName.'/config/module.yml'));
+    if (false !== $viewClass)
+    {
+      sfConfig::set('mod_'.strtolower($moduleName).'_view_class', $viewClass);
+    }
 
     // check if this module is internal
     if ($this->getActionStack()->getSize() == 1 && sfConfig::get('mod_'.strtolower($moduleName).'_is_internal') && !sfConfig::get('sf_test'))
