@@ -160,7 +160,7 @@ class sfDomCssSelector implements Countable, Iterator
           $nodes = array();
           foreach ($founds as $found)
           {
-            if (preg_match('/\b'.$className.'\b/', $found->getAttribute('class')))
+            if (preg_match('/(^|\s+)'.$className.'($|\s+)/', $found->getAttribute('class')))
             {
               $nodes[] = $found;
             }
