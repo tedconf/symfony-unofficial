@@ -1,15 +1,9 @@
 [submodule ".externals/yaml"]
 	path = .externals/yaml
 	url = git://github.com/fabpot/yaml.git
-[submodule ".externals/propel"]
-	path = .externals/propel
-	url = git://github.com/propelorm/Propel.git
 [submodule ".externals/event-dispatcher"]
 	path = .externals/event-dispatcher
 	url = git://github.com/fabpot/event-dispatcher.git
 [submodule ".externals/lime"]
 	path = .externals/lime
 	url = git@github.com:tedconf/lime-unofficial.git
-[submodule ".externals/phing"]
-	path = .externals/phing
-	url = git@github.com:tedconf/phing-unofficial.git
